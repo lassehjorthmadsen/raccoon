@@ -1,6 +1,6 @@
 # Raccoon
 
-A backgammon AI engine that uses AlphaZero-style reinforcement learning to (mnaybe someday) outperform GNUBG at money game play. The name "Raccoon" is a nod to the doubling cube term in backgammon.
+A backgammon AI engine that uses AlphaZero-style reinforcement learning to (maybe someday) outperform GNUBG at money game play. The name "Raccoon" is a nod to the doubling cube term in backgammon.
 
 ## Why?
 
