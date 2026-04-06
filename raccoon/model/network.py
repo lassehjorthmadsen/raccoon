@@ -38,6 +38,14 @@ class RaccoonNet(nn.Module):
         num_blocks: int = 6,
     ):
         super().__init__()
+        self.config = {
+            "channels": channels,
+            "num_blocks": num_blocks,
+            "in_channels": in_channels,
+            "board_h": board_h,
+            "board_w": board_w,
+            "num_actions": num_actions,
+        }
         self.board_h = board_h
         self.board_w = board_w
         self.num_actions = num_actions
@@ -129,6 +137,7 @@ def save_checkpoint(
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "step": step,
+            "config": model.config,
             **extra,
         },
         path,
@@ -145,3 +154,15 @@ def load_checkpoint(
     if optimizer is not None and "optimizer_state_dict" in checkpoint:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     return checkpoint
+
+
+def load_model(path: str) -> RaccoonNet:
+    """Create a RaccoonNet from a checkpoint, using its saved config.
+
+    Falls back to default config for older checkpoints without config.
+    """
+    checkpoint = torch.load(path, weights_only=False)
+    config = checkpoint.get("config", {})
+    model = RaccoonNet(**config)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    return model

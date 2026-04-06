@@ -92,13 +92,18 @@ class Coach:
     def self_play_phase(self):
         """Generate training data through self-play."""
         game_results = []
-        for _ in range(self.games_per_iteration):
+        for g in range(self.games_per_iteration):
+            print(
+                f"\r  Self-play: game {g + 1}/{self.games_per_iteration}",
+                end="", flush=True,
+            )
             result = play_one_game(
                 self.network,
                 num_simulations=self.num_simulations,
             )
             self.replay_buffer.add_game(result.examples)
             game_results.append(result)
+        print()
         return game_results
 
     def training_phase(self) -> dict[str, float]:
@@ -140,7 +145,17 @@ class Coach:
 
     def save_checkpoint(self, iteration: int) -> None:
         path = self.checkpoint_dir / f"iter_{iteration:04d}.pt"
-        save_checkpoint(self.network, self.optimizer, step=iteration, path=str(path))
+        training = {
+            "games_per_iteration": self.games_per_iteration,
+            "training_steps_per_iteration": self.training_steps_per_iteration,
+            "num_simulations": self.num_simulations,
+            "batch_size": self.batch_size,
+            "total_games": (iteration + 1) * self.games_per_iteration,
+        }
+        save_checkpoint(
+            self.network, self.optimizer, step=iteration, path=str(path),
+            training=training,
+        )
 
     def log_metrics(self, iteration: int, metrics: dict) -> None:
         log_path = self.log_dir / "training_log.jsonl"

@@ -504,9 +504,9 @@ python scripts/evaluate.py --checkpoint1 checkpoints/iter_100.pt --random --game
 ```
 
 ### M5 Pass Condition
-Arena works. After ~50 training iterations (even on CPU), the latest checkpoint beats:
-- Random play with >70% win rate
-- An earlier checkpoint (e.g., iteration 5 vs iteration 50) with >55% win rate
+Arena works. After ~50 training iterations (even on CPU), the latest checkpoint shows:
+- Positive average equity (>+0.3 ppg) against a random (untrained) network
+- Positive average equity (>+0.05 ppg) against an earlier checkpoint (e.g., iteration 5 vs iteration 50)
 
 ---
 
@@ -585,7 +585,7 @@ def save_match_log(games: list[GameRecord], path: str): ...
 ```
 
 ### M6 Pass Condition
-The GNUBG harness completes a 100+ game automated match without crashing. Results are logged. Win rate and equity are computed with confidence intervals.
+The GNUBG harness completes a 100+ game automated money game session without crashing. Results are logged. Win rate and equity in point-per-game, ppg, are computed with confidence intervals.
 
 ---
 

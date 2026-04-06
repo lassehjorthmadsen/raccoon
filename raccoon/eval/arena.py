@@ -1,21 +1,25 @@
 """Checkpoint vs checkpoint evaluation arena."""
 
+import sys
 from dataclasses import dataclass
 
-from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameWrapper
 from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import MCTS, select_action, _advance_through_chance
 
 
 @dataclass
-class MatchResult:
+class SessionResult:
     wins_p1: int
     wins_p2: int
-    p1_equity: float
-    p2_equity: float
+    p1_points: float
+    p2_points: float
     num_games: int
     total_moves: int
+    p1_gammons_won: int = 0
+    p1_backgammons_won: int = 0
+    p2_gammons_won: int = 0
+    p2_backgammons_won: int = 0
 
     @property
     def win_rate_p1(self) -> float:
@@ -25,11 +29,17 @@ class MatchResult:
     def avg_game_length(self) -> float:
         return self.total_moves / self.num_games if self.num_games else 0.0
 
+    @property
+    def equity(self) -> float:
+        """Average points won/lost per game (from P1's perspective)."""
+        return self.p1_points / self.num_games if self.num_games else 0.0
+
     def summary(self) -> str:
         return (
             f"P1 wins: {self.wins_p1}/{self.num_games} ({self.win_rate_p1:.1%}), "
-            f"P1 equity: {self.p1_equity:+.1f}, "
-            f"P2 equity: {self.p2_equity:+.1f}, "
+            f"Equity: {self.equity:+.3f} ppg, "
+            f"P1 gammons/bg: {self.p1_gammons_won}/{self.p1_backgammons_won}, "
+            f"P2 gammons/bg: {self.p2_gammons_won}/{self.p2_backgammons_won}, "
             f"Avg length: {self.avg_game_length:.0f} moves"
         )
 
@@ -49,19 +59,32 @@ class Arena:
         self.num_games = num_games
         self.num_simulations = num_simulations
 
-    def play_match(self) -> MatchResult:
+    def play_session(self) -> SessionResult:
         """Play num_games, alternating who goes first."""
         wrapper = GameWrapper()
         wins_p1 = 0
         wins_p2 = 0
-        p1_equity = 0.0
-        p2_equity = 0.0
+        p1_points = 0.0
+        p2_points = 0.0
         total_moves = 0
+        p1_gammons_won = 0
+        p1_backgammons_won = 0
+        p2_gammons_won = 0
+        p2_backgammons_won = 0
 
         mcts1 = MCTS(self.player1, num_simulations=self.num_simulations)
         mcts2 = MCTS(self.player2, num_simulations=self.num_simulations)
 
         for game_idx in range(self.num_games):
+            done = game_idx + 1
+            equity = p1_points / game_idx if game_idx else 0.0
+            print(
+                f"\rGame {done}/{self.num_games}  "
+                f"P1 {wins_p1}-{wins_p2}  "
+                f"Equity: {equity:+.3f} ppg",
+                end="", flush=True,
+            )
+
             # Alternate who is OpenSpiel player 0
             # Even games: p1=player0, odd games: p1=player1
             p1_is_player0 = (game_idx % 2 == 0)
@@ -89,26 +112,40 @@ class Arena:
             total_moves += moves
 
             if state.is_terminal():
-                equity, _ = state.terminal_result()
+                equity, result_type = state.terminal_result()
                 # equity is from OpenSpiel player 0's perspective
                 if p1_is_player0:
-                    game_equity_p1 = equity
+                    game_points_p1 = equity
                 else:
-                    game_equity_p1 = -equity
+                    game_points_p1 = -equity
 
-                p1_equity += game_equity_p1
-                p2_equity -= game_equity_p1
+                p1_points += game_points_p1
+                p2_points -= game_points_p1
 
-                if game_equity_p1 > 0:
+                if game_points_p1 > 0:
                     wins_p1 += 1
-                elif game_equity_p1 < 0:
+                    if result_type == "gammon":
+                        p1_gammons_won += 1
+                    elif result_type == "backgammon":
+                        p1_backgammons_won += 1
+                elif game_points_p1 < 0:
                     wins_p2 += 1
+                    if result_type == "gammon":
+                        p2_gammons_won += 1
+                    elif result_type == "backgammon":
+                        p2_backgammons_won += 1
 
-        return MatchResult(
+        print()  # newline after progress
+
+        return SessionResult(
             wins_p1=wins_p1,
             wins_p2=wins_p2,
-            p1_equity=p1_equity,
-            p2_equity=p2_equity,
+            p1_points=p1_points,
+            p2_points=p2_points,
             num_games=self.num_games,
             total_moves=total_moves,
+            p1_gammons_won=p1_gammons_won,
+            p1_backgammons_won=p1_backgammons_won,
+            p2_gammons_won=p2_gammons_won,
+            p2_backgammons_won=p2_backgammons_won,
         )
