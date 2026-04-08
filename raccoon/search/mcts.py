@@ -3,12 +3,33 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameState
 from raccoon.model.network import RaccoonNet
+
+
+@dataclass
+class Candidate:
+    """A single candidate move from MCTS analysis."""
+
+    action: int
+    visits: int
+    visit_prob: float
+    prior: float
+    q_value: float  # from the side-to-move's perspective
+
+
+@dataclass
+class Analysis:
+    """Full MCTS analysis of a position, for display/debugging."""
+
+    candidates: list[Candidate]  # sorted by visits desc
+    root_value: float            # network value estimate at the root
+    num_simulations: int
 
 
 class MCTSNode:
@@ -69,14 +90,67 @@ class MCTS:
 
     def search(self, state: GameState) -> dict[int, float]:
         """Run MCTS and return action -> visit count proportion."""
+        root, _ = self._run(state)
+        if root is None:
+            return {}
+
+        total_visits = sum(
+            child.visit_count for child in root.children.values()
+        )
+        if total_visits == 0:
+            return {}
+        return {
+            action: child.visit_count / total_visits
+            for action, child in root.children.items()
+        }
+
+    def analyze(self, state: GameState) -> Analysis:
+        """Run MCTS and return a full Analysis with per-candidate stats."""
+        root, root_value = self._run(state)
+        if root is None:
+            return Analysis(candidates=[], root_value=0.0, num_simulations=0)
+
+        total_visits = sum(
+            child.visit_count for child in root.children.values()
+        )
+        candidates: list[Candidate] = []
+        for action, child in root.children.items():
+            visit_prob = (
+                child.visit_count / total_visits if total_visits else 0.0
+            )
+            # child.q_value is from the child's side-to-move perspective,
+            # which is the opponent of the root player; negate to express
+            # the candidate's value from the root player's perspective.
+            q_from_root = -child.q_value
+            candidates.append(
+                Candidate(
+                    action=action,
+                    visits=child.visit_count,
+                    visit_prob=visit_prob,
+                    prior=child.prior,
+                    q_value=q_from_root,
+                )
+            )
+        candidates.sort(key=lambda c: c.visits, reverse=True)
+        return Analysis(
+            candidates=candidates,
+            root_value=root_value,
+            num_simulations=self.num_simulations,
+        )
+
+    def _run(self, state: GameState) -> tuple[MCTSNode | None, float]:
+        """Run the full MCTS loop and return (root, root_value).
+
+        Returns (None, 0.0) if the root state is terminal (no moves).
+        """
         root_state = state.clone()
         root_state = _advance_through_chance(root_state)
 
         if root_state.is_terminal():
-            return {}
+            return None, 0.0
 
         root = MCTSNode(root_state)
-        self._expand(root)
+        root_value = self._expand(root)
 
         for _ in range(self.num_simulations):
             node = root
@@ -106,16 +180,7 @@ class MCTS:
             # Backup
             self._backup(search_path, value)
 
-        # Build action probabilities from visit counts
-        total_visits = sum(
-            child.visit_count for child in root.children.values()
-        )
-        if total_visits == 0:
-            return {}
-        return {
-            action: child.visit_count / total_visits
-            for action, child in root.children.items()
-        }
+        return root, root_value
 
     def _expand(self, node: MCTSNode) -> float:
         """Expand a leaf node using the network. Returns the value estimate."""

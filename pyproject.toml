@@ -11,6 +11,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+gnubg = ["gnubg-nn>=1.1.0a6"]
 
 [tool.setuptools.packages.find]
 where = ["."]

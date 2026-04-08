@@ -1,16 +1,9 @@
 """Terminal interface for playing against Raccoon."""
 
-import random
-import sys
-
-from raccoon.env.game_wrapper import GameWrapper, GameState
+from raccoon.cli import display
+from raccoon.env.game_wrapper import GameWrapper
 from raccoon.model.network import RaccoonNet
-from raccoon.search.mcts import MCTS, select_action, _advance_through_chance
-
-
-def display_board(state: GameState) -> str:
-    """Return the board display string from OpenSpiel."""
-    return str(state._state)
+from raccoon.search.mcts import MCTS, _advance_through_chance
 
 
 def play_interactive(network: RaccoonNet, num_simulations: int = 100):
@@ -19,77 +12,64 @@ def play_interactive(network: RaccoonNet, num_simulations: int = 100):
     mcts = MCTS(network, num_simulations=num_simulations)
 
     print("=== Raccoon Backgammon ===")
-    print("You are player X. Raccoon is player O.")
-    print("Enter move as an action number, or 'hint' for analysis, 'quit' to exit.\n")
+    print("You are X, Raccoon is O. Commands: <number>, hint, quit.\n")
 
     state = wrapper.new_game()
     state = _advance_through_chance(state)
 
-    human_player = 0  # X
+    human_player = 0
 
     while not state.is_terminal():
-        print(display_board(state))
+        print(display.render_board(state, human_player=human_player))
         print()
 
         current = state.current_player()
         legal = state.legal_actions()
 
         if current == human_player:
-            # Show legal moves
-            print("Legal moves:")
-            for i, a in enumerate(legal):
-                print(f"  [{i}] {a}: {state.action_to_string(a)}")
+            print(display.format_legal_moves(state))
             print()
 
-            while True:
+            action = None
+            while action is None:
                 try:
-                    inp = input("Your move (number or index): ").strip()
+                    inp = input("Your move (index or action number): ").strip()
                 except EOFError:
                     return
-
                 if inp == "quit":
                     return
                 if inp == "hint":
-                    action_probs = mcts.search(state)
-                    if action_probs:
-                        best = max(action_probs, key=action_probs.get)
-                        print(
-                            f"Hint: {state.action_to_string(best)} "
-                            f"(visit prob {action_probs[best]:.3f})"
-                        )
+                    analysis = mcts.analyze(state)
+                    print()
+                    print(display.format_analysis(state, analysis))
+                    print()
                     continue
-
                 try:
                     val = int(inp)
-                    # Try as index first, then as action number
-                    if 0 <= val < len(legal):
-                        action = legal[val]
-                    elif val in legal:
-                        action = val
-                    else:
-                        print("Invalid move. Try again.")
-                        continue
-                    break
                 except ValueError:
-                    print("Enter a number. Try again.")
+                    print("Enter a number, 'hint', or 'quit'.")
+                    continue
+                if 0 <= val < len(legal):
+                    action = legal[val]
+                elif val in legal:
+                    action = val
+                else:
+                    print("Invalid move. Try again.")
         else:
-            # Raccoon's turn
             print("Raccoon is thinking...")
-            action_probs = mcts.search(state)
-            if not action_probs:
+            analysis = mcts.analyze(state)
+            if not analysis.candidates:
                 print("Raccoon has no legal moves!")
                 break
-            action = select_action(action_probs, temperature=0)
-            print(f"Raccoon plays: {state.action_to_string(action)}")
+            action = analysis.candidates[0].action
+            print(f"Raccoon plays: {display.format_move(state, action)}")
+            print()
+            print(display.format_analysis(state, analysis))
 
         state.apply_action(action)
         state = _advance_through_chance(state)
         print()
 
-    if state.is_terminal():
-        print(display_board(state))
-        equity, result_type = state.terminal_result()
-        if equity > 0:
-            print(f"Player X wins ({result_type})!")
-        else:
-            print(f"Player O wins ({result_type})!")
+    print(display.render_board(state, human_player=human_player))
+    print()
+    print(display.format_result(state, human_player=human_player))

@@ -512,7 +512,7 @@ Arena works. After ~50 training iterations (even on CPU), the latest checkpoint 
 
 ## M6: GNUBG Benchmark
 
-**Goal**: Automated money game matches against GNUBG CLI.
+**Goal**: Automated money game sessions against GNUBG CLI.
 
 ### M6.1: GNUBG Harness
 
@@ -620,7 +620,7 @@ Try these if raw scaling isn't enough:
 - Track Elo progression over time
 
 ### M7 Pass Condition
-Raccoon wins >50% of money game equity against GNUBG at "world class" settings over a statistically significant number of games (1000+, 95% CI excluding 50%).
+Raccoon has positive money game equity against GNUBG at "world class" settings over a statistically significant number of games (10000+, 95% CI excluding 0).
 
 ---
 

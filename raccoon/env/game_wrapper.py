@@ -60,6 +60,15 @@ class GameState:
         player = self.current_player()
         return self._state.action_to_string(player, action)
 
+    def board(self, player: int, index: int) -> int:
+        """Return the checker count for `player` at board index `index`.
+
+        OpenSpiel indexes both players' boards with index `i` corresponding
+        to standard point `24 - i` (i.e. index 0 is point 24, index 23 is
+        point 1). See `raccoon/cli/display.py` for the point-number layout.
+        """
+        return int(self._state.board(player, index))
+
     def board_from_perspective(self) -> BoardView:
         """Return the board from the current player's perspective."""
         cp = self.current_player()
@@ -76,8 +85,8 @@ class GameState:
             my_points[i] = state.board(cp, board_idx)
             opp_points[i] = state.board(op, board_idx)
 
-        my_bar, opp_bar, my_off, opp_off = self._parse_bar_and_off(cp)
-        dice = self._parse_dice()
+        my_bar, opp_bar, my_off, opp_off = self.parse_bar_and_off(cp)
+        dice = self.parse_dice()
 
         return BoardView(
             my_points=my_points,
@@ -89,7 +98,7 @@ class GameState:
             dice=dice,
         )
 
-    def _parse_bar_and_off(self, current_player: int) -> tuple[int, int, int, int]:
+    def parse_bar_and_off(self, current_player: int) -> tuple[int, int, int, int]:
         """Parse bar and borne-off counts from the state string."""
         s = str(self._state)
         # Bar line: "Bar: xxoo" (letters indicate which player's checkers)
@@ -114,7 +123,7 @@ class GameState:
         else:
             return bar_o, bar_x, off_o, off_x
 
-    def _parse_dice(self) -> tuple[int, int] | None:
+    def parse_dice(self) -> tuple[int, int] | None:
         s = str(self._state)
         for line in s.split("\n"):
             if line.startswith("Dice:"):
