@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from raccoon.env.game_wrapper import GameWrapper
+from raccoon.env.game_wrapper import BoardView, GameWrapper
 from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import MCTS, MCTSNode, select_action, _advance_through_chance
 
@@ -86,3 +86,65 @@ def test_mcts_single_simulation(model, decision_state):
     action_probs = mcts.search(decision_state)
     assert len(action_probs) > 0
     assert abs(sum(action_probs.values()) - 1.0) < 1e-6
+
+
+def test_mcts_prefers_immediate_win(model):
+    """MCTS must prefer an action that leads directly to a win.
+
+    Regression for the pre-M7 terminal-value sign fix in ``mcts.py``: the
+    old code seeded backups from terminal leaves with
+    ``+returns[parent_player]``, which — combined with the single negation
+    at the leaf in ``_backup`` — flipped every terminal Q-value and made
+    MCTS actively avoid winning moves.
+    """
+
+    class MockState:
+        """Two-action mock: action 0 wins, action 1 loses (for player 0)."""
+
+        def __init__(self, terminal: bool = False, winner: int | None = None):
+            self._terminal = terminal
+            self._winner = winner
+
+        def is_terminal(self) -> bool:
+            return self._terminal
+
+        def is_chance_node(self) -> bool:
+            return False
+
+        def current_player(self) -> int:
+            return -4 if self._terminal else 0
+
+        def legal_actions(self) -> list[int]:
+            return [0, 1]
+
+        def returns(self) -> list[float]:
+            if self._winner == 0:
+                return [1.0, -1.0]
+            if self._winner == 1:
+                return [-1.0, 1.0]
+            return [0.0, 0.0]
+
+        def clone(self) -> "MockState":
+            return MockState(terminal=self._terminal, winner=self._winner)
+
+        def apply_action(self, action: int) -> None:
+            self._terminal = True
+            self._winner = 0 if action == 0 else 1
+
+        def board_from_perspective(self) -> BoardView:
+            return BoardView(
+                my_points=np.zeros(24, dtype=np.float32),
+                opp_points=np.zeros(24, dtype=np.float32),
+                my_bar=0,
+                opp_bar=0,
+                my_off=0,
+                opp_off=0,
+                dice=(1, 2),
+            )
+
+    mcts = MCTS(model, num_simulations=50)
+    action_probs = mcts.search(MockState())
+
+    assert action_probs.get(0, 0.0) > action_probs.get(1, 0.0), (
+        f"MCTS did not prefer the winning action; got {action_probs}"
+    )

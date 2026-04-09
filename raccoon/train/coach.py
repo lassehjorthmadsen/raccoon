@@ -107,7 +107,12 @@ class Coach:
         return game_results
 
     def training_phase(self) -> dict[str, float]:
-        """Train the network on sampled positions from the replay buffer."""
+        """Train the network on sampled positions from the replay buffer.
+
+        ``target_value`` is already normalised to [-1, 1] by ``self_play``
+        (raw backgammon returns ±1/±2/±3 divided by 3), so it can be matched
+        directly against the tanh-bounded value head output.
+        """
         self.network.train()
         total_policy_loss = 0.0
         total_value_loss = 0.0

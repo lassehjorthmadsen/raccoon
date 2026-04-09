@@ -163,17 +163,18 @@ class MCTS:
 
             # Evaluate
             if node.state.is_terminal():
-                # Value from the perspective of the node's player
+                # Seed the backup with the value from the perspective of the
+                # *would-be player-to-move* at the terminal, i.e. the opponent
+                # of whoever just moved. `_backup` negates once at the leaf
+                # before propagating, so this sign choice makes each ancestor
+                # store Q from its own player's perspective.
+                #
+                # Returns are ±1/±2/±3 (full_scoring); divide by 3 to keep
+                # terminal Q on the same [-1, 1] scale as the tanh-bounded
+                # network value, so PUCT exploration stays calibrated.
                 returns = node.state.returns()
-                # The parent made the move, so we need the value from the
-                # perspective of whoever is "to move" at this terminal.
-                # Since the game is over, use the return for the player who
-                # moved last (the parent's player).
-                if node.parent is not None:
-                    parent_player = node.parent.state.current_player()
-                    value = returns[parent_player]
-                else:
-                    value = returns[0]
+                parent_player = node.parent.state.current_player()
+                value = -returns[parent_player] / 3.0
             else:
                 value = self._expand(node)
 

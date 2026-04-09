@@ -14,7 +14,10 @@ from raccoon.search.mcts import MCTS, select_action, _advance_through_chance
 class TrainingExample:
     observation: np.ndarray     # (16, 2, 12)
     policy_target: np.ndarray   # (1352,)
-    value_target: float         # game outcome from this player's perspective
+    # Game outcome from this player's perspective, normalised to [-1, 1] by
+    # dividing OpenSpiel's raw returns (±1/±2/±3 for normal/gammon/backgammon)
+    # by 3. This lets the tanh-bounded value head represent the full range.
+    value_target: float
 
 
 @dataclass
@@ -68,7 +71,9 @@ def play_one_game(
     if not state.is_terminal():
         return GameResult(examples=[], num_moves=0, outcome=0.0, result_type="unknown")
 
-    # Fill in value targets from the terminal result
+    # Fill in value targets from the terminal result. Divide by 3 (the
+    # backgammon return maximum) so targets land in [-1, 1] and can be
+    # matched by the tanh-bounded value head.
     returns = state.returns()
     equity, result_type = state.terminal_result()
     examples = []
@@ -76,7 +81,7 @@ def play_one_game(
         examples.append(TrainingExample(
             observation=obs,
             policy_target=policy,
-            value_target=returns[player],
+            value_target=returns[player] / 3.0,
         ))
 
     return GameResult(

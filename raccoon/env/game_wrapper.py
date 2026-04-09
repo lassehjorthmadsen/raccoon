@@ -1,4 +1,13 @@
-"""OpenSpiel backgammon wrapper with perspective-relative board views."""
+"""OpenSpiel backgammon wrapper with perspective-relative board views.
+
+OpenSpiel's Python bindings for backgammon do not expose direct accessors
+for bar counts, borne-off counts, or the current dice roll — only for board
+points. This wrapper therefore parses those fields out of ``str(state)``,
+which is a known-fragile pattern (OpenSpiel makes no stability guarantee on
+its ``__str__`` format). The parsing is isolated to ``parse_bar_and_off``
+and ``parse_dice``; if OpenSpiel ever changes formatting, those two
+functions are the only places that need updating.
+"""
 
 from dataclasses import dataclass
 import re
@@ -34,9 +43,6 @@ class GameState:
 
     def legal_actions(self) -> list[int]:
         return self._state.legal_actions()
-
-    def legal_actions_mask(self) -> list[int]:
-        return self._state.legal_actions_mask()
 
     def is_terminal(self) -> bool:
         return self._state.is_terminal()
@@ -130,7 +136,13 @@ class GameState:
                 dice_str = line[5:].strip()
                 if not dice_str:
                     return None
-                return (int(dice_str[0]), int(dice_str[1]))
+                d1, d2 = int(dice_str[0]), int(dice_str[1])
+                if not (1 <= d1 <= 6 and 1 <= d2 <= 6):
+                    raise ValueError(
+                        f"parse_dice: got invalid dice {(d1, d2)} from "
+                        f"OpenSpiel state line {line!r}"
+                    )
+                return (d1, d2)
         return None
 
     def terminal_result(self) -> tuple[float, str]:
@@ -138,61 +150,29 @@ class GameState:
 
         equity is from player 0's perspective: +1/+2/+3 or -1/-2/-3.
         result_type is 'normal', 'gammon', or 'backgammon'.
+
+        Relies on OpenSpiel being loaded with ``scoring_type=full_scoring``,
+        which makes ``returns()`` expose the ±1/±2/±3 multipliers natively.
         """
-        assert self.is_terminal()
-        state = self._state
-        s = str(state)
-
-        m = re.search(r"X: (\d+), O: (\d+)", s)
-        off_x, off_o = int(m.group(1)), int(m.group(2))
-
-        bar_line = ""
-        for line in s.split("\n"):
-            if line.startswith("Bar:"):
-                bar_line = line[4:].strip()
-
-        # Determine winner and loser's state
-        if off_x == 15:
-            winner = 0
-            loser_off = off_o
-            loser_bar = bar_line.count("o")
-            loser_board = [state.board(1, i) for i in range(24)]
-        else:
-            winner = 1
-            loser_off = off_x
-            loser_bar = bar_line.count("x")
-            loser_board = [state.board(0, i) for i in range(24)]
-
-        if loser_off > 0:
-            result_type = "normal"
-            multiplier = 1
-        elif loser_bar > 0 or self._has_checkers_in_home(loser_board, winner):
-            result_type = "backgammon"
-            multiplier = 3
-        else:
-            result_type = "gammon"
-            multiplier = 2
-
-        equity = multiplier if winner == 0 else -multiplier
-        return equity, result_type
-
-    @staticmethod
-    def _has_checkers_in_home(loser_board: list[int], winner: int) -> bool:
-        """Check if loser has checkers in the winner's home board."""
-        # Winner's home board indices:
-        # Player 0 home = indices 18-23 (standard points 1-6)
-        # Player 1 home = indices 0-5 (standard points 24-19)
-        if winner == 0:
-            return any(loser_board[i] > 0 for i in range(18, 24))
-        else:
-            return any(loser_board[i] > 0 for i in range(0, 6))
+        if not self.is_terminal():
+            raise ValueError("terminal_result() called on non-terminal state")
+        equity = self._state.returns()[0]
+        magnitude = int(round(abs(equity)))
+        result_type = {1: "normal", 2: "gammon", 3: "backgammon"}[magnitude]
+        return float(equity), result_type
 
 
 class GameWrapper:
-    """Factory for creating new backgammon games."""
+    """Factory for creating new backgammon games.
+
+    Uses OpenSpiel's ``full_scoring`` mode so ``state.returns()`` produces
+    ±1/±2/±3 for normal/gammon/backgammon wins (instead of the default
+    ``winloss_scoring`` which flattens everything to ±1). This matches the
+    money-game semantics Raccoon is training for.
+    """
 
     def __init__(self):
-        self._game = pyspiel.load_game("backgammon")
+        self._game = pyspiel.load_game("backgammon(scoring_type=full_scoring)")
 
     def new_game(self) -> GameState:
         return GameState(self._game.new_initial_state())
