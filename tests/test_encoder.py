@@ -21,7 +21,7 @@ def starting_board(wrapper):
 
 def test_encode_shape(starting_board):
     tensor = encode_state(starting_board)
-    assert tensor.shape == (16, 2, 12)
+    assert tensor.shape == (17, 2, 12)
     assert tensor.dtype == np.float32
 
 
@@ -86,6 +86,31 @@ def test_encode_doubles():
     )
     tensor = encode_state(bv)
     assert np.all(tensor[15] == 1.0)  # doubles flag
+    assert np.all(tensor[16] == 0.0)  # not mid-doubles
+
+
+def test_encode_mid_doubles():
+    bv = BoardView(
+        my_points=np.zeros(24),
+        opp_points=np.zeros(24),
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0,
+        dice=(4, 4),
+        mid_doubles=True,
+    )
+    tensor = encode_state(bv)
+    assert np.all(tensor[15] == 1.0)  # doubles flag
+    assert np.all(tensor[16] == 1.0)  # mid-doubles flag
+
+
+def test_encode_mid_doubles_false_by_default():
+    bv = BoardView(
+        my_points=np.zeros(24),
+        opp_points=np.zeros(24),
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0,
+        dice=(3, 3),
+    )
+    tensor = encode_state(bv)
+    assert np.all(tensor[16] == 0.0)
 
 
 def test_encode_bar_and_off():
@@ -104,7 +129,7 @@ def test_encode_bar_and_off():
 
 def test_encode_batch_shape(starting_board):
     batch = encode_batch([starting_board, starting_board])
-    assert batch.shape == (2, 16, 2, 12)
+    assert batch.shape == (2, 17, 2, 12)
 
 
 def test_top_row_points_13_to_24():

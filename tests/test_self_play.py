@@ -21,7 +21,7 @@ def test_play_one_game_completes(model):
 def test_example_shapes(model):
     result = play_one_game(model, num_simulations=5)
     for ex in result.examples:
-        assert ex.observation.shape == (16, 2, 12)
+        assert ex.observation.shape == (17, 2, 12)
         assert ex.policy_target.shape == (1352,)
         assert isinstance(ex.value_target, float)
 

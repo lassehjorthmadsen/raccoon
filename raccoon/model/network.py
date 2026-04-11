@@ -30,7 +30,7 @@ class RaccoonNet(nn.Module):
 
     def __init__(
         self,
-        in_channels: int = 16,
+        in_channels: int = 17,
         board_h: int = 2,
         board_w: int = 12,
         num_actions: int = 1352,
@@ -97,6 +97,10 @@ class RaccoonNet(nn.Module):
 
         return policy_logits, value
 
+    @property
+    def device(self) -> torch.device:
+        return next(self.parameters()).device
+
     @torch.no_grad()
     def predict(
         self, obs: np.ndarray, legal_actions: list[int]
@@ -104,7 +108,7 @@ class RaccoonNet(nn.Module):
         """Single-position inference for MCTS.
 
         Args:
-            obs: (16, 2, 12) numpy array
+            obs: (17, 2, 12) numpy array
             legal_actions: list of valid action indices
 
         Returns:
@@ -112,11 +116,11 @@ class RaccoonNet(nn.Module):
             value: scalar float in [-1, 1]
         """
         self.eval()
-        x = torch.from_numpy(obs).unsqueeze(0).float()
+        x = torch.from_numpy(obs).unsqueeze(0).float().to(self.device)
         logits, value = self.forward(x)
 
         # Mask illegal actions and apply softmax
-        logits = logits.squeeze(0)
+        logits = logits.squeeze(0).cpu()
         mask = torch.full((self.num_actions,), float("-inf"))
         mask[legal_actions] = 0.0
         probs = F.softmax(logits + mask, dim=0).numpy()

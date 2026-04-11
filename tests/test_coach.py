@@ -35,6 +35,7 @@ def coach(tmp_dirs):
         training_steps_per_iteration=5,
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
+        checkpoint_every=1,
     )
 
 
@@ -57,7 +58,12 @@ def test_log_written(coach, tmp_dirs):
     log_path = Path(tmp_dirs[1]) / "training_log.jsonl"
     assert log_path.exists()
     with open(log_path) as f:
-        entry = json.loads(f.readline())
+        lines = f.readlines()
+    # First line is config header, second is iteration 0 metrics
+    config = json.loads(lines[0])
+    assert config["type"] == "config"
+    assert "network" in config
+    entry = json.loads(lines[1])
     assert entry["iteration"] == 0
 
 

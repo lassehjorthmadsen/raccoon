@@ -29,6 +29,8 @@ class Coach:
         training_steps_per_iteration: int = 100,
         checkpoint_dir: str = "checkpoints",
         log_dir: str = "logs",
+        experiment_name: str = "",
+        checkpoint_every: int = 10,
     ):
         self.network = network
         self.optimizer = optimizer
@@ -42,9 +44,50 @@ class Coach:
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.run_id = uuid.uuid4().hex[:8]
+        self.experiment_name = experiment_name
+        self.checkpoint_every = checkpoint_every
+        self._config_logged = False
 
-    def run_iteration(self, iteration: int) -> dict:
+    def _log_config(self) -> None:
+        """Write a one-time config header to the training log."""
+        if self._config_logged:
+            return
+        self._config_logged = True
+
+        # Extract optimizer hyperparams from the first param group
+        opt_params = self.optimizer.param_groups[0]
+
+        config_entry = {
+            "type": "config",
+            "run_id": self.run_id,
+            "experiment_name": self.experiment_name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "network": self.network.config,
+            "training": {
+                "lr": opt_params.get("lr"),
+                "weight_decay": opt_params.get("weight_decay"),
+                "games_per_iteration": self.games_per_iteration,
+                "training_steps_per_iteration": self.training_steps_per_iteration,
+                "num_simulations": self.num_simulations,
+                "batch_size": self.batch_size,
+                "replay_size": self.replay_buffer.max_size,
+            },
+            "system": {
+                "torch_version": torch.__version__,
+                "cuda_available": torch.cuda.is_available(),
+                "gpu": (torch.cuda.get_device_name(0)
+                        if torch.cuda.is_available() else None),
+            },
+        }
+        log_path = self.log_dir / "training_log.jsonl"
+        with open(log_path, "a") as f:
+            f.write(json.dumps(config_entry) + "\n")
+
+    def run_iteration(
+        self, iteration: int, last_iteration: int | None = None,
+    ) -> dict:
         """One full iteration: self-play -> train -> checkpoint -> log."""
+        self._log_config()
         t0 = time.time()
 
         # Self-play phase
@@ -61,8 +104,10 @@ class Coach:
             metrics = {"policy_loss": 0.0, "value_loss": 0.0, "total_loss": 0.0}
         tr_time = time.time() - tr_start
 
-        # Checkpoint
-        self.save_checkpoint(iteration)
+        # Checkpoint (every N iterations, and always on the last)
+        is_last = (last_iteration is not None and iteration == last_iteration)
+        if iteration % self.checkpoint_every == 0 or is_last:
+            self.save_checkpoint(iteration)
 
         # Game stats
         game_lengths = [g.num_moves for g in game_results]
@@ -118,10 +163,14 @@ class Coach:
         total_value_loss = 0.0
         steps = 0
 
+        device = self.network.device
         for _ in range(self.training_steps_per_iteration):
             obs, target_policy, target_value = self.replay_buffer.sample_batch(
                 self.batch_size
             )
+            obs = obs.to(device)
+            target_policy = target_policy.to(device)
+            target_value = target_value.to(device)
 
             policy_logits, value = self.network(obs)
             value = value.squeeze(-1)

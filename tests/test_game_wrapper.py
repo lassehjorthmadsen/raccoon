@@ -109,6 +109,59 @@ def test_play_full_game_to_terminal(wrapper):
     assert returns[0] == -returns[1]
 
 
+def test_mid_doubles_detection(wrapper):
+    """First half of doubles should have mid_doubles=False, second half True."""
+    # Play random games until we hit a doubles roll
+    for _ in range(100):
+        state = wrapper.new_game()
+        # Roll dice
+        outcomes = state.chance_outcomes()
+        state.apply_action(outcomes[0][0])
+
+        # Play a few moves to get past the opening
+        for _ in range(20):
+            if state.is_terminal():
+                break
+            if state.is_chance_node():
+                outcomes = state.chance_outcomes()
+                actions, probs = zip(*outcomes)
+                idx = random.choices(range(len(actions)), weights=probs)[0]
+                state.apply_action(actions[idx])
+            else:
+                bv = state.board_from_perspective()
+                if bv.dice is not None and bv.dice[0] == bv.dice[1]:
+                    # Found first half of doubles
+                    assert not bv.mid_doubles, "First half should not be mid-doubles"
+                    # Play the first half
+                    state.apply_action(state.legal_actions()[0])
+                    # Should now be second half (same player, no chance node)
+                    if not state.is_terminal() and not state.is_chance_node():
+                        bv2 = state.board_from_perspective()
+                        assert bv2.mid_doubles, "Second half should be mid-doubles"
+                    return  # test passed
+                state.apply_action(state.legal_actions()[0])
+
+    pytest.skip("No doubles encountered in 100 random games (extremely unlikely)")
+
+
+def test_mid_doubles_false_for_non_doubles(decision_state):
+    """Non-doubles positions should never have mid_doubles=True."""
+    bv = decision_state.board_from_perspective()
+    if bv.dice is not None and bv.dice[0] != bv.dice[1]:
+        assert not bv.mid_doubles
+
+
+def test_clone_preserves_mid_doubles_tracking(wrapper):
+    """Cloning a state should preserve the _prev_decision_player tracking."""
+    state = wrapper.new_game()
+    outcomes = state.chance_outcomes()
+    state.apply_action(outcomes[0][0])
+    # Make a move so _prev_decision_player is set
+    state.apply_action(state.legal_actions()[0])
+    clone = state.clone()
+    assert clone._prev_decision_player == state._prev_decision_player
+
+
 def test_terminal_result_types(wrapper):
     """Play several random games and verify terminal_result returns valid types."""
     for _ in range(10):

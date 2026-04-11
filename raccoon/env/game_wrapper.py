@@ -30,6 +30,7 @@ class BoardView:
     my_off: int
     opp_off: int
     dice: tuple[int, int] | None
+    mid_doubles: bool = False  # True when this is the 2nd half of a doubles turn
 
 
 class GameState:
@@ -37,6 +38,7 @@ class GameState:
 
     def __init__(self, state: pyspiel.BackgammonState):
         self._state = state
+        self._prev_decision_player: int | None = None
 
     def current_player(self) -> int:
         return self._state.current_player()
@@ -54,13 +56,17 @@ class GameState:
         return self._state.chance_outcomes()
 
     def apply_action(self, action: int) -> None:
+        if not self.is_chance_node():
+            self._prev_decision_player = self.current_player()
         self._state.apply_action(action)
 
     def returns(self) -> list[float]:
         return self._state.returns()
 
     def clone(self) -> "GameState":
-        return GameState(self._state.clone())
+        cloned = GameState(self._state.clone())
+        cloned._prev_decision_player = self._prev_decision_player
+        return cloned
 
     def action_to_string(self, action: int) -> str:
         player = self.current_player()
@@ -94,6 +100,13 @@ class GameState:
         my_bar, opp_bar, my_off, opp_off = self.parse_bar_and_off(cp)
         dice = self.parse_dice()
 
+        mid_doubles = (
+            self._prev_decision_player is not None
+            and self._prev_decision_player == cp
+            and dice is not None
+            and dice[0] == dice[1]
+        )
+
         return BoardView(
             my_points=my_points,
             opp_points=opp_points,
@@ -102,6 +115,7 @@ class GameState:
             my_off=my_off,
             opp_off=opp_off,
             dice=dice,
+            mid_doubles=mid_doubles,
         )
 
     def parse_bar_and_off(self, current_player: int) -> tuple[int, int, int, int]:

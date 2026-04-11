@@ -16,28 +16,28 @@ def model():
 
 
 def test_forward_shapes(model):
-    x = torch.randn(1, 16, 2, 12)
+    x = torch.randn(1, 17, 2, 12)
     logits, value = model(x)
     assert logits.shape == (1, 1352)
     assert value.shape == (1, 1)
 
 
 def test_forward_batch(model):
-    x = torch.randn(32, 16, 2, 12)
+    x = torch.randn(32, 17, 2, 12)
     logits, value = model(x)
     assert logits.shape == (32, 1352)
     assert value.shape == (32, 1)
 
 
 def test_value_range(model):
-    x = torch.randn(10, 16, 2, 12)
+    x = torch.randn(10, 17, 2, 12)
     _, value = model(x)
     assert (value >= -1).all()
     assert (value <= 1).all()
 
 
 def test_predict_probabilities(model):
-    obs = np.random.randn(16, 2, 12).astype(np.float32)
+    obs = np.random.randn(17, 2, 12).astype(np.float32)
     legal_actions = [0, 10, 100, 500, 1000]
     policy, value = model.predict(obs, legal_actions)
 
@@ -48,7 +48,7 @@ def test_predict_probabilities(model):
 
 
 def test_predict_only_legal_actions(model):
-    obs = np.random.randn(16, 2, 12).astype(np.float32)
+    obs = np.random.randn(17, 2, 12).astype(np.float32)
     legal_actions = [42, 99]
     policy, _ = model.predict(obs, legal_actions)
 
@@ -59,7 +59,7 @@ def test_predict_only_legal_actions(model):
 
 
 def test_save_load_roundtrip(model):
-    obs = np.random.randn(16, 2, 12).astype(np.float32)
+    obs = np.random.randn(17, 2, 12).astype(np.float32)
     legal = [0, 1, 2]
     policy_before, value_before = model.predict(obs, legal)
 

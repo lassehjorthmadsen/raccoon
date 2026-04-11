@@ -4,7 +4,7 @@ import argparse
 
 import torch
 
-from raccoon.model.network import RaccoonNet
+from raccoon.model.network import RaccoonNet, load_checkpoint, load_model
 from raccoon.train.coach import Coach
 from raccoon.train.replay_buffer import ReplayBuffer
 
@@ -19,23 +19,39 @@ def main():
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--replay-size", type=int, default=100_000)
+    parser.add_argument("--channels", type=int, default=128)
+    parser.add_argument("--num-blocks", type=int, default=6)
     parser.add_argument("--checkpoint-dir", default="checkpoints")
     parser.add_argument("--log-dir", default="logs")
+    parser.add_argument("--checkpoint-every", type=int, default=10,
+                        help="Save checkpoint every N iterations")
+    parser.add_argument("--experiment-name", type=str, default="")
     parser.add_argument("--resume", type=str, default=None, help="Path to checkpoint")
     args = parser.parse_args()
 
-    network = RaccoonNet()
-    optimizer = torch.optim.Adam(
-        network.parameters(), lr=args.lr, weight_decay=args.weight_decay
-    )
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     start_iter = 0
 
     if args.resume:
-        from raccoon.model.network import load_checkpoint
+        network = load_model(args.resume)
+        optimizer = torch.optim.Adam(
+            network.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
         checkpoint = load_checkpoint(args.resume, network, optimizer)
         start_iter = checkpoint.get("step", 0) + 1
-        print(f"Resumed from iteration {start_iter - 1}")
+        network.to(device)
+        print(
+            f"Resumed from iteration {start_iter - 1} "
+            f"({network.config['num_blocks']}x{network.config['channels']})"
+        )
+    else:
+        network = RaccoonNet(channels=args.channels, num_blocks=args.num_blocks)
+        network.to(device)
+        optimizer = torch.optim.Adam(
+            network.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
 
+    print(f"Device: {device}")
     replay_buffer = ReplayBuffer(max_size=args.replay_size)
 
     coach = Coach(
@@ -48,10 +64,13 @@ def main():
         training_steps_per_iteration=args.training_steps,
         checkpoint_dir=args.checkpoint_dir,
         log_dir=args.log_dir,
+        experiment_name=args.experiment_name,
+        checkpoint_every=args.checkpoint_every,
     )
 
+    last_iter = start_iter + args.iterations - 1
     for i in range(start_iter, start_iter + args.iterations):
-        metrics = coach.run_iteration(i)
+        metrics = coach.run_iteration(i, last_iteration=last_iter)
         print(
             f"Iter {i}: "
             f"games={metrics['num_games']}, "

@@ -14,6 +14,7 @@ class ReplayBuffer:
 
     def __init__(self, max_size: int = 100_000):
         self._buffer: deque[TrainingExample] = deque(maxlen=max_size)
+        self.max_size = max_size
 
     def add_game(self, examples: list[TrainingExample]) -> None:
         self._buffer.extend(examples)
