@@ -22,7 +22,11 @@ python3 -m pytest tests/test_encoder.py -v
 python3 -m pytest tests/test_mcts.py::test_name -v
 
 # Training with custom params
-python3 scripts/train.py --iterations 100 --games-per-iter 50 --simulations 100 --lr 0.001
+python3 scripts/train.py --iterations 100 --games-per-iter 50 --simulations 100 --lr 0.001 \
+  --channels 128 --num-blocks 6 --experiment-name my-run --checkpoint-every 10
+
+# Resume training from a checkpoint (architecture is read from the checkpoint)
+python3 scripts/train.py --iterations 100 --resume checkpoints/iter_0200.pt
 ```
 
 ## Architecture
@@ -33,7 +37,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 
 1. **`raccoon/env/`** — OpenSpiel wrapper + custom tensor encoder + action mapping
    - `game_wrapper.py`: Wraps `pyspiel.load_game("backgammon")`, handles perspective flipping so the network always sees the board from the current player's view
-   - `encoder.py`: Converts board state to **(16, 2, 12)** float32 tensor (16 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes
+   - `encoder.py`: Converts board state to **(17, 2, 12)** float32 tensor (17 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag
    - `actions.py`: Legal action masking over OpenSpiel's 1352 action space
 
 2. **`raccoon/model/network.py`** — `RaccoonNet`: ResNet with shared trunk → policy head (1352 logits) + value head (scalar in [-1,1] via tanh). Default: 6 residual blocks, 128 channels. `predict()` method handles masking + softmax for MCTS inference.
@@ -43,7 +47,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 4. **`raccoon/train/`** — Self-play loop
    - `self_play.py`: Plays games, records (observation, MCTS policy, outcome) tuples
    - `replay_buffer.py`: Circular buffer of training positions
-   - `coach.py`: Orchestrates self-play → replay buffer → SGD training → checkpoint
+   - `coach.py`: Orchestrates self-play → replay buffer → SGD training → checkpoint. Logs full config (network architecture, hyperparams, system info) to JSONL.
 
 5. **`raccoon/eval/`** — Evaluation infrastructure
    - `arena.py`: Checkpoint vs checkpoint matches
@@ -60,12 +64,14 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 - Loss = cross-entropy(policy) + MSE(value) + L2 regularization (via optimizer weight_decay)
 - Training examples store the game outcome from each position's player's perspective as value target
 
-## Hardware Constraints
+## Hardware
 
-Development targets a 2013 Intel iMac (CPU only). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations. Scale up when GPU is available.
+- **Local dev**: 2013 Intel iMac (CPU only). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
+- **Cloud training**: GCP spot VM with T4 GPU (`raccoon-gpu` in `us-central1-a`). Auto-detects CUDA. See `docs/gcp_guide.md` for workflow.
 
 ## Key Files
 
 - `goal.md` — Project goal, assumptions, requirements, and success criteria
 - `README.md` — Design decisions, tech stack, and references
 - `docs/plan.md` — Full implementation plan with per-milestone specs, interfaces, and test requirements
+- `docs/gcp_guide.md` — GCP training workflow, commands, costs, and troubleshooting
