@@ -34,12 +34,17 @@ def main():
 
     if args.resume:
         network = load_model(args.resume)
+        network.to(device)
         optimizer = torch.optim.Adam(
             network.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
         checkpoint = load_checkpoint(args.resume, network, optimizer)
+        # Move optimizer state tensors to the correct device
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(device)
         start_iter = checkpoint.get("step", 0) + 1
-        network.to(device)
         print(
             f"Resumed from iteration {start_iter - 1} "
             f"({network.config['num_blocks']}x{network.config['channels']})"
