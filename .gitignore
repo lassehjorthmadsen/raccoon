@@ -6,3 +6,5 @@ __pycache__/
 checkpoints/
 logs/
 perplexity-conversation.md
+*.html
+*_files/
