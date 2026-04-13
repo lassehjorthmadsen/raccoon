@@ -81,6 +81,42 @@ With 25 simulations, MCTS can look a few moves ahead and compare ~25 different c
 
 **Why 128 here**: The default is 256, but with only 10 games per iteration (~1,000 positions), the buffer starts small. Using 128 lets training begin from iteration 1 instead of having to wait.
 
+### `--channels 128` and `--num-blocks 6`
+
+**What they are**: The neural network architecture — how wide and deep the ResNet is. `channels` is the number of filters in each convolutional layer; `num-blocks` is the number of residual blocks in the shared trunk.
+
+**Intuition**: A larger network can represent more complex patterns but is slower to evaluate (which slows MCTS) and needs more data to train well. The defaults (6 blocks, 128 channels) are a reasonable middle ground for consumer hardware.
+
+**Trade-off**: Doubling channels roughly quadruples computation per forward pass. Adding blocks increases depth linearly. If MCTS simulations are your bottleneck, a smaller network lets you run more simulations in the same time.
+
+**Note**: When resuming from a checkpoint with `--resume`, the architecture is read from the checkpoint — these flags are ignored.
+
+### `--checkpoint-every 10`
+
+**What it is**: Save a checkpoint every N iterations.
+
+**Intuition**: Checkpoints let you resume after interruption (important on spot VMs!) and keep snapshots for evaluation. Every 10 iterations means at most 10 iterations of work lost if training stops unexpectedly.
+
+**Trade-off**: More frequent checkpoints use more disk but give finer-grained recovery points. Less frequent checkpoints save disk but risk more lost work on interruption.
+
+### `--experiment-name ""`
+
+**What it is**: A label recorded in the JSONL training log to identify this run.
+
+**Intuition**: When you do multiple training runs with different parameters, the experiment name helps you tell them apart when reviewing logs later. It doesn't affect file paths or training behavior — it's purely metadata.
+
+### `--resume checkpoints/iter_0200.pt`
+
+**What it is**: Path to a checkpoint file to resume training from.
+
+**Intuition**: Instead of starting from scratch, this loads the network weights, optimizer state, and iteration counter from a previous run. Training continues from where it left off. The network architecture (channels, num-blocks) is read from the checkpoint, so you don't need to specify those again.
+
+**Typical use**: Resuming after a spot VM preemption, or extending a completed run with more iterations.
+
+### `--checkpoint-dir` and `--log-dir`
+
+**What they are**: Directories for saving checkpoints and training logs. Default to `checkpoints/` and `logs/` respectively.
+
 ## Parameters We Don't Set (Using Defaults)
 
 | Parameter | Default | What it does |

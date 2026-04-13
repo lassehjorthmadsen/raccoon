@@ -1,0 +1,257 @@
+---
+title: "Raccoon Training Analysis"
+subtitle: "AlphaZero self-play for backgammon"
+format:
+  html:
+    code-fold: true
+    toc: true
+    theme: cosmo
+jupyter: python3
+---
+
+## Setup
+
+```{python}
+#| echo: false
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from datetime import datetime
+
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams["figure.dpi"] = 120
+
+# --- Load local (CPU) training log ---
+with open("../logs/training_log.jsonl") as f:
+    local_rows = [json.loads(line) for line in f if line.strip()]
+df_local = pd.DataFrame([r for r in local_rows if r.get("type") != "config"])
+df_local = df_local[df_local["run_id"] == "28ce4c2b"].reset_index(drop=True)
+df_local["source"] = "CPU (16ch, pre-M7)"
+
+# --- Load GCP (GPU) training log ---
+with open("../logs/gcp_training_log.jsonl") as f:
+    gcp_rows = [json.loads(line) for line in f if line.strip()]
+df_gcp = pd.DataFrame([r for r in gcp_rows if r.get("type") != "config"])
+# Deduplicate overlapping iterations: keep later run's entries
+df_gcp = df_gcp.sort_values("timestamp").drop_duplicates(subset="iteration", keep="last").reset_index(drop=True)
+df_gcp["source"] = "GPU T4 (17ch, M7)"
+
+# --- Load eval logs ---
+with open("../logs/eval_log.jsonl") as f:
+    eval_rows = [json.loads(line) for line in f if line.strip()]
+with open("../logs/gnubg_eval_log.jsonl") as f:
+    gnubg_rows = [json.loads(line) for line in f if line.strip()]
+```
+
+We have two training runs to compare:
+
+| Run | Hardware | Encoder | Iterations | Games/iter | MCTS sims |
+|-----|----------|---------|------------|------------|-----------|
+| **CPU (pre-M7)** | 2013 iMac, CPU | 16 channels | 250 | 10 | 25 |
+| **GPU (M7)** | GCP T4 spot VM | 17 channels | 499 | 10 | 25 |
+
+The GPU run (`exp000-6x128-25sims-validation`) uses the updated 17-channel encoder (with mid-doubles flag). It was preempted twice on the spot VM and resumed from checkpoint each time (3 run IDs in the log).
+
+## Loss Curves
+
+The central question: **does the training loss reach a plateau?**
+
+```{python}
+fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=False)
+
+for ax, col, color, label in zip(
+    axes,
+    ["policy_loss", "value_loss", "total_loss"],
+    ["#1f77b4", "#ff7f0e", "#2ca02c"],
+    ["Policy Loss (cross-entropy)", "Value Loss (MSE)", "Total Loss"],
+):
+    # CPU run
+    ax.plot(df_local["iteration"], df_local[col],
+            alpha=0.25, color=color, linewidth=0.8)
+    ax.plot(df_local["iteration"], df_local[col].rolling(20, min_periods=1).mean(),
+            color=color, linewidth=2, label="CPU (pre-M7)")
+
+    # GPU run
+    ax.plot(df_gcp["iteration"], df_gcp[col],
+            alpha=0.25, color=color, linewidth=0.8, linestyle="--")
+    ax.plot(df_gcp["iteration"], df_gcp[col].rolling(20, min_periods=1).mean(),
+            color=color, linewidth=2, linestyle="--", label="GPU (M7)")
+
+    ax.set_ylabel(label, fontsize=10)
+    ax.legend(fontsize=8, loc="upper right")
+
+    # Buffer saturation line for CPU run
+    if col == "policy_loss":
+        buf_sat_iter = df_local[df_local["replay_buffer_size"] >= 100000]["iteration"].iloc[0]
+        ax.axvline(buf_sat_iter, color="gray", linestyle=":", alpha=0.6)
+        ax.text(buf_sat_iter + 2, ax.get_ylim()[1] * 0.9, "Buffer full (CPU)",
+                fontsize=7, color="gray")
+
+axes[-1].set_xlabel("Iteration")
+fig.suptitle("Training Loss Over Iterations", fontsize=13, fontweight="bold")
+fig.tight_layout()
+plt.show()
+```
+
+**Observations:**
+
+- **Policy loss** drops steeply in the first ~50 iterations (6.5 &rarr; 2.5), then continues declining more slowly. By iteration 250 (CPU) it reaches ~1.9. The GPU run extends to 499 iterations and reaches ~1.77, showing continued but diminishing improvement beyond the CPU run's endpoint.
+- **The loss is still declining** at the end of both runs -- not fully plateaued. However, the rate of improvement is clearly slowing. Most of the easy gains happen early.
+- **Value loss** is low throughout and slightly *increases* over training (reaching ~0.11 in the GPU run). This is not alarming: the untrained network predicts near-zero for all positions (trivially close to the mean outcome, so MSE is low). As the network learns to differentiate positions, value loss rises before it can start declining -- it needs more diverse training data to learn accurate evaluations.
+- The **GPU run** (M7, 17-channel encoder) shows similar loss dynamics to the CPU run, suggesting the extra encoder channel doesn't fundamentally change the learning trajectory at this scale. With twice the iterations, it confirms that improvement continues but flattens.
+- **Buffer saturation** (CPU run, ~iteration 118; GPU run, ~iteration 196) causes no visible discontinuity in the loss curves.
+
+## Loss Curve Detail: Is It Plateauing?
+
+Let's zoom in on the second half of the CPU run to assess the plateau more carefully.
+
+```{python}
+fig, ax = plt.subplots(figsize=(10, 4))
+
+late = df_local[df_local["iteration"] >= 100].copy()
+ax.plot(late["iteration"], late["total_loss"], alpha=0.3, color="#2ca02c", linewidth=0.8)
+ax.plot(late["iteration"], late["total_loss"].rolling(20, min_periods=1).mean(),
+        color="#2ca02c", linewidth=2.5, label="Total loss (rolling mean)")
+
+# Fit a simple linear trend to the last 150 iterations
+from numpy.polynomial.polynomial import polyfit
+x = late["iteration"].values
+y = late["total_loss"].values
+b, m = polyfit(x, y, 1)
+ax.plot(x, b + m * x, color="red", linestyle="--", linewidth=1.5,
+        label=f"Linear trend: slope = {m:.5f}/iter")
+
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Total Loss")
+ax.set_title("Total Loss: Iterations 100-249 (CPU Run)", fontweight="bold")
+ax.legend()
+fig.tight_layout()
+plt.show()
+
+print(f"Loss at iter 100 (rolling mean): {late['total_loss'].rolling(20).mean().iloc[20]:.3f}")
+print(f"Loss at iter 249 (rolling mean): {late['total_loss'].rolling(20).mean().iloc[-1]:.3f}")
+print(f"Linear slope: {m:.5f} per iteration ({m*100:.3f} per 100 iterations)")
+```
+
+The linear trend line quantifies the rate of improvement. A slope near zero would indicate a plateau.
+
+## Game Dynamics
+
+```{python}
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+# Game length
+for df, label, ls in [(df_local, "CPU", "-"), (df_gcp, "GPU", "--")]:
+    ax1.plot(df["iteration"], df["avg_game_length"], alpha=0.2, color="#1f77b4", linewidth=0.6, linestyle=ls)
+    ax1.plot(df["iteration"], df["avg_game_length"].rolling(20, min_periods=1).mean(),
+             color="#1f77b4", linewidth=2, linestyle=ls, label=label)
+ax1.set_xlabel("Iteration")
+ax1.set_ylabel("Average Game Length (moves)")
+ax1.set_title("Game Length Over Training")
+ax1.legend()
+
+# Gammon/backgammon rates
+for df, label, ls in [(df_local, "CPU", "-"), (df_gcp, "GPU", "--")]:
+    gammon_rate = df["gammons"] / df["num_games"]
+    bg_rate = df["backgammons"] / df["num_games"]
+    ax2.plot(df["iteration"], gammon_rate.rolling(20, min_periods=1).mean(),
+             linewidth=2, linestyle=ls, label=f"Gammons ({label})", color="#ff7f0e")
+    ax2.plot(df["iteration"], bg_rate.rolling(20, min_periods=1).mean(),
+             linewidth=2, linestyle=ls, label=f"Backgammons ({label})", color="#d62728")
+ax2.set_xlabel("Iteration")
+ax2.set_ylabel("Rate (per game)")
+ax2.set_title("Gammon / Backgammon Rates")
+ax2.legend(fontsize=8)
+
+fig.tight_layout()
+plt.show()
+```
+
+With only 10 games per iteration these metrics are noisy, hence the rolling averages. Average game length around 75-100 moves is typical for backgammon. The gammon/backgammon rates in self-play reflect how "decisive" the games are.
+
+## Training Efficiency
+
+```{python}
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+# Time per iteration
+for df, label, ls in [(df_local, "CPU", "-"), (df_gcp, "GPU", "--")]:
+    ax1.plot(df["iteration"], df["self_play_time"], linewidth=1.5, linestyle=ls,
+             label=f"Self-play ({label})", color="#1f77b4", alpha=0.7)
+    ax1.plot(df["iteration"], df["training_time"], linewidth=1.5, linestyle=ls,
+             label=f"SGD ({label})", color="#ff7f0e", alpha=0.7)
+ax1.set_xlabel("Iteration")
+ax1.set_ylabel("Time (seconds)")
+ax1.set_title("Time per Iteration")
+ax1.legend(fontsize=8)
+
+# Replay buffer
+for df, label, ls in [(df_local, "CPU", "-"), (df_gcp, "GPU", "--")]:
+    ax2.plot(df["iteration"], df["replay_buffer_size"], linewidth=2, linestyle=ls, label=label)
+ax2.axhline(100_000, color="gray", linestyle=":", alpha=0.5)
+ax2.text(5, 102_000, "Max capacity (100k)", fontsize=8, color="gray")
+ax2.set_xlabel("Iteration")
+ax2.set_ylabel("Positions in Buffer")
+ax2.set_title("Replay Buffer Size")
+ax2.legend()
+ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/1000:.0f}k"))
+
+fig.tight_layout()
+plt.show()
+```
+
+**Key observations:**
+
+- **CPU run**: Self-play time roughly doubles over 250 iterations (~70s &rarr; ~160s) as the network improves and MCTS search becomes more meaningful. Training (SGD) time jumps dramatically once the replay buffer fills (~9s &rarr; ~83s), since it now trains on 100k positions per iteration. Total time per iteration triples.
+- **GPU run**: Self-play time is similar (MCTS is CPU-bound), but SGD time stays under 1 second throughout -- the T4 GPU handles the training step trivially even after the buffer fills at iteration 196. This is where the GPU shines: the CPU run's SGD time jumped from ~9s to ~83s at buffer saturation, while the GPU stays under 1s.
+- The GPU advantage is primarily in the SGD step. Self-play is the bottleneck in both cases. The GPU run's total wall time includes two spot preemptions and checkpoint resumes.
+
+```{python}
+cpu_hours = df_local["total_time"].sum() / 3600
+gpu_hours = df_gcp["total_time"].sum() / 3600
+print(f"CPU run: {cpu_hours:.1f} hours for {len(df_local)} iterations ({cpu_hours/len(df_local)*60:.1f} min/iter avg)")
+print(f"GPU run: {gpu_hours:.1f} hours for {len(df_gcp)} iterations ({gpu_hours/len(df_gcp)*60:.1f} min/iter avg)")
+```
+
+## Benchmark Results
+
+The CPU-trained model (iteration 249) was evaluated against two opponents:
+
+**Internal eval: iter_249 vs iter_100** (50 games, 100 MCTS simulations)
+
+```{python}
+#| echo: false
+e = eval_rows[0]
+print(f"Result: {e['p1_wins']}-{e['p2_wins']} (equity {e['equity']:+.2f} per game)")
+print(f"Gammons: iter_249 won {e['p1_gammons_won']}, iter_100 won {e['p2_gammons_won']}")
+print(f"Backgammons: iter_249 won {e['p1_backgammons_won']}, iter_100 won {e['p2_backgammons_won']}")
+```
+
+The latest checkpoint is slightly better than the earlier one, though 50 games is too few for statistical significance. A positive sign that training is directionally improving.
+
+**GNUBG benchmark: iter_249 vs GNUBG world level** (50 games, 200 MCTS simulations)
+
+```{python}
+#| echo: false
+g = gnubg_rows[0]
+print(f"Result: Raccoon {g['raccoon_wins']} - GNUBG {g['gnubg_wins']}")
+print(f"Equity per game: {g['equity_per_game']:+.2f}")
+print(f"GNUBG gammons: {g['gnubg_gammons_won']}, backgammons: {g['gnubg_backgammons_won']}")
+```
+
+Raccoon is completely outclassed: zero wins, and nearly all GNUBG victories were gammons or backgammons. This is expected -- the model has only trained on 2,500 self-play games with 25 MCTS simulations, which is a tiny fraction of what AlphaZero-style training typically requires.
+
+## Summary
+
+1. **Loss is not yet plateaued.** Policy loss is still declining at the end of both runs, though the rate of improvement is slowing. More training should continue to improve the policy.
+
+2. **Value head is lagging.** Value loss is low but hasn't started its expected decline yet. The network needs more diverse positions (more games, more iterations) before it can learn accurate position evaluation.
+
+3. **GPU vs CPU:** The T4 GPU eliminates the SGD bottleneck (83s &rarr; <1s per iteration after buffer fills). Self-play remains the dominant cost in both cases.
+
+4. **Spot VM workflow works.** The GPU run was preempted twice and resumed from checkpoint without issue. The `--checkpoint-every 10` setting limited data loss to at most 10 iterations per preemption.
+
+5. **Far from GNUBG-competitive**, as expected at this training scale (4,990 GPU self-play games with 25 MCTS simulations vs millions typical for AlphaZero variants).
+
+6. **This was a validation run** (`exp000-6x128-25sims-validation`): same small parameters as the CPU run, confirming the M7 encoder and GPU pipeline work correctly over an extended 499-iteration run. The next run should scale up: more games per iteration, more MCTS simulations, and more total iterations. Periodic GNUBG benchmarks will track progress toward the project goal.
