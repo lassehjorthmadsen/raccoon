@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 checkpoints/
 logs/
+experiments/
 perplexity-conversation.md
 *.html
 *_files/

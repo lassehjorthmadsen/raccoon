@@ -14,7 +14,7 @@ Quick reference for running training on Google Cloud Platform.
 
 **GCS (Google Cloud Storage)**: Google's file storage service, like a shared drive in the cloud. We use a "bucket" (`gs://raccoon-training-lhm`) to back up checkpoints and logs so they survive even if we delete the VM.
 
-**gsutil**: Command-line tool for moving files to/from GCS. Think of it like `cp` but for cloud storage. `gsutil -m rsync` syncs a local directory to a cloud bucket (the `-m` flag means "multi-threaded" for speed).
+**gcloud storage**: Command-line tool for moving files to/from GCS. Think of it like `cp` but for cloud storage. `gcloud storage rsync` syncs a local directory to a cloud bucket. (Note: the older `gsutil` tool exists but has auth issues on our VM — always use `gcloud storage` instead.)
 
 **venv (Virtual Environment)**: An isolated Python installation inside `~/raccoon/.venv/`. It needs to be activated (`source .venv/bin/activate`) every time you open a new terminal on the VM so that `python` finds the right packages.
 
@@ -24,7 +24,7 @@ Quick reference for running training on Google Cloud Platform.
 |----------|-------|
 | GCP Project | `raccoon-training-493009` |
 | VM Name | `raccoon-gpu` |
-| Zone | `us-central1-a` |
+| Zone | `europe-west1-b` |
 | Machine | n1-standard-4 + T4 GPU (spot) |
 | GCS Bucket | `gs://raccoon-training-lhm` |
 | Repo on VM | `~/raccoon` |
@@ -36,7 +36,7 @@ Quick reference for running training on Google Cloud Platform.
 The VM is stopped between training runs to save money. Start it when you're ready to train.
 
 ```bash
-gcloud compute instances start raccoon-gpu --zone=us-central1-a
+gcloud compute instances start raccoon-gpu --zone=europe-west1-b
 ```
 
 ### 2. SSH into the VM
@@ -44,7 +44,7 @@ gcloud compute instances start raccoon-gpu --zone=us-central1-a
 Opens a terminal session on the remote VM. You'll see the prompt change to `lasse@raccoon-gpu`.
 
 ```bash
-gcloud compute ssh raccoon-gpu --zone=us-central1-a
+gcloud compute ssh raccoon-gpu --zone=europe-west1-b
 ```
 
 ### 3. Activate the environment (every SSH session)
@@ -96,7 +96,7 @@ tmux attach -t train
 From your local iMac (or any terminal with gcloud). This stops compute billing but keeps your disk (checkpoints, logs) intact.
 
 ```bash
-gcloud compute instances stop raccoon-gpu --zone=us-central1-a
+gcloud compute instances stop raccoon-gpu --zone=europe-west1-b
 ```
 
 ## Training Commands
@@ -109,7 +109,7 @@ python scripts/train.py \
   --channels 128 --num-blocks 6 \
   --iterations 500 --games-per-iter 50 --simulations 200 \
   --training-steps 100 --batch-size 256 \
-  --replay-size 500000 --checkpoint-every 10
+  --replay-size 500000 --checkpoint-every 1
 ```
 
 ### Resume from checkpoint
@@ -120,7 +120,7 @@ python scripts/train.py \
   --iterations REMAINING \
   --games-per-iter 50 --simulations 200 \
   --training-steps 100 --batch-size 256 \
-  --replay-size 500000 --checkpoint-every 10 \
+  --replay-size 500000 --checkpoint-every 1 \
   --resume checkpoints/iter_XXXX.pt
 ```
 
@@ -139,7 +139,7 @@ Note: `--channels` and `--num-blocks` are read from the checkpoint on resume.
 | `--training-steps` | SGD steps per cycle | 100 |
 | `--batch-size` | Positions per SGD step | 256 |
 | `--replay-size` | Max positions in replay buffer | 100,000 |
-| `--checkpoint-every` | Save checkpoint every N iterations | 10 |
+| `--checkpoint-every` | Save checkpoint every N iterations (use 1 on spot VMs — each checkpoint is only 22MB) | 10 |
 | `--resume` | Path to checkpoint to resume from | none |
 | `--lr` | Learning rate | 0.001 |
 | `--weight-decay` | L2 regularization | 0.0001 |
@@ -182,13 +182,24 @@ Results are logged to `logs/eval_log.jsonl` for later analysis.
 
 GCS backup protects against preemption and lets you download results to your iMac. Replace `EXPNAME` with your experiment name (e.g., `exp001-6x128-200sims`).
 
+### File structure
+
+Training writes to `checkpoints/` and `logs/` in the repo root (working directories). Completed experiments are archived under `experiments/EXPNAME/` both in GCS and locally.
+
+```
+# On VM (working dirs)          # GCS & local iMac (archive)
+checkpoints/iter_0000.pt        experiments/exp001-6x128-200sims/checkpoints/
+checkpoints/iter_0001.pt        experiments/exp001-6x128-200sims/logs/
+logs/training_log.jsonl
+```
+
 ### Manual one-time sync
 
-`rsync` copies only new/changed files. `-r` means recursive (include subdirectories). `-m` means multi-threaded (faster).
+`rsync` copies only new/changed files. `--recursive` includes subdirectories.
 
 ```bash
-gsutil -m rsync -r checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/
-gsutil -m rsync -r logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/
+gcloud storage rsync checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/ --recursive
+gcloud storage rsync logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/ --recursive
 ```
 
 ### Auto-sync loop
@@ -197,8 +208,9 @@ Runs in a second tmux pane (create one with `Ctrl-B`, then `C`). Syncs every 5 m
 
 ```bash
 while true; do
-  gsutil -m rsync -r checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/
-  gsutil -m rsync -r logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/
+  gcloud storage rsync checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/ --recursive
+  gcloud storage rsync logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/ --recursive
+  echo "Synced at $(date)"
   sleep 300
 done
 ```
@@ -232,7 +244,7 @@ for l in sys.stdin:
 Reads the log file directly from cloud storage without needing to SSH into the VM.
 
 ```bash
-gsutil cat gs://raccoon-training-lhm/experiments/EXPNAME/logs/training_log.jsonl | tail -5
+gcloud storage cat gs://raccoon-training-lhm/experiments/EXPNAME/logs/training_log.jsonl | tail -5
 ```
 
 ### Check which checkpoints exist
@@ -261,16 +273,16 @@ All commands run from your iMac. The `--zone` flag tells GCP where the VM lives.
 
 ```bash
 # Check if the VM is running or stopped
-gcloud compute instances describe raccoon-gpu --zone=us-central1-a --format="value(status)"
+gcloud compute instances describe raccoon-gpu --zone=europe-west1-b --format="value(status)"
 
 # Start the VM (takes ~30 seconds)
-gcloud compute instances start raccoon-gpu --zone=us-central1-a
+gcloud compute instances start raccoon-gpu --zone=europe-west1-b
 
 # Stop the VM (keeps disk with all files, stops hourly billing)
-gcloud compute instances stop raccoon-gpu --zone=us-central1-a
+gcloud compute instances stop raccoon-gpu --zone=europe-west1-b
 
 # Delete the VM entirely (destroys disk and all files — only do this if everything is backed up to GCS)
-gcloud compute instances delete raccoon-gpu --zone=us-central1-a
+gcloud compute instances delete raccoon-gpu --zone=europe-west1-b
 ```
 
 ## Costs
@@ -297,7 +309,9 @@ Since we use a spot VM, Google can reclaim it at any time (typically after a few
 To calculate `--iterations` for resume: total desired minus the checkpoint iteration minus 1.
 Example: want 500 total, last checkpoint is iter_0080 → `--iterations 419 --resume checkpoints/iter_0080.pt` (runs 81..499).
 
-**Tip**: Preemption is annoying but not harmful. We lose at most `--checkpoint-every` iterations of work (default 10, i.e., ~15 minutes). Setting up GCS sync means even the disk data has a backup.
+**Tip**: Preemption is annoying but not harmful. We lose at most `--checkpoint-every` iterations of work. Use `--checkpoint-every 1` on spot VMs — each checkpoint is only 22MB so the cost is negligible. Always run the GCS auto-sync loop so even the disk data has a backup.
+
+**If preemptions are frequent**: The zone may have high spot demand. Move to a different zone by snapshotting the disk and recreating the VM (we moved from `us-central1-a` to `europe-west1-b` for this reason). T4 GPUs are available in many zones — run `gcloud compute accelerator-types list --filter="name=nvidia-tesla-t4"` to see options.
 
 ## Experiment Naming Convention
 
@@ -322,8 +336,8 @@ We scale up gradually. Each phase increases one or two parameters. We evaluate a
 
 | Phase | Network | Sims | Games/iter | Iters | Est. cost | Goal |
 |-------|---------|------|------------|-------|-----------|------|
-| 0 (current) | 6x128 | 25 | 10 | 500 | ~$2 | Validate VM pipeline works |
-| 1 | 6x128 | 200 | 50 | 500 | ~$0.50 | Better training signal (more search) |
+| 0 (done) | 6x128 | 25 | 10 | 500 | ~$2 | Validate VM pipeline works |
+| 1 (current) | 6x128 | 200 | 50 | 500 | ~$0.50 | Better training signal (more search) |
 | 2 | 10x128 | 200 | 100 | 1000 | ~$3-4 | More network capacity |
 | 3 | 10x256 | 200-400 | 200 | 2000 | ~$12-18 | Serious scaling |
 | 4 | 20x256 | 400 | 500 | 5000 | ~$75+ | Full power (if needed) |

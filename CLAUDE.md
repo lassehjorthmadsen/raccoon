@@ -67,7 +67,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 ## Hardware
 
 - **Local dev**: 2013 Intel iMac (CPU only). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
-- **Cloud training**: GCP spot VM with T4 GPU (`raccoon-gpu` in `us-central1-a`). Auto-detects CUDA. See `docs/gcp_guide.md` for workflow.
+- **Cloud training**: GCP spot VM with T4 GPU (`raccoon-gpu` in `europe-west1-b`). Auto-detects CUDA. See `docs/gcp_guide.md` for workflow.
 
 ## Key Files
 
@@ -75,3 +75,5 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 - `README.md` — Design decisions, tech stack, and references
 - `docs/plan.md` — Full implementation plan with per-milestone specs, interfaces, and test requirements
 - `docs/gcp_guide.md` — GCP training workflow, commands, costs, and troubleshooting
+- `experiments/` — Archived training results (gitignored). Each experiment gets `checkpoints/` and `logs/` subdirs. Mirrored in GCS at `gs://raccoon-training-lhm/experiments/`
+- `checkpoints/`, `logs/` — Working directories for active training runs (gitignored, transient)
