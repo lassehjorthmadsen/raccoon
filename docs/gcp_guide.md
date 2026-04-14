@@ -101,6 +101,8 @@ gcloud compute instances stop raccoon-gpu --zone=europe-west1-b
 
 ## Training Commands
 
+`--experiment-name` is required. Outputs go to `experiments/<name>/{checkpoints,logs}/`.
+
 ### Fresh training run
 
 ```bash
@@ -121,7 +123,7 @@ python scripts/train.py \
   --games-per-iter 50 --simulations 200 \
   --training-steps 100 --batch-size 256 \
   --replay-size 500000 --checkpoint-every 1 \
-  --resume checkpoints/iter_XXXX.pt
+  --resume experiments/NAME/checkpoints/iter_XXXX.pt
 ```
 
 Note: `--channels` and `--num-blocks` are read from the checkpoint on resume.
@@ -184,13 +186,12 @@ GCS backup protects against preemption and lets you download results to your iMa
 
 ### File structure
 
-Training writes to `checkpoints/` and `logs/` in the repo root (working directories). Completed experiments are archived under `experiments/EXPNAME/` both in GCS and locally.
+Training writes directly under `experiments/EXPNAME/`. The same layout is used on the VM, in GCS, and on your iMac — so sync is a straight mirror.
 
 ```
-# On VM (working dirs)          # GCS & local iMac (archive)
-checkpoints/iter_0000.pt        experiments/exp001-6x128-200sims/checkpoints/
-checkpoints/iter_0001.pt        experiments/exp001-6x128-200sims/logs/
-logs/training_log.jsonl
+experiments/exp001-6x128-200sims/checkpoints/iter_0000.pt
+experiments/exp001-6x128-200sims/checkpoints/iter_0001.pt
+experiments/exp001-6x128-200sims/logs/training_log.jsonl
 ```
 
 ### Manual one-time sync
@@ -198,8 +199,7 @@ logs/training_log.jsonl
 `rsync` copies only new/changed files. `--recursive` includes subdirectories.
 
 ```bash
-gcloud storage rsync checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/ --recursive
-gcloud storage rsync logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/ --recursive
+gcloud storage rsync experiments/EXPNAME/ gs://raccoon-training-lhm/experiments/EXPNAME/ --recursive
 ```
 
 ### Auto-sync loop
@@ -208,8 +208,7 @@ Runs in a second tmux pane (create one with `Ctrl-B`, then `C`). Syncs every 5 m
 
 ```bash
 while true; do
-  gcloud storage rsync checkpoints/ gs://raccoon-training-lhm/experiments/EXPNAME/checkpoints/ --recursive
-  gcloud storage rsync logs/ gs://raccoon-training-lhm/experiments/EXPNAME/logs/ --recursive
+  gcloud storage rsync experiments/EXPNAME/ gs://raccoon-training-lhm/experiments/EXPNAME/ --recursive
   echo "Synced at $(date)"
   sleep 300
 done
@@ -230,7 +229,7 @@ gsutil -m cp -r gs://raccoon-training-lhm/experiments/EXPNAME/ ./experiments/
 `tail -5` shows the last 5 lines of the log file. The Python one-liner parses the JSON and prints a readable summary.
 
 ```bash
-tail -5 logs/training_log.jsonl | python3 -c "
+tail -5 experiments/EXPNAME/logs/training_log.jsonl | python3 -c "
 import sys, json
 for l in sys.stdin:
     d = json.loads(l)
@@ -250,7 +249,7 @@ gcloud storage cat gs://raccoon-training-lhm/experiments/EXPNAME/logs/training_l
 ### Check which checkpoints exist
 
 ```bash
-ls checkpoints/
+ls experiments/EXPNAME/checkpoints/
 ```
 
 ## tmux Cheat Sheet
@@ -307,7 +306,7 @@ Since we use a spot VM, Google can reclaim it at any time (typically after a few
 4. Just restart the VM, SSH in, activate venv, and resume from the last saved checkpoint.
 
 To calculate `--iterations` for resume: total desired minus the checkpoint iteration minus 1.
-Example: want 500 total, last checkpoint is iter_0080 → `--iterations 419 --resume checkpoints/iter_0080.pt` (runs 81..499).
+Example: want 500 total, last checkpoint is iter_0080 → `--iterations 419 --resume experiments/EXPNAME/checkpoints/iter_0080.pt` (runs 81..499).
 
 **Tip**: Preemption is annoying but not harmful. We lose at most `--checkpoint-every` iterations of work. Use `--checkpoint-every 1` on spot VMs — each checkpoint is only 22MB so the cost is negligible. Always run the GCS auto-sync loop so even the disk data has a backup.
 

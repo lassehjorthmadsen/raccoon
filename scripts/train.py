@@ -21,13 +21,16 @@ def main():
     parser.add_argument("--replay-size", type=int, default=100_000)
     parser.add_argument("--channels", type=int, default=128)
     parser.add_argument("--num-blocks", type=int, default=6)
-    parser.add_argument("--checkpoint-dir", default="checkpoints")
-    parser.add_argument("--log-dir", default="logs")
     parser.add_argument("--checkpoint-every", type=int, default=10,
                         help="Save checkpoint every N iterations")
-    parser.add_argument("--experiment-name", type=str, default="")
+    parser.add_argument("--experiment-name", type=str, required=True,
+                        help="Required. Outputs go to experiments/<name>/{checkpoints,logs}/")
     parser.add_argument("--resume", type=str, default=None, help="Path to checkpoint")
     args = parser.parse_args()
+
+    exp_root = f"experiments/{args.experiment_name}"
+    checkpoint_dir = f"{exp_root}/checkpoints"
+    log_dir = f"{exp_root}/logs"
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     start_iter = 0
@@ -67,8 +70,8 @@ def main():
         batch_size=args.batch_size,
         games_per_iteration=args.games_per_iter,
         training_steps_per_iteration=args.training_steps,
-        checkpoint_dir=args.checkpoint_dir,
-        log_dir=args.log_dir,
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
         experiment_name=args.experiment_name,
         checkpoint_every=args.checkpoint_every,
     )

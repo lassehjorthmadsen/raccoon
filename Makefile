@@ -10,10 +10,11 @@ test:
 	$(PYTHON) -m pytest tests/ -v
 
 smoke:
-	$(PYTHON) scripts/train.py --iterations 2 --games-per-iter 3 --simulations 10
+	$(PYTHON) scripts/train.py --experiment-name smoke --iterations 2 --games-per-iter 3 --simulations 10
 
 train:
-	$(PYTHON) scripts/train.py
+	@if [ -z "$(NAME)" ]; then echo "Usage: make train NAME=expNNN-6x128-200sims"; exit 1; fi
+	$(PYTHON) scripts/train.py --experiment-name $(NAME)
 
 eval:
 	$(PYTHON) scripts/evaluate.py

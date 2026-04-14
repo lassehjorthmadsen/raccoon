@@ -21,12 +21,13 @@ make play           # Interactive terminal play
 python3 -m pytest tests/test_encoder.py -v
 python3 -m pytest tests/test_mcts.py::test_name -v
 
-# Training with custom params
-python3 scripts/train.py --iterations 100 --games-per-iter 50 --simulations 100 --lr 0.001 \
-  --channels 128 --num-blocks 6 --experiment-name my-run --checkpoint-every 10
+# Training with custom params (--experiment-name required; outputs go to experiments/<name>/)
+python3 scripts/train.py --experiment-name my-run --iterations 100 --games-per-iter 50 \
+  --simulations 100 --lr 0.001 --channels 128 --num-blocks 6 --checkpoint-every 10
 
 # Resume training from a checkpoint (architecture is read from the checkpoint)
-python3 scripts/train.py --iterations 100 --resume checkpoints/iter_0200.pt
+python3 scripts/train.py --experiment-name my-run --iterations 100 \
+  --resume experiments/my-run/checkpoints/iter_0200.pt
 ```
 
 ## Architecture
@@ -75,5 +76,4 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 - `README.md` — Design decisions, tech stack, and references
 - `docs/plan.md` — Full implementation plan with per-milestone specs, interfaces, and test requirements
 - `docs/gcp_guide.md` — GCP training workflow, commands, costs, and troubleshooting
-- `experiments/` — Archived training results (gitignored). Each experiment gets `checkpoints/` and `logs/` subdirs. Mirrored in GCS at `gs://raccoon-training-lhm/experiments/`
-- `checkpoints/`, `logs/` — Working directories for active training runs (gitignored, transient)
+- `experiments/<name>/{checkpoints,logs}/` — All training output lives here (gitignored). Same layout on VM, in GCS (`gs://raccoon-training-lhm/experiments/`), and locally.
