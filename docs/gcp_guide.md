@@ -407,6 +407,46 @@ Example: want 500 total, last checkpoint is iter_0080 → `--iterations 419 --re
 
 **If preemptions are frequent**: The zone may have high spot demand. Move to a different zone by snapshotting the disk and recreating the VM (we moved from `us-central1-a` to `europe-west1-b` for this reason). T4 GPUs are available in many zones — run `gcloud compute accelerator-types list --filter="name=nvidia-tesla-t4"` to see options.
 
+## Auto-Recovery Watchdog
+
+Spot preemptions happen at unpredictable times — sometimes multiple per day. Manually restarting each time is tedious, so we have a two-part watchdog that handles it automatically.
+
+- **`scripts/watch_vm.sh`** runs locally on the iMac. Polls VM status every 5 min; on `TERMINATED`, starts the VM (retrying on stockouts) and SSHes in to relaunch training.
+- **`scripts/resume_training.sh`** lives on the VM (committed in the repo). Finds the latest checkpoint in `experiments/<name>/checkpoints/`, launches training in a `train` tmux session, and kicks off a GCS sync loop in a `sync` tmux session. Idempotent — does nothing if `train` is already alive.
+
+### Start the watchdog
+
+Wrap in `systemd-inhibit` so the iMac won't suspend and freeze the watchdog:
+
+```bash
+nohup systemd-inhibit --what=sleep:idle --who=watch_vm --why="keep VM watchdog alive" \
+  ./scripts/watch_vm.sh EXPNAME ITERATIONS > /tmp/watch_vm.log 2>&1 &
+disown
+```
+
+### Verify
+
+```bash
+pgrep -af watch_vm.sh                    # watchdog process alive
+systemd-inhibit --list | grep watch_vm   # sleep inhibit registered
+tail -f /tmp/watch_vm.log                # activity log
+```
+
+### Stop the watchdog
+
+```bash
+pkill -f watch_vm.sh
+```
+
+### Tuning training params
+
+Training flags are hardcoded in `scripts/resume_training.sh`. Edit that file (and `git push` / `git pull` on the VM) when changing params for a new experiment.
+
+### Caveats
+
+- Watchdog pauses if the iMac suspends; `systemd-inhibit` prevents idle/explicit sleep but **not** lid-close sleep on a laptop. Our iMac is a desktop, so this is fine.
+- If the zone is fully out of T4 capacity (persistent stockout), the watchdog will keep retrying every 2 min indefinitely. Check `/tmp/watch_vm.log` if the VM seems stuck down.
+
 ## Experiment Naming Convention
 
 Each training run gets a unique name so we can compare results. The name encodes the key parameters at a glance.
