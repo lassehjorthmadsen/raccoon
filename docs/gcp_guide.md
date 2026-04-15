@@ -252,6 +252,101 @@ gcloud storage cat gs://raccoon-training-lhm/experiments/EXPNAME/logs/training_l
 ls experiments/EXPNAME/checkpoints/
 ```
 
+### Quick status check from local machine
+
+Check current iteration and recent metrics without SSH:
+
+```bash
+gcloud compute ssh raccoon-gpu --zone=us-central1-a --command="sudo tail -3 /home/lasse/raccoon/logs/training_log.jsonl | grep -o 'iteration\": [0-9]*'"
+```
+
+Detailed status with losses:
+
+```bash
+gcloud compute ssh raccoon-gpu --zone=us-central1-a --command="echo 'Current time:' && date -u && echo '---' && sudo tail -1 /home/lasse/raccoon/logs/training_log.jsonl | python3 -c \"import sys,json; d=json.loads(sys.stdin.read()); print(f'Iteration: {d[\\\"iteration\\\"]}'); print(f'Policy loss: {d[\\\"policy_loss\\\"]:.4f}'); print(f'Value loss: {d[\\\"value_loss\\\"]:.4f}'); print(f'Time/iter: {d[\\\"total_time\\\"]:.1f}s')\""
+```
+
+Check self-play progress:
+
+```bash
+gcloud compute ssh raccoon-gpu --zone=us-central1-a --command="sudo tail -5 /home/lasse/raccoon/logs/train_exp001.log"
+```
+
+## Stopping Training
+
+### Stop at a specific iteration
+
+When training reaches your target iteration, stop it to save costs.
+
+**Option 1: Kill the tmux session (recommended)**
+
+```bash
+# SSH into the VM
+gcloud compute ssh raccoon-gpu --zone=us-central1-a
+
+# Switch to user lasse and kill the training session
+sudo -u lasse tmux kill-session -t train
+
+# Verify it stopped
+sudo -u lasse tmux ls
+
+# Exit SSH
+exit
+```
+
+**Option 2: Stop the entire VM**
+
+```bash
+# From your local machine - stops billing immediately
+gcloud compute instances stop raccoon-gpu --zone=us-central1-a
+```
+
+### Stopping in the middle of an iteration
+
+Training saves checkpoints every 10 iterations by default. If you stop mid-iteration, you'll lose progress since the last checkpoint (at most ~45 minutes of work). Best practice: wait for the next checkpoint to be saved before stopping.
+
+## Downloading Results
+
+### Download specific checkpoints to local machine
+
+```bash
+# Create local directory
+mkdir -p phase1_checkpoints phase1_logs
+
+# Download a specific checkpoint
+gcloud compute scp --zone=us-central1-a raccoon-gpu:/home/lasse/raccoon/checkpoints/iter_0150.pt ./phase1_checkpoints/
+
+# Download training log
+gcloud compute scp --zone=us-central1-a raccoon-gpu:/home/lasse/raccoon/logs/training_log.jsonl ./phase1_logs/
+
+# Download evaluation results
+gcloud compute scp --zone=us-central1-a raccoon-gpu:/home/lasse/raccoon/logs/eval_log.jsonl ./phase1_logs/
+gcloud compute scp --zone=us-central1-a raccoon-gpu:/home/lasse/raccoon/logs/gnubg_eval_log.jsonl ./phase1_logs/
+```
+
+### Download multiple checkpoints
+
+```bash
+# Download checkpoints at key intervals (0, 50, 100, 150)
+for i in 0000 0050 0100 0150; do
+  gcloud compute scp --zone=us-central1-a \
+    raccoon-gpu:/home/lasse/raccoon/checkpoints/iter_${i}.pt \
+    ./phase1_checkpoints/
+done
+```
+
+### Handle permission issues when downloading
+
+If you get "permission denied" errors, copy files to /tmp first:
+
+```bash
+# On VM: Copy to accessible location
+gcloud compute ssh raccoon-gpu --zone=us-central1-a --command="sudo cp /home/lasse/raccoon/checkpoints/iter_0150.pt /tmp/ && sudo chmod 644 /tmp/iter_0150.pt"
+
+# Then download from /tmp
+gcloud compute scp --zone=us-central1-a raccoon-gpu:/tmp/iter_0150.pt ./phase1_checkpoints/
+```
+
 ## tmux Cheat Sheet
 
 tmux uses a two-step keyboard shortcut: press `Ctrl-B` first (the "prefix"), release it, then press the command key. Think of `Ctrl-B` as saying "hey tmux, the next key is for you, not the program running inside."
@@ -333,10 +428,23 @@ Examples:
 
 We scale up gradually. Each phase increases one or two parameters. We evaluate against GNUBG between phases to decide whether to continue or change direction.
 
-| Phase | Network | Sims | Games/iter | Iters | Est. cost | Goal |
-|-------|---------|------|------------|-------|-----------|------|
-| 0 (done) | 6x128 | 25 | 10 | 500 | ~$2 | Validate VM pipeline works |
-| 1 (current) | 6x128 | 200 | 50 | 500 | ~$0.50 | Better training signal (more search) |
-| 2 | 10x128 | 200 | 100 | 1000 | ~$3-4 | More network capacity |
-| 3 | 10x256 | 200-400 | 200 | 2000 | ~$12-18 | Serious scaling |
-| 4 | 20x256 | 400 | 500 | 5000 | ~$75+ | Full power (if needed) |
+**Note**: Actual Phase 1 timing is ~44 min/iteration (not the initial estimate), so costs are updated based on real measurements.
+
+| Phase | Network | Sims | Games/iter | Iters | Time/iter | Est. cost | Goal |
+|-------|---------|------|------------|-------|-----------|-----------|------|
+| 0 (completed) | 6x128 | 25 | 10 | 499 | ~70s | ~$2 | Validate VM pipeline works |
+| 1 (current) | 6x128 | 200 | 50 | 150 | ~44min | ~$17 | Better training signal (more search) |
+| 1-full | 6x128 | 200 | 50 | 500 | ~44min | ~$55 | Full Phase 1 if needed |
+| 2 | 10x128 | 200 | 100 | 500-1000 | TBD | ~$50-100 | More network capacity |
+| 3 | 10x256 | 200-400 | 200 | 1000-2000 | TBD | ~$100-200 | Serious scaling |
+
+**Phase 0 Results:**
+- Validated training loop works
+- Internal eval: iter_498 beats iter_290 by +0.06 ppg
+- GNUBG 0-ply: 0-10 loss, -2.5 ppg (too weak)
+- Conclusion: Need stronger training signal
+
+**Phase 1 Plan:**
+- Target: 150 iterations (~4.6 days, ~$17)
+- Evaluate vs GNUBG 0-ply at completion
+- Decide whether to continue or scale up network
