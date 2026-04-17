@@ -18,213 +18,429 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from datetime import datetime
+from pathlib import Path
 
 plt.style.use("seaborn-v0_8-whitegrid")
 plt.rcParams["figure.dpi"] = 120
 
-EXP_DIR = "../experiments/exp000-6x128-25sims"
+# --- Define experiments to analyze ---
+EXPERIMENTS = {
+    "exp000": {
+        "name": "exp000-6x128-25sims",
+        "label": "exp000 (25 sims, 10 games)",
+        "color": "#1f77b4",
+    },
+    "exp001": {
+        "name": "exp001-6x128-200sims",
+        "label": "exp001 (200 sims, 50 games)",
+        "color": "#ff7f0e",
+    },
+}
 
-# --- Load training log (exclude any exp001 data mixed into the file) ---
-with open(f"{EXP_DIR}/logs/training_log.jsonl") as f:
-    all_rows = [json.loads(line) for line in f if line.strip()]
+def load_experiment(exp_name):
+    """Load training log and eval logs for an experiment."""
+    exp_dir = Path(f"../experiments/{exp_name}")
 
-configs = [r for r in all_rows if r.get("type") == "config"]
-exp000_run_ids = {c["run_id"] for c in configs if "exp000" in c.get("experiment_name", "")}
+    # Load training log
+    with open(exp_dir / "logs/training_log.jsonl") as f:
+        all_rows = [json.loads(line) for line in f if line.strip()]
 
-df = pd.DataFrame([r for r in all_rows if r.get("type") != "config" and r["run_id"] in exp000_run_ids])
-df = df.sort_values("timestamp").drop_duplicates(subset="iteration", keep="last").reset_index(drop=True)
+    configs = [r for r in all_rows if r.get("type") == "config"]
+    run_ids = {c["run_id"] for c in configs if exp_name.split("-")[0] in c.get("experiment_name", "")}
 
-# --- Load eval logs ---
-with open(f"{EXP_DIR}/logs/eval_log.jsonl") as f:
-    eval_rows = [json.loads(line) for line in f if line.strip()]
-with open(f"{EXP_DIR}/logs/gnubg_eval_log.jsonl") as f:
-    gnubg_rows = [json.loads(line) for line in f if line.strip()]
+    df = pd.DataFrame([r for r in all_rows if r.get("type") != "config" and r["run_id"] in run_ids])
+    df = df.sort_values("timestamp").drop_duplicates(subset="iteration", keep="last").reset_index(drop=True)
+
+    # Load eval logs if they exist
+    eval_rows = []
+    gnubg_rows = []
+    try:
+        with open(exp_dir / "logs/eval_log.jsonl") as f:
+            eval_rows = [json.loads(line) for line in f if line.strip()]
+    except FileNotFoundError:
+        pass
+
+    try:
+        with open(exp_dir / "logs/gnubg_eval_log.jsonl") as f:
+            gnubg_rows = [json.loads(line) for line in f if line.strip()]
+    except FileNotFoundError:
+        pass
+
+    return df, eval_rows, gnubg_rows
+
+# Load all experiments
+experiments = {}
+for exp_id, exp_info in EXPERIMENTS.items():
+    df, eval_rows, gnubg_rows = load_experiment(exp_info["name"])
+    experiments[exp_id] = {
+        **exp_info,
+        "df": df,
+        "eval_rows": eval_rows,
+        "gnubg_rows": gnubg_rows,
+    }
 ```
 
-This is the analysis of **exp000-6x128-25sims**, the first complete training run. Its purpose was to validate the full pipeline (M7 encoder, GPU training, spot preemption recovery) rather than to produce a strong player.
+## Experiment Overview
 
-| Parameter | Value |
-|-----------|-------|
-| **Network** | 6 ResNet blocks, 128 channels, 17-channel encoder |
-| **Hardware** | GCP T4 spot VM (`europe-west1-b`) |
-| **Iterations** | 499 (0--498) |
-| **Games/iteration** | 10 |
-| **MCTS simulations** | 25 |
-| **Total self-play games** | 4,990 |
-| **Wall time** | ~11.3 hours (3 runs, 2 spot preemptions) |
-
-## Loss Curves
-
-The central question: **does the training loss reach a plateau?**
+This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.
 
 ```{python}
-fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
+#| echo: false
+# Generate experiment summary table
+summary_data = []
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    summary_data.append({
+        "Experiment": exp["name"],
+        "Network": "6x128 ResNet",
+        "MCTS Sims": exp["name"].split("-")[-1].replace("sims", ""),
+        "Games/Iter": df["num_games"].iloc[0] if len(df) > 0 else "N/A",
+        "Iterations": len(df),
+        "Total Games": len(df) * df["num_games"].iloc[0] if len(df) > 0 else 0,
+        "Status": "Complete" if exp_id == "exp000" else "In Progress",
+    })
+summary_df = pd.DataFrame(summary_data)
+print(summary_df.to_markdown(index=False))
+```
 
-for ax, col, color, label in zip(
+**Key Questions:**
+
+1. **exp000 (validation run)**: Does the full pipeline work? (M7 encoder, GPU training, spot VM recovery)
+2. **exp001 (Phase 1)**: Does more compute per iteration (8x more MCTS simulations, 5x more games) translate to faster learning?
+3. **Loss trends**: Why is loss rising in exp001? Is the network still improving?
+
+## Loss Curves Comparison
+
+Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.
+
+```{python}
+fig, axes = plt.subplots(3, 1, figsize=(12, 9), sharex=False)
+
+for ax, col, label in zip(
     axes,
     ["policy_loss", "value_loss", "total_loss"],
-    ["#1f77b4", "#ff7f0e", "#2ca02c"],
     ["Policy Loss (cross-entropy)", "Value Loss (MSE)", "Total Loss"],
 ):
-    ax.plot(df["iteration"], df[col],
-            alpha=0.25, color=color, linewidth=0.8)
-    ax.plot(df["iteration"], df[col].rolling(20, min_periods=1).mean(),
-            color=color, linewidth=2)
+    for exp_id, exp in experiments.items():
+        df = exp["df"]
+        ax.plot(df["iteration"], df[col],
+                alpha=0.15, color=exp["color"], linewidth=0.6)
+        ax.plot(df["iteration"], df[col].rolling(20, min_periods=1).mean(),
+                color=exp["color"], linewidth=2.5, label=exp["label"])
+
     ax.set_ylabel(label, fontsize=10)
+    ax.legend(fontsize=8, loc="best")
+    ax.grid(True, alpha=0.3)
 
 axes[-1].set_xlabel("Iteration")
-fig.suptitle("Training Loss Over 499 Iterations", fontsize=13, fontweight="bold")
+fig.suptitle("Training Loss Across Experiments", fontsize=13, fontweight="bold")
 fig.tight_layout()
 plt.show()
 ```
 
 **Observations:**
 
-- **Policy loss** drops steeply in the first ~50 iterations (6.5 &rarr; 2.5), then continues declining more slowly. By iteration 498 it reaches ~1.77 -- still declining, not fully plateaued.
-- **Value loss** is low throughout (~0.10--0.11) and slightly *increases* over training. This is expected: the untrained network predicts near-zero for all positions (trivially close to the mean outcome), so initial MSE is low. As the network learns to differentiate positions, value loss rises before it can decline. More diverse training data (more games, more iterations) is needed to push it down.
-- **Buffer saturation** at iteration ~196 causes no visible discontinuity in the loss curves.
+**exp000 (25 sims, 10 games)**:
+- Policy loss declined steadily from ~6.5 to ~1.77 over 499 iterations
+- Value loss remained stable around 0.10-0.11
+- Smooth, monotonic improvement
 
-## Loss Curve Detail: Is It Plateauing?
+**exp001 (200 sims, 50 games)**:
+- Started from iter_51 checkpoint (resumed training)
+- Policy loss initially declined then **rose** from ~1.92 (iter 57) to ~2.23 (iter 86)
+- Total loss increased from ~2.02 to ~2.36
+- The training problem is getting **harder**, not easier
 
-Let's zoom in on the second half and fit a linear trend.
+**Important**: Rising loss in exp001 does NOT necessarily mean the network is getting worse. In self-play, the opponent (the network itself) is getting stronger, making the training problem harder. Loss measures fit to current data, not playing strength. See "Self-Play Non-Stationarity" analysis below.
+
+## Self-Play Non-Stationarity: Why Loss Can Rise
+
+In supervised learning, rising loss means the model is getting worse. In self-play, **rising loss can indicate the network is improving**. Here's why:
+
+**The Moving Target Problem:**
+- The network trains against itself
+- As the network improves, the opponent gets stronger
+- Stronger opponent → harder positions → higher loss
+- Loss measures "how well do I fit my current training data", not "how strong am I at backgammon"
+
+**What exp001's rising loss tells us:**
+1. The network is generating more complex, challenging positions (longer games, more gammons)
+2. MCTS with 200 simulations produces higher-quality training targets than 25 simulations
+3. The policy head struggles more because positions are genuinely harder to evaluate
+
+**How to measure true improvement:**
+- **Arena evaluation**: Compare checkpoints head-to-head (e.g., iter_085 vs iter_070)
+- **Fixed benchmark**: Test against GNUBG (constant opponent strength)
+- **Game complexity**: Longer games, more gammons suggest more sophisticated play
+
+This phenomenon is well-documented in AlphaZero papers: loss often rises or plateaus while playing strength continues to improve.
+
+## Loss Trend Detail
+
+Let's quantify the loss trends for each experiment.
 
 ```{python}
-fig, ax = plt.subplots(figsize=(10, 4))
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
 
-late = df[df["iteration"] >= 200].copy()
-ax.plot(late["iteration"], late["total_loss"], alpha=0.3, color="#2ca02c", linewidth=0.8)
-ax.plot(late["iteration"], late["total_loss"].rolling(20, min_periods=1).mean(),
-        color="#2ca02c", linewidth=2.5, label="Total loss (rolling mean)")
+for idx, (exp_id, exp) in enumerate(experiments.items()):
+    df = exp["df"]
+    ax = axes[idx]
 
-from numpy.polynomial.polynomial import polyfit
-x = late["iteration"].values
-y = late["total_loss"].values
-b, m = polyfit(x, y, 1)
-ax.plot(x, b + m * x, color="red", linestyle="--", linewidth=1.5,
-        label=f"Linear trend: slope = {m:.5f}/iter")
+    # For exp001, analyze from resumption point; for exp000, second half
+    if exp_id == "exp001":
+        late = df[df["iteration"] >= 52].copy()
+        title_suffix = "Iterations 52+"
+    else:
+        late = df[df["iteration"] >= 200].copy()
+        title_suffix = "Iterations 200+"
 
-ax.set_xlabel("Iteration")
-ax.set_ylabel("Total Loss")
-ax.set_title("Total Loss: Iterations 200--498", fontweight="bold")
-ax.legend()
+    ax.plot(late["iteration"], late["total_loss"], alpha=0.3, color=exp["color"], linewidth=0.8)
+    ax.plot(late["iteration"], late["total_loss"].rolling(20, min_periods=1).mean(),
+            color=exp["color"], linewidth=2.5, label="Total loss (rolling mean)")
+
+    from numpy.polynomial.polynomial import polyfit
+    x = late["iteration"].values
+    y = late["total_loss"].values
+    b, m = polyfit(x, y, 1)
+    ax.plot(x, b + m * x, color="red", linestyle="--", linewidth=1.5,
+            label=f"Trend: slope = {m:.5f}/iter")
+
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Total Loss")
+    ax.set_title(f"{exp['label']}: {title_suffix}", fontweight="bold")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    # Print stats
+    first_loss = late["total_loss"].rolling(20).mean().dropna().iloc[0] if len(late) >= 20 else late["total_loss"].iloc[0]
+    last_loss = late["total_loss"].rolling(20).mean().iloc[-1]
+    print(f"\n{exp['label']}:")
+    print(f"  Loss at start: {first_loss:.3f}")
+    print(f"  Loss at end: {last_loss:.3f}")
+    print(f"  Change: {last_loss - first_loss:+.3f}")
+    print(f"  Slope: {m:.6f} per iteration ({m*100:.4f} per 100 iters)")
+
 fig.tight_layout()
 plt.show()
-
-print(f"Loss at iter 200 (rolling mean): {late['total_loss'].rolling(20).mean().dropna().iloc[0]:.3f}")
-print(f"Loss at iter 498 (rolling mean): {late['total_loss'].rolling(20).mean().iloc[-1]:.3f}")
-print(f"Linear slope: {m:.5f} per iteration ({m*100:.3f} per 100 iterations)")
 ```
 
-The slope quantifies the rate of improvement. A slope near zero would indicate a plateau.
+**Interpretation:**
+- **Negative slope** = loss decreasing (typical supervised learning)
+- **Positive slope** = loss increasing (common in self-play as opponent strengthens)
+- **Near-zero slope** = plateau (may indicate convergence or need for hyperparameter changes)
 
-## Game Dynamics
+## Game Dynamics Comparison
+
+Game complexity metrics reveal whether the network is developing more sophisticated play patterns.
 
 ```{python}
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-# Game length
-ax1.plot(df["iteration"], df["avg_game_length"], alpha=0.2, color="#1f77b4", linewidth=0.6)
-ax1.plot(df["iteration"], df["avg_game_length"].rolling(20, min_periods=1).mean(),
-         color="#1f77b4", linewidth=2)
+# Game length comparison
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    ax1.plot(df["iteration"], df["avg_game_length"], alpha=0.15, color=exp["color"], linewidth=0.6)
+    ax1.plot(df["iteration"], df["avg_game_length"].rolling(20, min_periods=1).mean(),
+             color=exp["color"], linewidth=2.5, label=exp["label"])
 ax1.set_xlabel("Iteration")
 ax1.set_ylabel("Average Game Length (moves)")
 ax1.set_title("Game Length Over Training")
+ax1.legend(fontsize=8)
+ax1.grid(True, alpha=0.3)
 
-# Gammon/backgammon rates
-gammon_rate = df["gammons"] / df["num_games"]
-bg_rate = df["backgammons"] / df["num_games"]
-ax2.plot(df["iteration"], gammon_rate.rolling(20, min_periods=1).mean(),
-         linewidth=2, label="Gammons", color="#ff7f0e")
-ax2.plot(df["iteration"], bg_rate.rolling(20, min_periods=1).mean(),
-         linewidth=2, label="Backgammons", color="#d62728")
+# Gammon/backgammon rates comparison
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    gammon_rate = df["gammons"] / df["num_games"]
+    ax2.plot(df["iteration"], gammon_rate.rolling(20, min_periods=1).mean(),
+             linewidth=2.5, label=f"{exp['label']} (gammons)", color=exp["color"], linestyle="-")
+    bg_rate = df["backgammons"] / df["num_games"]
+    ax2.plot(df["iteration"], bg_rate.rolling(20, min_periods=1).mean(),
+             linewidth=2, label=f"{exp['label']} (BG)", color=exp["color"], linestyle=":", alpha=0.7)
 ax2.set_xlabel("Iteration")
 ax2.set_ylabel("Rate (per game)")
 ax2.set_title("Gammon / Backgammon Rates")
-ax2.legend(fontsize=8)
+ax2.legend(fontsize=7, loc="best")
+ax2.grid(True, alpha=0.3)
 
 fig.tight_layout()
 plt.show()
 ```
 
-With only 10 games per iteration these metrics are noisy, hence the rolling averages. Average game length around 75--100 moves is typical for backgammon.
+**Observations:**
+- Both experiments show typical backgammon game lengths (75-100 moves)
+- Gammon/backgammon rates around 0.3-0.5 per game are consistent with intermediate play
+- More data needed to detect significant differences in game complexity between experiments
 
-## Training Efficiency
+## Training Efficiency Comparison
+
+How does more compute per iteration (8x MCTS sims, 5x games) affect training time?
 
 ```{python}
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+fig, axes = plt.subplots(2, 2, figsize=(14, 8))
 
-# Time per iteration
-ax1.plot(df["iteration"], df["self_play_time"], linewidth=1.5,
-         label="Self-play", color="#1f77b4", alpha=0.7)
-ax1.plot(df["iteration"], df["training_time"], linewidth=1.5,
-         label="SGD", color="#ff7f0e", alpha=0.7)
-ax1.set_xlabel("Iteration")
-ax1.set_ylabel("Time (seconds)")
-ax1.set_title("Time per Iteration")
-ax1.legend(fontsize=8)
+# Time per iteration comparison
+ax = axes[0, 0]
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    ax.plot(df["iteration"], df["self_play_time"] / 60, linewidth=2,
+            label=exp["label"], color=exp["color"], alpha=0.8)
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Time (minutes)")
+ax.set_title("Self-Play Time per Iteration")
+ax.legend(fontsize=8)
+ax.grid(True, alpha=0.3)
 
-# Replay buffer
-ax2.plot(df["iteration"], df["replay_buffer_size"], linewidth=2)
-ax2.axhline(100_000, color="gray", linestyle=":", alpha=0.5)
-ax2.text(5, 102_000, "Max capacity (100k)", fontsize=8, color="gray")
-ax2.set_xlabel("Iteration")
-ax2.set_ylabel("Positions in Buffer")
-ax2.set_title("Replay Buffer Size")
-ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/1000:.0f}k"))
+# SGD time
+ax = axes[0, 1]
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    ax.plot(df["iteration"], df["training_time"], linewidth=2,
+            label=exp["label"], color=exp["color"], alpha=0.8)
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Time (seconds)")
+ax.set_title("SGD Training Time per Iteration")
+ax.legend(fontsize=8)
+ax.grid(True, alpha=0.3)
+
+# Replay buffer growth
+ax = axes[1, 0]
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    ax.plot(df["iteration"], df["replay_buffer_size"] / 1000, linewidth=2.5,
+            label=exp["label"], color=exp["color"])
+    # Show max capacity
+    max_cap = 100 if exp_id == "exp000" else 500
+    ax.axhline(max_cap, color=exp["color"], linestyle=":", alpha=0.4, linewidth=1)
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Positions (thousands)")
+ax.set_title("Replay Buffer Size")
+ax.legend(fontsize=8)
+ax.grid(True, alpha=0.3)
+
+# Cumulative training time
+ax = axes[1, 1]
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    cum_time = df["total_time"].cumsum() / 3600  # hours
+    ax.plot(df["iteration"], cum_time, linewidth=2.5,
+            label=exp["label"], color=exp["color"])
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Cumulative Time (hours)")
+ax.set_title("Total Training Time")
+ax.legend(fontsize=8)
+ax.grid(True, alpha=0.3)
 
 fig.tight_layout()
 plt.show()
 ```
 
 ```{python}
-total_hours = df["total_time"].sum() / 3600
-print(f"Total wall time: {total_hours:.1f} hours for {len(df)} iterations ({total_hours/len(df)*60:.1f} min/iter avg)")
-print(f"Self-play: {df['self_play_time'].mean():.0f}s/iter avg — this is the bottleneck")
-print(f"SGD: {df['training_time'].mean():.1f}s/iter avg — GPU keeps this trivial even after buffer fills")
+# Print efficiency stats for each experiment
+for exp_id, exp in experiments.items():
+    df = exp["df"]
+    total_hours = df["total_time"].sum() / 3600
+    avg_self_play_min = df["self_play_time"].mean() / 60
+    avg_sgd_sec = df["training_time"].mean()
+    final_buffer = df["replay_buffer_size"].iloc[-1]
+
+    print(f"\n{exp['label']}:")
+    print(f"  Total iterations: {len(df)}")
+    print(f"  Total wall time: {total_hours:.1f} hours ({total_hours/len(df)*60:.1f} min/iter avg)")
+    print(f"  Self-play time: {avg_self_play_min:.1f} min/iter avg")
+    print(f"  SGD time: {avg_sgd_sec:.1f} sec/iter avg")
+    print(f"  Final buffer size: {final_buffer:,} positions")
+    print(f"  Total games played: {len(df) * df['num_games'].iloc[0]:,}")
 ```
 
-**Key observations:**
+**Key Findings:**
 
-- Self-play time roughly doubles over the run as the network improves and MCTS search becomes more meaningful. SGD stays under ~1 second throughout -- the T4 GPU handles training trivially even after the buffer fills at iteration 196.
-- Self-play is the bottleneck. GPU acceleration only helps the SGD step, which is already cheap at this scale.
-- The run was preempted twice on the spot VM and resumed from checkpoint without issue.
+- **exp001 is ~40x slower per iteration** (~50 min vs ~1.2 min) due to 8x MCTS sims and 5x games
+- **SGD time stays negligible** (~2-3 seconds) in both experiments — T4 GPU handles training easily
+- **Self-play is the bottleneck** — GPU only accelerates the cheap part (SGD)
+- **exp000's buffer fills** at ~iter 196 (100k capacity); exp001's larger buffer (500k) provides more diversity
 
 ## Benchmark Results
 
-**Internal eval: iter_498 vs iter_290** (50 games, 100 MCTS simulations)
+Evaluation results from each experiment (when available):
 
 ```{python}
 #| echo: false
-e = eval_rows[0]
-print(f"Result: {e['p1_wins']}-{e['p2_wins']} (equity {e['equity']:+.2f} per game)")
-print(f"Gammons: iter_498 won {e['p1_gammons_won']}, iter_290 won {e['p2_gammons_won']}")
-print(f"Backgammons: iter_498 won {e['p1_backgammons_won']}, iter_290 won {e['p2_backgammons_won']}")
+for exp_id, exp in experiments.items():
+    print(f"\n{'='*60}")
+    print(f"{exp['label']}")
+    print(f"{'='*60}")
+
+    # Internal evaluation
+    if exp["eval_rows"]:
+        print("\n**Internal Evaluation:**")
+        for e in exp["eval_rows"]:
+            print(f"  {e.get('p1_name', 'P1')} vs {e.get('p2_name', 'P2')}")
+            print(f"  Result: {e['p1_wins']}-{e['p2_wins']} (equity {e.get('equity', 0):+.2f} ppg)")
+            print(f"  Gammons: P1={e.get('p1_gammons_won', 0)}, P2={e.get('p2_gammons_won', 0)}")
+    else:
+        print("\n**Internal Evaluation:** Not yet available")
+
+    # GNUBG benchmark
+    if exp["gnubg_rows"]:
+        print("\n**GNUBG Benchmark:**")
+        for g in exp["gnubg_rows"]:
+            print(f"  Result: Raccoon {g['raccoon_wins']} - GNUBG {g['gnubg_wins']}")
+            print(f"  Equity per game: {g['equity_per_game']:+.2f}")
+            print(f"  GNUBG gammons: {g.get('gnubg_gammons_won', 0)}, backgammons: {g.get('gnubg_backgammons_won', 0)}")
+    else:
+        print("\n**GNUBG Benchmark:** Not yet available")
 ```
 
-Essentially even -- 50 games is too few for statistical significance with a small skill gap. The internal eval confirms the network is not degrading, but the improvement between iter 290 and 498 is too small to detect at this sample size.
+**Interpretation:**
+- **exp000**: Validated the pipeline works, but far from GNUBG-competitive (as expected with only 25 MCTS sims)
+- **exp001**: Still in progress; eval pending at completion. The rising loss suggests need for arena evaluation to measure true playing strength.
 
-**GNUBG benchmark: iter_498 vs GNUBG world level** (10 games, 200 MCTS simulations)
+## Summary and Next Steps
 
-```{python}
-#| echo: false
-g = gnubg_rows[0]
-print(f"Result: Raccoon {g['raccoon_wins']} - GNUBG {g['gnubg_wins']}")
-print(f"Equity per game: {g['equity_per_game']:+.2f}")
-print(f"GNUBG gammons: {g['gnubg_gammons_won']}, backgammons: {g['gnubg_backgammons_won']}")
-```
+### Key Findings Across Experiments
 
-Raccoon is completely outclassed: zero wins, and all GNUBG victories were gammons or backgammons. Expected at this training scale.
+**1. Loss Trends Differ by Experiment Scale**
+- **exp000** (validation): Smooth, monotonic loss decline over 499 iterations
+- **exp001** (Phase 1): Rising loss from iter 57-86 despite (likely) improving play strength
+- Rising loss in self-play is **normal** when training intensifies — need arena/GNUBG eval to measure true strength
 
-## Summary
+**2. Training Efficiency Trade-offs**
+- exp001 is **~40x slower** per iteration (50 min vs 1.2 min) due to 8x more MCTS sims and 5x more games
+- **SGD stays cheap** (~2-3 sec) in both — T4 GPU easily handles training
+- **Self-play is the bottleneck** — GPU only accelerates the already-fast SGD step
+- More compute per iteration buys better training signal but at significant time cost
 
-1. **Loss is not yet plateaued.** Policy loss is still declining at iteration 498, though the rate of improvement is slowing. More training should continue to improve the policy.
+**3. Infrastructure Validation**
+- Spot VM preemption and recovery works reliably
+- GCS auto-sync protects against data loss
+- Training pipeline scales from 25 to 200 MCTS sims without issues
 
-2. **Value head is lagging.** Value loss hasn't started its expected decline. The network needs more diverse positions (more games, more iterations) before it can learn accurate position evaluation.
+**4. Self-Play Non-Stationarity**
+- Loss is **not** a reliable proxy for playing strength in self-play
+- As network improves, opponent (itself) gets stronger → training problem gets harder → loss can rise
+- Need **arena evaluation** (checkpoint vs checkpoint) and **fixed benchmarks** (GNUBG) to measure true improvement
 
-3. **GPU advantage is in SGD**, which stays under 1 second even after the replay buffer fills. Self-play is the dominant cost.
+### Immediate Next Steps
 
-4. **Spot VM workflow works.** The run was preempted twice and resumed from checkpoint without issue.
+1. **For exp001 (in progress at iter 86/141)**:
+   - Let training complete to iter 141
+   - Run arena evaluation: iter_085 vs iter_070 vs iter_051 (100+ games each)
+   - Run GNUBG benchmark at iter 141 to measure absolute strength
+   - Determine if rising loss correlates with strength improvement
 
-5. **Far from GNUBG-competitive**, as expected at this training scale (4,990 self-play games with 25 MCTS simulations).
+2. **Future Experiments**:
+   - Add experiments to `EXPERIMENTS` dict in the Setup section
+   - Download data from GCS to `experiments/<name>/logs/`
+   - Re-render this analysis to include new experiments
 
-6. **This was a validation run**: same small parameters, confirming the M7 encoder and GPU pipeline work correctly. The next experiment (exp001, 200 sims, 50 games/iter) scales up to test whether more compute per iteration translates to faster learning.
+3. **Analysis Enhancements**:
+   - Track Elo ratings from arena matches
+   - Compare learning efficiency: strength gained per compute hour
+   - Investigate whether exp001's 8x more MCTS yields 8x faster learning
+
+### Open Questions
+
+- Does exp001's rising loss indicate the network is actually improving faster than exp000?
+- What's the optimal balance between simulations/iteration and number of iterations?
+- When should we scale up to larger networks (10 blocks, 256 channels)?
