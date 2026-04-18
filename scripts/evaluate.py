@@ -25,8 +25,22 @@ def training_metadata(checkpoint_path):
     return meta
 
 
-def log_result(result, model1, args, log_dir="logs"):
-    """Append evaluation result to logs/eval_log.jsonl."""
+def log_dir_from_checkpoint(checkpoint_path):
+    """Derive the experiment log directory from a checkpoint path.
+
+    If checkpoint is .../experiments/NAME/checkpoints/iter_XXXX.pt,
+    returns .../experiments/NAME/logs. Otherwise returns 'logs' (cwd).
+    """
+    cp = Path(checkpoint_path).resolve()
+    if cp.parent.name == "checkpoints" and cp.parent.parent.name != ".":
+        return cp.parent.parent / "logs"
+    return Path("logs")
+
+
+def log_result(result, model1, args, log_dir=None):
+    """Append evaluation result to eval_log.jsonl in the experiment's log dir."""
+    if log_dir is None:
+        log_dir = log_dir_from_checkpoint(args.checkpoint1)
     log_path = Path(log_dir) / "eval_log.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 

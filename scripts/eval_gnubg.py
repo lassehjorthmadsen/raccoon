@@ -24,8 +24,22 @@ def latest_checkpoint(checkpoint_dir: str = "checkpoints") -> str | None:
     return str(files[-1]) if files else None
 
 
-def log_summary(result, args, checkpoint_path: str, log_dir: str = "logs") -> Path:
-    """Append a one-line JSON summary to logs/gnubg_eval_log.jsonl."""
+def log_dir_from_checkpoint(checkpoint_path):
+    """Derive the experiment log directory from a checkpoint path.
+
+    If checkpoint is .../experiments/NAME/checkpoints/iter_XXXX.pt,
+    returns .../experiments/NAME/logs. Otherwise returns 'logs' (cwd).
+    """
+    cp = Path(checkpoint_path).resolve()
+    if cp.parent.name == "checkpoints" and cp.parent.parent.name != ".":
+        return cp.parent.parent / "logs"
+    return Path("logs")
+
+
+def log_summary(result, args, checkpoint_path: str, log_dir: str | None = None) -> Path:
+    """Append a one-line JSON summary to gnubg_eval_log.jsonl in the experiment's log dir."""
+    if log_dir is None:
+        log_dir = log_dir_from_checkpoint(checkpoint_path)
     log_path = Path(log_dir) / "gnubg_eval_log.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -110,12 +124,13 @@ def main():
     print(f"Summary appended to {summary_path}")
 
     if not args.no_log_games:
+        log_dir = log_dir_from_checkpoint(args.checkpoint)
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        games_path = Path("logs") / f"gnubg_eval_{timestamp}.json"
+        games_path = log_dir / f"gnubg_eval_{timestamp}.json"
         save_match_log(result.games, str(games_path))
         print(f"Per-game JSON log saved to {games_path}")
 
-        text_path = Path("logs") / f"gnubg_eval_{timestamp}.txt"
+        text_path = log_dir / f"gnubg_eval_{timestamp}.txt"
         save_match_text(
             result.games,
             str(text_path),

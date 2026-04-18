@@ -97,7 +97,7 @@ for exp_id, exp in experiments.items():
         "Games/Iter": df["num_games"].iloc[0] if len(df) > 0 else "N/A",
         "Iterations": len(df),
         "Total Games": len(df) * df["num_games"].iloc[0] if len(df) > 0 else 0,
-        "Status": "Complete" if exp_id == "exp000" else "In Progress",
+        "Status": "Complete",
     })
 summary_df = pd.DataFrame(summary_data)
 print(summary_df.to_markdown(index=False))
@@ -141,11 +141,13 @@ plt.show()
 **Observations:**
 
 **exp000 (25 sims, 10 games)**:
+
 - Policy loss declined steadily from ~6.5 to ~1.77 over 499 iterations
 - Value loss remained stable around 0.10-0.11
 - Smooth, monotonic improvement
 
 **exp001 (200 sims, 50 games)**:
+
 - Started from iter_51 checkpoint (resumed training)
 - Policy loss initially declined then **rose** from ~1.92 (iter 57) to ~2.23 (iter 86)
 - Total loss increased from ~2.02 to ~2.36
@@ -158,17 +160,20 @@ plt.show()
 In supervised learning, rising loss means the model is getting worse. In self-play, **rising loss can indicate the network is improving**. Here's why:
 
 **The Moving Target Problem:**
+
 - The network trains against itself
 - As the network improves, the opponent gets stronger
 - Stronger opponent → harder positions → higher loss
 - Loss measures "how well do I fit my current training data", not "how strong am I at backgammon"
 
 **What exp001's rising loss tells us:**
+
 1. The network is generating more complex, challenging positions (longer games, more gammons)
 2. MCTS with 200 simulations produces higher-quality training targets than 25 simulations
 3. The policy head struggles more because positions are genuinely harder to evaluate
 
 **How to measure true improvement:**
+
 - **Arena evaluation**: Compare checkpoints head-to-head (e.g., iter_085 vs iter_070)
 - **Fixed benchmark**: Test against GNUBG (constant opponent strength)
 - **Game complexity**: Longer games, more gammons suggest more sophisticated play
@@ -225,6 +230,7 @@ plt.show()
 ```
 
 **Interpretation:**
+
 - **Negative slope** = loss decreasing (typical supervised learning)
 - **Positive slope** = loss increasing (common in self-play as opponent strengthens)
 - **Near-zero slope** = plateau (may indicate convergence or need for hyperparameter changes)
@@ -268,6 +274,7 @@ plt.show()
 ```
 
 **Observations:**
+
 - Both experiments show typical backgammon game lengths (75-100 moves)
 - Gammon/backgammon rates around 0.3-0.5 per game are consistent with intermediate play
 - More data needed to detect significant differences in game complexity between experiments
@@ -393,40 +400,44 @@ for exp_id, exp in experiments.items():
 ```
 
 **Interpretation:**
+
 - **exp000**: Validated the pipeline works, but far from GNUBG-competitive (as expected with only 25 MCTS sims)
-- **exp001**: Still in progress; eval pending at completion. The rising loss suggests need for arena evaluation to measure true playing strength.
+- **exp001**: Training complete (112 iterations). Eval data not yet available — need arena and GNUBG benchmarks to measure playing strength.
 
 ## Summary and Next Steps
 
 ### Key Findings Across Experiments
 
 **1. Loss Trends Differ by Experiment Scale**
+
 - **exp000** (validation): Smooth, monotonic loss decline over 499 iterations
-- **exp001** (Phase 1): Rising loss from iter 57-86 despite (likely) improving play strength
+- **exp001** (Phase 1): Rising loss from iter 57-112 despite (likely) improving play strength
 - Rising loss in self-play is **normal** when training intensifies — need arena/GNUBG eval to measure true strength
 
 **2. Training Efficiency Trade-offs**
+
 - exp001 is **~40x slower** per iteration (50 min vs 1.2 min) due to 8x more MCTS sims and 5x more games
 - **SGD stays cheap** (~2-3 sec) in both — T4 GPU easily handles training
 - **Self-play is the bottleneck** — GPU only accelerates the already-fast SGD step
 - More compute per iteration buys better training signal but at significant time cost
 
 **3. Infrastructure Validation**
+
 - Spot VM preemption and recovery works reliably
 - GCS auto-sync protects against data loss
 - Training pipeline scales from 25 to 200 MCTS sims without issues
 
 **4. Self-Play Non-Stationarity**
+
 - Loss is **not** a reliable proxy for playing strength in self-play
 - As network improves, opponent (itself) gets stronger → training problem gets harder → loss can rise
 - Need **arena evaluation** (checkpoint vs checkpoint) and **fixed benchmarks** (GNUBG) to measure true improvement
 
 ### Immediate Next Steps
 
-1. **For exp001 (in progress at iter 86/141)**:
-   - Let training complete to iter 141
-   - Run arena evaluation: iter_085 vs iter_070 vs iter_051 (100+ games each)
-   - Run GNUBG benchmark at iter 141 to measure absolute strength
+1. **For exp001 (complete at iter 112)**:
+   - Run arena evaluation: iter_112 vs iter_070 vs iter_051 (100+ games each)
+   - Run GNUBG benchmark at iter 112 to measure absolute strength
    - Determine if rising loss correlates with strength improvement
 
 2. **Future Experiments**:
