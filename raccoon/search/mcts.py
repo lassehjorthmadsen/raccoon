@@ -32,11 +32,19 @@ class Analysis:
 
 
 class MCTSNode:
-    """A node in the MCTS tree. Only decision and terminal nodes are stored."""
+    """A node in the MCTS tree. Only decision and terminal nodes are stored.
+
+    Uses lazy child creation: when a node is expanded (evaluated by the
+    network), only the prior probabilities are stored. Child nodes are
+    created on-demand when first selected by PUCT, avoiding expensive
+    state cloning for actions that are never visited.
+    """
 
     __slots__ = (
         "state", "parent", "parent_action", "children",
         "visit_count", "value_sum", "prior",
+        "_unvisited",  # action → prior for actions not yet visited
+        "_expanded",   # True after network evaluation
     )
 
     def __init__(
@@ -53,6 +61,8 @@ class MCTSNode:
         self.visit_count: int = 0
         self.value_sum: float = 0.0
         self.prior = prior
+        self._unvisited: dict[int, float] = {}
+        self._expanded: bool = False
 
     @property
     def q_value(self) -> float:
@@ -61,7 +71,7 @@ class MCTSNode:
         return self.value_sum / self.visit_count
 
     def is_expanded(self) -> bool:
-        return len(self.children) > 0
+        return self._expanded
 
 
 def _advance_through_chance(state: GameState) -> GameState:
@@ -264,40 +274,59 @@ class MCTS:
     def _expand_with_policy(
         self, node: MCTSNode, policy: dict[int, float],
     ) -> None:
-        """Expand a leaf node using a pre-computed policy."""
-        state = node.state
-        for action, prob in policy.items():
-            child_state = state.clone()
-            child_state.apply_action(action)
-            child_state = _advance_through_chance(child_state)
-            child = MCTSNode(
-                state=child_state,
-                parent=node,
-                parent_action=action,
-                prior=prob,
-            )
-            node.children[action] = child
+        """Mark a leaf as expanded by storing its policy priors.
+
+        Child nodes are NOT created here — they are created lazily in
+        _select_child when first visited, avoiding state cloning for
+        actions that never get explored.
+        """
+        node._unvisited = dict(policy)
+        node._expanded = True
 
     def _select_child(self, node: MCTSNode) -> tuple[int, MCTSNode]:
-        """Select the child with the highest PUCT score."""
+        """Select the child with the highest PUCT score.
+
+        Handles both visited children (in node.children) and unvisited
+        actions (in node._unvisited). Creates the child node lazily on
+        first visit.
+        """
         best_score = float("-inf")
         best_action = -1
         best_child = None
 
         sqrt_parent = math.sqrt(node.visit_count)
 
+        # Score visited children
         for action, child in node.children.items():
-            # PUCT = Q(s,a) + c_puct * P(s,a) * sqrt(N_parent) / (1 + N(s,a))
             q = child.q_value
             exploration = (
                 self.c_puct * child.prior * sqrt_parent / (1 + child.visit_count)
             )
-            # Negate Q because child's value is from the opponent's perspective
             score = -q + exploration
             if score > best_score:
                 best_score = score
                 best_action = action
                 best_child = child
+
+        # Score unvisited actions (Q=0, N=0)
+        for action, prior in node._unvisited.items():
+            exploration = self.c_puct * prior * sqrt_parent
+            if exploration > best_score:
+                best_score = exploration
+                best_action = action
+                best_child = None  # signal: needs creation
+
+        if best_child is None:
+            # First visit — create the child node
+            prior = node._unvisited.pop(best_action)
+            child_state = node.state.clone()
+            child_state.apply_action(best_action)
+            child_state = _advance_through_chance(child_state)
+            best_child = MCTSNode(
+                state=child_state, parent=node,
+                parent_action=best_action, prior=prior,
+            )
+            node.children[best_action] = best_child
 
         return best_action, best_child
 
