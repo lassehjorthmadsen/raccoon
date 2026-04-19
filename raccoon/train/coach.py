@@ -11,8 +11,8 @@ import torch
 import torch.nn.functional as F
 
 from raccoon.model.network import RaccoonNet, save_checkpoint
+from raccoon.train.parallel_self_play import parallel_self_play
 from raccoon.train.replay_buffer import ReplayBuffer
-from raccoon.train.self_play import play_one_game
 
 
 class Coach:
@@ -31,6 +31,8 @@ class Coach:
         log_dir: str = "logs",
         experiment_name: str = "",
         checkpoint_every: int = 10,
+        num_workers: int = 8,
+        inference_batch_size: int = 32,
     ):
         self.network = network
         self.optimizer = optimizer
@@ -46,6 +48,8 @@ class Coach:
         self.run_id = uuid.uuid4().hex[:8]
         self.experiment_name = experiment_name
         self.checkpoint_every = checkpoint_every
+        self.num_workers = num_workers
+        self.inference_batch_size = inference_batch_size
         self._config_logged = False
 
     def _log_config(self) -> None:
@@ -135,20 +139,21 @@ class Coach:
         return metrics
 
     def self_play_phase(self):
-        """Generate training data through self-play."""
-        game_results = []
-        for g in range(self.games_per_iteration):
-            print(
-                f"\r  Self-play: game {g + 1}/{self.games_per_iteration}",
-                end="", flush=True,
-            )
-            result = play_one_game(
-                self.network,
-                num_simulations=self.num_simulations,
-            )
+        """Generate training data through parallel self-play."""
+        print(
+            f"  Self-play: {self.games_per_iteration} games "
+            f"({self.num_workers} workers, batch {self.inference_batch_size})",
+            flush=True,
+        )
+        game_results = parallel_self_play(
+            self.network,
+            num_games=self.games_per_iteration,
+            num_simulations=self.num_simulations,
+            num_workers=self.num_workers,
+            batch_size=self.inference_batch_size,
+        )
+        for result in game_results:
             self.replay_buffer.add_game(result.examples)
-            game_results.append(result)
-        print()
         return game_results
 
     def training_phase(self) -> dict[str, float]:

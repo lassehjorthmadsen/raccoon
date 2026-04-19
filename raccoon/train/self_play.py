@@ -6,7 +6,6 @@ import numpy as np
 
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameWrapper, GameState
-from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import MCTS, select_action, _advance_through_chance
 
 
@@ -29,7 +28,7 @@ class GameResult:
 
 
 def play_one_game(
-    network: RaccoonNet,
+    network,
     num_simulations: int = 100,
     temperature: float = 1.0,
     temp_threshold: int = 30,

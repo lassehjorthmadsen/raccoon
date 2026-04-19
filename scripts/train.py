@@ -26,6 +26,10 @@ def main():
     parser.add_argument("--experiment-name", type=str, required=True,
                         help="Required. Outputs go to experiments/<name>/{checkpoints,logs}/")
     parser.add_argument("--resume", type=str, default=None, help="Path to checkpoint")
+    parser.add_argument("--num-workers", type=int, default=8,
+                        help="Concurrent self-play games (default: 8)")
+    parser.add_argument("--inference-batch-size", type=int, default=32,
+                        help="Batch size for batched NN inference (default: 32)")
     args = parser.parse_args()
 
     exp_root = f"experiments/{args.experiment_name}"
@@ -74,6 +78,8 @@ def main():
         log_dir=log_dir,
         experiment_name=args.experiment_name,
         checkpoint_every=args.checkpoint_every,
+        num_workers=args.num_workers,
+        inference_batch_size=args.inference_batch_size,
     )
 
     last_iter = start_iter + args.iterations - 1

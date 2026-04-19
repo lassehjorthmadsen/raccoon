@@ -9,7 +9,6 @@ import numpy as np
 
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameState
-from raccoon.model.network import RaccoonNet
 
 
 @dataclass
@@ -80,7 +79,7 @@ class MCTS:
 
     def __init__(
         self,
-        network: RaccoonNet,
+        network,
         num_simulations: int = 100,
         c_puct: float = 1.5,
     ):
