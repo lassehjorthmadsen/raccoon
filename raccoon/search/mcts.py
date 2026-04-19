@@ -82,10 +82,12 @@ class MCTS:
         network,
         num_simulations: int = 100,
         c_puct: float = 1.5,
+        virtual_loss_count: int = 1,
     ):
         self.network = network
         self.num_simulations = num_simulations
         self.c_puct = c_puct
+        self.virtual_loss_count = virtual_loss_count
 
     def search(self, state: GameState) -> dict[int, float]:
         """Run MCTS and return action -> visit count proportion."""
@@ -151,46 +153,119 @@ class MCTS:
         root = MCTSNode(root_state)
         root_value = self._expand(root)
 
+        if self.virtual_loss_count <= 1:
+            self._run_sequential(root)
+        else:
+            self._run_batched(root)
+
+        return root, root_value
+
+    def _run_sequential(self, root: MCTSNode) -> None:
+        """Original unbatched MCTS loop."""
         for _ in range(self.num_simulations):
             node = root
             search_path = [node]
 
-            # Select
             while node.is_expanded() and not node.state.is_terminal():
                 action, node = self._select_child(node)
                 search_path.append(node)
 
-            # Evaluate
             if node.state.is_terminal():
-                # Seed the backup with the value from the perspective of the
-                # *would-be player-to-move* at the terminal, i.e. the opponent
-                # of whoever just moved. `_backup` negates once at the leaf
-                # before propagating, so this sign choice makes each ancestor
-                # store Q from its own player's perspective.
-                #
-                # Returns are ±1/±2/±3 (full_scoring); divide by 3 to keep
-                # terminal Q on the same [-1, 1] scale as the tanh-bounded
-                # network value, so PUCT exploration stays calibrated.
-                returns = node.state.returns()
-                parent_player = node.parent.state.current_player()
-                value = -returns[parent_player] / 3.0
+                value = self._terminal_value(node)
             else:
                 value = self._expand(node)
 
-            # Backup
             self._backup(search_path, value)
 
-        return root, root_value
+    def _run_batched(self, root: MCTSNode) -> None:
+        """Batched MCTS loop using virtual loss for leaf diversification.
+
+        Selects V leaves simultaneously (applying virtual loss to encourage
+        diverse paths), evaluates them in one batched network call, then
+        reverts virtual loss and backs up real values.
+        """
+        sim = 0
+        while sim < self.num_simulations:
+            V = min(self.virtual_loss_count, self.num_simulations - sim)
+
+            pending: list[tuple[list[MCTSNode], float | None]] = []
+            needs_eval: list[int] = []
+            seen_leaves: set[int] = set()
+
+            for _ in range(V):
+                node = root
+                search_path = [node]
+                while node.is_expanded() and not node.state.is_terminal():
+                    action, node = self._select_child(node)
+                    search_path.append(node)
+
+                if node.state.is_terminal():
+                    pending.append((search_path, self._terminal_value(node)))
+                elif id(node) not in seen_leaves:
+                    seen_leaves.add(id(node))
+                    pending.append((search_path, None))
+                    needs_eval.append(len(pending) - 1)
+                else:
+                    continue
+
+                # Apply virtual loss: inflate visit count, add pessimistic value
+                for n in search_path:
+                    n.visit_count += 1
+                    n.value_sum -= 1.0
+
+            if not pending:
+                break
+
+            if needs_eval:
+                obs_list = []
+                legal_list = []
+                for idx in needs_eval:
+                    leaf = pending[idx][0][-1]
+                    obs_list.append(
+                        encode_state(leaf.state.board_from_perspective())
+                    )
+                    legal_list.append(leaf.state.legal_actions())
+                eval_results = self.network.predict_batch(obs_list, legal_list)
+
+            eval_i = 0
+            for search_path, terminal_value in pending:
+                # Revert virtual loss
+                for n in search_path:
+                    n.visit_count -= 1
+                    n.value_sum += 1.0
+
+                if terminal_value is not None:
+                    value = terminal_value
+                else:
+                    policy, value = eval_results[eval_i]
+                    eval_i += 1
+                    self._expand_with_policy(search_path[-1], policy)
+
+                self._backup(search_path, value)
+
+            sim += len(pending)
+
+    @staticmethod
+    def _terminal_value(node: MCTSNode) -> float:
+        """Get the backup value for a terminal node."""
+        returns = node.state.returns()
+        parent_player = node.parent.state.current_player()
+        return -returns[parent_player] / 3.0
 
     def _expand(self, node: MCTSNode) -> float:
         """Expand a leaf node using the network. Returns the value estimate."""
         state = node.state
-        board_view = state.board_from_perspective()
-        obs = encode_state(board_view)
+        obs = encode_state(state.board_from_perspective())
         legal_actions = state.legal_actions()
-
         policy, value = self.network.predict(obs, legal_actions)
+        self._expand_with_policy(node, policy)
+        return value
 
+    def _expand_with_policy(
+        self, node: MCTSNode, policy: dict[int, float],
+    ) -> None:
+        """Expand a leaf node using a pre-computed policy."""
+        state = node.state
         for action, prob in policy.items():
             child_state = state.clone()
             child_state.apply_action(action)
@@ -202,8 +277,6 @@ class MCTS:
                 prior=prob,
             )
             node.children[action] = child
-
-        return value
 
     def _select_child(self, node: MCTSNode) -> tuple[int, MCTSNode]:
         """Select the child with the highest PUCT score."""

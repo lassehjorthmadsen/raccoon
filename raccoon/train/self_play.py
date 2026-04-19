@@ -32,10 +32,14 @@ def play_one_game(
     num_simulations: int = 100,
     temperature: float = 1.0,
     temp_threshold: int = 30,
+    virtual_loss_count: int = 1,
 ) -> GameResult:
     """Play a complete self-play game and return training examples + stats."""
     wrapper = GameWrapper()
-    mcts = MCTS(network, num_simulations=num_simulations)
+    mcts = MCTS(
+        network, num_simulations=num_simulations,
+        virtual_loss_count=virtual_loss_count,
+    )
 
     state = wrapper.new_game()
     state = _advance_through_chance(state)

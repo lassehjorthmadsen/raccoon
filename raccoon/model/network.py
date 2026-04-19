@@ -128,6 +128,37 @@ class RaccoonNet(nn.Module):
         policy = {a: float(probs[a]) for a in legal_actions}
         return policy, float(value.item())
 
+    @torch.no_grad()
+    def predict_batch(
+        self, obs_list: list[np.ndarray], legal_actions_list: list[list[int]],
+    ) -> list[tuple[dict[int, float], float]]:
+        """Batched inference for multiple positions.
+
+        Args:
+            obs_list: list of (17, 2, 12) numpy arrays
+            legal_actions_list: list of legal action lists
+
+        Returns:
+            list of (policy_dict, value) tuples
+        """
+        self.eval()
+        obs_np = np.stack(obs_list)
+        x = torch.from_numpy(obs_np).float().to(self.device)
+        logits_batch, values_batch = self.forward(x)
+        logits_batch = logits_batch.cpu()
+        values_batch = values_batch.cpu()
+
+        results = []
+        for i, legal_actions in enumerate(legal_actions_list):
+            logits = logits_batch[i]
+            mask = torch.full((self.num_actions,), float("-inf"))
+            mask[legal_actions] = 0.0
+            probs = F.softmax(logits + mask, dim=0).numpy()
+            policy = {a: float(probs[a]) for a in legal_actions}
+            value = float(values_batch[i].item())
+            results.append((policy, value))
+        return results
+
 
 def save_checkpoint(
     model: RaccoonNet,

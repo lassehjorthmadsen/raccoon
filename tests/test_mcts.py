@@ -148,3 +148,61 @@ def test_mcts_prefers_immediate_win(model):
     assert action_probs.get(0, 0.0) > action_probs.get(1, 0.0), (
         f"MCTS did not prefer the winning action; got {action_probs}"
     )
+
+
+def test_mcts_virtual_loss_batched(model, decision_state):
+    """Virtual loss batched path produces a valid distribution."""
+    mcts = MCTS(model, num_simulations=20, virtual_loss_count=4)
+    action_probs = mcts.search(decision_state)
+
+    assert len(action_probs) > 0
+    legal = set(decision_state.legal_actions())
+    for a in action_probs:
+        assert a in legal
+    assert abs(sum(action_probs.values()) - 1.0) < 1e-6
+
+
+def test_mcts_virtual_loss_prefers_win(model):
+    """Virtual loss path still correctly prefers winning moves."""
+
+    class MockState:
+        def __init__(self, terminal=False, winner=None):
+            self._terminal = terminal
+            self._winner = winner
+
+        def is_terminal(self):
+            return self._terminal
+
+        def is_chance_node(self):
+            return False
+
+        def current_player(self):
+            return -4 if self._terminal else 0
+
+        def legal_actions(self):
+            return [0, 1]
+
+        def returns(self):
+            if self._winner == 0:
+                return [1.0, -1.0]
+            if self._winner == 1:
+                return [-1.0, 1.0]
+            return [0.0, 0.0]
+
+        def clone(self):
+            return MockState(terminal=self._terminal, winner=self._winner)
+
+        def apply_action(self, action):
+            self._terminal = True
+            self._winner = 0 if action == 0 else 1
+
+        def board_from_perspective(self):
+            return BoardView(
+                my_points=np.zeros(24, dtype=np.float32),
+                opp_points=np.zeros(24, dtype=np.float32),
+                my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(1, 2),
+            )
+
+    mcts = MCTS(model, num_simulations=50, virtual_loss_count=8)
+    action_probs = mcts.search(MockState())
+    assert action_probs.get(0, 0.0) > action_probs.get(1, 0.0)

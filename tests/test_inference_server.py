@@ -100,11 +100,13 @@ def test_matches_direct_predict(network):
     response_queues = [ctx.Queue()]
     server = InferenceServer(network, request_queue, response_queues)
 
-    request_queue.put((0, obs, legal))
+    # Batch protocol: obs is (V, 17, 2, 12), legal is list of V lists
+    request_queue.put((0, obs[np.newaxis], [legal]))
     batch = server._collect_batch()
     server._process_batch(batch)
 
-    server_policy, server_value = response_queues[0].get()
+    results = response_queues[0].get()
+    server_policy, server_value = results[0]
 
     assert abs(direct_value - server_value) < 1e-5
     for a in legal:

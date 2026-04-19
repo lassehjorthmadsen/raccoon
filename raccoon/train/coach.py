@@ -33,6 +33,7 @@ class Coach:
         checkpoint_every: int = 10,
         num_workers: int = 8,
         inference_batch_size: int = 32,
+        virtual_loss_count: int = 1,
     ):
         self.network = network
         self.optimizer = optimizer
@@ -50,6 +51,7 @@ class Coach:
         self.checkpoint_every = checkpoint_every
         self.num_workers = num_workers
         self.inference_batch_size = inference_batch_size
+        self.virtual_loss_count = virtual_loss_count
         self._config_logged = False
 
     def _log_config(self) -> None:
@@ -151,6 +153,7 @@ class Coach:
             num_simulations=self.num_simulations,
             num_workers=self.num_workers,
             batch_size=self.inference_batch_size,
+            virtual_loss_count=self.virtual_loss_count,
         )
         for result in game_results:
             self.replay_buffer.add_game(result.examples)

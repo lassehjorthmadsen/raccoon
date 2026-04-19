@@ -17,6 +17,7 @@ def _worker_loop(
     num_simulations: int,
     temperature: float,
     temp_threshold: int,
+    virtual_loss_count: int,
 ) -> None:
     """Worker process: plays assigned games, sends results back."""
     client = InferenceClient(request_queue, response_queue, worker_idx)
@@ -26,6 +27,7 @@ def _worker_loop(
             num_simulations=num_simulations,
             temperature=temperature,
             temp_threshold=temp_threshold,
+            virtual_loss_count=virtual_loss_count,
         )
         result_queue.put((game_idx, result))
 
@@ -38,6 +40,7 @@ def parallel_self_play(
     temp_threshold: int = 30,
     num_workers: int = 8,
     batch_size: int = 32,
+    virtual_loss_count: int = 1,
 ) -> list[GameResult]:
     """Play multiple self-play games in parallel with batched inference.
 
@@ -63,6 +66,7 @@ def parallel_self_play(
             args=(
                 request_queue, response_queues[w], result_queue, w,
                 assignments[w], num_simulations, temperature, temp_threshold,
+                virtual_loss_count,
             ),
         )
         p.start()

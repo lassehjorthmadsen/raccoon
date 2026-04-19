@@ -30,7 +30,17 @@ class InferenceClient:
     def predict(
         self, obs: np.ndarray, legal_actions: list[int],
     ) -> tuple[dict[int, float], float]:
-        self._request_queue.put((self._worker_idx, obs, legal_actions))
+        return self.predict_batch([obs], [legal_actions])[0]
+
+    def predict_batch(
+        self,
+        obs_list: list[np.ndarray],
+        legal_actions_list: list[list[int]],
+    ) -> list[tuple[dict[int, float], float]]:
+        obs_batch = np.stack(obs_list)
+        self._request_queue.put(
+            (self._worker_idx, obs_batch, legal_actions_list)
+        )
         return self._response_queue.get()
 
 
@@ -84,9 +94,16 @@ class InferenceServer:
 
     def _process_batch(
         self,
-        batch: list[tuple[int, np.ndarray, list[int]]],
+        batch: list[tuple[int, np.ndarray, list[list[int]]]],
     ) -> None:
-        obs_np = np.stack([obs for _, obs, _ in batch])
+        # Each request: (worker_idx, obs_batch, legal_actions_list)
+        # obs_batch shape: (V, 17, 2, 12); legal_actions_list: V lists
+        all_obs = [obs for _, obs, _ in batch]
+        request_meta = [
+            (w, obs.shape[0], legal) for w, obs, legal in batch
+        ]
+
+        obs_np = np.concatenate(all_obs, axis=0)
         x = torch.from_numpy(obs_np).float().to(self._device)
 
         with torch.no_grad():
@@ -95,11 +112,17 @@ class InferenceServer:
         logits_batch = logits_batch.cpu()
         values_batch = values_batch.cpu()
 
-        for i, (worker_idx, _, legal_actions) in enumerate(batch):
-            logits = logits_batch[i]
-            mask = torch.full((self._num_actions,), float("-inf"))
-            mask[legal_actions] = 0.0
-            probs = F.softmax(logits + mask, dim=0).numpy()
-            policy = {a: float(probs[a]) for a in legal_actions}
-            value = float(values_batch[i].item())
-            self.response_queues[worker_idx].put((policy, value))
+        pos = 0
+        for worker_idx, count, legal_actions_list in request_meta:
+            results = []
+            for j in range(count):
+                logits = logits_batch[pos]
+                legal_actions = legal_actions_list[j]
+                mask = torch.full((self._num_actions,), float("-inf"))
+                mask[legal_actions] = 0.0
+                probs = F.softmax(logits + mask, dim=0).numpy()
+                policy = {a: float(probs[a]) for a in legal_actions}
+                value = float(values_batch[pos].item())
+                results.append((policy, value))
+                pos += 1
+            self.response_queues[worker_idx].put(results)
