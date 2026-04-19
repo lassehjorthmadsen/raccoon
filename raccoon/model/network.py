@@ -153,7 +153,7 @@ def load_checkpoint(
     model: RaccoonNet,
     optimizer: torch.optim.Optimizer | None = None,
 ) -> dict:
-    checkpoint = torch.load(path, weights_only=False)
+    checkpoint = torch.load(path, weights_only=False, map_location="cpu")
     model.load_state_dict(checkpoint["model_state_dict"])
     if optimizer is not None and "optimizer_state_dict" in checkpoint:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -165,7 +165,7 @@ def load_model(path: str) -> RaccoonNet:
 
     Falls back to default config for older checkpoints without config.
     """
-    checkpoint = torch.load(path, weights_only=False)
+    checkpoint = torch.load(path, weights_only=False, map_location="cpu")
     config = checkpoint.get("config", {})
     model = RaccoonNet(**config)
     model.load_state_dict(checkpoint["model_state_dict"])

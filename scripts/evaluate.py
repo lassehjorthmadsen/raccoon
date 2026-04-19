@@ -19,7 +19,7 @@ def latest_checkpoint(checkpoint_dir="checkpoints"):
 
 def training_metadata(checkpoint_path):
     """Extract training metadata from a checkpoint file."""
-    cp = torch.load(checkpoint_path, weights_only=False)
+    cp = torch.load(checkpoint_path, weights_only=False, map_location="cpu")
     meta = {"step": cp.get("step")}
     meta.update(cp.get("training", {}))
     return meta
