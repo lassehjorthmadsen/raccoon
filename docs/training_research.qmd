@@ -1,0 +1,234 @@
+---
+title: "Raccoon Training Analysis & Next Steps"
+author: "Lasse Hjorth Madsen"
+date: "2026-04-19"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+    theme: cosmo
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: article
+    geometry:
+      - margin=1in
+---
+
+## Executive Summary
+
+Raccoon is an AlphaZero-style backgammon AI (ResNet + MCTS self-play) built to beat GNU Backgammon at cubeless money play. Two training runs have been completed. The pipeline is validated, and exp001 is measurably stronger than exp000 despite a confusingly *rising* training loss. However, both networks remain decisively beaten by GNU 0-ply (1–49 for exp001). Investigation of three candidate root causes — binary value targets, class imbalance, and distributional poverty — reveals the following:
+
+- **Binary value targets**: ruled out. The code uses `scoring_type=full_scoring` and stores `returns[player] / 3.0`, giving targets in {±1/3, ±2/3, ±1} for single/gammon/backgammon. MCTS backup uses the same scaling. Equity is propagated coherently end-to-end.
+- **Gammon/backgammon class imbalance**: ruled out. Training logs show 42% of self-play games end in gammons and 16% in backgammons — the network is not starved of those targets.
+- **Self-play distributional poverty**: the most plausible primary cause. GNU inflicts backgammons at 44% (22/50 games), nearly 3× the 16% rate in Raccoon's own self-play. Both self-play partners are symmetrically weak at the same patterns (board-holding, priming, aggressive home board construction), so those situations never appear in training. Against GNU — which creates and exploits them precisely — Raccoon's back-checker handling is exposed.
+
+The recommended next step is to scale training significantly, as only more self-play iterations can bootstrap the quality of the training distribution.[^claude-md]
+
+------------------------------------------------------------------------
+
+## GNU Backgammon's Architecture: The Target to Beat
+
+Understanding what GNU Backgammon actually is, rather than what we imagine it to be, is essential for setting realistic targets.
+
+### Three Specialist Networks
+
+GNU Backgammon does not use one neural network. It uses **three separate shallow networks**, each tuned to a specific position class:[^gnubg-qiita]<sup>,</sup>[^gnubg-pdf]<sup>,</sup>[^gnubg-manual]
+
+| Network     | Positions                              | Inputs | Hidden Units |
+|-------------|----------------------------------------|--------|--------------|
+| Contact net | Middlegame (checkers still in contact) | 250    | 128          |
+| Crashed net | One side's structure is collapsed      | 250    | 128          |
+| Race net    | No contact, pure race                  | 214    | 128          |
+
+These are single-hidden-layer feedforward networks — architecturally simple by today's standards. Their strength comes from their specialist inputs: 250 hand-crafted features per position encoding patterns known from human expert knowledge, not raw board state. The race net has a reduced input set (214 vs 250) because many contact features are irrelevant once checkers have passed each other.[^gnubg-qiita]
+
+### Training Methodology
+
+The GNU networks were trained with a combination of TD-learning (self-play bootstrapping), supervised learning from rollout databases, and knowledge from real human games sourced from FIBS. The supervised training databases published by the GNU team contain 605,054 contact positions, 305,146 crashed positions, and 251,862 race positions, each with 2-ply rollout-derived outcome probabilities as targets. TD-learning alone was considered insufficient; rollout-quality targets were central to achieving strong play.[^compgammon]
+
+GNU's value output is also richer than a single scalar: each network predicts five probabilities (P(win), P(gammon win), P(backgammon win), P(gammon loss), P(backgammon loss)), and cubeless equity is derived as the linear combination `+1·P(W) + 2·P(GW) + 3·P(BGW) − 1·P(L) − 2·P(GL) − 3·P(BGL)`.[^tesauro] Raccoon already approximates this implicitly by scaling terminal outcomes to {±1/3, ±2/3, ±1}, which carries the same information in expectation.
+
+### Bearoff and Race Databases
+
+Separately from the neural networks, GNU supplements evaluation with **exact bearoff databases**:[^gnubg-pdf]
+
+- A 1-sided bearoff database covering up to 15 checkers on 6 points (54,264 positions), with gammon distributions.
+- A 2-sided bearoff database covering up to 6 checkers per side (924 positions), with cubeful and cubeless equities.
+
+An important caveat: the bearoff database only activates **once backgammons are impossible** — it does not influence contact-phase decisions. The 22 backgammons GNU inflicted in 50 games were conceded in contact positions, not late bearoff.
+
+### Search Depth
+
+At "0-ply" (the Expert setting), GNU evaluates all legal moves with the neural nets and picks the highest. At 2-ply (Supremo), it uses a move filter to select up to 16 candidate moves within 0.32 equity of the best, then evaluates their outcomes 2 plies ahead.[^gnubg-pdf] Raccoon is being benchmarked against 0-ply as the initial target.
+
+------------------------------------------------------------------------
+
+## Raccoon's Current Architecture
+
+### Board Encoding
+
+Raccoon encodes the board as a **(17, 2, 12)** float32 tensor — 17 channels, 2 rows (the two halves of the board), 12 columns (points per half). The channels include:[^claude-md]
+
+- 4 checker planes per player (binary encoding of checker counts at each point)
+- Bar and borne-off planes
+- Dice broadcast planes
+- A mid-doubles flag
+
+### Network Architecture
+
+`RaccoonNet` is a standard AlphaZero ResNet:[^claude-md]
+
+- **Shared trunk**: 6 residual blocks, 128 channels each (default)
+- **Policy head**: 1,352 output logits (full OpenSpiel action space), with legal action masking + softmax at inference time
+- **Value head**: scalar in \[-1, 1\] via tanh
+
+### Training Loop
+
+Self-play → replay buffer → SGD with cross-entropy (policy) + MSE (value) + L2 regularization (weight decay).[^claude-md] Terminal outcomes use `scoring_type=full_scoring` (±1/±2/±3 for single/gammon/backgammon) divided by 3.0, giving value targets in {±1/3, ±2/3, ±1}. MCTS backup applies the same `/3.0` scaling, so Q-values and value head operate on a consistent scale throughout.
+
+------------------------------------------------------------------------
+
+## Critical Reading of the Training Analysis
+
+### What the Analysis Gets Right
+
+The document correctly identifies that **rising loss in self-play is not necessarily negative**. As the network improves its self-play opponent gets stronger, making positions harder to predict and naturally driving loss upward. The analysis correctly insists on arena evaluation and GNUBG benchmarks as the true progress measures.[^training-qmd]
+
+The document also correctly notes that **self-play is the computational bottleneck** — SGD takes only 2–3 seconds per iteration while self-play takes ~50 minutes, meaning the GPU is massively underutilised.[^training-qmd]
+
+### Where the Analysis Is Incomplete
+
+The document attributes the 22/50 backgammon concession rate to race/bearoff incompetence and suggests a bearoff database as the primary fix. This is incorrect on two counts:
+
+1. **The bearoff database is irrelevant here.** It only activates once backgammons are impossible. The 22 backgammons conceded were in contact positions, not late race.
+
+2. **The value target is not binary.** Code inspection confirms `value_target = returns[player] / 3.0` with `scoring_type=full_scoring`, so gammons and backgammons already produce distinct, larger gradients than single wins. MCTS backup is consistent. There is no signal problem of this kind.
+
+The training logs reveal the correct diagnosis (see next section).
+
+### What the Logs Reveal: Distributional Poverty
+
+Across 2,150 self-play games in exp001, the outcome distribution is:[^training-log]
+
+| Outcome    | Count | Rate  |
+|------------|-------|-------|
+| Singles    | 896   | 41.7% |
+| Gammons    | 909   | 42.3% |
+| Backgammons| 345   | 16.0% |
+
+This is *not* class imbalance. 58% of self-play games end in gammons or backgammons — the network sees plenty of those outcomes. The problem is different.
+
+Against GNU 0-ply, Raccoon conceded backgammons in **44% of games** (22/50) — nearly **3× its own self-play backgammon rate of 16%**.[^gnubg-eval] Both self-play partners are symmetrically weak at the same strategic patterns: board-holding, priming, anchoring, and aggressive home board construction. Because neither partner can create or exploit these structures, they never appear in the training distribution. Against GNU — which executes them precisely — Raccoon's back-checker handling is exposed.
+
+This is **distributional poverty**: the self-play loop generates tactically plausible games but strategically impoverished ones. More iterations at the current level will help as the network bootstraps upward, but the fundamental bottleneck is that each self-play iteration's training quality is limited by the current network's strength.
+
+The high self-play gammon/backgammon rate (58%) is itself a symptom: a strong player knows when to concede a lost position rather than play into a gammon. Raccoon plays on into hopeless games, inflating gammon/backgammon counts on both sides. Real top-level backgammon has far lower gammon rates because strong players manage the cube and concede appropriately. In cubeless self-play there is no cube, but the pattern of playing on into crushingly lost positions persists.
+
+------------------------------------------------------------------------
+
+## What Is Needed to Be Competitive at Cubeless Money Play
+
+### 1. Training Scale (Most Urgent)
+
+exp001 completed only ~112 iterations at 200 sims / 50 games. Total: ~5,600 games. This is very early in the bootstrap process. The self-play distribution improves as the network improves — but that improvement is self-referential and slow. **Extending to 1,000+ iterations** is the most direct path to a better training distribution and better play.
+
+The GPU is severely underutilised (SGD ≈ 2–3 sec, self-play ≈ 50 min). Parallelising self-play workers on the T4 — running multiple games concurrently — is the highest-leverage infrastructure change available and would multiply effective training throughput with no algorithmic changes.[^training-qmd]
+
+### 2. Value Target Variance Reduction
+
+Every position in a game receives the terminal outcome as its value label. Early-game positions with true equity near zero are trained toward ±1/3 or ±1 depending on how a noisy game happened to end. This is standard in AlphaZero but is a real limitation. The MCTS policy bootstrapping partially mitigates it, but label noise remains high for early and mid-game positions.
+
+A practical improvement: use **n-step or Monte Carlo rollout targets** for a subset of training positions — even 20–50 random rollouts per position at current network strength would substantially reduce variance and give the value head a cleaner learning signal. GNU's training databases used 2-ply rollout-derived probabilities for exactly this reason.[^compgammon]
+
+### 3. Five-Class Value Output (Medium Term)
+
+Replacing the scalar tanh head with a five-probability softmax head (P(win), P(gammon win), P(backgammon win), P(gammon loss), P(backgammon loss)) is architecturally cheap and aligns Raccoon's output with GNU's evaluation format.[^tesauro][^gnubg-qiita] It does not change the information available to training (the current {±1/3, ±2/3, ±1} targets carry equivalent information in expectation), but it forces the network to model outcome *distributions* rather than collapsing them into a single expected equity — which may help the value head generalise better. This is a lower priority than scale, since the signal already encodes the right information.
+
+### 4. Race-Specific Input Features (Later)
+
+Adding explicit pip count channels, relative pip advantage, and a contact/race flag to the board encoding would give the network raw material to reason about racing without having to infer it from checker positions. GNU's separate race network uses exactly these features.[^gnubg-qiita] Worthwhile once training has scaled and the distributional poverty issue has partially resolved.
+
+### 5. Bearoff Database (Later)
+
+Once the network understands contact-phase strategy reasonably well, integrating a bearoff database for final-phase positions eliminates a class of evaluation errors where exact lookup is feasible. This is not urgent — the 22 conceded backgammons were contact decisions, not bearoff errors.[^gnubg-pdf]
+
+------------------------------------------------------------------------
+
+## Architectural Comparison: Raccoon vs GNU Backgammon
+
+| Dimension                  | Raccoon (current)                                | GNU Backgammon 0-ply                                    |
+|----------------------------|--------------------------------------------------|---------------------------------------------------------|
+| Network type               | Single ResNet (6 blocks, 128 channels)           | 3 × shallow MLP (1 hidden layer, 128 units)             |
+| Input representation       | (17, 2, 12) grid tensor, ~408 raw features       | 250 hand-crafted features (contact/crashed), 214 (race) |
+| Value output               | Scalar tanh; targets {±1/3, ±2/3, ±1}           | 5 probabilities → money equity                          |
+| Position specialization    | None (single model for all positions)            | Full: contact, crashed, race networks separate          |
+| Bearoff handling           | Network evaluation only                          | Exact 1-sided database (≤15 checkers) + 2-sided         |
+| Search at inference        | MCTS (200 sims in exp001)                        | 0-ply: direct network eval, all legal moves             |
+| Training method            | Self-play, outcome targets ÷ 3                   | TD learning + supervised on rollout databases           |
+| Training volume            | ~5,600 games (exp001, 112 iters × 50)            | Hundreds of thousands of games + 600k+ rollout positions|
+| Self-play backgammon rate  | 16% of games                                     | N/A                                                     |
+| Backgammon rate vs GNU     | 44% conceded (22/50)                             | —                                                       |
+
+------------------------------------------------------------------------
+
+## Recommended Next Training Step
+
+The recommended next step is **exp002: extend training significantly (1,000+ iterations) with parallelised self-play**, keeping all other hyperparameters identical to exp001 to isolate the effect of scale.
+
+### Rationale
+
+The three candidate fixes investigated — value target format, class imbalance, bearoff database — are all either already handled correctly or address the wrong phase of play. The primary bottleneck is bootstrapping the self-play distribution to a level where strategic patterns (priming, anchoring, home board construction) start to appear and be learned. That requires more iterations. No architectural change will substitute for this.
+
+### Proposed exp002 Configuration
+
+1. **Resume from exp001's final checkpoint** (iter_112 or best available).
+
+2. **Parallelise self-play workers** on the T4 GPU to reduce wall-clock time per position. SGD takes 2–3 seconds; the GPU is idle for ~50 minutes per iteration. Even 2–4 parallel game workers would substantially increase throughput.
+
+3. **Run at least 1,000 additional iterations** (total ~1,100+ at 200-sim / 50-game config), bringing total games to ~55,000+.
+
+4. **Benchmark against GNU 0-ply at iterations 300, 600, and 1,000** to track the trajectory. Track backgammon concession rate as the primary diagnostic: if it falls from 44% toward self-play levels (~16%), the distribution is improving.
+
+5. **Track self-play gammon/backgammon rates** as an in-training proxy for strategic quality. A decrease in the self-play backgammon rate (currently 16%) would indicate the network is learning to concede hopeless positions rather than playing on into backgammons — a sign of genuine strategic improvement.
+
+### Out-of-Scope for exp002
+
+- Five-class value head: low priority since current signal is equivalent in expectation; revisit if value loss stagnates.
+- Bearoff database: defer — it doesn't address the contact-phase failures observed.
+- Rollout-based value targets: high value but significant implementation complexity; plan for exp003.
+- Larger network (10 blocks / 256 channels): defer until exp002 confirms scale is the bottleneck and current capacity is saturating.
+
+------------------------------------------------------------------------
+
+## Open Questions
+
+1. **How quickly does the self-play backgammon rate fall with more training?** If it remains at ~16% through 500+ iterations, that is a signal the network is stuck in a strategic equilibrium and architectural intervention may be needed sooner.
+
+2. **What is the optimal MCTS budget at evaluation time?** Test exp001 iter_112 at 25, 100, and 400 simulation budgets against GNU 0-ply to quantify the search-strength tradeoff. More MCTS sims at inference time is a cheap way to extract more strength from the current checkpoint.
+
+3. **What does the position-phase breakdown of losses look like?** Running exp001 against GNU on positions set up at specific game phases (opening, mid-game, pre-bearoff) would isolate exactly where strength is lowest and guide future architectural decisions.
+
+4. **Is the (17, 2, 12) encoding sufficient for race recognition?** Pip count channels are cheap to add and may help once the general strategic level improves. Worth testing in exp003.
+
+------------------------------------------------------------------------
+
+[^claude-md]: Raccoon project, `CLAUDE.md` — guidance file for Claude Code describing the codebase architecture, encoding, network, search, and training loop.
+
+[^gnubg-qiita]: Mkisono. "gnubg のニューラルネットワーク." *Qiita*. <https://qiita.com/mkisono/items/aa1d551db5233808d886>
+
+[^gnubg-pdf]: *GNU Backgammon* (Win32 documentation). <http://gnubg.org/win32/All%20About%20GNU%20v2.pdf>
+
+[^gnubg-manual]: *All About GNU Backgammon* (official manual). <https://www.gnu.org/software/gnubg/manual/allabout.pdf>
+
+[^compgammon]: "Supervised learning using GNUbg training databases." *compgammon* (blog), February 2012. <http://compgammon.blogspot.com/2012/02/supervised-learning-using-gnubg.html>
+
+[^training-qmd]: Raccoon project, `training_analysis.qmd` — prior training analysis document for exp000/exp001 self-play runs.
+
+[^tesauro]: Tesauro, Gerald. "Programming backgammon using self-teaching neural nets." *Artificial Intelligence* 134 (2002): 181–199. <https://bkgm.com/articles/tesauro/ProgrammingBackgammon.pdf>
+
+[^training-log]: Raccoon project, `experiments/exp001-6x128-200sims/logs/training_log.jsonl` — per-iteration training metrics including gammon/backgammon counts across 2,150 self-play games (43 iterations).
+
+[^gnubg-eval]: Raccoon project, `experiments/exp001-6x128-200sims/logs/gnubg_eval_log.jsonl` — benchmark result: iter_112 vs GNU 0-ply, 50 games, 200 sims.
