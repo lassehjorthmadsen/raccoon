@@ -378,31 +378,34 @@ for exp_id, exp in experiments.items():
     print(f"{exp['label']}")
     print(f"{'='*60}")
 
-    # Internal evaluation
+    # Internal evaluation (arena: checkpoint vs checkpoint)
     if exp["eval_rows"]:
-        print("\n**Internal Evaluation:**")
+        print("\n**Arena Evaluation:**")
         for e in exp["eval_rows"]:
-            print(f"  {e.get('p1_name', 'P1')} vs {e.get('p2_name', 'P2')}")
-            print(f"  Result: {e['p1_wins']}-{e['p2_wins']} (equity {e.get('equity', 0):+.2f} ppg)")
-            print(f"  Gammons: P1={e.get('p1_gammons_won', 0)}, P2={e.get('p2_gammons_won', 0)}")
+            cp = Path(e.get("checkpoint", "")).stem
+            opp = Path(e.get("opponent", "")).stem
+            print(f"  {cp} vs {opp} ({e['num_games']} games, {e['simulations']} sims)")
+            print(f"  Result: {e['p1_wins']}-{e['p2_wins']} ({e['p1_wins']/e['num_games']*100:.0f}%), equity {e.get('equity', 0):+.3f} ppg")
+            print(f"  Gammons: {e.get('p1_gammons_won', 0)}/{e.get('p1_backgammons_won', 0)} vs {e.get('p2_gammons_won', 0)}/{e.get('p2_backgammons_won', 0)} (g/bg)")
     else:
-        print("\n**Internal Evaluation:** Not yet available")
+        print("\n**Arena Evaluation:** Not yet available")
 
     # GNUBG benchmark
     if exp["gnubg_rows"]:
         print("\n**GNUBG Benchmark:**")
         for g in exp["gnubg_rows"]:
-            print(f"  Result: Raccoon {g['raccoon_wins']} - GNUBG {g['gnubg_wins']}")
-            print(f"  Equity per game: {g['equity_per_game']:+.2f}")
-            print(f"  GNUBG gammons: {g.get('gnubg_gammons_won', 0)}, backgammons: {g.get('gnubg_backgammons_won', 0)}")
+            cp = Path(g.get("checkpoint", "")).stem
+            print(f"  {cp} vs {g['opponent']} ({g['num_games']} games, {g['simulations']} sims)")
+            print(f"  Result: Raccoon {g['raccoon_wins']}-{g['gnubg_wins']} ({g.get('win_rate', 0)*100:.0f}%), equity {g['equity_per_game']:+.2f} ppg")
+            print(f"  GNUBG gammons/bg: {g.get('gnubg_gammons_won', 0)}/{g.get('gnubg_backgammons_won', 0)}")
     else:
         print("\n**GNUBG Benchmark:** Not yet available")
 ```
 
 **Interpretation:**
 
-- **exp000**: Validated the pipeline works, but far from GNUBG-competitive (as expected with only 25 MCTS sims)
-- **exp001**: Training complete (112 iterations). Eval data not yet available — need arena and GNUBG benchmarks to measure playing strength.
+- **exp000**: Validated the pipeline works. Lost 0-10 vs GNUBG 0-ply (-2.50 ppg) — far from competitive, as expected with only 25 MCTS sims during training.
+- **exp001**: Despite rising loss, exp001 (iter 112) **beats exp000 (iter 498)** decisively: 32-18 (64%), +0.44 ppg. This confirms that rising loss in self-play masked real strength gains. However, exp001 still loses badly to GNUBG 0-ply: 1-49 (2%), -2.22 ppg with 19 gammons and 22 backgammons conceded — the network still leaves checkers stranded.
 
 ## Summary and Next Steps
 
@@ -411,8 +414,8 @@ for exp_id, exp in experiments.items():
 **1. Loss Trends Differ by Experiment Scale**
 
 - **exp000** (validation): Smooth, monotonic loss decline over 499 iterations
-- **exp001** (Phase 1): Rising loss from iter 57-112 despite (likely) improving play strength
-- Rising loss in self-play is **normal** when training intensifies — need arena/GNUBG eval to measure true strength
+- **exp001** (Phase 1): Rising loss from iter 57-112, but arena eval confirms stronger play (beats exp000 64%)
+- Rising loss in self-play is **normal** — confirmed by exp001 beating exp000 despite higher loss
 
 **2. Training Efficiency Trade-offs**
 
@@ -427,18 +430,24 @@ for exp_id, exp in experiments.items():
 - GCS auto-sync protects against data loss
 - Training pipeline scales from 25 to 200 MCTS sims without issues
 
-**4. Self-Play Non-Stationarity**
+**4. Self-Play Non-Stationarity (Confirmed)**
 
 - Loss is **not** a reliable proxy for playing strength in self-play
-- As network improves, opponent (itself) gets stronger → training problem gets harder → loss can rise
-- Need **arena evaluation** (checkpoint vs checkpoint) and **fixed benchmarks** (GNUBG) to measure true improvement
+- exp001's rising loss masked genuine improvement: it beats exp000 32-18 despite higher total loss
+- **Arena evaluation** and **GNUBG benchmarks** are essential for measuring true strength
+
+**5. Both Networks Far From GNUBG-Competitive**
+
+- exp000: 0-10 vs GNUBG 0-ply (-2.50 ppg)
+- exp001: 1-49 vs GNUBG 0-ply (-2.22 ppg) — slightly better but still crushed
+- High backgammon rate (22/50) suggests the network doesn't understand racing/bearing off
 
 ### Immediate Next Steps
 
-1. **For exp001 (complete at iter 112)**:
-   - Run arena evaluation: iter_112 vs iter_070 vs iter_051 (100+ games each)
-   - Run GNUBG benchmark at iter 112 to measure absolute strength
-   - Determine if rising loss correlates with strength improvement
+1. **Scale up training**:
+   - More iterations with the current 200-sim / 50-game config
+   - Consider larger networks (10 blocks, 256 channels)
+   - Investigate the high backgammon rate — does the network need more training or architectural changes?
 
 2. **Future Experiments**:
    - Add experiments to `EXPERIMENTS` dict in the Setup section
@@ -448,10 +457,9 @@ for exp_id, exp in experiments.items():
 3. **Analysis Enhancements**:
    - Track Elo ratings from arena matches
    - Compare learning efficiency: strength gained per compute hour
-   - Investigate whether exp001's 8x more MCTS yields 8x faster learning
 
 ### Open Questions
 
-- Does exp001's rising loss indicate the network is actually improving faster than exp000?
 - What's the optimal balance between simulations/iteration and number of iterations?
 - When should we scale up to larger networks (10 blocks, 256 channels)?
+- Why is the backgammon rate so high against GNUBG? Is this a bearing-off / racing weakness?
