@@ -1,8 +1,11 @@
-"""Batched inference server for parallel self-play."""
+"""Batched inference server for parallel self-play.
 
+Game workers run in separate processes and communicate with the inference
+server (which owns the GPU) via multiprocessing queues.
+"""
+
+import multiprocessing as mp
 import queue
-import threading
-from dataclasses import dataclass, field
 
 import numpy as np
 import torch
@@ -11,95 +14,80 @@ import torch.nn.functional as F
 from raccoon.model.network import RaccoonNet
 
 
-@dataclass
-class InferenceRequest:
-    obs: np.ndarray
-    legal_actions: list[int]
-    result: tuple[dict[int, float], float] | None = field(default=None, repr=False)
-    event: threading.Event = field(default_factory=threading.Event)
-
-
-class InferenceServer:
-    """Collects single-position requests from game threads and batches them."""
+class InferenceClient:
+    """Proxy used by worker processes to request NN inference."""
 
     def __init__(
         self,
-        network: RaccoonNet,
-        batch_size: int = 32,
-        max_wait_sec: float = 0.001,
+        request_queue: mp.Queue,
+        response_queue: mp.Queue,
+        worker_idx: int,
     ):
-        self.network = network
-        self.batch_size = batch_size
-        self.max_wait_sec = max_wait_sec
-        self._queue: queue.Queue[InferenceRequest] = queue.Queue()
-        self._stop = threading.Event()
-        self._thread: threading.Thread | None = None
-
-    def start(self) -> None:
-        self.network.eval()
-        self._stop.clear()
-        self._thread = threading.Thread(target=self._server_loop, daemon=True)
-        self._thread.start()
-
-    def stop(self) -> None:
-        self._stop.set()
-        if self._thread is not None:
-            self._thread.join()
-            self._thread = None
+        self._request_queue = request_queue
+        self._response_queue = response_queue
+        self._worker_idx = worker_idx
 
     def predict(
         self, obs: np.ndarray, legal_actions: list[int],
     ) -> tuple[dict[int, float], float]:
-        req = InferenceRequest(obs=obs, legal_actions=legal_actions)
-        self._queue.put(req)
-        req.event.wait()
-        return req.result  # type: ignore[return-value]
+        self._request_queue.put((self._worker_idx, obs, legal_actions))
+        return self._response_queue.get()
 
-    def _server_loop(self) -> None:
-        device = self.network.device
-        num_actions = self.network.num_actions
 
-        while not self._stop.is_set():
-            batch: list[InferenceRequest] = []
+class InferenceServer:
+    """Collects requests from worker processes and runs batched GPU inference.
 
+    Runs in the main process. Workers send (worker_idx, obs, legal_actions)
+    on the shared request queue. The server batches these, runs a forward
+    pass, and puts (policy, value) on each worker's response queue.
+    """
+
+    def __init__(
+        self,
+        network: RaccoonNet,
+        request_queue: mp.Queue,
+        response_queues: list[mp.Queue],
+        batch_size: int = 32,
+        max_wait_sec: float = 0.001,
+    ):
+        self.network = network
+        self.request_queue = request_queue
+        self.response_queues = response_queues
+        self.batch_size = batch_size
+        self.max_wait_sec = max_wait_sec
+        self.network.eval()
+        self._device = network.device
+        self._num_actions = network.num_actions
+
+    def _collect_batch(self) -> list[tuple[int, np.ndarray, list[int]]]:
+        batch: list[tuple[int, np.ndarray, list[int]]] = []
+
+        try:
+            first = self.request_queue.get(timeout=0.01)
+            batch.append(first)
+        except queue.Empty:
+            return batch
+
+        while len(batch) < self.batch_size:
             try:
-                first = self._queue.get(timeout=0.05)
-                batch.append(first)
+                batch.append(self.request_queue.get_nowait())
             except queue.Empty:
-                continue
+                if len(batch) < self.batch_size:
+                    try:
+                        batch.append(
+                            self.request_queue.get(timeout=self.max_wait_sec)
+                        )
+                    except queue.Empty:
+                        break
 
-            while len(batch) < self.batch_size:
-                try:
-                    batch.append(self._queue.get_nowait())
-                except queue.Empty:
-                    if len(batch) < self.batch_size:
-                        # Brief wait for more requests to arrive
-                        try:
-                            batch.append(self._queue.get(timeout=self.max_wait_sec))
-                        except queue.Empty:
-                            break
-
-            self._process_batch(batch, device, num_actions)
-
-        # Drain remaining requests on shutdown
-        while not self._queue.empty():
-            batch = []
-            while not self._queue.empty() and len(batch) < self.batch_size:
-                try:
-                    batch.append(self._queue.get_nowait())
-                except queue.Empty:
-                    break
-            if batch:
-                self._process_batch(batch, device, num_actions)
+        return batch
 
     def _process_batch(
         self,
-        batch: list[InferenceRequest],
-        device: torch.device,
-        num_actions: int,
+        batch: list[tuple[int, np.ndarray, list[int]]],
     ) -> None:
-        obs_np = np.stack([req.obs for req in batch])
-        x = torch.from_numpy(obs_np).float().to(device)
+        obs_np = np.stack([obs for _, obs, _ in batch])
+        x = torch.from_numpy(obs_np).float().to(self._device)
 
         with torch.no_grad():
             logits_batch, values_batch = self.network(x)
@@ -107,12 +95,11 @@ class InferenceServer:
         logits_batch = logits_batch.cpu()
         values_batch = values_batch.cpu()
 
-        for i, req in enumerate(batch):
+        for i, (worker_idx, _, legal_actions) in enumerate(batch):
             logits = logits_batch[i]
-            mask = torch.full((num_actions,), float("-inf"))
-            mask[req.legal_actions] = 0.0
+            mask = torch.full((self._num_actions,), float("-inf"))
+            mask[legal_actions] = 0.0
             probs = F.softmax(logits + mask, dim=0).numpy()
-            policy = {a: float(probs[a]) for a in req.legal_actions}
+            policy = {a: float(probs[a]) for a in legal_actions}
             value = float(values_batch[i].item())
-            req.result = (policy, value)
-            req.event.set()
+            self.response_queues[worker_idx].put((policy, value))
