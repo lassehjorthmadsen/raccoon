@@ -1,29 +1,40 @@
-"""Parallel self-play using worker processes and batched inference."""
+"""Parallel self-play with per-worker local inference.
+
+Each worker process gets its own copy of the model on GPU/CPU and
+does inference locally. This eliminates IPC for inference (the main
+bottleneck with the previous inference-server approach) at the cost
+of duplicated model memory (~9MB per worker, negligible on a T4).
+"""
 
 import multiprocessing as mp
 import queue
 
-from raccoon.model.network import RaccoonNet
-from raccoon.train.inference_server import InferenceClient, InferenceServer
 from raccoon.train.self_play import GameResult, play_one_game
 
 
 def _worker_loop(
-    request_queue: mp.Queue,
-    response_queue: mp.Queue,
+    network_state: dict,
+    network_config: dict,
     result_queue: mp.Queue,
-    worker_idx: int,
     game_indices: list[int],
     num_simulations: int,
     temperature: float,
     temp_threshold: int,
     virtual_loss_count: int,
 ) -> None:
-    """Worker process: plays assigned games, sends results back."""
-    client = InferenceClient(request_queue, response_queue, worker_idx)
+    """Worker process: creates local network, plays games, sends results."""
+    import torch
+    from raccoon.model.network import RaccoonNet
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    net = RaccoonNet(**network_config)
+    net.load_state_dict(network_state)
+    net.to(device)
+    net.eval()
+
     for game_idx in game_indices:
         result = play_one_game(
-            client,
+            net,
             num_simulations=num_simulations,
             temperature=temperature,
             temp_threshold=temp_threshold,
@@ -33,7 +44,7 @@ def _worker_loop(
 
 
 def parallel_self_play(
-    network: RaccoonNet,
+    network,
     num_games: int,
     num_simulations: int = 100,
     temperature: float = 1.0,
@@ -42,16 +53,18 @@ def parallel_self_play(
     batch_size: int = 32,
     virtual_loss_count: int = 1,
 ) -> list[GameResult]:
-    """Play multiple self-play games in parallel with batched inference.
+    """Play multiple self-play games in parallel with local inference.
 
-    Worker processes run MCTS and game logic on CPU. The main process
-    runs the inference server on GPU, batching NN requests for throughput.
+    Each worker process gets its own model copy on GPU/CPU. No inference
+    IPC — workers only send completed GameResult objects back.
     """
     num_workers = min(num_workers, num_games)
     ctx = mp.get_context("spawn")
-    request_queue = ctx.Queue()
-    response_queues = [ctx.Queue() for _ in range(num_workers)]
     result_queue = ctx.Queue()
+
+    # Serialize network weights to CPU for transfer to workers
+    net_state = {k: v.cpu() for k, v in network.state_dict().items()}
+    net_config = network.config
 
     # Distribute games across workers
     assignments: list[list[int]] = [[] for _ in range(num_workers)]
@@ -64,41 +77,25 @@ def parallel_self_play(
         p = ctx.Process(
             target=_worker_loop,
             args=(
-                request_queue, response_queues[w], result_queue, w,
-                assignments[w], num_simulations, temperature, temp_threshold,
+                net_state, net_config,
+                result_queue, assignments[w],
+                num_simulations, temperature, temp_threshold,
                 virtual_loss_count,
             ),
         )
         p.start()
         workers.append(p)
 
-    server = InferenceServer(
-        network, request_queue, response_queues, batch_size=batch_size,
-    )
-
-    # Serve inference requests and collect results until all workers done.
-    # Must drain result_queue regularly to prevent workers from blocking
-    # on put() when the pipe buffer fills with large GameResult objects.
+    # Drain result_queue while workers run to prevent pipe buffer deadlock
     results: list[tuple[int, GameResult]] = []
     alive = set(range(len(workers)))
     while alive:
-        batch = server._collect_batch()
-        if batch:
-            server._process_batch(batch)
-        else:
+        try:
+            results.append(result_queue.get(timeout=0.1))
+        except queue.Empty:
             alive = {i for i in alive if workers[i].is_alive()}
-        while True:
-            try:
-                results.append(result_queue.get_nowait())
-            except queue.Empty:
-                break
 
-    # Drain remaining inference requests and results
-    while True:
-        batch = server._collect_batch()
-        if not batch:
-            break
-        server._process_batch(batch)
+    # Drain any remaining results
     while not result_queue.empty():
         results.append(result_queue.get_nowait())
 
