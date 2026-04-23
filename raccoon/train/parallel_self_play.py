@@ -26,6 +26,11 @@ def _worker_loop(
     import torch
     from raccoon.model.network import RaccoonNet
 
+    # Prevent thread oversubscription on CPU: each worker gets 1 torch thread.
+    # On GPU this is a no-op since inference runs on the device.
+    if not torch.cuda.is_available():
+        torch.set_num_threads(1)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = RaccoonNet(**network_config)
     net.load_state_dict(network_state)
