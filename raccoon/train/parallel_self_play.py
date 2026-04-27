@@ -55,7 +55,6 @@ def parallel_self_play(
     temperature: float = 1.0,
     temp_threshold: int = 30,
     num_workers: int = 8,
-    batch_size: int = 32,
     virtual_loss_count: int = 1,
 ) -> list[GameResult]:
     """Play multiple self-play games in parallel with local inference.

@@ -32,7 +32,6 @@ class Coach:
         experiment_name: str = "",
         checkpoint_every: int = 10,
         num_workers: int = 8,
-        inference_batch_size: int = 32,
         virtual_loss_count: int = 1,
     ):
         self.network = network
@@ -50,7 +49,6 @@ class Coach:
         self.experiment_name = experiment_name
         self.checkpoint_every = checkpoint_every
         self.num_workers = num_workers
-        self.inference_batch_size = inference_batch_size
         self.virtual_loss_count = virtual_loss_count
         self._config_logged = False
 
@@ -144,7 +142,7 @@ class Coach:
         """Generate training data through parallel self-play."""
         print(
             f"  Self-play: {self.games_per_iteration} games "
-            f"({self.num_workers} workers, batch {self.inference_batch_size})",
+            f"({self.num_workers} workers, virtual_loss={self.virtual_loss_count})",
             flush=True,
         )
         game_results = parallel_self_play(
@@ -152,7 +150,6 @@ class Coach:
             num_games=self.games_per_iteration,
             num_simulations=self.num_simulations,
             num_workers=self.num_workers,
-            batch_size=self.inference_batch_size,
             virtual_loss_count=self.virtual_loss_count,
         )
         for result in game_results:
