@@ -379,6 +379,20 @@ gcloud compute instances stop raccoon-gpu --zone=europe-west1-b
 gcloud compute instances delete raccoon-gpu --zone=europe-west1-b
 ```
 
+### Boot-time setup
+
+The VM has `scripts/setup_vm.sh` attached as a startup-script in its instance metadata. It runs as root on every boot and ensures the user's `gcloud` has the default compute service account selected as active — without this, `gcloud storage rsync` (used by the GCS sync tmux loop) silently fails with "no active account selected."
+
+If you ever recreate the VM from scratch, re-attach the script:
+
+```bash
+gcloud compute instances add-metadata raccoon-gpu \
+  --zone=europe-west1-b \
+  --metadata-from-file startup-script=scripts/setup_vm.sh
+```
+
+The script is idempotent — safe to run on every boot.
+
 ## Costs
 
 We pay for three things: compute time (VM running), disk storage (even when stopped), and cloud storage (GCS bucket). The VM is by far the biggest cost — everything else is negligible.
