@@ -189,9 +189,11 @@ This is well-documented in AlphaZero papers and is genuinely possible here.
 - **Gammon/backgammon trend over training.** If declining: play quality is improving and the non-stationarity story is plausible. If flat: play is stuck and rising loss is not masking improvement.
 - **MCTS visit-entropy trend.** Collapsing entropy → exploration is dying.
 
-**Evidence from the data we do have** (see "Game Dynamics" below): gammon and backgammon rates are **flat** across both exp000's 501 iterations and exp001's 117 iterations. That is evidence *against* the pure non-stationarity story, or at least evidence that whatever improvement is happening is too small to show up in game outcomes.
+**Evidence from the data we do have** (see "Game Dynamics" below): gammon and backgammon rates are **flat** across both exp000's 501 iterations and exp001's 282 iterations. That is evidence *against* the pure non-stationarity story, or at least evidence that whatever improvement is happening is too small to show up in game outcomes.
 
-**What about exp001 beating exp000?** The arena match (32-18, +0.44 ppg) compared exp001 iter_112 vs exp000 iter_498. These differ in training config (8× sims, 5× games) AND checkpoint history. A win here only proves "more compute + more training + more sims at eval time beats less." It does *not* show that exp001's loss increase masks real strength gain, because it doesn't hold exp001's config fixed across checkpoints. The needed test is iter_k vs iter_k-20 within exp001.
+**What about exp001 beating exp000?** The arena match (32-18, +0.44 ppg) compared exp001 iter_112 vs exp000 iter_498. These differ in training config (8× sims, 5× games) AND checkpoint history. A win here only proves "more compute + more training + more sims at eval time beats less." It does *not* show that exp001's loss increase masks real strength gain, because it doesn't hold exp001's config fixed across checkpoints.
+
+**The within-experiment strength comparison has now been run.** iter_0282 vs iter_0260 (50 games, 100 eval sims): **27-23, +0.120 ppg**. With n=50, the per-game equity SE is roughly 0.25 ppg, so this is not statistically distinguishable from zero (~+0.5z). Across 22 iterations of training, no detectable strength gain. This is the cleanest direct evidence we have that exp001 has plateaued: rising value loss is *not* masking a strength improvement that's just too small to see in self-play game outcomes — it isn't visible in head-to-head play between checkpoints either.
 
 ## Loss Trend Detail: Policy and Value Separately
 
@@ -452,7 +454,7 @@ for exp_id, exp in experiments.items():
 - **exp001 is ~40x slower per iteration** (~50 min vs ~1.2 min) due to 8x MCTS sims and 5x games
 - **SGD time stays negligible** (~2-3 seconds) in both experiments — T4 GPU handles training easily
 - **Self-play is the bottleneck** — GPU only accelerates the cheap part (SGD)
-- **exp000's buffer fills** at ~iter 196 (100k capacity). exp001's 500k buffer is still not full at iter 117 and holds roughly 100 iterations of positions. This is a tradeoff, not a free win: a larger buffer gives the network more data but forces it to simultaneously fit old (weaker-play) and new (less-weak) positions. If play quality drifts during training, a buffer this deep can actively slow convergence. Worth experimenting with smaller buffers (e.g. 50k–100k) to test whether a tighter recent-play window speeds up adaptation.
+- **exp000's buffer fills** at ~iter 196 (100k capacity). exp001's 500k buffer holds roughly 100 iterations of positions. This is a tradeoff, not a free win: a larger buffer gives the network more data but forces it to simultaneously fit old (weaker-play) and new (less-weak) positions. If play quality drifts during training, a buffer this deep can actively slow convergence. Worth experimenting with smaller buffers (e.g. 50k–100k) to test whether a tighter recent-play window speeds up adaptation.
 
 ## Benchmark Results
 
@@ -492,9 +494,11 @@ for exp_id, exp in experiments.items():
 **Interpretation (with sample-size caveats):**
 
 - **exp000 vs GNUBG world-class (n=10): 0-10, -2.50 ppg.** With n=10, the 95% CI on per-game equity is ~±1.5 ppg, so this is only weak evidence of *how badly* it loses — though a 0-10 sweep at any sample size confirms the network is nowhere near world-class GNUBG strength.
-- **exp001 vs GNUBG world-class (n=50): 1-49 (2%), -2.22 ppg.** 19 gammons and 22 backgammons conceded in 50 games. The backgammon concession rate of 44% is in line with the self-play finding that this network leaves checkers stranded.
-- **exp001 (iter 112) vs exp000 (iter 498): 32-18 (64%), +0.44 ppg.** This is evidence exp001 is stronger than exp000 — but as discussed in the Self-Play Non-Stationarity section, it does **not** confirm that rising loss within exp001 masks improvement, because it compares different training configs at different checkpoints. The within-exp001 strength curve (iter_k vs iter_k-N at fixed eval sims) is the decisive test and has not been run yet.
-- **Both networks are crushed by GNUBG world-class.** The M6 milestone targets money-game wins against GNUBG at a reasonable strength setting; we should also benchmark against a weaker GNUBG level (e.g. 0-ply) to measure progress at finer resolution — losing 0-10 and 1-49 to world-class doesn't discriminate well between "weak" and "very weak." The flat gammon/backgammon rate in self-play suggests we're stuck at a weak-play equilibrium, and more iterations at current settings may not be sufficient.
+- **exp001 iter_112 vs GNUBG world-class (n=50): 1-49 (2%), -2.22 ppg.** 19 gammons and 22 backgammons conceded in 50 games. The backgammon concession rate of 44% is in line with the self-play finding that this network leaves checkers stranded.
+- **exp001 iter_282 vs GNUBG 0-ply (n=50): 0-50 (0%), -2.32 ppg.** 20 gammons and 23 backgammons conceded. **0-ply was added to discriminate "weak" from "very weak"; it doesn't.** Raccoon loses to 0-ply slightly *worse* than iter_112 lost to world-class. After 170 more iterations of training and stepping the opponent down to GNUBG's weakest setting, the result moves the wrong direction. This is the strongest external signal yet that the network is stuck.
+- **exp001 (iter 112) vs exp000 (iter 498): 32-18 (64%), +0.44 ppg.** This is evidence exp001 is stronger than exp000 — but as discussed in the Self-Play Non-Stationarity section, it does **not** confirm that rising loss within exp001 masks improvement, because it compares different training configs at different checkpoints.
+- **exp001 iter_282 vs iter_260 (n=50, 100 eval sims): 27-23 (54%), +0.120 ppg.** First within-experiment strength check. Result is statistically indistinguishable from zero (SE ≈ 0.25 ppg). 22 iterations of training produced no detectable strength gain. Combined with the GNUBG 0-ply result and flat gammon/BG rates, this confirms the plateau.
+- **Both networks are crushed by GNUBG even at the weakest setting.** The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings, and more iterations of exp001 as-is won't get us there.
 
 ## Summary and Next Steps
 
@@ -513,11 +517,11 @@ for exp_id, exp in experiments.items():
 - These rates are not declining over training iterations. This is the strongest evidence that the networks are not materially improving at the thing that matters (avoiding catastrophic positions).
 - Against GNUBG 0-ply, exp001 conceded 22 backgammons in 50 games (44%), consistent with this.
 
-**3. The "rising loss masks strength gain" conclusion is not supported by the data we have.**
+**3. The "rising loss masks strength gain" hypothesis is now contradicted by direct evidence.**
 
-- The exp001-beats-exp000 arena result compares different training configs, not different checkpoints within a fixed config.
-- The non-stationarity story is possible but hasn't been tested. The clean test — iter_k vs iter_k-20 within exp001 at equal eval sims — has not been run.
-- Combined with flat gammon/BG rates, the plausible baseline interpretation right now is: the pipeline works and policy loss drops, but play strength is not visibly improving once the network reaches its plateau.
+- The decisive test (iter_k vs iter_k-20 within exp001 at equal eval sims) has been run: iter_282 vs iter_260, 27-23, +0.120 ppg over 50 games. Statistically indistinguishable from zero.
+- 22 iterations of training produced no detectable strength gain in head-to-head play.
+- Combined with flat gammon/BG rates and the iter_282 vs GNUBG 0-ply 0-50 result, the rising value loss is not masking improvement — the network is plateaued.
 
 **4. Player-0 equity bias is a training artifact of low-sim MCTS, not an engine bug.**
 
@@ -532,29 +536,29 @@ for exp_id, exp in experiments.items():
 - SGD stays cheap (~2–3 sec); self-play is the bottleneck. GPU helps the fast step.
 - The 500k replay buffer in exp001 is a deliberate tradeoff: more data but slower adaptation if play quality drifts.
 
-**6. Both networks are far from GNUBG-competitive.**
+**6. Both networks are far from GNUBG-competitive — even at the weakest setting.**
 
-- exp000: 0-10 vs GNUBG world-class (n=10, wide CI).
-- exp001: 1-49 (-2.22 ppg) vs GNUBG world-class with 19 gammons and 22 backgammons conceded.
-- M6 milestone (beat GNUBG at money game) is not in reach at current training settings. Add a lower-level GNUBG benchmark (e.g., 0-ply) to resolve progress at finer grain.
+- exp000 iter_498: 0-10 vs GNUBG world-class (n=10, wide CI).
+- exp001 iter_112: 1-49 (-2.22 ppg) vs GNUBG world-class with 19 gammons and 22 backgammons conceded.
+- exp001 iter_282: **0-50 (-2.32 ppg) vs GNUBG 0-ply** (the weakest setting), 20 gammons and 23 backgammons conceded. 0-ply was added to discriminate degrees of weakness; instead it confirms the plateau is not "almost-but-not-quite-GNUBG-0-ply" — it's much further away than that.
+- M6 milestone (beat GNUBG at money game) is not in reach at current training settings.
 
 ### Immediate Next Steps
 
-1. **Measure within-experiment strength.** Run arena matches: exp001 iter_60 vs iter_90 vs iter_112 at identical eval sims. If strength is rising, non-stationarity is a real explanation for rising loss. If flat, the network is plateaued and we need to change something.
+The within-experiment strength check has been run and confirms the plateau (iter_282 vs iter_260: +0.120 ppg, n.s.). Continuing to train exp001 as-is is not justified.
 
-2. **Track MCTS visit-distribution entropy over training.** Exploration collapse is an easy-to-test hypothesis for the plateau. Add a column to the training log that records mean visit-entropy at decision nodes.
+1. **Track MCTS visit-distribution entropy over training.** Exploration collapse is an easy-to-test hypothesis for the plateau. Add a column to the training log that records mean visit-entropy at decision nodes.
 
-3. **Try a tighter replay buffer.** Small experiment: run exp002 identical to exp001 but with `replay_size=50_000` (roughly 10 iterations of positions). If value loss drops and gammon rate starts declining, buffer staleness was contributing.
+2. **Try a tighter replay buffer.** Small experiment: run exp002 identical to exp001 but with `replay_size=50_000` (roughly 10 iterations of positions). If value loss drops and gammon rate starts declining, buffer staleness was contributing.
 
-4. **Consider value target bootstrapping.** Replace raw game outcome with MCTS root `Q` (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort.
+3. **Consider value target bootstrapping.** Replace raw game outcome with MCTS root `Q` (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort.
 
-5. **Scale sims, not iterations.** Another iteration of exp001 as-is is unlikely to break the plateau given flat rates over 117 iters. Going to 400–800 sims is a more promising next lever.
+4. **Scale sims, not iterations.** Another iteration of exp001 as-is is unlikely to break the plateau given flat rates over 282 iters. Going to 400–800 sims is a more promising next lever.
 
-6. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
+5. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
 
 ### Open Questions
 
-- Does the within-experiment strength curve actually rise? (The central question — nothing else is decisive without it.)
 - Is MCTS visit entropy collapsing over training?
 - Can value-target bootstrapping (root `Q` instead of terminal return) fix the rising value loss?
 - What buffer size gives the best tradeoff between signal and staleness?
