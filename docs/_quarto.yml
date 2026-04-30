@@ -1,0 +1,10 @@
+project:
+  type: default
+
+format:
+  html:
+    code-fold: true
+    toc: true
+    theme: cosmo
+
+jupyter: python3
