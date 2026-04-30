@@ -5,7 +5,12 @@ __pycache__/
 .pytest_cache/
 checkpoints/
 logs/
-experiments/
+experiments/*
+!experiments/*/
+!experiments/*/logs/
+!experiments/*/logs/**
+experiments/*/checkpoints/
+experiments/smoke/
 perplexity-conversation.md
 *.html
 *_files/

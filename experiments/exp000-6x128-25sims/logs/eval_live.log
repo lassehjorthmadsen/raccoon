@@ -1,0 +1,4 @@
+Raccoon: checkpoints/iter_0498.pt (6x128)
+GNUBG: level=world ply=0
+Playing 100 games, 200 MCTS simulations per Raccoon move...
+Game 1/100  Raccoon 0-0  Equity: +0.000 ppgGame 2/100  Raccoon 0-1  Equity: -2.000 ppg

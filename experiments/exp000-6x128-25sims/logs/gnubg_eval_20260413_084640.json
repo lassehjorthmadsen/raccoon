@@ -1,0 +1,5650 @@
+{
+  "written_at": "2026-04-13T08:46:40+00:00",
+  "num_games": 10,
+  "games": [
+    {
+      "moves": [
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 432,
+          "action_str": "432 - 8/5 8/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 142,
+          "action_str": "142 - 13/8 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 0,
+          "action_str": "0 - 24/23 24/20*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1298,
+          "action_str": "1298 - Bar/24/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 486,
+          "action_str": "486 - 6/5 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 137,
+          "action_str": "137 - 8/5* 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 700,
+          "action_str": "700 - Bar/24/18"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 220,
+          "action_str": "220 - 13/9/7*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 199,
+          "action_str": "199 - 18/17* 8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 621,
+          "action_str": "621 - 24/23(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/24 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 334,
+          "action_str": "334 - 23/17 13/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 1168,
+          "action_str": "1168 - Bar/21 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 140,
+          "action_str": "140 - 11/5 6/4*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 778,
+          "action_str": "778 - Bar/21*/16"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 804,
+          "action_str": "804 - Bar/23 5/2*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 778,
+          "action_str": "778 - Bar/21/16"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 406,
+          "action_str": "406 - 17/16/15"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 406,
+          "action_str": "406 - 17/16/15"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 297,
+          "action_str": "297 - 13/8 13/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 33,
+          "action_str": "33 - 8/5 2/1*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1142,
+          "action_str": "1142 - Bar/21 7/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 324,
+          "action_str": "324 - 13/10 13/8"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 219,
+          "action_str": "219 - 16/15* 13/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 128,
+          "action_str": "128 - Bar/21 5/4*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 908,
+          "action_str": "908 - Bar/23 16/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 575,
+          "action_str": "575 - 23/21 4/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 978,
+          "action_str": "978 - 13/7 8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 542,
+          "action_str": "542 - 23/17* 21/17"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1028,
+          "action_str": "1028 - 15/14*/12*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/23(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 258,
+          "action_str": "258 - Bar/23 15/13*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1220,
+          "action_str": "1220 - Bar/21/15"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 459,
+          "action_str": "459 - 7/5 7/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 384,
+          "action_str": "384 - 21/15/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 980,
+          "action_str": "980 - 13/9 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 426,
+          "action_str": "426 - 17/13 11/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 513,
+          "action_str": "513 - 5/4 5/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 162,
+          "action_str": "162 - 7/4(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 326,
+          "action_str": "326 - 15/12 13/10"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 512,
+          "action_str": "512 - 6/3 5/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 425,
+          "action_str": "425 - 17/16* 10/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 135,
+          "action_str": "135 - 6/3(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 219,
+          "action_str": "219 - 12/9/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 189,
+          "action_str": "189 - 8/3(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 248,
+          "action_str": "248 - 15/10/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 327,
+          "action_str": "327 - 16/13/10"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 165,
+          "action_str": "165 - 10/7/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 1220,
+          "action_str": "1220 - Bar/23 4/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 56,
+          "action_str": "56 - 5/Off 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 135,
+          "action_str": "135 - 6/4 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 183,
+          "action_str": "183 - 23/17/12"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 82,
+          "action_str": "82 - 5/Off 4/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1009,
+          "action_str": "1009 - 12/10 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 81,
+          "action_str": "81 - 4/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 82,
+          "action_str": "82 - 5/1 4/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 722,
+          "action_str": "722 - 23/17 4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 758,
+          "action_str": "758 - 5/4/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 560,
+          "action_str": "560 - 10/8 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 54,
+          "action_str": "54 - 3/1 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 579,
+          "action_str": "579 - 17/15 2/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 54,
+          "action_str": "54 - 3/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 417,
+          "action_str": "417 - 23/20 8/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 27,
+          "action_str": "27 - 23/22 23/20"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 650,
+          "action_str": "650 - 1/Off Pass"
+        }
+      ],
+      "result": -3.0,
+      "result_type": "backgammon",
+      "raccoon_is_player0": true,
+      "timestamp": "2026-04-13T08:31:23+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 11,
+          "action_str": "11 - 24/23 13/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 189,
+          "action_str": "189 - 8/5 8/2*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 700,
+          "action_str": "700 - Bar/22 24/20*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1012,
+          "action_str": "1012 - Bar/21 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 160,
+          "action_str": "160 - 20/18*/17*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1324,
+          "action_str": "1324 - Bar/24 Bar/21"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 59,
+          "action_str": "59 - 22/17/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 142,
+          "action_str": "142 - 13/10 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 297,
+          "action_str": "297 - 13/8(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 432,
+          "action_str": "432 - 8/3(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 991,
+          "action_str": "991 - 13/10 4/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 429,
+          "action_str": "429 - 11/5 8/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1000,
+          "action_str": "1000 - 13/11 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 345,
+          "action_str": "345 - 17/12 11/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 165,
+          "action_str": "165 - 10/4 7/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 297,
+          "action_str": "297 - 13/8(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 454,
+          "action_str": "454 - 12/7/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 101,
+          "action_str": "101 - 24/18 4/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1133,
+          "action_str": "1133 - 9/7*/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 544,
+          "action_str": "544 - Bar/21/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 432,
+          "action_str": "432 - 8/5 8/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 941,
+          "action_str": "941 - 11/8 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 432,
+          "action_str": "432 - 8/6 8/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1201,
+          "action_str": "1201 - 21/16 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 486,
+          "action_str": "486 - 6/3 6/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 809,
+          "action_str": "809 - 6/1 4/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 489,
+          "action_str": "489 - 6/5 3/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 249,
+          "action_str": "249 - 16/10/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 512,
+          "action_str": "512 - 6/2 5/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 113,
+          "action_str": "113 - 10/6 5/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 486,
+          "action_str": "486 - 6/3 6/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1279,
+          "action_str": "1279 - 24/18 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 516,
+          "action_str": "516 - 5/4* 2/1*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 542,
+          "action_str": "542 - 4/3 2/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/21 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 513,
+          "action_str": "513 - 5/2(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 567,
+          "action_str": "567 - 3/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 232,
+          "action_str": "232 - Bar/21 9/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 567,
+          "action_str": "567 - 3/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 81,
+          "action_str": "81 - 4/1(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 187,
+          "action_str": "187 - 8/5 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 462,
+          "action_str": "462 - 21/17 18/17"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 785,
+          "action_str": "785 - 6/5/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 620,
+          "action_str": "620 - 2/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 432,
+          "action_str": "432 - 17/13(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 324,
+          "action_str": "324 - 13/9(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 620,
+          "action_str": "620 - 2/Off 1/Off"
+        }
+      ],
+      "result": -3.0,
+      "result_type": "backgammon",
+      "raccoon_is_player0": false,
+      "timestamp": "2026-04-13T08:33:27+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 432,
+          "action_str": "432 - 8/4 8/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1219,
+          "action_str": "1219 - 24/21*/15"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 102,
+          "action_str": "102 - Bar/21/18"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1245,
+          "action_str": "1245 - 24/22*/17*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/24(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 0,
+          "action_str": "0 - 24/23(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 196,
+          "action_str": "196 - 15/11 8/7*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 986,
+          "action_str": "986 - Bar/21 13/8*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 336,
+          "action_str": "336 - Bar/20 13/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 973,
+          "action_str": "973 - 13/10 13/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 137,
+          "action_str": "137 - 8/4* 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1116,
+          "action_str": "1116 - Bar/24 8/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 137,
+          "action_str": "137 - 8/5 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1160,
+          "action_str": "1160 - 8/7 6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 192,
+          "action_str": "192 - 11/8/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 976,
+          "action_str": "976 - 13/8 10/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 324,
+          "action_str": "324 - 13/12* 13/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 227,
+          "action_str": "227 - 20/14 9/8"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1142,
+          "action_str": "1142 - Bar/23 7/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 325,
+          "action_str": "325 - 14/8 13/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1110,
+          "action_str": "1110 - 8/2 6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 320,
+          "action_str": "320 - 13/12 9/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 1162,
+          "action_str": "1162 - 6/2 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 140,
+          "action_str": "140 - 11/6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 486,
+          "action_str": "486 - 6/3 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 141,
+          "action_str": "141 - 12/6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1346,
+          "action_str": "1346 - 4/2 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 115,
+          "action_str": "115 - 12/6 5/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 540,
+          "action_str": "540 - 4/1(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 137,
+          "action_str": "137 - 8/3 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1333,
+          "action_str": "1333 - 8/5 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 183,
+          "action_str": "183 - 23/17/15"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 162,
+          "action_str": "162 - 7/6 7/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 594,
+          "action_str": "594 - 2/1(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 0,
+          "action_str": "0 - 24/23(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 81,
+          "action_str": "81 - 4/3(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 109,
+          "action_str": "109 - 6/5/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 555,
+          "action_str": "555 - 15/12 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 57,
+          "action_str": "57 - 6/1* 3/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 82,
+          "action_str": "82 - 5/Off 4/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 1012,
+          "action_str": "1012 - Bar/23 12/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 135,
+          "action_str": "135 - 6/3 6/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 561,
+          "action_str": "561 - 9/6 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 56,
+          "action_str": "56 - 5/Off 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 469,
+          "action_str": "469 - 23/18 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 56,
+          "action_str": "56 - 5/Off 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 292,
+          "action_str": "292 - 18/13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 3,
+          "action_str": "3 - 4/Off 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 391,
+          "action_str": "391 - 23/19 9/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 499,
+          "action_str": "499 - 19/15 5/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 81,
+          "action_str": "81 - 4/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 931,
+          "action_str": "931 - 15/11 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 54,
+          "action_str": "54 - 3/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 339,
+          "action_str": "339 - 23/19 11/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 2,
+          "action_str": "2 - 3/Off 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 391,
+          "action_str": "391 - 23/18 9/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 650,
+          "action_str": "650 - 1/Off Pass"
+        }
+      ],
+      "result": -3.0,
+      "result_type": "backgammon",
+      "raccoon_is_player0": true,
+      "timestamp": "2026-04-13T08:34:35+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 11,
+          "action_str": "11 - 24/23 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 135,
+          "action_str": "135 - 6/4(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 189,
+          "action_str": "189 - 8/6(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 183,
+          "action_str": "183 - 23/17*/14"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 622,
+          "action_str": "622 - Bar/20 24/23"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 296,
+          "action_str": "296 - 14/8 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 324,
+          "action_str": "324 - 13/11 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 702,
+          "action_str": "702 - 24/23/18*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 622,
+          "action_str": "622 - Bar/22 24/22"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 484,
+          "action_str": "484 - 8/5* 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 544,
+          "action_str": "544 - Bar/21/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 401,
+          "action_str": "401 - 13/7* 9/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 172,
+          "action_str": "172 - 18/14* 8/2*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 483,
+          "action_str": "483 - 9/4 6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/24 Bar/23*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 960,
+          "action_str": "960 - Bar/22 14/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 324,
+          "action_str": "324 - 13/9 13/8"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 589,
+          "action_str": "589 - 7/2*/1*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 68,
+          "action_str": "68 - 22/16* 8/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 433,
+          "action_str": "433 - 8/2 7/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 996,
+          "action_str": "996 - 16/12*/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 458,
+          "action_str": "458 - 8/4 7/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 479,
+          "action_str": "479 - 13/10 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 482,
+          "action_str": "482 - 10/6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 427,
+          "action_str": "427 - 13/8/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 591,
+          "action_str": "591 - 5/2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 486,
+          "action_str": "486 - 6/2(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 540,
+          "action_str": "540 - 4/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 513,
+          "action_str": "513 - 5/2 5/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 540,
+          "action_str": "540 - 4/2(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 492,
+          "action_str": "492 - Bar/19/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 591,
+          "action_str": "591 - 5/Off 2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1243,
+          "action_str": "1243 - 22/19 22/16"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 591,
+          "action_str": "591 - 5/1 2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 475,
+          "action_str": "475 - 19/18 8/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 620,
+          "action_str": "620 - 2/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 563,
+          "action_str": "563 - 22/18/13"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 567,
+          "action_str": "567 - 22/21 22/17"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 621,
+          "action_str": "621 - 1/Off(2)"
+        }
+      ],
+      "result": -3.0,
+      "result_type": "backgammon",
+      "raccoon_is_player0": false,
+      "timestamp": "2026-04-13T08:36:08+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 465,
+          "action_str": "465 - 24/18/14"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 11,
+          "action_str": "11 - 24/21 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 324,
+          "action_str": "324 - 13/7(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 325,
+          "action_str": "325 - 14/8 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1110,
+          "action_str": "1110 - 8/4 6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 137,
+          "action_str": "137 - 8/5 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 302,
+          "action_str": "302 - 13/7 8/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 303,
+          "action_str": "303 - 13/7/1*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1272,
+          "action_str": "1272 - Bar/23*/17*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/21(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 303,
+          "action_str": "303 - 13/9 7/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 317,
+          "action_str": "317 - 13/12* 6/1*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/21 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 32,
+          "action_str": "32 - 7/2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1090,
+          "action_str": "1090 - Bar/23 9/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 427,
+          "action_str": "427 - 17/15 12/8"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 408,
+          "action_str": "408 - 9/8 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 326,
+          "action_str": "326 - 15/11 13/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 484,
+          "action_str": "484 - 8/3 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 108,
+          "action_str": "108 - 5/2*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 189,
+          "action_str": "189 - 8/5(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 778,
+          "action_str": "778 - Bar/22 21/16"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 162,
+          "action_str": "162 - 7/3*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 166,
+          "action_str": "166 - 11/7/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 187,
+          "action_str": "187 - 8/5 6/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 232,
+          "action_str": "232 - Bar/21 16/13"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 33,
+          "action_str": "33 - 8/5 2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 479,
+          "action_str": "479 - 13/8 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 36,
+          "action_str": "36 - 11/6 2/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 757,
+          "action_str": "757 - 21/17 21/15"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 135,
+          "action_str": "135 - 6/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 109,
+          "action_str": "109 - 6/Off 5/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 536,
+          "action_str": "536 - 8/4/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 108,
+          "action_str": "108 - 5/1 5/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 867,
+          "action_str": "867 - 17/12 15/14"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 4,
+          "action_str": "4 - 5/Off 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1008,
+          "action_str": "1008 - 12/6 4/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 54,
+          "action_str": "54 - 3/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 530,
+          "action_str": "530 - 14/8 4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 704,
+          "action_str": "704 - 3/1 2/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 81,
+          "action_str": "81 - 21/19(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 486,
+          "action_str": "486 - 6/4(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 811,
+          "action_str": "811 - 19/18 19/14"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        }
+      ],
+      "result": -2.0,
+      "result_type": "gammon",
+      "raccoon_is_player0": true,
+      "timestamp": "2026-04-13T08:37:21+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 11,
+          "action_str": "11 - 24/21 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 189,
+          "action_str": "189 - 8/4* 8/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 24,
+          "action_str": "24 - Bar/20 24/23"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 319,
+          "action_str": "319 - 13/8/2*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 752,
+          "action_str": "752 - Bar/22*/17*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1324,
+          "action_str": "1324 - Bar/22 Bar/21"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 193,
+          "action_str": "193 - 17/11 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 301,
+          "action_str": "301 - 13/7 9/3*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 102,
+          "action_str": "102 - Bar/23 4/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 536,
+          "action_str": "536 - 8/4*/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 76,
+          "action_str": "76 - Bar/21 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 238,
+          "action_str": "238 - 20/15/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 135,
+          "action_str": "135 - 6/3(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 621,
+          "action_str": "621 - 24/21(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 427,
+          "action_str": "427 - 13/8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 384,
+          "action_str": "384 - 21/15/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 384,
+          "action_str": "384 - 21/15/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 485,
+          "action_str": "485 - 7/4* 6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 232,
+          "action_str": "232 - Bar/20 9/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 459,
+          "action_str": "459 - 7/5* 7/2*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/20* Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 440,
+          "action_str": "440 - Bar/20* 8/5*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 435,
+          "action_str": "435 - 8/7 5/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/20 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 481,
+          "action_str": "481 - 11/5* 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 507,
+          "action_str": "507 - 11/5/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 453,
+          "action_str": "453 - 13/8 7/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/24 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 124,
+          "action_str": "124 - 20/17 4/1*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 540,
+          "action_str": "540 - 4/1(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 198,
+          "action_str": "198 - 17/14 8/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 348,
+          "action_str": "348 - 14/11/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/21 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 484,
+          "action_str": "484 - 8/2 6/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 486,
+          "action_str": "486 - 6/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/19 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 513,
+          "action_str": "513 - 5/3 5/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 76,
+          "action_str": "76 - Bar/21 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 513,
+          "action_str": "513 - 5/3 5/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 142,
+          "action_str": "142 - 13/10 6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 568,
+          "action_str": "568 - 3/1 2/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1008,
+          "action_str": "1008 - 21/20 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 567,
+          "action_str": "567 - 3/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 619,
+          "action_str": "619 - 3/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 476,
+          "action_str": "476 - 19/16 9/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 621,
+          "action_str": "621 - 1/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1190,
+          "action_str": "1190 - 21/17 20/14"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 621,
+          "action_str": "621 - 1/Off(2)"
+        }
+      ],
+      "result": -2.0,
+      "result_type": "gammon",
+      "raccoon_is_player0": false,
+      "timestamp": "2026-04-13T08:38:22+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 610,
+          "action_str": "610 - 24/23 13/8"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 962,
+          "action_str": "962 - 24/23 13/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 135,
+          "action_str": "135 - 6/1*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 189,
+          "action_str": "189 - 8/3(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 584,
+          "action_str": "584 - 23/22 13/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 986,
+          "action_str": "986 - Bar/20 13/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 164,
+          "action_str": "164 - 9/7/5*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 515,
+          "action_str": "515 - 22/20/18*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/20* Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1298,
+          "action_str": "1298 - Bar/23 24/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1116,
+          "action_str": "1116 - Bar/21 8/2*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 154,
+          "action_str": "154 - Bar/23* 6/5*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/23 Bar/21"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 189,
+          "action_str": "189 - 8/5(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 459,
+          "action_str": "459 - 18/15(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 427,
+          "action_str": "427 - 13/9 8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1244,
+          "action_str": "1244 - 23/22/16*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 272,
+          "action_str": "272 - 13/11/10"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 986,
+          "action_str": "986 - Bar/21 13/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 300,
+          "action_str": "300 - 15/12*/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 322,
+          "action_str": "322 - 13/10 11/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 246,
+          "action_str": "246 - 13/7 10/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 139,
+          "action_str": "139 - 10/6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 440,
+          "action_str": "440 - Bar/21 8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 404,
+          "action_str": "404 - 16/14 15/12"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 459,
+          "action_str": "459 - 7/4(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 433,
+          "action_str": "433 - 8/5 7/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 221,
+          "action_str": "221 - 14/9/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 497,
+          "action_str": "497 - 21/17 5/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 219,
+          "action_str": "219 - 12/9/8*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 492,
+          "action_str": "492 - Bar/21 6/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 471,
+          "action_str": "471 - 21/17* 6/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1298,
+          "action_str": "1298 - Bar/24/22*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 882,
+          "action_str": "882 - Bar/23 17/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 437,
+          "action_str": "437 - 22/17/14*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 1168,
+          "action_str": "1168 - Bar/21 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 221,
+          "action_str": "221 - 14/9/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 211,
+          "action_str": "211 - 21/16/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 341,
+          "action_str": "341 - 21/16 11/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 136,
+          "action_str": "136 - 7/1 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 540,
+          "action_str": "540 - 4/2(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 486,
+          "action_str": "486 - 6/4(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 734,
+          "action_str": "734 - 7/5 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 757,
+          "action_str": "757 - 21/18 21/17"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 108,
+          "action_str": "108 - 5/3 5/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 839,
+          "action_str": "839 - 18/13 17/15"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 4,
+          "action_str": "4 - 5/3 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 27,
+          "action_str": "27 - 23/18(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 219,
+          "action_str": "219 - 16/11 13/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 54,
+          "action_str": "54 - 3/2*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 108,
+          "action_str": "108 - 5/4(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 108,
+          "action_str": "108 - 5/4 5/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 128,
+          "action_str": "128 - Bar/20/17"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 5,
+          "action_str": "5 - 6/1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 345,
+          "action_str": "345 - 17/11/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 83,
+          "action_str": "83 - 6/Off 4/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 247,
+          "action_str": "247 - 15/14 11/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 2,
+          "action_str": "2 - 3/Off 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1160,
+          "action_str": "1160 - 8/5 6/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 3,
+          "action_str": "3 - 4/Off 1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 166,
+          "action_str": "166 - 18/14/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 55,
+          "action_str": "55 - 4/Off 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 1112,
+          "action_str": "1112 - 8/3 4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 27,
+          "action_str": "27 - 2/1 2/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 500,
+          "action_str": "500 - 18/14 5/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 650,
+          "action_str": "650 - 1/Off Pass"
+        }
+      ],
+      "result": -2.0,
+      "result_type": "gammon",
+      "raccoon_is_player0": true,
+      "timestamp": "2026-04-13T08:39:37+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 189,
+          "action_str": "189 - 8/7 8/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 11,
+          "action_str": "11 - 24/23 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1011,
+          "action_str": "1011 - 24/22 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 729,
+          "action_str": "729 - 23/22/17*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 180,
+          "action_str": "180 - Bar/20 7/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 431,
+          "action_str": "431 - 9/4 8/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 142,
+          "action_str": "142 - 13/8* 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 492,
+          "action_str": "492 - Bar/22* 6/5*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/23 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 484,
+          "action_str": "484 - 8/2* 6/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 71,
+          "action_str": "71 - 22/21* 5/3*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/22* Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 986,
+          "action_str": "986 - Bar/23 13/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/20 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1187,
+          "action_str": "1187 - 7/5*/1*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 304,
+          "action_str": "304 - 13/9 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 157,
+          "action_str": "157 - 23/18*/17*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 3,
+          "action_str": "3 - 24/20 21/16"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/20 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 509,
+          "action_str": "509 - 9/5*/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 190,
+          "action_str": "190 - 17/14 16/13"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 271,
+          "action_str": "271 - 14/11 13/10"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 420,
+          "action_str": "420 - 20/15 8/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 295,
+          "action_str": "295 - 15/10 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 349,
+          "action_str": "349 - 13/7 11/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 407,
+          "action_str": "407 - 9/8 7/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 486,
+          "action_str": "486 - 6/5(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 431,
+          "action_str": "431 - 9/4 8/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 456,
+          "action_str": "456 - 10/4 7/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 482,
+          "action_str": "482 - 10/4 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/22 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 514,
+          "action_str": "514 - 5/2 4/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 486,
+          "action_str": "486 - 6/5 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/19 Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 617,
+          "action_str": "617 - 5/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 154,
+          "action_str": "154 - Bar/19 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 513,
+          "action_str": "513 - 5/1 5/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 1162,
+          "action_str": "1162 - 19/17 19/16"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 540,
+          "action_str": "540 - 4/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 324,
+          "action_str": "324 - 13/10 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 592,
+          "action_str": "592 - 4/Off 2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 990,
+          "action_str": "990 - 13/8 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 618,
+          "action_str": "618 - 4/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 241,
+          "action_str": "241 - 10/9 8/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 592,
+          "action_str": "592 - 4/Off 2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 164,
+          "action_str": "164 - 9/5 7/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 620,
+          "action_str": "620 - 2/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 1191,
+          "action_str": "1191 - 22/20/17"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 673,
+          "action_str": "673 - 1/Off Pass"
+        }
+      ],
+      "result": -3.0,
+      "result_type": "backgammon",
+      "raccoon_is_player0": false,
+      "timestamp": "2026-04-13T08:41:34+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 610,
+          "action_str": "610 - 24/21 13/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 11,
+          "action_str": "11 - 24/21 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 135,
+          "action_str": "135 - 6/4*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 272,
+          "action_str": "272 - 13/11/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 24,
+          "action_str": "24 - Bar/20 24/23"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 190,
+          "action_str": "190 - 9/5* 8/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1168,
+          "action_str": "1168 - Bar/24 6/4*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 622,
+          "action_str": "622 - Bar/24/23"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 568,
+          "action_str": "568 - 23/22/21*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 986,
+          "action_str": "986 - Bar/22 13/9"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 220,
+          "action_str": "220 - 13/11 9/7"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            2
+          ],
+          "action": 218,
+          "action_str": "218 - 11/9/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 297,
+          "action_str": "297 - 13/10(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 432,
+          "action_str": "432 - 8/5(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 150,
+          "action_str": "150 - 21/17* 6/3*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 58,
+          "action_str": "58 - 7/2* 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 168,
+          "action_str": "168 - 13/7/1*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 179,
+          "action_str": "179 - 24/18 7/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 194,
+          "action_str": "194 - 13/7 8/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            5
+          ],
+          "action": 137,
+          "action_str": "137 - 8/3 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 354,
+          "action_str": "354 - 17/14/12*"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 167,
+          "action_str": "167 - 12/6 7/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 147,
+          "action_str": "147 - 18/13 6/5"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 116,
+          "action_str": "116 - 13/10 5/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 108,
+          "action_str": "108 - 5/4(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 135,
+          "action_str": "135 - 6/5(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 139,
+          "action_str": "139 - 10/6/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/19 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 81,
+          "action_str": "81 - 4/2 4/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 29,
+          "action_str": "29 - 4/Off 2/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 674,
+          "action_str": "674 - Bar/19 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 80,
+          "action_str": "80 - 4/2 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 1,
+          "action_str": "1 - 2/1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 108,
+          "action_str": "108 - 5/1 5/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/24* Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1272,
+          "action_str": "1272 - Bar/23/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 329,
+          "action_str": "329 - 18/13/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/24 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 192,
+          "action_str": "192 - 11/8/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 56,
+          "action_str": "56 - 5/2 3/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 752,
+          "action_str": "752 - Bar/22*/18"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 1162,
+          "action_str": "1162 - 6/5 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 570,
+          "action_str": "570 - Bar/22/21"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 676,
+          "action_str": "676 - 24/19 24/18"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 29,
+          "action_str": "29 - 4/1 2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 145,
+          "action_str": "145 - 19/18 9/4*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 1350,
+          "action_str": "1350 - Bar/21* Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 1064,
+          "action_str": "1064 - Bar/22 10/6"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 98,
+          "action_str": "98 - 21/18 4/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 486,
+          "action_str": "486 - 6/4 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 1083,
+          "action_str": "1083 - 18/16*/11"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 154,
+          "action_str": "154 - Bar/19/15"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 114,
+          "action_str": "114 - 11/5/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 139,
+          "action_str": "139 - 19/18 15/11"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 27,
+          "action_str": "27 - 2/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 481,
+          "action_str": "481 - 11/7 6/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 0,
+          "action_str": "0 - 1/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 1,
+          "action_str": "1 - 2/1/Off"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 132,
+          "action_str": "132 - 22/16 19/16"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 650,
+          "action_str": "650 - 1/Off Pass"
+        }
+      ],
+      "result": -2.0,
+      "result_type": "gammon",
+      "raccoon_is_player0": true,
+      "timestamp": "2026-04-13T08:43:06+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    },
+    {
+      "moves": [
+        {
+          "player": 1,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 205,
+          "action_str": "205 - 24/21 8/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 16,
+          "action_str": "16 - 24/21 8/4*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1012,
+          "action_str": "1012 - Bar/22 13/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 156,
+          "action_str": "156 - 24/18*/13"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 1298,
+          "action_str": "1298 - Bar/23 24/18"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 486,
+          "action_str": "486 - 6/4 6/3*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 1012,
+          "action_str": "1012 - Bar/23 13/9"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 1134,
+          "action_str": "1134 - 8/7*/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 518,
+          "action_str": "518 - Bar/20/16"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 159,
+          "action_str": "159 - 21/18/16*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 154,
+          "action_str": "154 - Bar/24 6/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 82,
+          "action_str": "82 - 5/4/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 297,
+          "action_str": "297 - 13/9* 13/8"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 294,
+          "action_str": "294 - 16/10 13/10"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 830,
+          "action_str": "830 - Bar/24 6/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 300,
+          "action_str": "300 - 13/8 10/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 187,
+          "action_str": "187 - 8/5 6/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 404,
+          "action_str": "404 - 10/4 9/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 111,
+          "action_str": "111 - 8/4 5/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 453,
+          "action_str": "453 - 13/7/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 168,
+          "action_str": "168 - 13/7/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 302,
+          "action_str": "302 - 13/11 8/5"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 83,
+          "action_str": "83 - 6/3 4/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            3
+          ],
+          "action": 246,
+          "action_str": "246 - 13/10/7"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 481,
+          "action_str": "481 - 11/6/4"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 989,
+          "action_str": "989 - 13/7 2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 1344,
+          "action_str": "1344 - 6/5 Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 162,
+          "action_str": "162 - 7/5 7/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 536,
+          "action_str": "536 - 8/4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            6
+          ],
+          "action": 438,
+          "action_str": "438 - 23/17*/13"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 135,
+          "action_str": "135 - 6/2(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 116,
+          "action_str": "116 - 13/9 5/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 544,
+          "action_str": "544 - Bar/21* 4/2*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 159,
+          "action_str": "159 - 21/18/16*"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 648,
+          "action_str": "648 - Bar/24(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 76,
+          "action_str": "76 - Bar/24 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            4
+          ],
+          "action": 554,
+          "action_str": "554 - 16/12 3/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 465,
+          "action_str": "465 - 24/18/12"
+        },
+        {
+          "player": 1,
+          "dice": [
+            6,
+            6
+          ],
+          "action": 309,
+          "action_str": "309 - 24/18 12/6"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 539,
+          "action_str": "539 - 5/2 4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 1279,
+          "action_str": "1279 - 24/18 6/3"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            6
+          ],
+          "action": 558,
+          "action_str": "558 - 12/6 3/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            3
+          ],
+          "action": 69,
+          "action_str": "69 - 18/15 3/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 593,
+          "action_str": "593 - 3/Off 2/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 222,
+          "action_str": "222 - 15/9/4"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            3
+          ],
+          "action": 513,
+          "action_str": "513 - 5/3 5/2"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            2
+          ],
+          "action": 1109,
+          "action_str": "1109 - 18/17/15"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            6
+          ],
+          "action": 538,
+          "action_str": "538 - 6/Off 4/3"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 465,
+          "action_str": "465 - 24/18/13"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 567,
+          "action_str": "567 - 3/2(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 594,
+          "action_str": "594 - 2/1*(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 1351,
+          "action_str": "Pass"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            5
+          ],
+          "action": 486,
+          "action_str": "486 - 6/4 6/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 388,
+          "action_str": "388 - Bar/20 15/10"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            5
+          ],
+          "action": 383,
+          "action_str": "383 - 20/15/10"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            5
+          ],
+          "action": 540,
+          "action_str": "540 - 4/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            2,
+            4
+          ],
+          "action": 87,
+          "action_str": "87 - 10/6 4/2"
+        },
+        {
+          "player": 0,
+          "dice": [
+            1,
+            5
+          ],
+          "action": 618,
+          "action_str": "618 - 4/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            5,
+            6
+          ],
+          "action": 139,
+          "action_str": "139 - 10/4 6/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 567,
+          "action_str": "567 - 3/Off(2)"
+        },
+        {
+          "player": 0,
+          "dice": [
+            4,
+            4
+          ],
+          "action": 594,
+          "action_str": "594 - 2/Off(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 28,
+          "action_str": "28 - 3/2/1"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 29,
+          "action_str": "29 - 4/3 2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            2,
+            6
+          ],
+          "action": 620,
+          "action_str": "620 - 2/Off 1/Off"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 27,
+          "action_str": "27 - 2/1(2)"
+        },
+        {
+          "player": 1,
+          "dice": [
+            1,
+            1
+          ],
+          "action": 28,
+          "action_str": "28 - 3/2/1"
+        },
+        {
+          "player": 0,
+          "dice": [
+            3,
+            4
+          ],
+          "action": 673,
+          "action_str": "673 - 1/Off Pass"
+        }
+      ],
+      "result": -2.0,
+      "result_type": "gammon",
+      "raccoon_is_player0": false,
+      "timestamp": "2026-04-13T08:44:51+00:00",
+      "raccoon_version": "checkpoints/iter_0498.pt",
+      "opponent": "gnubg(ply=0,level=world)"
+    }
+  ]
+}

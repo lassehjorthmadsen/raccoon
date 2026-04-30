@@ -6,6 +6,7 @@ format:
     code-fold: true
     toc: true
     theme: cosmo
+    embed-resources: true
 jupyter: python3
 ---
 
@@ -27,13 +28,18 @@ plt.rcParams["figure.dpi"] = 120
 EXPERIMENTS = {
     "exp000": {
         "name": "exp000-6x128-25sims",
-        "label": "exp000 (25 sims, 10 games)",
+        "label": "exp000 (25 sims, 10 games, 100k buf)",
         "color": "#1f77b4",
     },
     "exp001": {
         "name": "exp001-6x128-200sims",
-        "label": "exp001 (200 sims, 50 games)",
+        "label": "exp001 (200 sims, 50 games, 500k buf)",
         "color": "#ff7f0e",
+    },
+    "exp002": {
+        "name": "exp002-6x128-200sims-50kbuf",
+        "label": "exp002 (200 sims, 50 games, 50k buf)",
+        "color": "#2ca02c",
     },
 }
 
@@ -93,7 +99,7 @@ for exp_id, exp in experiments.items():
     summary_data.append({
         "Experiment": exp["name"],
         "Network": "6x128 ResNet",
-        "MCTS Sims": exp["name"].split("-")[-1].replace("sims", ""),
+        "MCTS Sims": next((p.replace("sims", "") for p in exp["name"].split("-") if p.endswith("sims")), "N/A"),
         "Games/Iter": df["num_games"].iloc[0] if len(df) > 0 else "N/A",
         "Iterations": len(df),
         "Total Games": len(df) * df["num_games"].iloc[0] if len(df) > 0 else 0,
@@ -107,7 +113,8 @@ print(summary_df.to_markdown(index=False))
 
 1. **exp000 (validation run)**: Does the full pipeline work? (M7 encoder, GPU training, spot VM recovery)
 2. **exp001 (Phase 1)**: Does more compute per iteration (8x more MCTS simulations, 5x more games) translate to faster learning?
-3. **Is training actually converging?** Loss curves are one signal; gammon/backgammon rates, game length, and the within-experiment strength curve are more diagnostic. Several candidate explanations exist for the trends we see — this analysis tries to distinguish them.
+3. **exp002 (smaller replay buffer)**: Same config as exp001 but `--replay-size 50000` instead of 500000. Tests whether replay-buffer staleness was contributing to the rising value loss observed in exp001 — a 50k buffer cycles in ~10 iterations vs ~100, so the network is always training on fresh self-play data.
+4. **Is training actually converging?** Loss curves are one signal; gammon/backgammon rates, game length, and the within-experiment strength curve are more diagnostic. Several candidate explanations exist for the trends we see — this analysis tries to distinguish them.
 
 ## Loss Curves Comparison
 
@@ -148,12 +155,19 @@ plt.show()
 - Value loss drifts *upward* slowly (~0.097 early → ~0.112 late) — not stable, though the change is small in absolute terms
 - So the policy head is fitting the replay distribution, but the value head is fitting it slightly worse over time
 
-**exp001 (200 sims, 50 games)**:
+**exp001 (200 sims, 50 games, 500k buf)**:
 
 - Resumed from exp000's iter_51 checkpoint
 - Policy loss drops early (~4.4 → ~2.0), then flattens / drifts up slightly
 - Value loss rises clearly: ~0.105 → ~0.140
 - Total loss increase is dominated by the value head
+
+**exp002 (200 sims, 50 games, 50k buf)**:
+
+- Fresh start (no resume), 148 iterations
+- Policy loss drops faster than exp001 (~6.1 → bottoms ~1.98 at iter_75 → drifts up to ~2.03 at iter_147)
+- Value loss bottoms *lower* than exp001 ever reached (~0.099 at iter_75) but also drifts up (~0.113 at iter_147)
+- The smaller buffer does what we expected on the *fitting* side: faster initial descent, lower minimum, less aggressive late drift. Whether it translates to stronger play is a separate question (needs an arena match or GNUBG benchmark — neither has been run yet for exp002)
 
 **Candidate explanations (we don't yet know which apply):**
 
@@ -202,7 +216,8 @@ Policy and value loss are doing different things; reading them together via `tot
 ```{python}
 from numpy.polynomial.polynomial import polyfit
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 8))
+n_exp = len(experiments)
+fig, axes = plt.subplots(2, n_exp, figsize=(7 * n_exp, 8), squeeze=False)
 
 for row_idx, (col, label) in enumerate([
     ("policy_loss", "Policy Loss (cross-entropy)"),
@@ -323,13 +338,14 @@ plt.show()
 
 **Observations (revised, blunt):**
 
-- **Game length is stable at ~80–95 moves** in both runs. Not a strength signal either way — normal for any level of play.
-- **Gammon rates are flat at 33–35% (exp000) and 38–43% (exp001)** across all iterations. That is 2–3× the rate of strong-vs-strong play. If training were making the network materially stronger, this number should be trending down. It isn't.
-- **Backgammon rates are flat at ~15–16%** in both runs. Strong play produces ~1%. The ratio here is ~15×, and it's not improving.
-- **These rates indicate weak play, not "intermediate" play.** The earlier version of this doc described 0.3–0.5 gammon/bg per game as typical; that was wrong. 50–60% of self-play games ending in gammon or backgammon is the fingerprint of players who leave checkers stranded and walk into large losses.
+- **Game length is stable at ~80–95 moves** across all runs. Not a strength signal either way — normal for any level of play.
+- **Gammon rates are flat at 33–35% (exp000), 38–43% (exp001), and ~40% (exp002)** across all iterations. That is 2–3× the rate of strong-vs-strong play. If training were making the network materially stronger, this number should be trending down. It isn't, in any of the three runs.
+- **Backgammon rates are flat at ~15–16%** in all three runs. Strong play produces ~1%. The ratio here is ~15×, and it's not improving.
+- **These rates indicate weak play, not "intermediate" play.** 50–60% of self-play games ending in gammon or backgammon is the fingerprint of players who leave checkers stranded and walk into large losses.
 - **exp001's gammon rate is slightly *higher* than exp000's**, despite 8× the MCTS sims. Possible explanation: with longer, denser self-play, the network spends more time in positions where one side is already losing, making completion-to-gammon more likely — but this deserves closer investigation.
+- **exp002's smaller buffer (50k vs 500k) didn't shift the gammon/bg distribution either.** The loss curves *did* improve (faster descent, lower minima), but game outcomes look the same as exp001. So whatever the smaller buffer fixed, it wasn't reflected in the metric that most directly measures play quality.
 
-**Takeaway for the training plateau:** combined with the rising value loss, the flat gammon/backgammon rates are the strongest evidence that self-play is stuck in a weak-play equilibrium. The network fits the distribution of its own games, but that distribution isn't shifting toward stronger play.
+**Takeaway for the training plateau:** combined with the rising value loss, the flat gammon/backgammon rates across all three experiments are the strongest evidence that self-play is stuck in a weak-play equilibrium. The network fits the distribution of its own games, but that distribution isn't shifting toward stronger play — even when the buffer is shrunk by 10×.
 
 ## Player-0 Equity Bias
 
@@ -510,12 +526,13 @@ for exp_id, exp in experiments.items():
 - exp001: policy loss drops early then flattens/drifts; value loss rises more clearly (0.105 → 0.140).
 - Rising value loss is not by itself proof of improvement or regression. It is a signal that the value head is fitting the replay distribution worse over time — which has several candidate explanations.
 
-**2. Self-play appears plateaued at a weak-play equilibrium.**
+**2. Self-play appears plateaued at a weak-play equilibrium across all three experiments.**
 
-- Gammon rates are flat at ~33–43% across both runs. Strong-vs-strong play is ~15–20%.
+- Gammon rates are flat at ~33–43% across all three runs. Strong-vs-strong play is ~15–20%.
 - Backgammon rates are flat at ~15–16%. Strong play is ~1%.
 - These rates are not declining over training iterations. This is the strongest evidence that the networks are not materially improving at the thing that matters (avoiding catastrophic positions).
 - Against GNUBG 0-ply, exp001 conceded 22 backgammons in 50 games (44%), consistent with this.
+- **exp002's smaller buffer didn't move this needle.** Loss curves improved (better fitting), but game outcomes look identical to exp001 — meaning the staleness fix addressed a real symptom (rising value loss) without addressing the underlying problem (weak self-play distribution). Worth running an arena match (exp002 latest vs earlier) and a GNUBG benchmark before drawing final conclusions.
 
 **3. The "rising loss masks strength gain" hypothesis is now contradicted by direct evidence.**
 
@@ -545,21 +562,24 @@ for exp_id, exp in experiments.items():
 
 ### Immediate Next Steps
 
-The within-experiment strength check has been run and confirms the plateau (iter_282 vs iter_260: +0.120 ppg, n.s.). Continuing to train exp001 as-is is not justified.
+The within-experiment strength check has been run and confirms the plateau in exp001 (iter_282 vs iter_260: +0.120 ppg, n.s.). The smaller-buffer experiment (exp002) has also been run — it improved loss curves but did not move the gammon/bg distribution. Continuing to train exp001 or exp002 as-is is not justified.
 
-1. **Track MCTS visit-distribution entropy over training.** Exploration collapse is an easy-to-test hypothesis for the plateau. Add a column to the training log that records mean visit-entropy at decision nodes.
+1. **Run benchmarks for exp002.** Arena match (e.g. iter_147 vs iter_125 at fixed eval sims) + GNUBG 0-ply (50 games, 100 sims) to see whether the better loss curves correspond to actual strength gains. Without this, we can't tell whether the smaller buffer is a true improvement or just a different way of fitting the same weak-play distribution.
 
-2. **Try a tighter replay buffer.** Small experiment: run exp002 identical to exp001 but with `replay_size=50_000` (roughly 10 iterations of positions). If value loss drops and gammon rate starts declining, buffer staleness was contributing.
+2. **Track MCTS visit-distribution entropy over training.** Exploration collapse is an easy-to-test hypothesis for the plateau. Add a column to the training log that records mean visit-entropy at decision nodes.
 
-3. **Consider value target bootstrapping.** Replace raw game outcome with MCTS root `Q` (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort.
+3. **Add Dirichlet root noise.** Standard AlphaZero adds Dirichlet noise to root priors during self-play to keep exploration alive. Raccoon doesn't currently. This is a small code change that directly addresses the exploration-collapse hypothesis.
 
-4. **Scale sims, not iterations.** Another iteration of exp001 as-is is unlikely to break the plateau given flat rates over 282 iters. Going to 400–800 sims is a more promising next lever.
+4. **Consider value target bootstrapping.** Replace raw game outcome with MCTS root `Q` (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort.
 
-5. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
+5. **Scale sims, not iterations.** Going to 400–800 sims is a more promising next lever than further iteration count.
+
+6. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
 
 ### Open Questions
 
+- Does exp002's better fitting (lower loss minima, less drift) translate into actual stronger play, or just a different fit to the same weak distribution? Needs benchmarks.
 - Is MCTS visit entropy collapsing over training?
 - Can value-target bootstrapping (root `Q` instead of terminal return) fix the rising value loss?
-- What buffer size gives the best tradeoff between signal and staleness?
+- Would Dirichlet root noise break the gammon/bg plateau by sustaining exploration?
 - At what point does scaling up the network architecture (10 blocks, 256 channels) make sense, vs. fixing the training signal at current architecture first?
