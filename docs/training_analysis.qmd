@@ -121,6 +121,7 @@ print(summary_df.to_markdown(index=False))
 Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.
 
 ```{python}
+#| column: page-right
 fig, axes = plt.subplots(3, 1, figsize=(12, 9), sharex=False)
 
 for ax, col, label in zip(
@@ -157,7 +158,7 @@ plt.show()
 
 **exp001 (200 sims, 50 games, 500k buf)**:
 
-- Resumed from exp000's iter_51 checkpoint
+- Fresh start (no resume from exp000)
 - Policy loss drops early (~4.4 → ~2.0), then flattens / drifts up slightly
 - Value loss rises clearly: ~0.105 → ~0.140
 - Total loss increase is dominated by the value head
@@ -165,9 +166,9 @@ plt.show()
 **exp002 (200 sims, 50 games, 50k buf)**:
 
 - Fresh start (no resume), 148 iterations
-- Policy loss drops faster than exp001 (~6.1 → bottoms ~1.98 at iter_75 → drifts up to ~2.03 at iter_147)
-- Value loss bottoms *lower* than exp001 ever reached (~0.099 at iter_75) but also drifts up (~0.113 at iter_147)
-- The smaller buffer does what we expected on the *fitting* side: faster initial descent, lower minimum, less aggressive late drift. Whether it translates to stronger play is a separate question (needs an arena match or GNUBG benchmark — neither has been run yet for exp002)
+- Policy loss drops faster than exp001 (~6.1 → bottoms ~2.00 at iter_86 → drifts up to ~2.05 at iter_147)
+- Value loss bottoms *lower* than exp001 ever reached (~0.103 at iter_82) but also drifts up (~0.119 at iter_147)
+- The smaller buffer does what we expected on the *fitting* side: faster initial descent, lower minimum, less aggressive late drift. However, benchmarks confirm this did not translate to stronger play: 0-50 vs GNUBG 0-ply (-2.300 ppg, identical to exp001 iter_282), and exp001 iter_282 beats exp002 iter_147 head-to-head (30-20, -0.440 ppg)
 
 **Candidate explanations (we don't yet know which apply):**
 
@@ -176,7 +177,7 @@ plt.show()
 3. **Value target noise.** Training labels are {±1/3, ±2/3, ±1} — discrete and extreme. If the value head's residual error is dominated by label noise, loss can look flat-or-rising even when the head is learning.
 4. **Actual regression or overfitting.** Possible but less likely given policy loss trajectory.
 
-The "Self-Play Non-Stationarity" section below discusses what evidence would distinguish these. Short version: a within-experiment strength comparison (iter_k vs iter_k-20 at equal eval sims) is the only clean test, and we don't have it yet.
+The "Self-Play Non-Stationarity" section below discusses what evidence would distinguish these. Short version: a within-experiment strength comparison (iter_k vs iter_k-20 at equal eval sims) is the only clean test. This has now been run for both exp001 (iter_282 vs iter_260: +0.120 ppg, n.s.) and exp002 (iter_147 vs iter_125: +0.300 ppg, n.s.) — neither shows detectable strength gain, confirming the plateau.
 
 ## Self-Play Non-Stationarity vs. Other Explanations
 
@@ -199,11 +200,11 @@ This is well-documented in AlphaZero papers and is genuinely possible here.
 
 **What would distinguish these:**
 
-- **Within-experiment strength curve.** Arena match iter_k vs iter_k-20 at equal eval sims. If strength rises, non-stationarity fits; if flat, the network is plateaued regardless of what the loss does. **We have not run this comparison.** See "Next Steps."
+- **Within-experiment strength curve.** Arena match iter_k vs iter_k-20 at equal eval sims. If strength rises, non-stationarity fits; if flat, the network is plateaued regardless of what the loss does. **Run for exp001** (iter_282 vs iter_260: +0.120 ppg, n.s.) and **exp002** (iter_147 vs iter_125: +0.300 ppg, n.s.) — both flat.
 - **Gammon/backgammon trend over training.** If declining: play quality is improving and the non-stationarity story is plausible. If flat: play is stuck and rising loss is not masking improvement.
 - **MCTS visit-entropy trend.** Collapsing entropy → exploration is dying.
 
-**Evidence from the data we do have** (see "Game Dynamics" below): gammon and backgammon rates are **flat** across both exp000's 501 iterations and exp001's 282 iterations. That is evidence *against* the pure non-stationarity story, or at least evidence that whatever improvement is happening is too small to show up in game outcomes.
+**Evidence from the data we do have** (see "Game Dynamics" below): gammon and backgammon rates are **flat** across exp000's 499 iterations, exp001's 282 iterations, and exp002's 148 iterations. That is evidence *against* the pure non-stationarity story, or at least evidence that whatever improvement is happening is too small to show up in game outcomes.
 
 **What about exp001 beating exp000?** The arena match (32-18, +0.44 ppg) compared exp001 iter_112 vs exp000 iter_498. These differ in training config (8× sims, 5× games) AND checkpoint history. A win here only proves "more compute + more training + more sims at eval time beats less." It does *not* show that exp001's loss increase masks real strength gain, because it doesn't hold exp001's config fixed across checkpoints.
 
@@ -214,16 +215,17 @@ This is well-documented in AlphaZero papers and is genuinely possible here.
 Policy and value loss are doing different things; reading them together via `total_loss` obscures the signal. We fit a linear trend on each over a "late phase" (after the first 20% of each run), so the early warmup doesn't dominate the slope.
 
 ```{python}
+#| column: page-right
 from numpy.polynomial.polynomial import polyfit
 
 n_exp = len(experiments)
-fig, axes = plt.subplots(2, n_exp, figsize=(7 * n_exp, 8), squeeze=False)
+fig, axes = plt.subplots(n_exp, 2, figsize=(14, 5 * n_exp), squeeze=False)
 
-for row_idx, (col, label) in enumerate([
+for col_idx, (col, label) in enumerate([
     ("policy_loss", "Policy Loss (cross-entropy)"),
     ("value_loss", "Value Loss (MSE)"),
 ]):
-    for col_idx, (exp_id, exp) in enumerate(experiments.items()):
+    for row_idx, (exp_id, exp) in enumerate(experiments.items()):
         df = exp["df"]
         ax = axes[row_idx, col_idx]
 
@@ -267,6 +269,7 @@ plt.show()
 The clearest diagnostic for whether training is making progress isn't loss — it's whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it's flat, play is stuck.
 
 ```{python}
+#| column: page-right
 fig, axes = plt.subplots(2, 2, figsize=(14, 9))
 
 # --- Game length ---
@@ -343,7 +346,7 @@ plt.show()
 - **Backgammon rates are flat at ~15–16%** in all three runs. Strong play produces ~1%. The ratio here is ~15×, and it's not improving.
 - **These rates indicate weak play, not "intermediate" play.** 50–60% of self-play games ending in gammon or backgammon is the fingerprint of players who leave checkers stranded and walk into large losses.
 - **exp001's gammon rate is slightly *higher* than exp000's**, despite 8× the MCTS sims. Possible explanation: with longer, denser self-play, the network spends more time in positions where one side is already losing, making completion-to-gammon more likely — but this deserves closer investigation.
-- **exp002's smaller buffer (50k vs 500k) didn't shift the gammon/bg distribution either.** The loss curves *did* improve (faster descent, lower minima), but game outcomes look the same as exp001. So whatever the smaller buffer fixed, it wasn't reflected in the metric that most directly measures play quality.
+- **exp002's smaller buffer (50k vs 500k) didn't shift the gammon/bg distribution either.** The loss curves *did* improve (faster descent, lower minima), but game outcomes look the same as exp001. So whatever the smaller buffer fixed, it wasn't reflected in the metric that most directly measures play quality. Benchmarks confirm this: 0-50 vs GNUBG 0-ply (-2.300 ppg), virtually indistinguishable from exp001 iter_282's -2.32 ppg.
 
 **Takeaway for the training plateau:** combined with the rising value loss, the flat gammon/backgammon rates across all three experiments are the strongest evidence that self-play is stuck in a weak-play equilibrium. The network fits the distribution of its own games, but that distribution isn't shifting toward stronger play — even when the buffer is shrunk by 10×.
 
@@ -352,6 +355,7 @@ plt.show()
 OpenSpiel's opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0's perspective should be approximately zero.
 
 ```{python}
+#| column: page-right
 fig, ax = plt.subplots(figsize=(12, 4))
 for exp_id, exp in experiments.items():
     df = exp["df"]
@@ -389,6 +393,7 @@ for exp_id, exp in experiments.items():
 How does more compute per iteration (8x MCTS sims, 5x games) affect training time?
 
 ```{python}
+#| column: page-right
 fig, axes = plt.subplots(2, 2, figsize=(14, 8))
 
 # Time per iteration comparison
@@ -470,7 +475,7 @@ for exp_id, exp in experiments.items():
 - **exp001 is ~40x slower per iteration** (~50 min vs ~1.2 min) due to 8x MCTS sims and 5x games
 - **SGD time stays negligible** (~2-3 seconds) in both experiments — T4 GPU handles training easily
 - **Self-play is the bottleneck** — GPU only accelerates the cheap part (SGD)
-- **exp000's buffer fills** at ~iter 196 (100k capacity). exp001's 500k buffer holds roughly 100 iterations of positions. This is a tradeoff, not a free win: a larger buffer gives the network more data but forces it to simultaneously fit old (weaker-play) and new (less-weak) positions. If play quality drifts during training, a buffer this deep can actively slow convergence. Worth experimenting with smaller buffers (e.g. 50k–100k) to test whether a tighter recent-play window speeds up adaptation.
+- **exp000's buffer fills** at ~iter 196 (100k capacity). exp001's 500k buffer holds roughly 100 iterations of positions. This is a tradeoff, not a free win: a larger buffer gives the network more data but forces it to simultaneously fit old (weaker-play) and new (less-weak) positions. exp002 tested the 50k extreme: loss curves improved (faster descent, lower minimum), but play quality was unchanged — exp001 iter_282 beats exp002 iter_147 head-to-head, and both score identically against GNUBG 0-ply. A smaller buffer is not sufficient to break the plateau.
 
 ## Benchmark Results
 
@@ -514,7 +519,10 @@ for exp_id, exp in experiments.items():
 - **exp001 iter_282 vs GNUBG 0-ply (n=50): 0-50 (0%), -2.32 ppg.** 20 gammons and 23 backgammons conceded. **0-ply was added to discriminate "weak" from "very weak"; it doesn't.** Raccoon loses to 0-ply slightly *worse* than iter_112 lost to world-class. After 170 more iterations of training and stepping the opponent down to GNUBG's weakest setting, the result moves the wrong direction. This is the strongest external signal yet that the network is stuck.
 - **exp001 (iter 112) vs exp000 (iter 498): 32-18 (64%), +0.44 ppg.** This is evidence exp001 is stronger than exp000 — but as discussed in the Self-Play Non-Stationarity section, it does **not** confirm that rising loss within exp001 masks improvement, because it compares different training configs at different checkpoints.
 - **exp001 iter_282 vs iter_260 (n=50, 100 eval sims): 27-23 (54%), +0.120 ppg.** First within-experiment strength check. Result is statistically indistinguishable from zero (SE ≈ 0.25 ppg). 22 iterations of training produced no detectable strength gain. Combined with the GNUBG 0-ply result and flat gammon/BG rates, this confirms the plateau.
-- **Both networks are crushed by GNUBG even at the weakest setting.** The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings, and more iterations of exp001 as-is won't get us there.
+- **exp002 iter_147 vs iter_125 (n=50, 100 eval sims): 26-24 (52%), +0.300 ppg.** Within-experiment check for exp002, same methodology. Not statistically significant (SE ≈ 0.25 ppg, z ≈ 1.2). 22 iterations of training produced no detectable strength gain. Same plateau pattern as exp001.
+- **exp002 iter_147 vs exp001 iter_282 (n=50, 100 eval sims): 20-30 (40%), -0.440 ppg.** Cross-experiment comparison. Despite exp002's better loss curves (faster descent, lower minima), exp001 iter_282 beats exp002 iter_147. More training iterations outweigh the smaller buffer's fitting improvement. exp001 remains the stronger checkpoint.
+- **exp002 iter_147 vs GNUBG 0-ply (n=50, 100 sims): 0-50 (0%), -2.300 ppg.** GNUBG conceded 19 gammons and 23 backgammons; Raccoon conceded 0 gammons and 0 backgammons. Virtually identical to exp001 iter_282's result (-2.32 ppg, 43 gammon/bg conceded). The smaller buffer's improved fitting did not translate to stronger play against an external benchmark.
+- **All three experiments are crushed by GNUBG even at the weakest setting.** The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings, and more iterations of any of these experiments as-is won't get us there.
 
 ## Summary and Next Steps
 
@@ -531,14 +539,15 @@ for exp_id, exp in experiments.items():
 - Gammon rates are flat at ~33–43% across all three runs. Strong-vs-strong play is ~15–20%.
 - Backgammon rates are flat at ~15–16%. Strong play is ~1%.
 - These rates are not declining over training iterations. This is the strongest evidence that the networks are not materially improving at the thing that matters (avoiding catastrophic positions).
-- Against GNUBG 0-ply, exp001 conceded 22 backgammons in 50 games (44%), consistent with this.
-- **exp002's smaller buffer didn't move this needle.** Loss curves improved (better fitting), but game outcomes look identical to exp001 — meaning the staleness fix addressed a real symptom (rising value loss) without addressing the underlying problem (weak self-play distribution). Worth running an arena match (exp002 latest vs earlier) and a GNUBG benchmark before drawing final conclusions.
+- Against GNUBG 0-ply, exp001 conceded 23 backgammons in 50 games (46%), consistent with this.
+- **exp002's smaller buffer didn't move this needle — confirmed by benchmarks.** exp002 iter_147 vs GNUBG 0-ply: 0-50, -2.300 ppg (virtually identical to exp001's -2.32 ppg). Within-experiment: iter_147 vs iter_125, 26-24 (52%), +0.300 ppg (not significant, SE ≈ 0.25 ppg). Cross-experiment: exp001 iter_282 beats exp002 iter_147 (30-20, -0.440 ppg). The staleness fix improved fitting but not play quality; exp001 remains stronger despite worse loss curves.
 
 **3. The "rising loss masks strength gain" hypothesis is now contradicted by direct evidence.**
 
 - The decisive test (iter_k vs iter_k-20 within exp001 at equal eval sims) has been run: iter_282 vs iter_260, 27-23, +0.120 ppg over 50 games. Statistically indistinguishable from zero.
 - 22 iterations of training produced no detectable strength gain in head-to-head play.
 - Combined with flat gammon/BG rates and the iter_282 vs GNUBG 0-ply 0-50 result, the rising value loss is not masking improvement — the network is plateaued.
+- exp002 within-experiment check (iter_147 vs iter_125, +0.300 ppg, n=50) is also not significant (z ≈ 1.2, SE ≈ 0.25 ppg). The plateau is present in both training regimes.
 
 **4. Player-0 equity bias is a training artifact of low-sim MCTS, not an engine bug.**
 
@@ -551,20 +560,21 @@ for exp_id, exp in experiments.items():
 
 - exp001 is ~40× slower per iteration (50 min vs 1.2 min) due to 8× MCTS sims and 5× games.
 - SGD stays cheap (~2–3 sec); self-play is the bottleneck. GPU helps the fast step.
-- The 500k replay buffer in exp001 is a deliberate tradeoff: more data but slower adaptation if play quality drifts.
+- exp002's 50k buffer improved fitting metrics but not play quality vs exp001's 500k buffer. Buffer size is not the lever that breaks the plateau.
 
 **6. Both networks are far from GNUBG-competitive — even at the weakest setting.**
 
 - exp000 iter_498: 0-10 vs GNUBG world-class (n=10, wide CI).
 - exp001 iter_112: 1-49 (-2.22 ppg) vs GNUBG world-class with 19 gammons and 22 backgammons conceded.
 - exp001 iter_282: **0-50 (-2.32 ppg) vs GNUBG 0-ply** (the weakest setting), 20 gammons and 23 backgammons conceded. 0-ply was added to discriminate degrees of weakness; instead it confirms the plateau is not "almost-but-not-quite-GNUBG-0-ply" — it's much further away than that.
+- exp002 iter_147: **0-50 (-2.300 ppg) vs GNUBG 0-ply**, 19 gammons and 23 backgammons conceded, 0 for Raccoon. Indistinguishable from exp001 despite better fitting metrics.
 - M6 milestone (beat GNUBG at money game) is not in reach at current training settings.
 
 ### Immediate Next Steps
 
-The within-experiment strength check has been run and confirms the plateau in exp001 (iter_282 vs iter_260: +0.120 ppg, n.s.). The smaller-buffer experiment (exp002) has also been run — it improved loss curves but did not move the gammon/bg distribution. Continuing to train exp001 or exp002 as-is is not justified.
+The within-experiment strength check has been run and confirms the plateau in exp001 (iter_282 vs iter_260: +0.120 ppg, n.s.). exp002 benchmarks have now also been run: iter_147 vs iter_125 (+0.300 ppg, n.s.), vs GNUBG 0-ply (0-50, -2.300 ppg), and vs exp001 iter_282 (20-30, -0.440 ppg — exp001 wins). The smaller buffer improved fitting but not play quality; exp001 iter_282 is the strongest checkpoint. Continuing any of these experiments as-is is not justified.
 
-1. **Run benchmarks for exp002.** Arena match (e.g. iter_147 vs iter_125 at fixed eval sims) + GNUBG 0-ply (50 games, 100 sims) to see whether the better loss curves correspond to actual strength gains. Without this, we can't tell whether the smaller buffer is a true improvement or just a different way of fitting the same weak-play distribution.
+1. ~~**Run benchmarks for exp002.**~~ **Done** (2026-04-30). iter_147 vs iter_125: 26-24 (52%), +0.300 ppg (n.s.). vs GNUBG 0-ply: 0-50, -2.300 ppg. vs exp001 iter_282: 20-30, -0.440 ppg (exp001 wins). Conclusion: smaller buffer is not a play-quality improvement.
 
 2. **Track MCTS visit-distribution entropy over training.** Exploration collapse is an easy-to-test hypothesis for the plateau. Add a column to the training log that records mean visit-entropy at decision nodes.
 
@@ -578,7 +588,7 @@ The within-experiment strength check has been run and confirms the plateau in ex
 
 ### Open Questions
 
-- Does exp002's better fitting (lower loss minima, less drift) translate into actual stronger play, or just a different fit to the same weak distribution? Needs benchmarks.
+- **Resolved (2026-04-30):** exp002's better fitting does *not* translate to stronger play. 0-50 vs GNUBG 0-ply (-2.300 ppg, identical to exp001 iter_282) and exp001 iter_282 beats exp002 iter_147 head-to-head (30-20, -0.440 ppg). The smaller buffer addressed a fitting symptom, not the underlying weakness.
 - Is MCTS visit entropy collapsing over training?
 - Can value-target bootstrapping (root `Q` instead of terminal return) fix the rising value loss?
 - Would Dirichlet root noise break the gammon/bg plateau by sustaining exploration?
