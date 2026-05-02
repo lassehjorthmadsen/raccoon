@@ -3,7 +3,13 @@
 import numpy as np
 import pytest
 
-from raccoon.env.encoder import encode_state, encode_batch
+from raccoon.env.encoder import (
+    CHANNEL_NAMES,
+    NUM_CHANNELS,
+    dump_tensor,
+    encode_batch,
+    encode_state,
+)
 from raccoon.env.game_wrapper import BoardView, GameWrapper
 
 
@@ -144,6 +150,28 @@ def test_top_row_points_13_to_24():
     tensor = encode_state(bv)
     assert tensor[0, 0, 0] == 1.0   # point 13 -> row 0, col 0
     assert tensor[0, 0, 11] == 1.0  # point 24 -> row 0, col 11
+
+
+def test_channel_names_match_tensor_depth():
+    """CHANNEL_NAMES must stay in lockstep with the tensor's first axis."""
+    assert NUM_CHANNELS == 17
+    assert len(CHANNEL_NAMES) == NUM_CHANNELS
+
+
+def test_dump_tensor_includes_all_channels(starting_board):
+    out = dump_tensor(starting_board)
+    for ch in range(NUM_CHANNELS):
+        assert f"Channel {ch:2d}" in out
+    for name in CHANNEL_NAMES:
+        assert name in out
+
+
+def test_dump_tensor_reports_broadcast_for_constant_planes(starting_board):
+    out = dump_tensor(starting_board)
+    # Opening position: all 9 broadcast channels (8..16) are constant by
+    # construction, and all 8 spatial channels have varied values, so
+    # exactly 9 planes should be tagged.
+    assert out.count("(broadcast)") == 9
 
 
 def test_bottom_row_points_1_to_12():
