@@ -88,7 +88,7 @@ class RGPEngine:
                         sims = int(parts[idx + 1])
 
                 mcts = MCTS(self.network, num_simulations=sims)
-                action_probs = mcts.search(self.state)
+                action_probs, _ = mcts.search(self.state)
 
                 if action_probs:
                     action = select_action(action_probs, temperature=0)

@@ -93,27 +93,33 @@ class MCTS:
         num_simulations: int = 100,
         c_puct: float = 1.5,
         virtual_loss_count: int = 1,
+        dirichlet_alpha: float = 0.0,
+        noise_eps: float = 0.25,
     ):
         self.network = network
         self.num_simulations = num_simulations
         self.c_puct = c_puct
         self.virtual_loss_count = virtual_loss_count
+        self.dirichlet_alpha = dirichlet_alpha
+        self.noise_eps = noise_eps
 
-    def search(self, state: GameState) -> dict[int, float]:
-        """Run MCTS and return action -> visit count proportion."""
+    def search(self, state: GameState) -> tuple[dict[int, float], float]:
+        """Run MCTS and return (action -> visit proportion, visit entropy)."""
         root, _ = self._run(state)
         if root is None:
-            return {}
+            return {}, 0.0
 
         total_visits = sum(
             child.visit_count for child in root.children.values()
         )
         if total_visits == 0:
-            return {}
-        return {
+            return {}, 0.0
+        action_probs = {
             action: child.visit_count / total_visits
             for action, child in root.children.items()
         }
+        entropy = -sum(p * math.log(p) for p in action_probs.values() if p > 0.0)
+        return action_probs, entropy
 
     def analyze(self, state: GameState) -> Analysis:
         """Run MCTS and return a full Analysis with per-candidate stats."""
@@ -162,6 +168,7 @@ class MCTS:
 
         root = MCTSNode(root_state)
         root_value = self._expand(root)
+        self._apply_dirichlet_noise(root)
 
         if self.virtual_loss_count <= 1:
             self._run_sequential(root)
@@ -254,6 +261,18 @@ class MCTS:
                 self._backup(search_path, value)
 
             sim += len(pending)
+
+    def _apply_dirichlet_noise(self, node: MCTSNode) -> None:
+        if self.dirichlet_alpha == 0.0:
+            return
+        actions = list(node._unvisited.keys())
+        if not actions:
+            return
+        noise = np.random.dirichlet([self.dirichlet_alpha] * len(actions))
+        for a, eta in zip(actions, noise):
+            node._unvisited[a] = (
+                (1.0 - self.noise_eps) * node._unvisited[a] + self.noise_eps * eta
+            )
 
     @staticmethod
     def _terminal_value(node: MCTSNode) -> float:

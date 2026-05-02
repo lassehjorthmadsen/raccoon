@@ -25,6 +25,7 @@ class GameResult:
     num_moves: int
     outcome: float       # +1/-1 from player 0's perspective
     result_type: str     # 'normal', 'gammon', or 'backgammon'
+    avg_visit_entropy: float = 0.0
 
 
 def play_one_game(
@@ -33,12 +34,16 @@ def play_one_game(
     temperature: float = 1.0,
     temp_threshold: int = 30,
     virtual_loss_count: int = 1,
+    dirichlet_alpha: float = 0.0,
+    noise_eps: float = 0.25,
 ) -> GameResult:
     """Play a complete self-play game and return training examples + stats."""
     wrapper = GameWrapper()
     mcts = MCTS(
         network, num_simulations=num_simulations,
         virtual_loss_count=virtual_loss_count,
+        dirichlet_alpha=dirichlet_alpha,
+        noise_eps=noise_eps,
     )
 
     state = wrapper.new_game()
@@ -46,6 +51,7 @@ def play_one_game(
 
     # Collect (observation, policy, player) during the game
     history: list[tuple[np.ndarray, np.ndarray, int]] = []
+    entropies: list[float] = []
     move_count = 0
 
     while not state.is_terminal():
@@ -54,7 +60,8 @@ def play_one_game(
         obs = encode_state(board_view)
 
         temp = temperature if move_count < temp_threshold else 0.0
-        action_probs = mcts.search(state)
+        action_probs, move_entropy = mcts.search(state)
+        entropies.append(move_entropy)
 
         if not action_probs:
             break
@@ -92,4 +99,5 @@ def play_one_game(
         num_moves=move_count,
         outcome=equity,
         result_type=result_type,
+        avg_visit_entropy=float(np.mean(entropies)) if entropies else 0.0,
     )

@@ -30,6 +30,11 @@ def main():
                         help="Concurrent self-play games (default: 8)")
     parser.add_argument("--virtual-loss", type=int, default=8,
                         help="Leaves to batch per MCTS step via virtual loss (default: 8)")
+    parser.add_argument("--dirichlet-alpha", type=float, default=0.0,
+                        help="Dirichlet noise concentration at root (0 = disabled). "
+                             "AlphaZero formula: 10/avg_legal_moves ~ 0.3 for backgammon.")
+    parser.add_argument("--noise-eps", type=float, default=0.25,
+                        help="Fraction of root prior replaced by Dirichlet noise (default: 0.25)")
     args = parser.parse_args()
 
     exp_root = f"experiments/{args.experiment_name}"
@@ -80,6 +85,8 @@ def main():
         checkpoint_every=args.checkpoint_every,
         num_workers=args.num_workers,
         virtual_loss_count=args.virtual_loss,
+        dirichlet_alpha=args.dirichlet_alpha,
+        noise_eps=args.noise_eps,
     )
 
     last_iter = start_iter + args.iterations - 1

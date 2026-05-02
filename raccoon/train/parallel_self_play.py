@@ -21,6 +21,8 @@ def _worker_loop(
     temperature: float,
     temp_threshold: int,
     virtual_loss_count: int,
+    dirichlet_alpha: float,
+    noise_eps: float,
 ) -> None:
     """Worker process: creates local network, plays games, sends results."""
     import torch
@@ -44,6 +46,8 @@ def _worker_loop(
             temperature=temperature,
             temp_threshold=temp_threshold,
             virtual_loss_count=virtual_loss_count,
+            dirichlet_alpha=dirichlet_alpha,
+            noise_eps=noise_eps,
         )
         result_queue.put((game_idx, result))
 
@@ -56,6 +60,8 @@ def parallel_self_play(
     temp_threshold: int = 30,
     num_workers: int = 8,
     virtual_loss_count: int = 1,
+    dirichlet_alpha: float = 0.0,
+    noise_eps: float = 0.25,
 ) -> list[GameResult]:
     """Play multiple self-play games in parallel with local inference.
 
@@ -84,7 +90,7 @@ def parallel_self_play(
                 net_state, net_config,
                 result_queue, assignments[w],
                 num_simulations, temperature, temp_threshold,
-                virtual_loss_count,
+                virtual_loss_count, dirichlet_alpha, noise_eps,
             ),
         )
         p.start()

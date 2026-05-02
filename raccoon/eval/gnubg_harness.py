@@ -135,7 +135,7 @@ class GnubgHarness:
                 is_raccoon_turn = (current == 0) == raccoon_is_player0
 
                 if is_raccoon_turn:
-                    action_probs = mcts.search(state)
+                    action_probs, _ = mcts.search(state)
                     if not action_probs:
                         break
                     action = select_action(action_probs, temperature=0)

@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -33,6 +34,8 @@ class Coach:
         checkpoint_every: int = 10,
         num_workers: int = 8,
         virtual_loss_count: int = 1,
+        dirichlet_alpha: float = 0.0,
+        noise_eps: float = 0.25,
     ):
         self.network = network
         self.optimizer = optimizer
@@ -50,6 +53,8 @@ class Coach:
         self.checkpoint_every = checkpoint_every
         self.num_workers = num_workers
         self.virtual_loss_count = virtual_loss_count
+        self.dirichlet_alpha = dirichlet_alpha
+        self.noise_eps = noise_eps
         self._config_logged = False
 
     def _log_config(self) -> None:
@@ -75,6 +80,8 @@ class Coach:
                 "num_simulations": self.num_simulations,
                 "batch_size": self.batch_size,
                 "replay_size": self.replay_buffer.max_size,
+                "dirichlet_alpha": self.dirichlet_alpha,
+                "noise_eps": self.noise_eps,
             },
             "system": {
                 "torch_version": torch.__version__,
@@ -117,6 +124,8 @@ class Coach:
         game_lengths = [g.num_moves for g in game_results]
         outcomes = [g.outcome for g in game_results]
         result_types = [g.result_type for g in game_results]
+        entropies = [g.avg_visit_entropy for g in game_results if g.avg_visit_entropy > 0.0]
+        avg_entropy = round(float(np.mean(entropies)), 4) if entropies else 0.0
 
         # Logging
         total_time = time.time() - t0
@@ -131,6 +140,7 @@ class Coach:
             "avg_outcome": round(sum(outcomes) / len(outcomes), 3),
             "gammons": sum(1 for r in result_types if r == "gammon"),
             "backgammons": sum(1 for r in result_types if r == "backgammon"),
+            "avg_visit_entropy": avg_entropy,
             "self_play_time": round(sp_time, 1),
             "training_time": round(tr_time, 1),
             "total_time": round(total_time, 1),
@@ -151,6 +161,8 @@ class Coach:
             num_simulations=self.num_simulations,
             num_workers=self.num_workers,
             virtual_loss_count=self.virtual_loss_count,
+            dirichlet_alpha=self.dirichlet_alpha,
+            noise_eps=self.noise_eps,
         )
         for result in game_results:
             self.replay_buffer.add_game(result.examples)
