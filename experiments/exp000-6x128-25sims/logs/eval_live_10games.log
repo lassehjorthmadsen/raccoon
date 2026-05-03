@@ -1,0 +1,12 @@
+Raccoon: checkpoints/iter_0498.pt (6x128)
+GNUBG: level=world ply=0
+Playing 10 games, 200 MCTS simulations per Raccoon move...
+Game 1/10  Raccoon 0-0  Equity: +0.000 ppgGame 2/10  Raccoon 0-1  Equity: -3.000 ppgGame 3/10  Raccoon 0-2  Equity: -3.000 ppgGame 4/10  Raccoon 0-3  Equity: -3.000 ppgGame 5/10  Raccoon 0-4  Equity: -3.000 ppgGame 6/10  Raccoon 0-5  Equity: -2.800 ppgGame 7/10  Raccoon 0-6  Equity: -2.667 ppgGame 8/10  Raccoon 0-7  Equity: -2.571 ppgGame 9/10  Raccoon 0-8  Equity: -2.625 ppgGame 10/10  Raccoon 0-9  Equity: -2.556 ppg
+Raccoon vs GNUBG (10 games)
+  Wins: 0-10 (0.0% +/- 0.0%)
+  Equity: Raccoon -25.0, GNUBG +25.0
+  Equity/game: -2.500
+  Raccoon gammons/bg: 0/0, GNUBG gammons/bg: 5/5
+Summary appended to logs/gnubg_eval_log.jsonl
+Per-game JSON log saved to logs/gnubg_eval_20260413_084640.json
+Standard-format match log saved to logs/gnubg_eval_20260413_084640.txt
