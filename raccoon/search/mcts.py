@@ -105,13 +105,23 @@ class MCTS:
 
     def search(self, state: GameState) -> tuple[dict[int, float], float]:
         """Run MCTS and return (action -> visit proportion, visit entropy)."""
+        action_probs, entropy, _ = self.search_with_value(state)
+        return action_probs, entropy
+
+    def search_with_value(
+        self, state: GameState
+    ) -> tuple[dict[int, float], float, float]:
+        """Run MCTS and return (action_probs, visit_entropy, root_q_value)."""
         root, _ = self._run(state)
         if root is None:
-            return {}, 0.0
+            return {}, 0.0, 0.0
+        action_probs, entropy = self._action_probs_from_root(root)
+        return action_probs, entropy, root.q_value
 
-        total_visits = sum(
-            child.visit_count for child in root.children.values()
-        )
+    def _action_probs_from_root(
+        self, root: MCTSNode
+    ) -> tuple[dict[int, float], float]:
+        total_visits = sum(child.visit_count for child in root.children.values())
         if total_visits == 0:
             return {}, 0.0
         action_probs = {

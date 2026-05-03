@@ -40,16 +40,9 @@ def test_value_targets_in_range(model):
 
 
 def test_value_target_is_raw_return_over_three(model):
-    """Value targets must be OpenSpiel's raw return divided by 3.
-
-    Regression test for the pre-M7 fix: previously value targets were the
-    raw ±1/±2/±3 returns, which the tanh-bounded value head could never
-    match. Now each example stores |outcome|/3, so a backgammon end-state
-    maps to ±1.0, a gammon to ±2/3, and a normal win to ±1/3.
-    """
-    # Run a few games to diversify result types (normal/gammon/backgammon).
+    """With alpha=1.0 (default), value targets are the terminal outcome / 3."""
     for _ in range(10):
-        result = play_one_game(model, num_simulations=5)
+        result = play_one_game(model, num_simulations=5, value_bootstrap_alpha=1.0)
         assert abs(result.outcome) in (1, 2, 3), (
             f"Unexpected raw outcome {result.outcome}"
         )
@@ -58,6 +51,23 @@ def test_value_target_is_raw_return_over_three(model):
             assert abs(abs(ex.value_target) - expected_abs) < 1e-6, (
                 f"value_target={ex.value_target}, outcome={result.outcome}"
             )
+
+
+def test_value_target_blends_with_alpha_zero(model):
+    """With alpha=0.0, value targets are MCTS root Q, not the terminal outcome."""
+    result = play_one_game(model, num_simulations=5, value_bootstrap_alpha=0.0)
+    assert len(result.examples) > 0
+    for ex in result.examples:
+        assert -1.0 <= ex.value_target <= 1.0
+    # Pure Q targets should differ from the pure terminal outcome for at least
+    # some positions (a random network's Q is near 0, not ±1/3/2/3/1).
+    outcome_value = abs(result.outcome) / 3.0
+    matches = sum(
+        1 for ex in result.examples if abs(abs(ex.value_target) - outcome_value) < 1e-4
+    )
+    assert matches < len(result.examples), (
+        "Expected alpha=0.0 to produce values different from the terminal outcome"
+    )
 
 
 def test_game_result_fields(model):

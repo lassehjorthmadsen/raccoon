@@ -36,6 +36,8 @@ class Coach:
         virtual_loss_count: int = 1,
         dirichlet_alpha: float = 0.0,
         noise_eps: float = 0.25,
+        value_bootstrap_alpha: float = 1.0,
+        scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
     ):
         self.network = network
         self.optimizer = optimizer
@@ -55,6 +57,8 @@ class Coach:
         self.virtual_loss_count = virtual_loss_count
         self.dirichlet_alpha = dirichlet_alpha
         self.noise_eps = noise_eps
+        self.value_bootstrap_alpha = value_bootstrap_alpha
+        self.scheduler = scheduler
         self._config_logged = False
 
     def _log_config(self) -> None:
@@ -82,6 +86,10 @@ class Coach:
                 "replay_size": self.replay_buffer.max_size,
                 "dirichlet_alpha": self.dirichlet_alpha,
                 "noise_eps": self.noise_eps,
+                "value_bootstrap_alpha": self.value_bootstrap_alpha,
+                "lr_schedule": (
+                    self.scheduler.state_dict() if self.scheduler is not None else None
+                ),
             },
             "system": {
                 "torch_version": torch.__version__,
@@ -111,6 +119,8 @@ class Coach:
         tr_start = time.time()
         if len(self.replay_buffer) >= self.batch_size:
             metrics = self.training_phase()
+            if self.scheduler is not None:
+                self.scheduler.step()
         else:
             metrics = {"policy_loss": 0.0, "value_loss": 0.0, "total_loss": 0.0}
         tr_time = time.time() - tr_start
@@ -133,6 +143,7 @@ class Coach:
             "run_id": self.run_id,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "iteration": iteration,
+            "lr": self.optimizer.param_groups[0]["lr"],
             "num_games": self.games_per_iteration,
             "num_positions": num_positions,
             "replay_buffer_size": len(self.replay_buffer),
@@ -163,6 +174,7 @@ class Coach:
             virtual_loss_count=self.virtual_loss_count,
             dirichlet_alpha=self.dirichlet_alpha,
             noise_eps=self.noise_eps,
+            value_bootstrap_alpha=self.value_bootstrap_alpha,
         )
         for result in game_results:
             self.replay_buffer.add_game(result.examples)
@@ -223,9 +235,12 @@ class Coach:
             "batch_size": self.batch_size,
             "total_games": (iteration + 1) * self.games_per_iteration,
         }
+        extra = {"training": training}
+        if self.scheduler is not None:
+            extra["scheduler_state_dict"] = self.scheduler.state_dict()
         save_checkpoint(
             self.network, self.optimizer, step=iteration, path=str(path),
-            training=training,
+            **extra,
         )
 
     def log_metrics(self, iteration: int, metrics: dict) -> None:

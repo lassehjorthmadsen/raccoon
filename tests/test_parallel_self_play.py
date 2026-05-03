@@ -14,8 +14,7 @@ def network():
 def test_parallel_produces_valid_results(network):
     results = parallel_self_play(
         network, num_games=4, num_simulations=5,
-        num_workers=2, batch_size=4,
-    )
+        num_workers=2,     )
     assert len(results) == 4
     for r in results:
         assert r.num_moves > 0
@@ -26,8 +25,7 @@ def test_parallel_produces_valid_results(network):
 def test_example_shapes(network):
     results = parallel_self_play(
         network, num_games=2, num_simulations=5,
-        num_workers=2, batch_size=4,
-    )
+        num_workers=2,     )
     for r in results:
         for ex in r.examples:
             assert ex.observation.shape == (17, 2, 12)

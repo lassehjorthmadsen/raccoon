@@ -13,9 +13,9 @@ from raccoon.search.mcts import MCTS, select_action, _advance_through_chance
 class TrainingExample:
     observation: np.ndarray     # (16, 2, 12)
     policy_target: np.ndarray   # (1352,)
-    # Game outcome from this player's perspective, normalised to [-1, 1] by
-    # dividing OpenSpiel's raw returns (±1/±2/±3 for normal/gammon/backgammon)
-    # by 3. This lets the tanh-bounded value head represent the full range.
+    # Value target in [-1, 1] from this player's perspective. Blends the
+    # terminal outcome (returns/3) with the MCTS root Q-value according to
+    # value_bootstrap_alpha: 1.0 = pure outcome, 0.0 = pure Q.
     value_target: float
 
 
@@ -36,6 +36,7 @@ def play_one_game(
     virtual_loss_count: int = 1,
     dirichlet_alpha: float = 0.0,
     noise_eps: float = 0.25,
+    value_bootstrap_alpha: float = 1.0,
 ) -> GameResult:
     """Play a complete self-play game and return training examples + stats."""
     wrapper = GameWrapper()
@@ -49,8 +50,8 @@ def play_one_game(
     state = wrapper.new_game()
     state = _advance_through_chance(state)
 
-    # Collect (observation, policy, player) during the game
-    history: list[tuple[np.ndarray, np.ndarray, int]] = []
+    # Collect (observation, policy, player, root_q) during the game
+    history: list[tuple[np.ndarray, np.ndarray, int, float]] = []
     entropies: list[float] = []
     move_count = 0
 
@@ -60,7 +61,7 @@ def play_one_game(
         obs = encode_state(board_view)
 
         temp = temperature if move_count < temp_threshold else 0.0
-        action_probs, move_entropy = mcts.search(state)
+        action_probs, move_entropy, root_q = mcts.search_with_value(state)
         entropies.append(move_entropy)
 
         if not action_probs:
@@ -71,7 +72,7 @@ def play_one_game(
         for a, p in action_probs.items():
             policy[a] = p
 
-        history.append((obs, policy, player))
+        history.append((obs, policy, player, root_q))
 
         action = select_action(action_probs, temperature=temp)
         state.apply_action(action)
@@ -81,17 +82,24 @@ def play_one_game(
     if not state.is_terminal():
         return GameResult(examples=[], num_moves=0, outcome=0.0, result_type="unknown")
 
-    # Fill in value targets from the terminal result. Divide by 3 (the
-    # backgammon return maximum) so targets land in [-1, 1] and can be
-    # matched by the tanh-bounded value head.
+    # Blend terminal outcome with MCTS root Q-value.
+    # alpha=1.0: pure terminal outcome (original behaviour).
+    # alpha=0.0: pure MCTS Q (zero-variance bootstrap, but biased early in training).
+    # Intermediate alpha reduces noise for early-game positions while retaining
+    # some terminal signal. Both terms are already in [-1, 1].
     returns = state.returns()
     equity, result_type = state.terminal_result()
     examples = []
-    for obs, policy, player in history:
+    for obs, policy, player, root_q in history:
+        outcome = returns[player] / 3.0
+        value_target = float(np.clip(
+            value_bootstrap_alpha * outcome + (1.0 - value_bootstrap_alpha) * root_q,
+            -1.0, 1.0,
+        ))
         examples.append(TrainingExample(
             observation=obs,
             policy_target=policy,
-            value_target=returns[player] / 3.0,
+            value_target=value_target,
         ))
 
     return GameResult(

@@ -35,6 +35,14 @@ def main():
                              "AlphaZero formula: 10/avg_legal_moves ~ 0.3 for backgammon.")
     parser.add_argument("--noise-eps", type=float, default=0.25,
                         help="Fraction of root prior replaced by Dirichlet noise (default: 0.25)")
+    parser.add_argument("--value-bootstrap-alpha", type=float, default=1.0,
+                        help="Blend of terminal outcome (1.0) vs MCTS root Q (0.0) as value "
+                             "target. 0.5 = equal blend. Default 1.0 = original behaviour.")
+    parser.add_argument("--lr-milestones", type=str, default="",
+                        help="Comma-separated iteration numbers at which to multiply LR by "
+                             "--lr-gamma (e.g. '200,400'). Empty = no schedule.")
+    parser.add_argument("--lr-gamma", type=float, default=0.1,
+                        help="LR multiplier applied at each milestone (default: 0.1)")
     args = parser.parse_args()
 
     exp_root = f"experiments/{args.experiment_name}"
@@ -44,6 +52,12 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     start_iter = 0
 
+    milestones = (
+        [int(m) for m in args.lr_milestones.split(",") if m.strip()]
+        if args.lr_milestones else []
+    )
+
+    checkpoint = {}
     if args.resume:
         network = load_model(args.resume)
         network.to(device)
@@ -68,6 +82,14 @@ def main():
             network.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
 
+    scheduler = None
+    if milestones:
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, milestones=milestones, gamma=args.lr_gamma
+        )
+        if "scheduler_state_dict" in checkpoint:
+            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+
     print(f"Device: {device}")
     replay_buffer = ReplayBuffer(max_size=args.replay_size)
 
@@ -87,6 +109,8 @@ def main():
         virtual_loss_count=args.virtual_loss,
         dirichlet_alpha=args.dirichlet_alpha,
         noise_eps=args.noise_eps,
+        value_bootstrap_alpha=args.value_bootstrap_alpha,
+        scheduler=scheduler,
     )
 
     last_iter = start_iter + args.iterations - 1
