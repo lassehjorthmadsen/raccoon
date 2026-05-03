@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.43">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Raccoon Training Analysis – Raccoon</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-d4d76bf8491c20bad77d141916dc28e1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-74af4b207258145baafe6f20d9da4f8e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Raccoon</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Concepts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+        <li>
+    <a class="dropdown-item" href="./mcts_explained.html">
+ <span class="dropdown-text">MCTS Explained</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./architecture.html">
+ <span class="dropdown-text">Architecture</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-training" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Training</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
+        <li>
+    <a class="dropdown-item" href="./training_parameters.html">
+ <span class="dropdown-text">Parameters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./training_analysis.html">
+ <span class="dropdown-text">Analysis</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./gcp_guide.html"> 
+<span class="menu-text">Developer</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#experiment-overview" id="toc-experiment-overview" class="nav-link" data-scroll-target="#experiment-overview">Experiment Overview</a></li>
+  <li><a href="#loss-curves-comparison" id="toc-loss-curves-comparison" class="nav-link" data-scroll-target="#loss-curves-comparison">Loss Curves Comparison</a></li>
+  <li><a href="#self-play-non-stationarity-vs.-other-explanations" id="toc-self-play-non-stationarity-vs.-other-explanations" class="nav-link" data-scroll-target="#self-play-non-stationarity-vs.-other-explanations">Self-Play Non-Stationarity vs.&nbsp;Other Explanations</a></li>
+  <li><a href="#loss-trend-detail-policy-and-value-separately" id="toc-loss-trend-detail-policy-and-value-separately" class="nav-link" data-scroll-target="#loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</a></li>
+  <li><a href="#game-dynamics-is-play-quality-improving" id="toc-game-dynamics-is-play-quality-improving" class="nav-link" data-scroll-target="#game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</a></li>
+  <li><a href="#player-0-equity-bias" id="toc-player-0-equity-bias" class="nav-link" data-scroll-target="#player-0-equity-bias">Player-0 Equity Bias</a></li>
+  <li><a href="#training-efficiency-comparison" id="toc-training-efficiency-comparison" class="nav-link" data-scroll-target="#training-efficiency-comparison">Training Efficiency Comparison</a></li>
+  <li><a href="#benchmark-results" id="toc-benchmark-results" class="nav-link" data-scroll-target="#benchmark-results">Benchmark Results</a></li>
+  <li><a href="#summary-and-next-steps" id="toc-summary-and-next-steps" class="nav-link" data-scroll-target="#summary-and-next-steps">Summary and Next Steps</a>
+  <ul class="collapse">
+  <li><a href="#key-findings-across-experiments" id="toc-key-findings-across-experiments" class="nav-link" data-scroll-target="#key-findings-across-experiments">Key Findings Across Experiments</a></li>
+  <li><a href="#immediate-next-steps" id="toc-immediate-next-steps" class="nav-link" data-scroll-target="#immediate-next-steps">Immediate Next Steps</a></li>
+  <li><a href="#open-questions" id="toc-open-questions" class="nav-link" data-scroll-target="#open-questions">Open Questions</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Raccoon Training Analysis</h1>
+<p class="subtitle lead">AlphaZero self-play for backgammon</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+</section>
+<section id="experiment-overview" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-overview">Experiment Overview</h2>
+<p>This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.</p>
+<div id="2494a319" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Experiment                     | Network      |   MCTS Sims |   Games/Iter |   Iterations |   Total Games | Status   |
+|:-------------------------------|:-------------|------------:|-------------:|-------------:|--------------:|:---------|
+| exp000-6x128-25sims            | 6x128 ResNet |          25 |           10 |          499 |          4990 | Complete |
+| exp001-6x128-200sims           | 6x128 ResNet |         200 |           50 |          283 |         14150 | Complete |
+| exp002-6x128-200sims-50kbuf    | 6x128 ResNet |         200 |           50 |          148 |          7400 | Complete |
+| exp003-6x128-100sims-dirichlet | 6x128 ResNet |         100 |           25 |          138 |          3450 | Complete |</code></pre>
+</div>
+</div>
+<p><strong>Key Questions:</strong></p>
+<ol type="1">
+<li><strong>exp000 (validation run)</strong>: Does the full pipeline work? (M7 encoder, GPU training, spot VM recovery)</li>
+<li><strong>exp001 (Phase 1)</strong>: Does more compute per iteration (8x more MCTS simulations, 5x more games) translate to faster learning?</li>
+<li><strong>exp002 (smaller replay buffer)</strong>: Same config as exp001 but <code>--replay-size 50000</code> instead of 500000. Tests whether replay-buffer staleness was contributing to the rising value loss observed in exp001 — a 50k buffer cycles in ~10 iterations vs ~100, so the network is always training on fresh self-play data.</li>
+<li><strong>exp003 (Dirichlet noise + visit entropy tracking)</strong>: Adds standard AlphaZero Dirichlet root noise (alpha=0.3, eps=0.25) and reduces the replay buffer further to 25k. Tests whether exploration collapse was causing the plateau.</li>
+<li><strong>Is training actually converging?</strong> Loss curves are one signal; gammon/backgammon rates, game length, and the within-experiment strength curve are more diagnostic. Several candidate explanations exist for the trends we see — this analysis tries to distinguish them.</li>
+</ol>
+</section>
+<section id="loss-curves-comparison" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="loss-curves-comparison">Loss Curves Comparison</h2>
+<p>Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.</p>
+<div id="365507c3" class="cell page-columns page-full" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, col, label <span class="kw">in</span> <span class="bu">zip</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    axes,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"policy_loss"</span>, <span class="st">"value_loss"</span>, <span class="st">"total_loss"</span>],</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Policy Loss (cross-entropy)"</span>, <span class="st">"Value Loss (MSE)"</span>, <span class="st">"Total Loss"</span>],</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        ax.plot(df[<span class="st">"iteration"</span>], df[col],</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        ax.plot(df[<span class="st">"iteration"</span>], df[col].rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span>exp[<span class="st">"label"</span>])</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(label, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">"best"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="op">-</span><span class="dv">1</span>].set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">"Training Loss Across Experiments"</span>, fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">"bold"</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations:</strong></p>
+<p><strong>Policy vs value loss are doing different things</strong> — they need to be read separately.</p>
+<p><strong>exp000 (25 sims, 10 games)</strong>:</p>
+<ul>
+<li>Policy loss declined steadily from ~6.5 to ~1.77 over 499 iterations</li>
+<li>Value loss drifts <em>upward</em> slowly (~0.097 early → ~0.112 late) — not stable, though the change is small in absolute terms</li>
+<li>So the policy head is fitting the replay distribution, but the value head is fitting it slightly worse over time</li>
+</ul>
+<p><strong>exp001 (200 sims, 50 games, 500k buf)</strong>:</p>
+<ul>
+<li>Fresh start (no resume from exp000)</li>
+<li>Policy loss drops early (~4.4 → ~2.0), then flattens / drifts up slightly</li>
+<li>Value loss rises clearly: ~0.105 → ~0.140</li>
+<li>Total loss increase is dominated by the value head</li>
+</ul>
+<p><strong>exp002 (200 sims, 50 games, 50k buf)</strong>:</p>
+<ul>
+<li>Fresh start (no resume), 148 iterations</li>
+<li>Policy loss drops faster than exp001 (~6.1 → bottoms ~2.00 at iter_86 → drifts up to ~2.05 at iter_147)</li>
+<li>Value loss bottoms <em>lower</em> than exp001 ever reached (~0.103 at iter_82) but also drifts up (~0.119 at iter_147)</li>
+<li>The smaller buffer does what we expected on the <em>fitting</em> side: faster initial descent, lower minimum, less aggressive late drift. However, benchmarks confirm this did not translate to stronger play: 0-50 vs GNUBG 0-ply (-2.300 ppg, identical to exp001 iter_282), and exp001 iter_282 beats exp002 iter_147 head-to-head (30-20, -0.440 ppg)</li>
+</ul>
+<p><strong>exp003 (100 sims, 25 games, 25k buf, Dirichlet)</strong>:</p>
+<ul>
+<li>Resumed from an existing checkpoint at iter 148 with an empty replay buffer</li>
+<li>Policy loss jumped from ~1.88 → ~2.19 in the first 15 iterations, then immediately plateaued. This is a buffer fill artifact: the buffer was empty at resume, so the first few iterations trained on a concentrated slice of the current policy (low cross-entropy); as it filled with ~25k diverse positions over ~11 iterations, the loss rose and locked in</li>
+<li>Visit entropy tracked for the first time: flat at ~1.37 throughout all 137 logged iterations — no improvement in MCTS decisiveness despite Dirichlet noise</li>
+<li>Experiment abandoned at iter 284 with no evidence of improvement</li>
+</ul>
+<p><strong>Candidate explanations (we don’t yet know which apply):</strong></p>
+<ol type="1">
+<li><strong>Self-play non-stationarity.</strong> If the network is genuinely improving, the positions it generates get harder, so loss can rise while strength rises. (Documented in AlphaZero literature.)</li>
+<li><strong>Replay buffer staleness.</strong> With 500k capacity and ~5k positions/iter, the buffer holds ~100 iterations of positions. The network is being asked to simultaneously fit old (weaker-play) and new (less-weak) positions, which may be inconsistent.</li>
+<li><strong>Value target noise.</strong> Training labels are {±1/3, ±2/3, ±1} — discrete and extreme. If the value head’s residual error is dominated by label noise, loss can look flat-or-rising even when the head is learning.</li>
+<li><strong>Actual regression or overfitting.</strong> Possible but less likely given policy loss trajectory.</li>
+</ol>
+<p>The “Self-Play Non-Stationarity” section below discusses what evidence would distinguish these. Short version: a within-experiment strength comparison (iter_k vs iter_k-20 at equal eval sims) is the only clean test. This has now been run for both exp001 (iter_282 vs iter_260: +0.120 ppg, n.s.) and exp002 (iter_147 vs iter_125: +0.300 ppg, n.s.) — neither shows detectable strength gain, confirming the plateau.</p>
+</section>
+<section id="self-play-non-stationarity-vs.-other-explanations" class="level2">
+<h2 class="anchored" data-anchor-id="self-play-non-stationarity-vs.-other-explanations">Self-Play Non-Stationarity vs.&nbsp;Other Explanations</h2>
+<p>In supervised learning, rising loss means the model is getting worse. In self-play, <strong>rising loss may indicate the network is improving</strong> — but it may also indicate other things. Distinguishing them matters.</p>
+<p><strong>The non-stationarity story:</strong></p>
+<ul>
+<li>The network trains against itself</li>
+<li>As the network improves, the opponent gets stronger</li>
+<li>Stronger opponent → harder positions → higher loss</li>
+<li>Loss measures “how well do I fit my current training data”, not “how strong am I at backgammon”</li>
+</ul>
+<p>This is well-documented in AlphaZero papers and is genuinely possible here.</p>
+<p><strong>Competing explanations that are also consistent with our data:</strong></p>
+<ul>
+<li><strong>Replay buffer mixing</strong> old and new games. exp001’s 500k buffer holds ~100 iterations of positions. If earlier play is qualitatively different from later play, the network is being asked to fit an inconsistent distribution.</li>
+<li><strong>Value target distribution.</strong> Labels are discrete {±1/3, ±2/3, ±1}. In practice ~half of self-play games end in gammon or backgammon, so labels sit at the extremes. The value head is calibrated for a distribution dominated by large-margin outcomes, which may not generalize to close positions against a stronger opponent.</li>
+<li><strong>Exploration collapse.</strong> If the MCTS policy concentrates visits on a few actions early, self-play stops surfacing novel positions and the distribution ossifies. Symptom: flat gammon/backgammon rates across iterations.</li>
+</ul>
+<p><strong>What would distinguish these:</strong></p>
+<ul>
+<li><strong>Within-experiment strength curve.</strong> Arena match iter_k vs iter_k-20 at equal eval sims. If strength rises, non-stationarity fits; if flat, the network is plateaued regardless of what the loss does. <strong>Run for exp001</strong> (iter_282 vs iter_260: +0.120 ppg, n.s.), <strong>exp002</strong> (iter_147 vs iter_125: +0.300 ppg, n.s.), and <strong>exp003</strong> (iter_220 vs iter_150: -0.430 ppg — newer model <em>lost</em>) — all confirm plateau or regression.</li>
+<li><strong>Gammon/backgammon trend over training.</strong> If declining: play quality is improving and the non-stationarity story is plausible. If flat: play is stuck and rising loss is not masking improvement.</li>
+<li><strong>MCTS visit-entropy trend.</strong> Collapsing entropy → exploration is dying.</li>
+</ul>
+<p><strong>Evidence from the data we do have</strong> (see “Game Dynamics” below): gammon and backgammon rates are <strong>flat</strong> across exp000’s 499 iterations, exp001’s 282 iterations, and exp002’s 148 iterations. That is evidence <em>against</em> the pure non-stationarity story, or at least evidence that whatever improvement is happening is too small to show up in game outcomes.</p>
+<p><strong>What about exp001 beating exp000?</strong> The arena match (32-18, +0.44 ppg) compared exp001 iter_112 vs exp000 iter_498. These differ in training config (8× sims, 5× games) AND checkpoint history. A win here only proves “more compute + more training + more sims at eval time beats less.” It does <em>not</em> show that exp001’s loss increase masks real strength gain, because it doesn’t hold exp001’s config fixed across checkpoints.</p>
+<p><strong>The within-experiment strength comparison has now been run.</strong> iter_0282 vs iter_0260 (50 games, 100 eval sims): <strong>27-23, +0.120 ppg</strong>. With n=50, the per-game equity SE is roughly 0.25 ppg, so this is not statistically distinguishable from zero (~+0.5z). Across 22 iterations of training, no detectable strength gain. This is the cleanest direct evidence we have that exp001 has plateaued: rising value loss is <em>not</em> masking a strength improvement that’s just too small to see in self-play game outcomes — it isn’t visible in head-to-head play between checkpoints either.</p>
+<p><strong>exp003 check confirms regression, not just plateau.</strong> iter_220 vs iter_150 (100 games, 50 eval sims): <strong>40-60, -0.430 ppg</strong>. The newer checkpoint actually lost to the older one. With Dirichlet noise and a fresh 25k buffer, the network did not improve from iter 150 to iter 220 — it got weaker.</p>
+</section>
+<section id="loss-trend-detail-policy-and-value-separately" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</h2>
+<p>Policy and value loss are doing different things; reading them together via <code>total_loss</code> obscures the signal. We fit a linear trend on each over a “late phase” (after the first 20% of each run), so the early warmup doesn’t dominate the slope.</p>
+<div id="57e947e0" class="cell page-columns page-full" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>n_exp <span class="op">=</span> <span class="bu">len</span>(experiments)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(n_exp, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span> <span class="op">*</span> n_exp), squeeze<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col_idx, (col, label) <span class="kw">in</span> <span class="bu">enumerate</span>([</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"policy_loss"</span>, <span class="st">"Policy Loss (cross-entropy)"</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"value_loss"</span>, <span class="st">"Value Loss (MSE)"</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>]):</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row_idx, (exp_id, exp) <span class="kw">in</span> <span class="bu">enumerate</span>(experiments.items()):</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        ax <span class="op">=</span> axes[row_idx, col_idx]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Drop the first 20% so warmup doesn't dominate the fit.</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        cutoff <span class="op">=</span> <span class="bu">int</span>(<span class="bu">len</span>(df) <span class="op">*</span> <span class="fl">0.2</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        late <span class="op">=</span> df.iloc[cutoff:].copy()</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        ax.plot(late[<span class="st">"iteration"</span>], late[col], alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        ax.plot(late[<span class="st">"iteration"</span>], late[col].rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss"> (rolling mean)"</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> late[<span class="st">"iteration"</span>].values</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        y <span class="op">=</span> late[col].values</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        b, m <span class="op">=</span> polyfit(x, y, <span class="dv">1</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        ax.plot(x, b <span class="op">+</span> m <span class="op">*</span> x, color<span class="op">=</span><span class="st">"red"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>                label<span class="op">=</span><span class="ss">f"Slope: </span><span class="sc">{</span>m<span class="sc">:+.5f}</span><span class="ss">/iter"</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        ax.set_ylabel(label)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        ax.set_title(<span class="ss">f"</span><span class="sc">{</span>exp[<span class="st">'label'</span>]<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">"</span>, fontweight<span class="op">=</span><span class="st">"bold"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        first_loss <span class="op">=</span> late[col].rolling(<span class="dv">20</span>).mean().dropna().iloc[<span class="dv">0</span>] <span class="cf">if</span> <span class="bu">len</span>(late) <span class="op">&gt;=</span> <span class="dv">20</span> <span class="cf">else</span> late[col].iloc[<span class="dv">0</span>]</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>        last_loss <span class="op">=</span> late[col].rolling(<span class="dv">20</span>).mean().iloc[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>exp[<span class="st">'label'</span>]<span class="sc">}</span><span class="ss"> — </span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>first_loss<span class="sc">:.4f}</span><span class="ss"> → </span><span class="sc">{</span>last_loss<span class="sc">:.4f}</span><span class="ss"> "</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>              <span class="ss">f"(Δ=</span><span class="sc">{</span>last_loss<span class="op">-</span>first_loss<span class="sc">:+.4f}</span><span class="ss">, slope=</span><span class="sc">{</span>m<span class="sc">:+.6f}</span><span class="ss">/iter)"</span>)</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>exp000 (25 sims, 10 games, 100k buf) — Policy Loss (cross-entropy): 1.8108 → 1.7639 (Δ=-0.0469, slope=-0.000301/iter)
+exp001 (200 sims, 50 games, 500k buf) — Policy Loss (cross-entropy): 2.0544 → 2.4666 (Δ=+0.4123, slope=+0.002029/iter)
+exp002 (200 sims, 50 games, 50k buf) — Policy Loss (cross-entropy): 2.3399 → 2.0476 (Δ=-0.2923, slope=-0.002507/iter)
+exp003 (100 sims, 25 games, 25k buf, Dirichlet) — Policy Loss (cross-entropy): 2.1227 → 2.0805 (Δ=-0.0422, slope=-0.000371/iter)
+exp000 (25 sims, 10 games, 100k buf) — Value Loss (MSE): 0.0834 → 0.1108 (Δ=+0.0274, slope=+0.000046/iter)
+exp001 (200 sims, 50 games, 500k buf) — Value Loss (MSE): 0.1120 → 0.1667 (Δ=+0.0547, slope=+0.000275/iter)
+exp002 (200 sims, 50 games, 50k buf) — Value Loss (MSE): 0.1299 → 0.1188 (Δ=-0.0112, slope=-0.000061/iter)
+exp003 (100 sims, 25 games, 25k buf, Dirichlet) — Value Loss (MSE): 0.0635 → 0.0637 (Δ=+0.0002, slope=+0.000002/iter)</code></pre>
+</div>
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-5-output-2.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li><strong>Policy loss</strong> measures how well the network predicts MCTS visit distributions. Declining slope → the network is tracking MCTS’s recommendations. Flat/rising slope → policy head has plateaued or is overfit against a drifting target.</li>
+<li><strong>Value loss</strong> measures MSE against discrete game outcomes in {±1/3, ±2/3, ±1}. A rising trend is more concerning than for policy loss, because the label distribution is bounded and doesn’t get harder in absolute terms — it shifts as self-play improves, but the variance ceiling is fixed.</li>
+<li><strong>A positive slope is not automatically “the opponent is stronger.”</strong> See alternative explanations above; the decisive test is a within-experiment strength comparison.</li>
+</ul>
+</section>
+<section id="game-dynamics-is-play-quality-improving" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</h2>
+<p>The clearest diagnostic for whether training is making progress isn’t loss — it’s whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it’s flat, play is stuck.</p>
+<div id="35b4c1aa" class="cell page-columns page-full" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">9</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Game length ---</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>, <span class="dv">0</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"avg_game_length"</span>], alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"avg_game_length"</span>].rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>             color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span>exp[<span class="st">"label"</span>])</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Average Game Length (moves)"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Game Length Over Training"</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Gammon rate ---</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>, <span class="dv">1</span>]</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    gammon_rate <span class="op">=</span> df[<span class="st">"gammons"</span>] <span class="op">/</span> df[<span class="st">"num_games"</span>]</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], gammon_rate, alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], gammon_rate.rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>             linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>])</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>ax.axhspan(<span class="fl">0.15</span>, <span class="fl">0.20</span>, color<span class="op">=</span><span class="st">"green"</span>, alpha<span class="op">=</span><span class="fl">0.10</span>, label<span class="op">=</span><span class="st">"Strong-play range (15–20%)"</span>)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Gammon rate (per game)"</span>)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Gammon Rate Over Training"</span>)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="fl">0.6</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, loc<span class="op">=</span><span class="st">"best"</span>)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Backgammon rate ---</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>, <span class="dv">0</span>]</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    bg_rate <span class="op">=</span> df[<span class="st">"backgammons"</span>] <span class="op">/</span> df[<span class="st">"num_games"</span>]</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], bg_rate, alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], bg_rate.rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>             linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>])</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>ax.axhspan(<span class="fl">0.0</span>, <span class="fl">0.02</span>, color<span class="op">=</span><span class="st">"green"</span>, alpha<span class="op">=</span><span class="fl">0.10</span>, label<span class="op">=</span><span class="st">"Strong-play range (~1%)"</span>)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Backgammon rate (per game)"</span>)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Backgammon Rate Over Training"</span>)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, loc<span class="op">=</span><span class="st">"best"</span>)</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Linear fit of gammon/BG rate across iterations ---</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>, <span class="dv">1</span>]</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    gam_rate <span class="op">=</span> (df[<span class="st">"gammons"</span>] <span class="op">/</span> df[<span class="st">"num_games"</span>]).values</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    bg_rate <span class="op">=</span> (df[<span class="st">"backgammons"</span>] <span class="op">/</span> df[<span class="st">"num_games"</span>]).values</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> df[<span class="st">"iteration"</span>].values</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    _, gm_slope <span class="op">=</span> polyfit(x, gam_rate, <span class="dv">1</span>)</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    _, bg_slope <span class="op">=</span> polyfit(x, bg_rate, <span class="dv">1</span>)</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    ax.bar([<span class="ss">f"</span><span class="sc">{</span>exp_id<span class="sc">}</span><span class="ch">\n</span><span class="ss">gammon"</span>, <span class="ss">f"</span><span class="sc">{</span>exp_id<span class="sc">}</span><span class="ch">\n</span><span class="ss">backgammon"</span>],</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>           [gm_slope <span class="op">*</span> <span class="dv">100</span>, bg_slope <span class="op">*</span> <span class="dv">100</span>],</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>           color<span class="op">=</span>exp[<span class="st">"color"</span>], alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"black"</span>, linewidth<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Slope of rate (per 100 iters)"</span>)</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Trend in gammon / backgammon rates</span><span class="ch">\n</span><span class="st">(negative = play improving; near-zero = plateau)"</span>)</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, axis<span class="op">=</span><span class="st">"y"</span>)</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations (revised, blunt):</strong></p>
+<ul>
+<li><strong>Game length is stable at ~80–95 moves</strong> across all runs. Not a strength signal either way — normal for any level of play.</li>
+<li><strong>Gammon rates are flat at 33–35% (exp000), 38–43% (exp001), and ~40% (exp002)</strong> across all iterations. That is 2–3× the rate of strong-vs-strong play. If training were making the network materially stronger, this number should be trending down. It isn’t, in any of the three runs.</li>
+<li><strong>Backgammon rates are flat at ~15–16%</strong> in all three runs. Strong play produces ~1%. The ratio here is ~15×, and it’s not improving.</li>
+<li><strong>These rates indicate weak play, not “intermediate” play.</strong> 50–60% of self-play games ending in gammon or backgammon is the fingerprint of players who leave checkers stranded and walk into large losses.</li>
+<li><strong>exp001’s gammon rate is slightly <em>higher</em> than exp000’s</strong>, despite 8× the MCTS sims. Possible explanation: with longer, denser self-play, the network spends more time in positions where one side is already losing, making completion-to-gammon more likely — but this deserves closer investigation.</li>
+<li><strong>exp003 (100 sims, 25 games, 25k buf, Dirichlet)</strong>: Gammon rate flat at ~40%, backgammon rate ~12%. Visit entropy flat at ~1.37 throughout — Dirichlet noise kept exploration alive in principle but did not improve the policy prior enough to shift MCTS visit concentration or game outcomes. The pattern is indistinguishable from exp001/exp002.</li>
+<li><strong>exp002’s smaller buffer (50k vs 500k) didn’t shift the gammon/bg distribution either.</strong> The loss curves <em>did</em> improve (faster descent, lower minima), but game outcomes look the same as exp001. So whatever the smaller buffer fixed, it wasn’t reflected in the metric that most directly measures play quality. Benchmarks confirm this: 0-50 vs GNUBG 0-ply (-2.300 ppg), virtually indistinguishable from exp001 iter_282’s -2.32 ppg.</li>
+</ul>
+<p><strong>Takeaway for the training plateau:</strong> combined with the rising value loss, the flat gammon/backgammon rates across all three experiments are the strongest evidence that self-play is stuck in a weak-play equilibrium. The network fits the distribution of its own games, but that distribution isn’t shifting toward stronger play — even when the buffer is shrunk by 10×.</p>
+</section>
+<section id="player-0-equity-bias" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="player-0-equity-bias">Player-0 Equity Bias</h2>
+<p>OpenSpiel’s opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0’s perspective should be approximately zero.</p>
+<div id="c951d916" class="cell page-columns page-full" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"avg_outcome"</span>], alpha<span class="op">=</span><span class="fl">0.25</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], linewidth<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"avg_outcome"</span>].rolling(<span class="dv">20</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean(),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            linewidth<span class="op">=</span><span class="fl">2.5</span>, color<span class="op">=</span>exp[<span class="st">"color"</span>], label<span class="op">=</span>exp[<span class="st">"label"</span>])</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"black"</span>, linewidth<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Avg game outcome (from player 0's perspective)"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Player-0 Equity Bias Over Training"</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Print overall mean and a rough SE</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    n_games <span class="op">=</span> df[<span class="st">"num_games"</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Per-iteration mean weighted by games</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    mean <span class="op">=</span> (df[<span class="st">"avg_outcome"</span>] <span class="op">*</span> df[<span class="st">"num_games"</span>]).<span class="bu">sum</span>() <span class="op">/</span> n_games</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Crude SE assuming each game outcome std ~1.8 (from typical gammon/bg mix)</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    se <span class="op">=</span> <span class="fl">1.8</span> <span class="op">/</span> np.sqrt(n_games)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>exp[<span class="st">'label'</span>]<span class="sc">}</span><span class="ss">: avg outcome = </span><span class="sc">{</span>mean<span class="sc">:+.3f}</span><span class="ss">  SE≈</span><span class="sc">{</span>se<span class="sc">:.3f}</span><span class="ss">  z≈</span><span class="sc">{</span>mean<span class="op">/</span>se<span class="sc">:+.2f}</span><span class="ss">  (n=</span><span class="sc">{</span>n_games<span class="sc">}</span><span class="ss"> games)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>exp000 (25 sims, 10 games, 100k buf): avg outcome = +0.327  SE≈0.025  z≈+12.83  (n=4990 games)
+exp001 (200 sims, 50 games, 500k buf): avg outcome = +0.078  SE≈0.015  z≈+5.16  (n=14150 games)
+exp002 (200 sims, 50 games, 50k buf): avg outcome = +0.098  SE≈0.021  z≈+4.70  (n=7400 games)
+exp003 (100 sims, 25 games, 25k buf, Dirichlet): avg outcome = +0.064  SE≈0.031  z≈+2.10  (n=3450 games)</code></pre>
+</div>
+</div>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li><strong>exp000 shows a persistent +0.3 bias</strong> toward player 0 across all 500 iterations. Random-vs-random play (verified with 3000 games) gives +0.04 ± 0.04 — statistically indistinguishable from zero. So the engine is symmetric, and the bias in exp000 is coming from the interaction of the weakly-trained network with shallow (25-sim) MCTS. A small asymmetry in the network’s raw outputs gets amplified by low-sim search and then reinforced by training on the resulting self-play games.</li>
+<li><strong>exp001’s bias is much smaller</strong> (~+0.08, marginally non-zero). With 200 sims, MCTS drowns out the network’s residual asymmetry — which is consistent with the “bias is a network artifact, not an engine bug” diagnosis.</li>
+<li><strong>This is not the main training problem,</strong> but it is a useful thermometer for whether search depth is adequate to correct the raw network.</li>
+</ul>
+</section>
+<section id="training-efficiency-comparison" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="training-efficiency-comparison">Training Efficiency Comparison</h2>
+<p>How does more compute per iteration (8x MCTS sims, 5x games) affect training time?</p>
+<div id="5b181673" class="cell page-columns page-full" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">8</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Time per iteration comparison</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>, <span class="dv">0</span>]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"self_play_time"</span>] <span class="op">/</span> <span class="dv">60</span>, linewidth<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>], alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Time (minutes)"</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Self-Play Time per Iteration"</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># SGD time</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>, <span class="dv">1</span>]</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"training_time"</span>], linewidth<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>], alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Time (seconds)"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"SGD Training Time per Iteration"</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Replay buffer growth</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>, <span class="dv">0</span>]</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], df[<span class="st">"replay_buffer_size"</span>] <span class="op">/</span> <span class="dv">1000</span>, linewidth<span class="op">=</span><span class="fl">2.5</span>,</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>])</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Show max capacity</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    caps <span class="op">=</span> {<span class="st">"exp000"</span>: <span class="dv">100</span>, <span class="st">"exp001"</span>: <span class="dv">500</span>, <span class="st">"exp002"</span>: <span class="dv">50</span>, <span class="st">"exp003"</span>: <span class="dv">25</span>}</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    max_cap <span class="op">=</span> caps.get(exp_id, <span class="dv">500</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    ax.axhline(max_cap, color<span class="op">=</span>exp[<span class="st">"color"</span>], linestyle<span class="op">=</span><span class="st">":"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Positions (thousands)"</span>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Replay Buffer Size"</span>)</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Cumulative training time</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>, <span class="dv">1</span>]</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    cum_time <span class="op">=</span> df[<span class="st">"total_time"</span>].cumsum() <span class="op">/</span> <span class="dv">3600</span>  <span class="co"># hours</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    ax.plot(df[<span class="st">"iteration"</span>], cum_time, linewidth<span class="op">=</span><span class="fl">2.5</span>,</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span>exp[<span class="st">"label"</span>], color<span class="op">=</span>exp[<span class="st">"color"</span>])</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Iteration"</span>)</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Cumulative Time (hours)"</span>)</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Total Training Time"</span>)</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="89e7b08c" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print efficiency stats for each experiment</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> exp_id, exp <span class="kw">in</span> experiments.items():</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> exp[<span class="st">"df"</span>]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    total_hours <span class="op">=</span> df[<span class="st">"total_time"</span>].<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">3600</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    avg_self_play_min <span class="op">=</span> df[<span class="st">"self_play_time"</span>].mean() <span class="op">/</span> <span class="dv">60</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    avg_sgd_sec <span class="op">=</span> df[<span class="st">"training_time"</span>].mean()</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    final_buffer <span class="op">=</span> df[<span class="st">"replay_buffer_size"</span>].iloc[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>exp[<span class="st">'label'</span>]<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Total iterations: </span><span class="sc">{</span><span class="bu">len</span>(df)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Total wall time: </span><span class="sc">{</span>total_hours<span class="sc">:.1f}</span><span class="ss"> hours (</span><span class="sc">{</span>total_hours<span class="op">/</span><span class="bu">len</span>(df)<span class="op">*</span><span class="dv">60</span><span class="sc">:.1f}</span><span class="ss"> min/iter avg)"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Self-play time: </span><span class="sc">{</span>avg_self_play_min<span class="sc">:.1f}</span><span class="ss"> min/iter avg"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  SGD time: </span><span class="sc">{</span>avg_sgd_sec<span class="sc">:.1f}</span><span class="ss"> sec/iter avg"</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Final buffer size: </span><span class="sc">{</span>final_buffer<span class="sc">:,}</span><span class="ss"> positions"</span>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Total games played: </span><span class="sc">{</span><span class="bu">len</span>(df) <span class="op">*</span> df[<span class="st">'num_games'</span>]<span class="sc">.</span>iloc[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+exp000 (25 sims, 10 games, 100k buf):
+  Total iterations: 499
+  Total wall time: 11.2 hours (1.4 min/iter avg)
+  Self-play time: 1.3 min/iter avg
+  SGD time: 0.8 sec/iter avg
+  Final buffer size: 100,000 positions
+  Total games played: 4,990
+
+exp001 (200 sims, 50 games, 500k buf):
+  Total iterations: 283
+  Total wall time: 175.7 hours (37.3 min/iter avg)
+  Self-play time: 37.2 min/iter avg
+  SGD time: 2.9 sec/iter avg
+  Final buffer size: 500,000 positions
+  Total games played: 14,150
+
+exp002 (200 sims, 50 games, 50k buf):
+  Total iterations: 148
+  Total wall time: 59.4 hours (24.1 min/iter avg)
+  Self-play time: 24.0 min/iter avg
+  SGD time: 2.5 sec/iter avg
+  Final buffer size: 50,000 positions
+  Total games played: 7,400
+
+exp003 (100 sims, 25 games, 25k buf, Dirichlet):
+  Total iterations: 138
+  Total wall time: 67.2 hours (29.2 min/iter avg)
+  Self-play time: 20.8 min/iter avg
+  SGD time: 503.3 sec/iter avg
+  Final buffer size: 25,000 positions
+  Total games played: 3,450</code></pre>
+</div>
+</div>
+<p><strong>Key Findings:</strong></p>
+<ul>
+<li><strong>exp001 is ~40x slower per iteration</strong> (~50 min vs ~1.2 min) due to 8x MCTS sims and 5x games</li>
+<li><strong>SGD time stays negligible</strong> (~2-3 seconds) in both experiments — T4 GPU handles training easily</li>
+<li><strong>Self-play is the bottleneck</strong> — GPU only accelerates the cheap part (SGD)</li>
+<li><strong>exp000’s buffer fills</strong> at ~iter 196 (100k capacity). exp001’s 500k buffer holds roughly 100 iterations of positions. This is a tradeoff, not a free win: a larger buffer gives the network more data but forces it to simultaneously fit old (weaker-play) and new (less-weak) positions. exp002 tested the 50k extreme: loss curves improved (faster descent, lower minimum), but play quality was unchanged — exp001 iter_282 beats exp002 iter_147 head-to-head, and both score identically against GNUBG 0-ply. A smaller buffer is not sufficient to break the plateau.</li>
+</ul>
+</section>
+<section id="benchmark-results" class="level2">
+<h2 class="anchored" data-anchor-id="benchmark-results">Benchmark Results</h2>
+<p>Evaluation results from each experiment (when available):</p>
+<div id="9241582a" class="cell" data-execution_count="9">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+============================================================
+exp000 (25 sims, 10 games, 100k buf)
+============================================================
+
+**Arena Evaluation:**
+  iter_0498 vs iter_0290 (50 games, 100 sims)
+  Result: 24-26 (48%), equity +0.060 ppg
+  Gammons: 7/5 vs 8/2 (g/bg)
+
+**GNUBG Benchmark:**
+  iter_0498 vs gnubg(level=world) (10 games, 200 sims)
+  Result: Raccoon 0-10 (0%), equity -2.50 ppg
+  GNUBG gammons/bg: 5/5
+
+============================================================
+exp001 (200 sims, 50 games, 500k buf)
+============================================================
+
+**Arena Evaluation:**
+  iter_0112 vs iter_0498 (50 games, 100 sims)
+  Result: 32-18 (64%), equity +0.440 ppg
+  Gammons: 9/4 vs 5/2 (g/bg)
+  iter_0282 vs iter_0260 (50 games, 100 sims)
+  Result: 27-23 (54%), equity +0.120 ppg
+  Gammons: 12/3 vs 14/1 (g/bg)
+
+**GNUBG Benchmark:**
+  iter_0112 vs gnubg(level=world) (50 games, 200 sims)
+  Result: Raccoon 1-49 (2%), equity -2.22 ppg
+  GNUBG gammons/bg: 19/22
+  iter_0282 vs gnubg(level=world) (50 games, 100 sims)
+  Result: Raccoon 0-50 (0%), equity -2.32 ppg
+  GNUBG gammons/bg: 20/23
+
+============================================================
+exp002 (200 sims, 50 games, 50k buf)
+============================================================
+
+**Arena Evaluation:**
+  iter_0147 vs iter_0125 (50 games, 100 sims)
+  Result: 26-24 (52%), equity +0.300 ppg
+  Gammons: 8/9 vs 9/2 (g/bg)
+  iter_0147 vs iter_0282 (50 games, 100 sims)
+  Result: 20-30 (40%), equity -0.440 ppg
+  Gammons: 10/0 vs 14/4 (g/bg)
+
+**GNUBG Benchmark:**
+  iter_0147 vs gnubg(level=world) (50 games, 100 sims)
+  Result: Raccoon 0-50 (0%), equity -2.30 ppg
+  GNUBG gammons/bg: 19/23
+
+============================================================
+exp003 (100 sims, 25 games, 25k buf, Dirichlet)
+============================================================
+
+**Arena Evaluation:**
+  iter_0220 vs iter_0150 (100 games, 50 sims)
+  Result: 40-60 (40%), equity -0.430 ppg
+  Gammons: 17/2 vs 22/11 (g/bg)
+  iter_0280 vs iter_0150 (100 games, 50 sims)
+  Result: 48-52 (48%), equity -0.130 ppg
+  Gammons: 17/7 vs 22/9 (g/bg)
+
+**GNUBG Benchmark:** Not yet available</code></pre>
+</div>
+</div>
+<p><strong>Interpretation (with sample-size caveats):</strong></p>
+<ul>
+<li><strong>exp000 vs GNUBG world-class (n=10): 0-10, -2.50 ppg.</strong> With n=10, the 95% CI on per-game equity is ~±1.5 ppg, so this is only weak evidence of <em>how badly</em> it loses — though a 0-10 sweep at any sample size confirms the network is nowhere near world-class GNUBG strength.</li>
+<li><strong>exp001 iter_112 vs GNUBG world-class (n=50): 1-49 (2%), -2.22 ppg.</strong> 19 gammons and 22 backgammons conceded in 50 games. The backgammon concession rate of 44% is in line with the self-play finding that this network leaves checkers stranded.</li>
+<li><strong>exp001 iter_282 vs GNUBG 0-ply (n=50): 0-50 (0%), -2.32 ppg.</strong> 20 gammons and 23 backgammons conceded. <strong>0-ply was added to discriminate “weak” from “very weak”; it doesn’t.</strong> Raccoon loses to 0-ply slightly <em>worse</em> than iter_112 lost to world-class. After 170 more iterations of training and stepping the opponent down to GNUBG’s weakest setting, the result moves the wrong direction. This is the strongest external signal yet that the network is stuck.</li>
+<li><strong>exp001 (iter 112) vs exp000 (iter 498): 32-18 (64%), +0.44 ppg.</strong> This is evidence exp001 is stronger than exp000 — but as discussed in the Self-Play Non-Stationarity section, it does <strong>not</strong> confirm that rising loss within exp001 masks improvement, because it compares different training configs at different checkpoints.</li>
+<li><strong>exp001 iter_282 vs iter_260 (n=50, 100 eval sims): 27-23 (54%), +0.120 ppg.</strong> First within-experiment strength check. Result is statistically indistinguishable from zero (SE ≈ 0.25 ppg). 22 iterations of training produced no detectable strength gain. Combined with the GNUBG 0-ply result and flat gammon/BG rates, this confirms the plateau.</li>
+<li><strong>exp002 iter_147 vs iter_125 (n=50, 100 eval sims): 26-24 (52%), +0.300 ppg.</strong> Within-experiment check for exp002, same methodology. Not statistically significant (SE ≈ 0.25 ppg, z ≈ 1.2). 22 iterations of training produced no detectable strength gain. Same plateau pattern as exp001.</li>
+<li><strong>exp002 iter_147 vs exp001 iter_282 (n=50, 100 eval sims): 20-30 (40%), -0.440 ppg.</strong> Cross-experiment comparison. Despite exp002’s better loss curves (faster descent, lower minima), exp001 iter_282 beats exp002 iter_147. More training iterations outweigh the smaller buffer’s fitting improvement. exp001 remains the stronger checkpoint.</li>
+<li><strong>exp002 iter_147 vs GNUBG 0-ply (n=50, 100 sims): 0-50 (0%), -2.300 ppg.</strong> GNUBG conceded 19 gammons and 23 backgammons; Raccoon conceded 0 gammons and 0 backgammons. Virtually identical to exp001 iter_282’s result (-2.32 ppg, 43 gammon/bg conceded). The smaller buffer’s improved fitting did not translate to stronger play against an external benchmark.</li>
+<li><strong>exp003 iter_220 vs iter_150 (100 games, 50 eval sims): 40-60 (40%), -0.430 ppg.</strong> The newer checkpoint lost to the older one — not a plateau but an outright regression.</li>
+<li><strong>exp003 iter_280 vs iter_150 (100 games, 50 eval sims): 48-52 (48%), -0.130 ppg.</strong> End-of-run checkpoint vs the same baseline. Statistically indistinguishable from 50/50 (z ≈ 0.4, SE ≈ 0.25 ppg), but still a loss. 130 iterations of training with Dirichlet noise produced zero detectable improvement over iter_150. No GNUBG benchmark was run.</li>
+<li><strong>All four experiments are crushed by GNUBG even at the weakest setting.</strong> The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings, and more iterations of any of these experiments as-is won’t get us there.</li>
+</ul>
+</section>
+<section id="summary-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="summary-and-next-steps">Summary and Next Steps</h2>
+<section id="key-findings-across-experiments" class="level3">
+<h3 class="anchored" data-anchor-id="key-findings-across-experiments">Key Findings Across Experiments</h3>
+<p><strong>1. Policy and value loss diverge — read them separately.</strong></p>
+<ul>
+<li>exp000: policy loss drops smoothly (6.5 → 1.77), value loss drifts <em>up</em> slowly (0.097 → 0.112).</li>
+<li>exp001: policy loss drops early then flattens/drifts; value loss rises more clearly (0.105 → 0.140).</li>
+<li>exp003: policy loss jumped from ~1.88 to ~2.19 in the first 15 iterations (buffer fill artifact at resume), then plateaued flat. Value loss flat at ~0.06. Neither head improved over 137 iterations.</li>
+<li>Rising value loss is not by itself proof of improvement or regression. It is a signal that the value head is fitting the replay distribution worse over time — which has several candidate explanations.</li>
+</ul>
+<p><strong>2. Self-play appears plateaued at a weak-play equilibrium across all four experiments.</strong></p>
+<ul>
+<li>Gammon rates are flat at ~33–43% across all runs. Strong-vs-strong play is ~15–20%.</li>
+<li>Backgammon rates are flat at ~15–16%. Strong play is ~1%.</li>
+<li>These rates are not declining over training iterations. This is the strongest evidence that the networks are not materially improving at the thing that matters (avoiding catastrophic positions).</li>
+<li>Against GNUBG 0-ply, exp001 conceded 23 backgammons in 50 games (46%), consistent with this.</li>
+<li><strong>exp002’s smaller buffer didn’t move this needle — confirmed by benchmarks.</strong> exp002 iter_147 vs GNUBG 0-ply: 0-50, -2.300 ppg (virtually identical to exp001’s -2.32 ppg). Within-experiment: iter_147 vs iter_125, 26-24 (52%), +0.300 ppg (not significant, SE ≈ 0.25 ppg). Cross-experiment: exp001 iter_282 beats exp002 iter_147 (30-20, -0.440 ppg). The staleness fix improved fitting but not play quality; exp001 remains stronger despite worse loss curves.</li>
+<li><strong>exp003’s Dirichlet noise didn’t move this needle either.</strong> Visit entropy stayed flat at ~1.37 for all 137 logged iterations. The plateau is not caused by exploration collapse; Dirichlet noise prevents collapse but cannot overcome the weak policy prior.</li>
+</ul>
+<p><strong>3. The “rising loss masks strength gain” hypothesis is now contradicted by direct evidence.</strong></p>
+<ul>
+<li>The decisive test (iter_k vs iter_k-20 within exp001 at equal eval sims) has been run: iter_282 vs iter_260, 27-23, +0.120 ppg over 50 games. Statistically indistinguishable from zero.</li>
+<li>22 iterations of training produced no detectable strength gain in head-to-head play.</li>
+<li>Combined with flat gammon/BG rates and the iter_282 vs GNUBG 0-ply 0-50 result, the rising value loss is not masking improvement — the network is plateaued.</li>
+<li>exp002 within-experiment check (iter_147 vs iter_125, +0.300 ppg, n=50) is also not significant (z ≈ 1.2, SE ≈ 0.25 ppg). The plateau is present in both training regimes.</li>
+<li>exp003 within-experiment check (iter_220 vs iter_150, -0.430 ppg, n=100, 50 eval sims) shows outright regression. With Dirichlet noise and a 25k buffer, the newer checkpoint is <em>weaker</em> than the older one.</li>
+</ul>
+<p><strong>4. Player-0 equity bias is a training artifact of low-sim MCTS, not an engine bug.</strong></p>
+<ul>
+<li>exp000: +0.3 equity bias for player 0, persistent across all iterations.</li>
+<li>exp001: reduced to ~+0.08 with deeper search.</li>
+<li>Random-vs-random baseline (n=3000): +0.04 ± 0.04. Engine is symmetric.</li>
+<li>A small asymmetry in the raw network outputs gets amplified by shallow MCTS and reinforced by training. More sims dilute it.</li>
+</ul>
+<p><strong>5. Training efficiency</strong></p>
+<ul>
+<li>exp001 is ~40× slower per iteration (50 min vs 1.2 min) due to 8× MCTS sims and 5× games.</li>
+<li>SGD stays cheap (~2–3 sec); self-play is the bottleneck. GPU helps the fast step.</li>
+<li>exp002’s 50k buffer improved fitting metrics but not play quality vs exp001’s 500k buffer. Buffer size is not the lever that breaks the plateau.</li>
+<li>exp003 runs ~18 min/iter on CPU (100 sims, 25 games). Adding Dirichlet noise adds no measurable overhead.</li>
+</ul>
+<p><strong>6. All four experiments are far from GNUBG-competitive — even at the weakest setting.</strong></p>
+<ul>
+<li>exp000 iter_498: 0-10 vs GNUBG world-class (n=10, wide CI).</li>
+<li>exp001 iter_112: 1-49 (-2.22 ppg) vs GNUBG world-class with 19 gammons and 22 backgammons conceded.</li>
+<li>exp001 iter_282: <strong>0-50 (-2.32 ppg) vs GNUBG 0-ply</strong> (the weakest setting), 20 gammons and 23 backgammons conceded. 0-ply was added to discriminate degrees of weakness; instead it confirms the plateau is not “almost-but-not-quite-GNUBG-0-ply” — it’s much further away than that.</li>
+<li>exp002 iter_147: <strong>0-50 (-2.300 ppg) vs GNUBG 0-ply</strong>, 19 gammons and 23 backgammons conceded, 0 for Raccoon. Indistinguishable from exp001 despite better fitting metrics.</li>
+<li>M6 milestone (beat GNUBG at money game) is not in reach at current training settings.</li>
+</ul>
+</section>
+<section id="immediate-next-steps" class="level3">
+<h3 class="anchored" data-anchor-id="immediate-next-steps">Immediate Next Steps</h3>
+<p>exp003 has been abandoned (2026-05-03). All three hypotheses tested so far (buffer staleness, buffer size, exploration collapse via Dirichlet noise) failed to break the plateau. exp001 iter_282 remains the strongest checkpoint. The training signal itself is the likely bottleneck.</p>
+<ol type="1">
+<li><p><del><strong>Run benchmarks for exp002.</strong></del> <strong>Done</strong> (2026-04-30). iter_147 vs iter_125: 26-24 (52%), +0.300 ppg (n.s.). vs GNUBG 0-ply: 0-50, -2.300 ppg. vs exp001 iter_282: 20-30, -0.440 ppg (exp001 wins). Conclusion: smaller buffer is not a play-quality improvement.</p></li>
+<li><p><del><strong>Track MCTS visit-distribution entropy over training.</strong></del> <strong>Done</strong> (exp003). Visit entropy logged throughout; flat at ~1.37 for all 137 iterations. Exploration is not collapsing, but it is also not improving.</p></li>
+<li><p><del><strong>Add Dirichlet root noise.</strong></del> <strong>Done</strong> (exp003). Dirichlet noise (alpha=0.3, eps=0.25) added in exp003. Did not break the plateau — iter_220 lost to iter_150 (-0.43 ppg) and iter_280 drew iter_150 (-0.13 ppg, n.s.). 130 iterations of training produced no detectable improvement. Exploration collapse was not the root cause.</p></li>
+<li><p><strong>Add a learning rate schedule.</strong> Fixed LR 0.001 throughout all four experiments. Step decay (e.g.&nbsp;×0.1 at iter 150 and iter 300) would allow the optimizer to settle rather than continuing to perturb weights. Low effort; likely to reduce the oscillation that currently prevents the value head from converging.</p></li>
+<li><p><strong>Consider value target bootstrapping.</strong> Replace raw game outcome with MCTS root <code>Q</code> (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort; directly addresses the noisy value targets that are the most likely cause of the plateau.</p></li>
+<li><p><strong>Scale sims, not iterations.</strong> Going to 400–800 sims is a more promising next lever than further iteration count.</p></li>
+<li><p><strong>Infrastructure.</strong> Future experiments should be added to the <code>EXPERIMENTS</code> dict; download logs from GCS and re-render.</p></li>
+</ol>
+</section>
+<section id="open-questions" class="level3">
+<h3 class="anchored" data-anchor-id="open-questions">Open Questions</h3>
+<ul>
+<li><strong>Resolved (2026-04-30):</strong> exp002’s better fitting does <em>not</em> translate to stronger play. 0-50 vs GNUBG 0-ply (-2.300 ppg, identical to exp001 iter_282) and exp001 iter_282 beats exp002 iter_147 head-to-head (30-20, -0.440 ppg). The smaller buffer addressed a fitting symptom, not the underlying weakness.</li>
+<li><strong>Resolved (2026-05-03):</strong> MCTS visit entropy is not collapsing — it is flat at ~1.37 (exp003). Dirichlet noise keeps exploration alive but cannot improve the policy prior when the network itself is stuck.</li>
+<li><strong>Resolved (2026-05-03):</strong> Dirichlet root noise does <em>not</em> break the gammon/bg plateau (exp003).</li>
+<li>Can value-target bootstrapping (root <code>Q</code> instead of terminal return) fix the rising value loss and break the plateau?</li>
+<li>Would a LR schedule (step decay) reduce weight oscillation enough to let the value head converge?</li>
+<li>At what point does scaling up the network architecture (10 blocks, 256 channels) make sense, vs.&nbsp;fixing the training signal at current architecture first?</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

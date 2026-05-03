@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.43">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>mcts_explained – Raccoon</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-d4d76bf8491c20bad77d141916dc28e1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-74af4b207258145baafe6f20d9da4f8e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Raccoon</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Concepts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+        <li>
+    <a class="dropdown-item" href="./mcts_explained.html">
+ <span class="dropdown-text">MCTS Explained</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./architecture.html">
+ <span class="dropdown-text">Architecture</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-training" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Training</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
+        <li>
+    <a class="dropdown-item" href="./training_parameters.html">
+ <span class="dropdown-text">Parameters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./training_analysis.html">
+ <span class="dropdown-text">Analysis</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./gcp_guide.html"> 
+<span class="menu-text">Developer</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#mcts-and-alphazero-training-concepts-and-examples" id="toc-mcts-and-alphazero-training-concepts-and-examples" class="nav-link active" data-scroll-target="#mcts-and-alphazero-training-concepts-and-examples">MCTS and AlphaZero Training — Concepts and Examples</a>
+  <ul class="collapse">
+  <li><a href="#what-is-a-simulation" id="toc-what-is-a-simulation" class="nav-link" data-scroll-target="#what-is-a-simulation">What is a “simulation”?</a>
+  <ul class="collapse">
+  <li><a href="#the-puct-selection-rule" id="toc-the-puct-selection-rule" class="nav-link" data-scroll-target="#the-puct-selection-rule">The PUCT selection rule</a></li>
+  <li><a href="#backing-up-the-value" id="toc-backing-up-the-value" class="nav-link" data-scroll-target="#backing-up-the-value">Backing up the value</a></li>
+  </ul></li>
+  <li><a href="#visit-counts-and-the-policy-target" id="toc-visit-counts-and-the-policy-target" class="nav-link" data-scroll-target="#visit-counts-and-the-policy-target">Visit counts and the policy target</a></li>
+  <li><a href="#entropy" id="toc-entropy" class="nav-link" data-scroll-target="#entropy">Entropy</a></li>
+  <li><a href="#why-visit-distributions-beat-raw-network-output" id="toc-why-visit-distributions-beat-raw-network-output" class="nav-link" data-scroll-target="#why-visit-distributions-beat-raw-network-output">Why visit distributions beat raw network output</a></li>
+  <li><a href="#temperature" id="toc-temperature" class="nav-link" data-scroll-target="#temperature">Temperature</a></li>
+  <li><a href="#the-learning-cycle" id="toc-the-learning-cycle" class="nav-link" data-scroll-target="#the-learning-cycle">The learning cycle</a>
+  <ul class="collapse">
+  <li><a href="#a-toy-example-one-move-backgammon" id="toc-a-toy-example-one-move-backgammon" class="nav-link" data-scroll-target="#a-toy-example-one-move-backgammon">A toy example: one-move backgammon</a></li>
+  <li><a href="#a-backgammon-example-blitz-or-build" id="toc-a-backgammon-example-blitz-or-build" class="nav-link" data-scroll-target="#a-backgammon-example-blitz-or-build">A backgammon example: blitz or build?</a></li>
+  </ul></li>
+  <li><a href="#the-plateau-problem-and-why-it-happens" id="toc-the-plateau-problem-and-why-it-happens" class="nav-link" data-scroll-target="#the-plateau-problem-and-why-it-happens">The plateau problem and why it happens</a></li>
+  <li><a href="#dirichlet-noise" id="toc-dirichlet-noise" class="nav-link" data-scroll-target="#dirichlet-noise">Dirichlet noise</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+<section id="mcts-and-alphazero-training-concepts-and-examples" class="level1">
+<h1>MCTS and AlphaZero Training — Concepts and Examples</h1>
+<section id="what-is-a-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-a-simulation">What is a “simulation”?</h2>
+<p>The name comes from the original Monte Carlo Tree Search, where a simulation meant playing a game out to the end randomly to collect an outcome. AlphaZero replaced those random rollouts with a neural network value estimate — but kept the name.</p>
+<p>A better mental model: each simulation is one <strong>guided look-ahead path</strong> carved through an enormous game tree. It follows the most promising branches according to a selection rule (PUCT), walking a few nodes deep until it reaches a position the network hasn’t seen yet. The network then answers “how good is this position?” — a single number in [-1, 1] — without looking any further. The result gets backed up through all the nodes on the path.</p>
+<p>After 100 simulations you have a small subtree selectively expanded in the directions worth exploring. It is not like a Monte Carlo simulation; it’s more like a few branches a few nodes deep in an enormous tree.</p>
+<p>The only genuine randomness is in dice rolls: when a simulation passes through a chance node, it samples one dice outcome rather than branching on all 21 possibilities. That’s what keeps the tree tractable.</p>
+<section id="the-puct-selection-rule" class="level3">
+<h3 class="anchored" data-anchor-id="the-puct-selection-rule">The PUCT selection rule</h3>
+<p>At each interior node, MCTS picks the child with the highest score:</p>
+<pre><code>PUCT(a) = −Q(child) + c_puct · P(a) · √N(parent) / (1 + N(child))</code></pre>
+<ul>
+<li><strong>−Q(child)</strong>: the child’s average backed-up value, negated. Q is stored from the child’s own perspective (the opponent of the node to move), so the minus converts it to the current player’s viewpoint.</li>
+<li><strong>P(a)</strong>: network prior probability for move <em>a</em>.</li>
+<li><strong>N(parent), N(child)</strong>: visit counts. When N(child)=0, the term reduces to <code>c_puct · P(a) · √N(parent)</code> — pure prior-weighted curiosity. As visits accumulate, Q dominates and the exploration bonus shrinks.</li>
+<li><strong>c_puct</strong>: exploration constant (1.5 in Raccoon).</li>
+</ul>
+</section>
+<section id="backing-up-the-value" class="level3">
+<h3 class="anchored" data-anchor-id="backing-up-the-value">Backing up the value</h3>
+<p>After evaluating a leaf, the network value is propagated back up the search path, <strong>negated at every step</strong>, because the two players have opposite interests:</p>
+<pre><code>leaf value:  +0.6   ← good for the player to move at the leaf
+    ↑ ×(−1)
+parent:      −0.6   ← same leaf is bad for whoever moved into it
+    ↑ ×(−1)
+grandparent: +0.6   ← same player as the leaf</code></pre>
+<p>Q values therefore always express “expected outcome for whoever is to move at this node”, automatically, at every depth.</p>
+<hr>
+</section>
+</section>
+<section id="visit-counts-and-the-policy-target" class="level2">
+<h2 class="anchored" data-anchor-id="visit-counts-and-the-policy-target">Visit counts and the policy target</h2>
+<p>Each legal move at the root starts with zero visits. Every time a simulation passes through a move on its way down the tree, that move’s visit count increments. After 100 simulations, the counts might look like:</p>
+<pre><code>Move A:  61 visits  ← search kept returning here
+Move B:  22 visits
+Move C:  11 visits
+Move D:   4 visits
+Move E:   2 visits</code></pre>
+<p>Dividing by 100 gives the <strong>visit distribution</strong>: <code>{A: 0.61, B: 0.22, ...}</code>. This is stored as the policy target for the training example — the network learns to match it.</p>
+<p>The visit distribution is a <em>search-refined</em> belief. It incorporates information from actually looking ahead, not just the network’s raw guess. A move the network initially likes but that leads to bad positions will lose visits over time within the search; a move the network underrated but that keeps producing good outcomes will gain them.</p>
+<hr>
+</section>
+<section id="entropy" class="level2">
+<h2 class="anchored" data-anchor-id="entropy">Entropy</h2>
+<p>Entropy measures how spread out a probability distribution is:</p>
+<pre><code>H = -∑ p · ln(p)   (natural log; result in nats)</code></pre>
+<ul>
+<li><strong>Low entropy</strong> — visits pile up on one or two moves. The search is certain, or stuck. If one move gets 95% of visits, H ≈ 0.</li>
+<li><strong>High entropy</strong> — visits spread across many moves. The search is genuinely exploring.</li>
+</ul>
+<p>A useful intuition: <code>e^H</code> gives the <strong>effective number of moves</strong> the search is seriously considering. H = 1.35 nats means roughly 4 moves are being meaningfully explored. H = 0 means the search has collapsed to one move.</p>
+<p>Entropy is logged as <code>avg_visit_entropy</code> in the training log — the mean over all decision moves in a game. It’s a proxy for whether exploration is healthy or has collapsed.</p>
+<hr>
+</section>
+<section id="why-visit-distributions-beat-raw-network-output" class="level2">
+<h2 class="anchored" data-anchor-id="why-visit-distributions-beat-raw-network-output">Why visit distributions beat raw network output</h2>
+<p>The raw network policy prior is just a guess — “which moves look promising before looking ahead?” When the network is newly initialised, this is nearly random.</p>
+<p>The search-refined visit distribution incorporates <strong>value estimates at the leaves</strong>. Even if the policy prior is random, simulations that reach positions the value head rates highly accumulate more visits. So as long as the value head has learned <em>anything at all</em>, the visit distribution is slightly better than the prior.</p>
+<p>The network then trains to match visit distributions — always training to match something slightly smarter than itself. That’s the bootstrapping loop.</p>
+<p>In the very first iterations, when the value head is random too, the advantage is negligible. The system really starts learning once the value head picks up genuine patterns from game outcomes.</p>
+<hr>
+</section>
+<section id="temperature" class="level2">
+<h2 class="anchored" data-anchor-id="temperature">Temperature</h2>
+<p>After running all simulations, the visit distribution needs to be converted into (a) a training target and (b) an actual move choice. Temperature governs the second without affecting the first.</p>
+<p>The <strong>policy target</strong> is always the raw visit distribution — visit counts divided by total visits. Temperature is never applied to the training label.</p>
+<p>To <strong>select a move</strong>, visit counts are raised to the power <code>1/T</code>, then renormalised:</p>
+<pre><code>p(a) ∝ N(a)^(1/T)</code></pre>
+<ul>
+<li><strong>T = 1.0</strong> — sample proportionally to visit counts. The most-visited move is most likely but alternatives get real probability. Used for the first 30 moves of each training game to expose the network to a wider variety of positions.</li>
+<li><strong>T = 0</strong> — always pick the most-visited move (argmax). Deterministic. Used for the remainder of each game, where consistent play produces cleaner value targets.</li>
+</ul>
+<p>The policy target stored in each training example is always the <strong>raw visit distribution</strong>, regardless of which temperature was used to pick the actual move.</p>
+<hr>
+</section>
+<section id="the-learning-cycle" class="level2">
+<h2 class="anchored" data-anchor-id="the-learning-cycle">The learning cycle</h2>
+<p>The only ground truth in the system is <strong>game outcomes</strong>. Everything else is the network talking to itself. The chain is:</p>
+<pre><code>game outcome → value head improves → look-ahead becomes meaningful
+             → visit distributions improve → policy head improves</code></pre>
+<p>The policy head has no independent ground truth. It only trains to match visit distributions, which are only as good as the value head behind them. This is why value loss is the more important diagnostic in the training curves.</p>
+<section id="a-toy-example-one-move-backgammon" class="level3">
+<h3 class="anchored" data-anchor-id="a-toy-example-one-move-backgammon">A toy example: one-move backgammon</h3>
+<p>To make this concrete, imagine a drastically simplified game: you roll a die, you have exactly two legal moves — Left or Right — and the game ends immediately. Left wins 70% of the time, Right 30%.</p>
+<p><strong>Iteration 0 — network knows nothing</strong></p>
+<p>Value head returns 0.0 everywhere. Policy prior: 50/50.</p>
+<p>MCTS runs 4 simulations. Both moves get evaluated, both return 0.0. Visit distribution: 50/50 — identical to the prior. Search added nothing.</p>
+<p>Game is played, Left chosen, Left wins. Training example stored:</p>
+<pre><code>policy_target = 50/50,  value_target = +1</code></pre>
+<p>Value head nudges slightly toward “Left-type positions → +1”. Policy head learns nothing (target was 50/50).</p>
+<hr>
+<p><strong>Iteration 1 — value head has a tiny signal</strong></p>
+<p>Value head now returns +0.1 for Left positions, 0.0 for Right.</p>
+<p>MCTS runs 4 simulations. PUCT slightly favours Left (Q=+0.1) but also explores Right (unvisited). Visit counts: Left 3, Right 1. Distribution: <strong>75/25</strong>.</p>
+<p>Game played, Left wins again. Training example:</p>
+<pre><code>policy_target = 75/25,  value_target = +1</code></pre>
+<p>Now the policy head has a real signal: Left should get more visits. Value head gets another +1 from a Left position.</p>
+<hr>
+<p><strong>Iteration 2 — signal compounding</strong></p>
+<p>Value head: Left → +0.2, Right → 0.0.</p>
+<p>MCTS now sends most simulations to Left. PUCT’s exploration bonus keeps the distribution from reaching absolute 0 on Right, but the skew is severe — say <strong>~95/5</strong>. The game outcome is a <strong>loss</strong> (it happens 30% of the time). Training example:</p>
+<pre><code>policy_target = 95/5,  value_target = -1</code></pre>
+<p>The value head gets a -1 from a Left position and revises downward. The skewed policy target is also a problem: the policy head is learning to almost never consider Right, even though Right sometimes leads to better outcomes.</p>
+<hr>
+<p><strong>Stabilisation</strong></p>
+<p>Over many games, the value head converges toward the true expected outcome of each move: - Left: wins 70% → value converges to <strong>+0.4</strong> - Right: wins 30% → value converges to <strong>-0.4</strong></p>
+<p><em>(In Raccoon, outcomes are ±1/±2/±3 for normal/gammon/backgammon wins, divided by 3 before being stored as value targets so they fit in the tanh output range. The ±0.4 figures above assume simple ±1 outcomes.)</em></p>
+<p>Once the value head is accurate, MCTS sends essentially all visits to Left — it is always the better move, so there is no reason to keep exploring Right. The policy head learns to strongly prefer Left, and the game is essentially solved.</p>
+<hr>
+</section>
+<section id="a-backgammon-example-blitz-or-build" class="level3">
+<h3 class="anchored" data-anchor-id="a-backgammon-example-blitz-or-build">A backgammon example: blitz or build?</h3>
+<p>Same learning loop, more realistic setting. Mid-game, you roll 6-5. Two legal moves:</p>
+<ul>
+<li><strong>Move A — Blitz</strong>: Hit two of your opponent’s blots, sending both to the bar. Aggressive. If the opponent rolls poorly re-entering, you could win a gammon. But your own board is left open.</li>
+<li><strong>Move B — Build</strong>: Make two strong blocking points in your home board. Solid. Fewer fireworks, but you reduce your own gammon risk and set up a prime.</li>
+</ul>
+<p><strong>Early training — network knows nothing</strong></p>
+<p>Value head is random. MCTS explores both moves roughly equally. Some games from Move A end in gammons (both winning and losing ones). Some games from Move B end in normal wins. The value head starts picking up a weak signal: “aggressive positions correlate with large swings in outcome.”</p>
+<p><strong>After ~50 iterations — network has learned something</strong></p>
+<p>Both sides are leaning toward Move A. The feedback loop runs as follows: the network rates blitz positions higher → PUCT sends more simulations to Move A → visit distributions tighten around Move A → the network trains to become even more confident about blitz → repeat. Build positions (Move B) appear rarely in self-play, so the value head accumulates little data on them and cannot evaluate them reliably — not because building is bad, but because it has almost stopped being explored. MCTS now sends nearly all visits to Move A.</p>
+<p>Self-play becomes: both sides blitz. Games are chaotic and end in gammons frequently. The value head accurately models “this type of position leads to a gammon” — but it has seen very few games where someone played Move B and reached a stable mid-game. It can’t evaluate those positions well because they rarely appear in training data.</p>
+<p><strong>The plateau</strong></p>
+<p>Both sides have learned to blitz. Gammon rates freeze at 40%+. Policy loss keeps falling — the network is confidently and consistently choosing Move A — but that just means it has confidently learned the wrong thing. The value head is accurate for the positions it has seen, useless for the positions it hasn’t.</p>
+<p>The within-experiment benchmark test confirms this: playing iter 282 against iter 260 produces no detectable improvement. Both checkpoints have the same blind spot.</p>
+<p><strong>With Dirichlet noise</strong></p>
+<p>On some fraction of moves, MCTS is nudged to seriously consider Move B even though the network currently rates it lower. Games now occasionally follow the build path. The value head starts seeing positions that arise from building — and crucially, seeing their outcomes. It discovers that build positions lead to stable wins with lower variance: fewer gammons conceded, fewer gammons won.</p>
+<p>Over time the value head can discriminate: “blitz is better in a racing game where the opponent is weak; building is better when you need to contain.” Visit distributions widen. Self-play games diversify. The gammon rate starts falling not because the network was told to avoid gammons, but because it explored enough of the tree to discover that some moves lead to them less often.</p>
+<hr>
+</section>
+</section>
+<section id="the-plateau-problem-and-why-it-happens" class="level2">
+<h2 class="anchored" data-anchor-id="the-plateau-problem-and-why-it-happens">The plateau problem and why it happens</h2>
+<p>In Raccoon’s case, both sides of self-play were conceding gammons and backgammons at roughly 10x the rate of strong play. The value head learned “this type of position leads to a gammon” accurately — but <em>never saw the positions that arise from avoiding gammons</em>, because neither side in self-play ever explored those branches.</p>
+<p>The visit distributions collapsed: the network got opinionated about which moves to play, simulations confirmed those opinions, and the search stopped looking at alternatives. The policy head trained on those collapsed distributions, the network got more opinionated, and so on. A feedback loop.</p>
+<p>Evidence: <code>avg_visit_entropy</code> declining over training, gammon and backgammon rates frozen across hundreds of iterations despite falling policy loss.</p>
+<hr>
+</section>
+<section id="dirichlet-noise" class="level2">
+<h2 class="anchored" data-anchor-id="dirichlet-noise">Dirichlet noise</h2>
+<p>At the root node of every self-play search, before any simulations run, the network’s prior probabilities are mixed with a sample from a Dirichlet distribution:</p>
+<pre><code>p_noisy = (1 - ε) · p_network  +  ε · Dirichlet(α)</code></pre>
+<p>With ε=0.25 and α=0.3 (Raccoon’s settings), 25% of the prior is replaced by a random vector that is somewhat sparse — a few moves get a meaningful bump, most get very little, and <em>which</em> moves get the bump is different every single search.</p>
+<p>The Dirichlet distribution itself generates random probability vectors. The α parameter controls concentration: - Low α (0.1): spiky — most weight on one item - α = 1: roughly uniform random - High α (10): very close to uniform</p>
+<p>α=0.3 produces vectors that are moderately sparse, matching the typical structure of backgammon positions where a few moves are genuinely better but some alternatives are worth considering.</p>
+<p><strong>Why this helps:</strong> the noise forces MCTS to occasionally commit simulations to moves the network currently rates lowly. Some of those moves are bad — the network learns that. But some lead to positions the search has never visited, generating training examples that cover new territory. Over time the self-play distribution widens, the value head learns more of the game tree, and the feedback loop is broken.</p>
+<p>The <code>avg_visit_entropy</code> metric in the training log is the direct observable: if entropy holds up or rises over training (rather than collapsing toward 0), the noise is doing its job.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
