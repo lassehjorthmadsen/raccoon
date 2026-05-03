@@ -1,6 +1,12 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - "*.qmd"
+    - "*.md"
+    - "!training_research.qmd"
+    - "!plan.md"
+    - "!matches/**"
 
 website:
   title: "Raccoon"
