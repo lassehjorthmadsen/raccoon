@@ -245,6 +245,104 @@
     "text": "Summary and Next Steps\n\nKey Findings Across Experiments\n1. Policy and value loss diverge — read them separately.\n\nexp000: policy loss drops smoothly (6.5 → 1.77), value loss drifts up slowly (0.097 → 0.112).\nexp001: policy loss drops early then flattens/drifts; value loss rises more clearly (0.105 → 0.140).\nexp003: policy loss jumped from ~1.88 to ~2.19 in the first 15 iterations (buffer fill artifact at resume), then plateaued flat. Value loss flat at ~0.06. Neither head improved over 137 iterations.\nRising value loss is not by itself proof of improvement or regression. It is a signal that the value head is fitting the replay distribution worse over time — which has several candidate explanations.\n\n2. Self-play appears plateaued at a weak-play equilibrium across all four experiments.\n\nGammon rates are flat at ~33–43% across all runs. Strong-vs-strong play is ~15–20%.\nBackgammon rates are flat at ~15–16%. Strong play is ~1%.\nThese rates are not declining over training iterations. This is the strongest evidence that the networks are not materially improving at the thing that matters (avoiding catastrophic positions).\nAgainst GNUBG 0-ply, exp001 conceded 23 backgammons in 50 games (46%), consistent with this.\nexp002’s smaller buffer didn’t move this needle — confirmed by benchmarks. exp002 iter_147 vs GNUBG 0-ply: 0-50, -2.300 ppg (virtually identical to exp001’s -2.32 ppg). Within-experiment: iter_147 vs iter_125, 26-24 (52%), +0.300 ppg (not significant, SE ≈ 0.25 ppg). Cross-experiment: exp001 iter_282 beats exp002 iter_147 (30-20, -0.440 ppg). The staleness fix improved fitting but not play quality; exp001 remains stronger despite worse loss curves.\nexp003’s Dirichlet noise didn’t move this needle either. Visit entropy stayed flat at ~1.37 for all 137 logged iterations. The plateau is not caused by exploration collapse; Dirichlet noise prevents collapse but cannot overcome the weak policy prior.\n\n3. The “rising loss masks strength gain” hypothesis is now contradicted by direct evidence.\n\nThe decisive test (iter_k vs iter_k-20 within exp001 at equal eval sims) has been run: iter_282 vs iter_260, 27-23, +0.120 ppg over 50 games. Statistically indistinguishable from zero.\n22 iterations of training produced no detectable strength gain in head-to-head play.\nCombined with flat gammon/BG rates and the iter_282 vs GNUBG 0-ply 0-50 result, the rising value loss is not masking improvement — the network is plateaued.\nexp002 within-experiment check (iter_147 vs iter_125, +0.300 ppg, n=50) is also not significant (z ≈ 1.2, SE ≈ 0.25 ppg). The plateau is present in both training regimes.\nexp003 within-experiment check (iter_220 vs iter_150, -0.430 ppg, n=100, 50 eval sims) shows outright regression. With Dirichlet noise and a 25k buffer, the newer checkpoint is weaker than the older one.\n\n4. Player-0 equity bias is a training artifact of low-sim MCTS, not an engine bug.\n\nexp000: +0.3 equity bias for player 0, persistent across all iterations.\nexp001: reduced to ~+0.08 with deeper search.\nRandom-vs-random baseline (n=3000): +0.04 ± 0.04. Engine is symmetric.\nA small asymmetry in the raw network outputs gets amplified by shallow MCTS and reinforced by training. More sims dilute it.\n\n5. Training efficiency\n\nexp001 is ~40× slower per iteration (50 min vs 1.2 min) due to 8× MCTS sims and 5× games.\nSGD stays cheap (~2–3 sec); self-play is the bottleneck. GPU helps the fast step.\nexp002’s 50k buffer improved fitting metrics but not play quality vs exp001’s 500k buffer. Buffer size is not the lever that breaks the plateau.\nexp003 runs ~18 min/iter on CPU (100 sims, 25 games). Adding Dirichlet noise adds no measurable overhead.\n\n6. All four experiments are far from GNUBG-competitive — even at the weakest setting.\n\nexp000 iter_498: 0-10 vs GNUBG world-class (n=10, wide CI).\nexp001 iter_112: 1-49 (-2.22 ppg) vs GNUBG world-class with 19 gammons and 22 backgammons conceded.\nexp001 iter_282: 0-50 (-2.32 ppg) vs GNUBG 0-ply (the weakest setting), 20 gammons and 23 backgammons conceded. 0-ply was added to discriminate degrees of weakness; instead it confirms the plateau is not “almost-but-not-quite-GNUBG-0-ply” — it’s much further away than that.\nexp002 iter_147: 0-50 (-2.300 ppg) vs GNUBG 0-ply, 19 gammons and 23 backgammons conceded, 0 for Raccoon. Indistinguishable from exp001 despite better fitting metrics.\nM6 milestone (beat GNUBG at money game) is not in reach at current training settings.\n\n\n\nImmediate Next Steps\nexp003 has been abandoned (2026-05-03). All three hypotheses tested so far (buffer staleness, buffer size, exploration collapse via Dirichlet noise) failed to break the plateau. exp001 iter_282 remains the strongest checkpoint. The training signal itself is the likely bottleneck.\n\nRun benchmarks for exp002. Done (2026-04-30). iter_147 vs iter_125: 26-24 (52%), +0.300 ppg (n.s.). vs GNUBG 0-ply: 0-50, -2.300 ppg. vs exp001 iter_282: 20-30, -0.440 ppg (exp001 wins). Conclusion: smaller buffer is not a play-quality improvement.\nTrack MCTS visit-distribution entropy over training. Done (exp003). Visit entropy logged throughout; flat at ~1.37 for all 137 iterations. Exploration is not collapsing, but it is also not improving.\nAdd Dirichlet root noise. Done (exp003). Dirichlet noise (alpha=0.3, eps=0.25) added in exp003. Did not break the plateau — iter_220 lost to iter_150 (-0.43 ppg) and iter_280 drew iter_150 (-0.13 ppg, n.s.). 130 iterations of training produced no detectable improvement. Exploration collapse was not the root cause.\nAdd a learning rate schedule. Fixed LR 0.001 throughout all four experiments. Step decay (e.g. ×0.1 at iter 150 and iter 300) would allow the optimizer to settle rather than continuing to perturb weights. Low effort; likely to reduce the oscillation that currently prevents the value head from converging.\nConsider value target bootstrapping. Replace raw game outcome with MCTS root Q (or a blend) as the value target. Compresses extreme labels and adds a gradient signal from search. Moderate implementation effort; directly addresses the noisy value targets that are the most likely cause of the plateau.\nScale sims, not iterations. Going to 400–800 sims is a more promising next lever than further iteration count.\nInfrastructure. Future experiments should be added to the EXPERIMENTS dict; download logs from GCS and re-render.\n\n\n\nOpen Questions\n\nResolved (2026-04-30): exp002’s better fitting does not translate to stronger play. 0-50 vs GNUBG 0-ply (-2.300 ppg, identical to exp001 iter_282) and exp001 iter_282 beats exp002 iter_147 head-to-head (30-20, -0.440 ppg). The smaller buffer addressed a fitting symptom, not the underlying weakness.\nResolved (2026-05-03): MCTS visit entropy is not collapsing — it is flat at ~1.37 (exp003). Dirichlet noise keeps exploration alive but cannot improve the policy prior when the network itself is stuck.\nResolved (2026-05-03): Dirichlet root noise does not break the gammon/bg plateau (exp003).\nCan value-target bootstrapping (root Q instead of terminal return) fix the rising value loss and break the plateau?\nWould a LR schedule (step decay) reduce weight oscillation enough to let the value head converge?\nAt what point does scaling up the network architecture (10 blocks, 256 channels) make sense, vs. fixing the training signal at current architecture first?"
   },
   {
+    "objectID": "reference/train.replay_buffer.html",
+    "href": "reference/train.replay_buffer.html",
+    "title": "train.replay_buffer",
+    "section": "",
+    "text": "train.replay_buffer\nCircular replay buffer for training positions.\n\n\n\n\n\nName\nDescription\n\n\n\n\nReplayBuffer\nStores training positions and samples random batches.\n\n\n\n\n\ntrain.replay_buffer.ReplayBuffer(max_size=100000)\nStores training positions and samples random batches.\n\n\n\n\n\nName\nDescription\n\n\n\n\nsample_batch\nSample a random batch as PyTorch tensors.\n\n\n\n\n\ntrain.replay_buffer.ReplayBuffer.sample_batch(batch_size)\nSample a random batch as PyTorch tensors.\nReturns: obs_batch: (batch, 16, 2, 12) policy_batch: (batch, 1352) value_batch: (batch,)"
+  },
+  {
+    "objectID": "reference/train.replay_buffer.html#classes",
+    "href": "reference/train.replay_buffer.html#classes",
+    "title": "train.replay_buffer",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nReplayBuffer\nStores training positions and samples random batches.\n\n\n\n\n\ntrain.replay_buffer.ReplayBuffer(max_size=100000)\nStores training positions and samples random batches.\n\n\n\n\n\nName\nDescription\n\n\n\n\nsample_batch\nSample a random batch as PyTorch tensors.\n\n\n\n\n\ntrain.replay_buffer.ReplayBuffer.sample_batch(batch_size)\nSample a random batch as PyTorch tensors.\nReturns: obs_batch: (batch, 16, 2, 12) policy_batch: (batch, 1352) value_batch: (batch,)"
+  },
+  {
+    "objectID": "reference/search.mcts.html",
+    "href": "reference/search.mcts.html",
+    "title": "search.mcts",
+    "section": "",
+    "text": "search.mcts\nAlphaZero-style MCTS with chance-node handling for backgammon.\n\n\n\n\n\nName\nDescription\n\n\n\n\nAnalysis\nFull MCTS analysis of a position, for display/debugging.\n\n\nCandidate\nA single candidate move from MCTS analysis.\n\n\nMCTS\nMonte Carlo Tree Search with PUCT selection.\n\n\nMCTSNode\nA node in the MCTS tree. Only decision and terminal nodes are stored.\n\n\n\n\n\nsearch.mcts.Analysis(candidates, root_value, num_simulations)\nFull MCTS analysis of a position, for display/debugging.\n\n\n\nsearch.mcts.Candidate(action, visits, visit_prob, prior, q_value)\nA single candidate move from MCTS analysis.\n\n\n\nsearch.mcts.MCTS(\n    network,\n    num_simulations=100,\n    c_puct=1.5,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n)\nMonte Carlo Tree Search with PUCT selection.\n\n\n\n\n\nName\nDescription\n\n\n\n\nanalyze\nRun MCTS and return a full Analysis with per-candidate stats.\n\n\nsearch\nRun MCTS and return (action -&gt; visit proportion, visit entropy).\n\n\nsearch_with_value\nRun MCTS and return (action_probs, visit_entropy, root_q_value).\n\n\n\n\n\nsearch.mcts.MCTS.analyze(state)\nRun MCTS and return a full Analysis with per-candidate stats.\n\n\n\nsearch.mcts.MCTS.search(state)\nRun MCTS and return (action -&gt; visit proportion, visit entropy).\n\n\n\nsearch.mcts.MCTS.search_with_value(state)\nRun MCTS and return (action_probs, visit_entropy, root_q_value).\n\n\n\n\n\nsearch.mcts.MCTSNode(state, parent=None, parent_action=None, prior=0.0)\nA node in the MCTS tree. Only decision and terminal nodes are stored.\nUses lazy child creation: when a node is expanded (evaluated by the network), only the prior probabilities are stored. Child nodes are created on-demand when first selected by PUCT, avoiding expensive state cloning for actions that are never visited.\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nselect_action\nSample an action from the visit distribution.\n\n\n\n\n\nsearch.mcts.select_action(action_probs, temperature=1.0)\nSample an action from the visit distribution."
+  },
+  {
+    "objectID": "reference/search.mcts.html#classes",
+    "href": "reference/search.mcts.html#classes",
+    "title": "search.mcts",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nAnalysis\nFull MCTS analysis of a position, for display/debugging.\n\n\nCandidate\nA single candidate move from MCTS analysis.\n\n\nMCTS\nMonte Carlo Tree Search with PUCT selection.\n\n\nMCTSNode\nA node in the MCTS tree. Only decision and terminal nodes are stored.\n\n\n\n\n\nsearch.mcts.Analysis(candidates, root_value, num_simulations)\nFull MCTS analysis of a position, for display/debugging.\n\n\n\nsearch.mcts.Candidate(action, visits, visit_prob, prior, q_value)\nA single candidate move from MCTS analysis.\n\n\n\nsearch.mcts.MCTS(\n    network,\n    num_simulations=100,\n    c_puct=1.5,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n)\nMonte Carlo Tree Search with PUCT selection.\n\n\n\n\n\nName\nDescription\n\n\n\n\nanalyze\nRun MCTS and return a full Analysis with per-candidate stats.\n\n\nsearch\nRun MCTS and return (action -&gt; visit proportion, visit entropy).\n\n\nsearch_with_value\nRun MCTS and return (action_probs, visit_entropy, root_q_value).\n\n\n\n\n\nsearch.mcts.MCTS.analyze(state)\nRun MCTS and return a full Analysis with per-candidate stats.\n\n\n\nsearch.mcts.MCTS.search(state)\nRun MCTS and return (action -&gt; visit proportion, visit entropy).\n\n\n\nsearch.mcts.MCTS.search_with_value(state)\nRun MCTS and return (action_probs, visit_entropy, root_q_value).\n\n\n\n\n\nsearch.mcts.MCTSNode(state, parent=None, parent_action=None, prior=0.0)\nA node in the MCTS tree. Only decision and terminal nodes are stored.\nUses lazy child creation: when a node is expanded (evaluated by the network), only the prior probabilities are stored. Child nodes are created on-demand when first selected by PUCT, avoiding expensive state cloning for actions that are never visited."
+  },
+  {
+    "objectID": "reference/search.mcts.html#functions",
+    "href": "reference/search.mcts.html#functions",
+    "title": "search.mcts",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nselect_action\nSample an action from the visit distribution.\n\n\n\n\n\nsearch.mcts.select_action(action_probs, temperature=1.0)\nSample an action from the visit distribution."
+  },
+  {
+    "objectID": "reference/model.network.html",
+    "href": "reference/model.network.html",
+    "title": "model.network",
+    "section": "",
+    "text": "model.network\nResNet policy-value network for backgammon.\n\n\n\n\n\nName\nDescription\n\n\n\n\nRaccoonNet\nResNet with policy and value heads for backgammon.\n\n\nResidualBlock\nConv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU.\n\n\n\n\n\nmodel.network.RaccoonNet(\n    in_channels=17,\n    board_h=2,\n    board_w=12,\n    num_actions=1352,\n    channels=128,\n    num_blocks=6,\n)\nResNet with policy and value heads for backgammon.\n\n\n\n\n\nName\nDescription\n\n\n\n\nforward\nForward pass.\n\n\npredict\nSingle-position inference for MCTS.\n\n\npredict_batch\nBatched inference for multiple positions.\n\n\n\n\n\nmodel.network.RaccoonNet.forward(x)\nForward pass.\nArgs: x: (batch, 16, 2, 12)\nReturns: policy_logits: (batch, 1352) raw logits (not masked) value: (batch, 1) in [-1, 1]\n\n\n\nmodel.network.RaccoonNet.predict(obs, legal_actions)\nSingle-position inference for MCTS.\nArgs: obs: (17, 2, 12) numpy array legal_actions: list of valid action indices\nReturns: policy: dict mapping action -&gt; probability (sums to ~1, only legal) value: scalar float in [-1, 1]\n\n\n\nmodel.network.RaccoonNet.predict_batch(obs_list, legal_actions_list)\nBatched inference for multiple positions.\nArgs: obs_list: list of (17, 2, 12) numpy arrays legal_actions_list: list of legal action lists\nReturns: list of (policy_dict, value) tuples\n\n\n\n\n\nmodel.network.ResidualBlock(channels)\nConv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU.\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nload_model\nCreate a RaccoonNet from a checkpoint, using its saved config.\n\n\n\n\n\nmodel.network.load_model(path)\nCreate a RaccoonNet from a checkpoint, using its saved config.\nFalls back to default config for older checkpoints without config."
+  },
+  {
+    "objectID": "reference/model.network.html#classes",
+    "href": "reference/model.network.html#classes",
+    "title": "model.network",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nRaccoonNet\nResNet with policy and value heads for backgammon.\n\n\nResidualBlock\nConv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU.\n\n\n\n\n\nmodel.network.RaccoonNet(\n    in_channels=17,\n    board_h=2,\n    board_w=12,\n    num_actions=1352,\n    channels=128,\n    num_blocks=6,\n)\nResNet with policy and value heads for backgammon.\n\n\n\n\n\nName\nDescription\n\n\n\n\nforward\nForward pass.\n\n\npredict\nSingle-position inference for MCTS.\n\n\npredict_batch\nBatched inference for multiple positions.\n\n\n\n\n\nmodel.network.RaccoonNet.forward(x)\nForward pass.\nArgs: x: (batch, 16, 2, 12)\nReturns: policy_logits: (batch, 1352) raw logits (not masked) value: (batch, 1) in [-1, 1]\n\n\n\nmodel.network.RaccoonNet.predict(obs, legal_actions)\nSingle-position inference for MCTS.\nArgs: obs: (17, 2, 12) numpy array legal_actions: list of valid action indices\nReturns: policy: dict mapping action -&gt; probability (sums to ~1, only legal) value: scalar float in [-1, 1]\n\n\n\nmodel.network.RaccoonNet.predict_batch(obs_list, legal_actions_list)\nBatched inference for multiple positions.\nArgs: obs_list: list of (17, 2, 12) numpy arrays legal_actions_list: list of legal action lists\nReturns: list of (policy_dict, value) tuples\n\n\n\n\n\nmodel.network.ResidualBlock(channels)\nConv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU."
+  },
+  {
+    "objectID": "reference/model.network.html#functions",
+    "href": "reference/model.network.html#functions",
+    "title": "model.network",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nload_model\nCreate a RaccoonNet from a checkpoint, using its saved config.\n\n\n\n\n\nmodel.network.load_model(path)\nCreate a RaccoonNet from a checkpoint, using its saved config.\nFalls back to default config for older checkpoints without config."
+  },
+  {
+    "objectID": "reference/eval.gnubg_harness.html",
+    "href": "reference/eval.gnubg_harness.html",
+    "title": "eval.gnubg_harness",
+    "section": "",
+    "text": "eval.gnubg_harness\nAutomated money-game sessions against GNUBG via the gnubg-nn package.\nThis is the M6 benchmark harness. Raccoon (driven by MCTS on a RaccoonNet) plays a cubeless money game against GNUBG’s neural-net evaluator. Gammons and backgammons are scored (2x / 3x) via OpenSpiel’s terminal_result.\nThe GNUBG FFI is isolated in raccoon.eval.gnubg_adapter so this module stays free of conditional imports.\n\n\n\n\n\nName\nDescription\n\n\n\n\nGnubgHarness\nPlay a session of money games between Raccoon and GNUBG.\n\n\n\n\n\neval.gnubg_harness.GnubgHarness(\n    raccoon_network,\n    gnubg_level='world',\n    num_simulations=200,\n    ply=None,\n    log_games=False,\n    raccoon_version='unknown',\n)\nPlay a session of money games between Raccoon and GNUBG.\ngnubg_level is a friendly string (e.g. \"world\") mapped to a ply integer via gnubg_adapter.level_to_ply. Pass ply explicitly to override (0 = fastest, 2 = strongest).\n\n\n\n\n\nName\nDescription\n\n\n\n\nplay_match\nPlay num_games money games and return aggregated results.\n\n\n\n\n\neval.gnubg_harness.GnubgHarness.play_match(num_games=1000)\nPlay num_games money games and return aggregated results."
+  },
+  {
+    "objectID": "reference/eval.gnubg_harness.html#classes",
+    "href": "reference/eval.gnubg_harness.html#classes",
+    "title": "eval.gnubg_harness",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nGnubgHarness\nPlay a session of money games between Raccoon and GNUBG.\n\n\n\n\n\neval.gnubg_harness.GnubgHarness(\n    raccoon_network,\n    gnubg_level='world',\n    num_simulations=200,\n    ply=None,\n    log_games=False,\n    raccoon_version='unknown',\n)\nPlay a session of money games between Raccoon and GNUBG.\ngnubg_level is a friendly string (e.g. \"world\") mapped to a ply integer via gnubg_adapter.level_to_ply. Pass ply explicitly to override (0 = fastest, 2 = strongest).\n\n\n\n\n\nName\nDescription\n\n\n\n\nplay_match\nPlay num_games money games and return aggregated results.\n\n\n\n\n\neval.gnubg_harness.GnubgHarness.play_match(num_games=1000)\nPlay num_games money games and return aggregated results."
+  },
+  {
+    "objectID": "reference/env.game_wrapper.html",
+    "href": "reference/env.game_wrapper.html",
+    "title": "env.game_wrapper",
+    "section": "",
+    "text": "env.game_wrapper\nOpenSpiel backgammon wrapper with perspective-relative board views.\nOpenSpiel’s Python bindings for backgammon do not expose direct accessors for bar counts, borne-off counts, or the current dice roll — only for board points. This wrapper therefore parses those fields out of str(state), which is a known-fragile pattern (OpenSpiel makes no stability guarantee on its __str__ format). The parsing is isolated to parse_bar_and_off and parse_dice; if OpenSpiel ever changes formatting, those two functions are the only places that need updating.\n\n\n\n\n\nName\nDescription\n\n\n\n\nBoardView\nBoard state from the current player’s perspective.\n\n\nGameState\nWrapper around an OpenSpiel BackgammonState.\n\n\nGameWrapper\nFactory for creating new backgammon games.\n\n\n\n\n\nenv.game_wrapper.BoardView(\n    my_points,\n    opp_points,\n    my_bar,\n    opp_bar,\n    my_off,\n    opp_off,\n    dice,\n    mid_doubles=False,\n)\nBoard state from the current player’s perspective.\nAll arrays use perspective-relative indexing where point 1 (index 0) is closest to the current player’s bearoff.\n\n\n\nenv.game_wrapper.GameState(state)\nWrapper around an OpenSpiel BackgammonState.\n\n\n\n\n\nName\nDescription\n\n\n\n\nboard\nReturn the checker count for player at board index index.\n\n\nboard_from_perspective\nReturn the board from the current player’s perspective.\n\n\nparse_bar_and_off\nParse bar and borne-off counts from the state string.\n\n\nterminal_result\nReturn (equity, result_type) for a terminal state.\n\n\n\n\n\nenv.game_wrapper.GameState.board(player, index)\nReturn the checker count for player at board index index.\nOpenSpiel indexes both players’ boards with index i corresponding to standard point 24 - i (i.e. index 0 is point 24, index 23 is point 1). See raccoon/cli/display.py for the point-number layout.\n\n\n\nenv.game_wrapper.GameState.board_from_perspective()\nReturn the board from the current player’s perspective.\n\n\n\nenv.game_wrapper.GameState.parse_bar_and_off(current_player)\nParse bar and borne-off counts from the state string.\n\n\n\nenv.game_wrapper.GameState.terminal_result()\nReturn (equity, result_type) for a terminal state.\nequity is from player 0’s perspective: +1/+2/+3 or -1/-2/-3. result_type is ‘normal’, ‘gammon’, or ‘backgammon’.\nRelies on OpenSpiel being loaded with scoring_type=full_scoring, which makes returns() expose the ±1/±2/±3 multipliers natively.\n\n\n\n\n\nenv.game_wrapper.GameWrapper()\nFactory for creating new backgammon games.\nUses OpenSpiel’s full_scoring mode so state.returns() produces ±1/±2/±3 for normal/gammon/backgammon wins (instead of the default winloss_scoring which flattens everything to ±1). This matches the money-game semantics Raccoon is training for."
+  },
+  {
+    "objectID": "reference/env.game_wrapper.html#classes",
+    "href": "reference/env.game_wrapper.html#classes",
+    "title": "env.game_wrapper",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nBoardView\nBoard state from the current player’s perspective.\n\n\nGameState\nWrapper around an OpenSpiel BackgammonState.\n\n\nGameWrapper\nFactory for creating new backgammon games.\n\n\n\n\n\nenv.game_wrapper.BoardView(\n    my_points,\n    opp_points,\n    my_bar,\n    opp_bar,\n    my_off,\n    opp_off,\n    dice,\n    mid_doubles=False,\n)\nBoard state from the current player’s perspective.\nAll arrays use perspective-relative indexing where point 1 (index 0) is closest to the current player’s bearoff.\n\n\n\nenv.game_wrapper.GameState(state)\nWrapper around an OpenSpiel BackgammonState.\n\n\n\n\n\nName\nDescription\n\n\n\n\nboard\nReturn the checker count for player at board index index.\n\n\nboard_from_perspective\nReturn the board from the current player’s perspective.\n\n\nparse_bar_and_off\nParse bar and borne-off counts from the state string.\n\n\nterminal_result\nReturn (equity, result_type) for a terminal state.\n\n\n\n\n\nenv.game_wrapper.GameState.board(player, index)\nReturn the checker count for player at board index index.\nOpenSpiel indexes both players’ boards with index i corresponding to standard point 24 - i (i.e. index 0 is point 24, index 23 is point 1). See raccoon/cli/display.py for the point-number layout.\n\n\n\nenv.game_wrapper.GameState.board_from_perspective()\nReturn the board from the current player’s perspective.\n\n\n\nenv.game_wrapper.GameState.parse_bar_and_off(current_player)\nParse bar and borne-off counts from the state string.\n\n\n\nenv.game_wrapper.GameState.terminal_result()\nReturn (equity, result_type) for a terminal state.\nequity is from player 0’s perspective: +1/+2/+3 or -1/-2/-3. result_type is ‘normal’, ‘gammon’, or ‘backgammon’.\nRelies on OpenSpiel being loaded with scoring_type=full_scoring, which makes returns() expose the ±1/±2/±3 multipliers natively.\n\n\n\n\n\nenv.game_wrapper.GameWrapper()\nFactory for creating new backgammon games.\nUses OpenSpiel’s full_scoring mode so state.returns() produces ±1/±2/±3 for normal/gammon/backgammon wins (instead of the default winloss_scoring which flattens everything to ±1). This matches the money-game semantics Raccoon is training for."
+  },
+  {
+    "objectID": "reference/env.actions.html",
+    "href": "reference/env.actions.html",
+    "title": "env.actions",
+    "section": "",
+    "text": "env.actions\nAction space utilities for OpenSpiel backgammon.\n\n\n\n\n\nName\nDescription\n\n\n\n\nlegal_action_mask\nReturn a boolean mask of shape (1352,). True for legal actions.\n\n\n\n\n\nenv.actions.legal_action_mask(legal_actions)\nReturn a boolean mask of shape (1352,). True for legal actions."
+  },
+  {
+    "objectID": "reference/env.actions.html#functions",
+    "href": "reference/env.actions.html#functions",
+    "title": "env.actions",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nlegal_action_mask\nReturn a boolean mask of shape (1352,). True for legal actions.\n\n\n\n\n\nenv.actions.legal_action_mask(legal_actions)\nReturn a boolean mask of shape (1352,). True for legal actions."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Raccoon",
@@ -278,6 +376,125 @@
     "title": "Raccoon",
     "section": "Source",
     "text": "Source\ngithub.com/lassehjorthmadsen/raccoon"
+  },
+  {
+    "objectID": "reference/env.encoder.html",
+    "href": "reference/env.encoder.html",
+    "title": "env.encoder",
+    "section": "",
+    "text": "env.encoder\nEncode a BoardView into a (17, 2, 12) tensor for the neural network.\n\n\n\n\n\nName\nDescription\n\n\n\n\ndump_tensor\nRender the encoder output for a position as a human-readable string.\n\n\nencode_batch\nEncode multiple board positions. Returns shape (N, 17, 2, 12).\n\n\nencode_state\nEncode a board position as a (17, 2, 12) float32 tensor.\n\n\n\n\n\nenv.encoder.dump_tensor(board_view, *, precision=3)\nRender the encoder output for a position as a human-readable string.\nPure debug helper: encodes board_view and pretty-prints each of the NUM_CHANNELS planes alongside a short header. Planes whose 24 cells are all equal are collapsed to a single scalar with a (broadcast) tag — this is detected from the tensor itself, not assumed by index.\n\n\n\nenv.encoder.encode_batch(board_views)\nEncode multiple board positions. Returns shape (N, 17, 2, 12).\n\n\n\nenv.encoder.encode_state(board_view)\nEncode a board position as a (17, 2, 12) float32 tensor.\nBoard layout: Top row (row 0): perspective points 13..24 -&gt; columns 0..11 Bottom row (row 1): perspective points 12..1 -&gt; columns 0..11\nChannel meanings live in CHANNEL_NAMES so the audit/debug tooling and the encoder can’t drift apart."
+  },
+  {
+    "objectID": "reference/env.encoder.html#functions",
+    "href": "reference/env.encoder.html#functions",
+    "title": "env.encoder",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\ndump_tensor\nRender the encoder output for a position as a human-readable string.\n\n\nencode_batch\nEncode multiple board positions. Returns shape (N, 17, 2, 12).\n\n\nencode_state\nEncode a board position as a (17, 2, 12) float32 tensor.\n\n\n\n\n\nenv.encoder.dump_tensor(board_view, *, precision=3)\nRender the encoder output for a position as a human-readable string.\nPure debug helper: encodes board_view and pretty-prints each of the NUM_CHANNELS planes alongside a short header. Planes whose 24 cells are all equal are collapsed to a single scalar with a (broadcast) tag — this is detected from the tensor itself, not assumed by index.\n\n\n\nenv.encoder.encode_batch(board_views)\nEncode multiple board positions. Returns shape (N, 17, 2, 12).\n\n\n\nenv.encoder.encode_state(board_view)\nEncode a board position as a (17, 2, 12) float32 tensor.\nBoard layout: Top row (row 0): perspective points 13..24 -&gt; columns 0..11 Bottom row (row 1): perspective points 12..1 -&gt; columns 0..11\nChannel meanings live in CHANNEL_NAMES so the audit/debug tooling and the encoder can’t drift apart."
+  },
+  {
+    "objectID": "reference/eval.arena.html",
+    "href": "reference/eval.arena.html",
+    "title": "eval.arena",
+    "section": "",
+    "text": "eval.arena\nCheckpoint vs checkpoint evaluation arena.\n\n\n\n\n\nName\nDescription\n\n\n\n\nArena\nPlay matches between two networks.\n\n\n\n\n\neval.arena.Arena(player1, player2, num_games=100, num_simulations=50)\nPlay matches between two networks.\n\n\n\n\n\nName\nDescription\n\n\n\n\nplay_session\nPlay num_games, alternating who goes first.\n\n\n\n\n\neval.arena.Arena.play_session()\nPlay num_games, alternating who goes first."
+  },
+  {
+    "objectID": "reference/eval.arena.html#classes",
+    "href": "reference/eval.arena.html#classes",
+    "title": "eval.arena",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nArena\nPlay matches between two networks.\n\n\n\n\n\neval.arena.Arena(player1, player2, num_games=100, num_simulations=50)\nPlay matches between two networks.\n\n\n\n\n\nName\nDescription\n\n\n\n\nplay_session\nPlay num_games, alternating who goes first.\n\n\n\n\n\neval.arena.Arena.play_session()\nPlay num_games, alternating who goes first."
+  },
+  {
+    "objectID": "reference/index.html",
+    "href": "reference/index.html",
+    "title": "API Reference",
+    "section": "",
+    "text": "OpenSpiel wrapper, board encoder, and action masking\n\n\n\nenv.game_wrapper\nOpenSpiel backgammon wrapper with perspective-relative board views.\n\n\nenv.encoder\nEncode a BoardView into a (17, 2, 12) tensor for the neural network.\n\n\nenv.actions\nAction space utilities for OpenSpiel backgammon.\n\n\n\n\n\n\nResNet policy-value network\n\n\n\nmodel.network\nResNet policy-value network for backgammon.\n\n\n\n\n\n\nMCTS with chance-node handling\n\n\n\nsearch.mcts\nAlphaZero-style MCTS with chance-node handling for backgammon.\n\n\n\n\n\n\nSelf-play loop, replay buffer, and coach\n\n\n\ntrain.self_play\nSelf-play game generation for training data.\n\n\ntrain.replay_buffer\nCircular replay buffer for training positions.\n\n\ntrain.coach\nTraining orchestrator: self-play -&gt; replay buffer -&gt; SGD -&gt; checkpoint.\n\n\n\n\n\n\nCheckpoint arena and GNUBG benchmark\n\n\n\neval.arena\nCheckpoint vs checkpoint evaluation arena.\n\n\neval.gnubg_harness\nAutomated money-game sessions against GNUBG via the gnubg-nn package.\n\n\n\n\n\n\nRaccoon Game Protocol (RGP)\n\n\n\nprotocol.rgp\nRaccoon Game Protocol (RGP) — text-based engine communication."
+  },
+  {
+    "objectID": "reference/index.html#environment",
+    "href": "reference/index.html#environment",
+    "title": "API Reference",
+    "section": "",
+    "text": "OpenSpiel wrapper, board encoder, and action masking\n\n\n\nenv.game_wrapper\nOpenSpiel backgammon wrapper with perspective-relative board views.\n\n\nenv.encoder\nEncode a BoardView into a (17, 2, 12) tensor for the neural network.\n\n\nenv.actions\nAction space utilities for OpenSpiel backgammon."
+  },
+  {
+    "objectID": "reference/index.html#model",
+    "href": "reference/index.html#model",
+    "title": "API Reference",
+    "section": "",
+    "text": "ResNet policy-value network\n\n\n\nmodel.network\nResNet policy-value network for backgammon."
+  },
+  {
+    "objectID": "reference/index.html#search",
+    "href": "reference/index.html#search",
+    "title": "API Reference",
+    "section": "",
+    "text": "MCTS with chance-node handling\n\n\n\nsearch.mcts\nAlphaZero-style MCTS with chance-node handling for backgammon."
+  },
+  {
+    "objectID": "reference/index.html#training",
+    "href": "reference/index.html#training",
+    "title": "API Reference",
+    "section": "",
+    "text": "Self-play loop, replay buffer, and coach\n\n\n\ntrain.self_play\nSelf-play game generation for training data.\n\n\ntrain.replay_buffer\nCircular replay buffer for training positions.\n\n\ntrain.coach\nTraining orchestrator: self-play -&gt; replay buffer -&gt; SGD -&gt; checkpoint."
+  },
+  {
+    "objectID": "reference/index.html#evaluation",
+    "href": "reference/index.html#evaluation",
+    "title": "API Reference",
+    "section": "",
+    "text": "Checkpoint arena and GNUBG benchmark\n\n\n\neval.arena\nCheckpoint vs checkpoint evaluation arena.\n\n\neval.gnubg_harness\nAutomated money-game sessions against GNUBG via the gnubg-nn package."
+  },
+  {
+    "objectID": "reference/index.html#protocol",
+    "href": "reference/index.html#protocol",
+    "title": "API Reference",
+    "section": "",
+    "text": "Raccoon Game Protocol (RGP)\n\n\n\nprotocol.rgp\nRaccoon Game Protocol (RGP) — text-based engine communication."
+  },
+  {
+    "objectID": "reference/protocol.rgp.html",
+    "href": "reference/protocol.rgp.html",
+    "title": "protocol.rgp",
+    "section": "",
+    "text": "protocol.rgp\nRaccoon Game Protocol (RGP) — text-based engine communication.\nInspired by UCI (chess). Communication via stdin/stdout.\nController -&gt; Engine commands: rgp identify protocol isready ready check newgame start new game position  set board position (OpenSpiel state string) dice   set dice for next move go simulations  search with N simulations quit exit\nEngine -&gt; Controller responses: id name Raccoon v0.1 rgpok protocol acknowledged readyok ready bestmove  chosen move (OpenSpiel action index) info score  nodes  search info\n\n\n\n\n\nName\nDescription\n\n\n\n\nRGPEngine\nRaccoon Game Protocol engine.\n\n\n\n\n\nprotocol.rgp.RGPEngine(network, default_simulations=100)\nRaccoon Game Protocol engine.\n\n\n\n\n\nName\nDescription\n\n\n\n\nrun\nMain loop: read commands from stdin, write responses to stdout.\n\n\n\n\n\nprotocol.rgp.RGPEngine.run(input_stream=None, output_stream=None)\nMain loop: read commands from stdin, write responses to stdout."
+  },
+  {
+    "objectID": "reference/protocol.rgp.html#classes",
+    "href": "reference/protocol.rgp.html#classes",
+    "title": "protocol.rgp",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nRGPEngine\nRaccoon Game Protocol engine.\n\n\n\n\n\nprotocol.rgp.RGPEngine(network, default_simulations=100)\nRaccoon Game Protocol engine.\n\n\n\n\n\nName\nDescription\n\n\n\n\nrun\nMain loop: read commands from stdin, write responses to stdout.\n\n\n\n\n\nprotocol.rgp.RGPEngine.run(input_stream=None, output_stream=None)\nMain loop: read commands from stdin, write responses to stdout."
+  },
+  {
+    "objectID": "reference/train.coach.html",
+    "href": "reference/train.coach.html",
+    "title": "train.coach",
+    "section": "",
+    "text": "train.coach\nTraining orchestrator: self-play -&gt; replay buffer -&gt; SGD -&gt; checkpoint.\n\n\n\n\n\nName\nDescription\n\n\n\n\nCoach\nRuns the AlphaZero training loop.\n\n\n\n\n\ntrain.coach.Coach(\n    network,\n    optimizer,\n    replay_buffer,\n    num_simulations=100,\n    batch_size=256,\n    games_per_iteration=50,\n    training_steps_per_iteration=100,\n    checkpoint_dir='checkpoints',\n    log_dir='logs',\n    experiment_name='',\n    checkpoint_every=10,\n    num_workers=8,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n    value_bootstrap_alpha=1.0,\n    scheduler=None,\n    notes='',\n)\nRuns the AlphaZero training loop.\n\n\n\n\n\nName\nDescription\n\n\n\n\nrun_iteration\nOne full iteration: self-play -&gt; train -&gt; checkpoint -&gt; log.\n\n\nself_play_phase\nGenerate training data through parallel self-play.\n\n\ntraining_phase\nTrain the network on sampled positions from the replay buffer.\n\n\n\n\n\ntrain.coach.Coach.run_iteration(iteration, last_iteration=None)\nOne full iteration: self-play -&gt; train -&gt; checkpoint -&gt; log.\n\n\n\ntrain.coach.Coach.self_play_phase()\nGenerate training data through parallel self-play.\n\n\n\ntrain.coach.Coach.training_phase()\nTrain the network on sampled positions from the replay buffer.\ntarget_value is already normalised to [-1, 1] by self_play (raw backgammon returns ±1/±2/±3 divided by 3), so it can be matched directly against the tanh-bounded value head output."
+  },
+  {
+    "objectID": "reference/train.coach.html#classes",
+    "href": "reference/train.coach.html#classes",
+    "title": "train.coach",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nCoach\nRuns the AlphaZero training loop.\n\n\n\n\n\ntrain.coach.Coach(\n    network,\n    optimizer,\n    replay_buffer,\n    num_simulations=100,\n    batch_size=256,\n    games_per_iteration=50,\n    training_steps_per_iteration=100,\n    checkpoint_dir='checkpoints',\n    log_dir='logs',\n    experiment_name='',\n    checkpoint_every=10,\n    num_workers=8,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n    value_bootstrap_alpha=1.0,\n    scheduler=None,\n    notes='',\n)\nRuns the AlphaZero training loop.\n\n\n\n\n\nName\nDescription\n\n\n\n\nrun_iteration\nOne full iteration: self-play -&gt; train -&gt; checkpoint -&gt; log.\n\n\nself_play_phase\nGenerate training data through parallel self-play.\n\n\ntraining_phase\nTrain the network on sampled positions from the replay buffer.\n\n\n\n\n\ntrain.coach.Coach.run_iteration(iteration, last_iteration=None)\nOne full iteration: self-play -&gt; train -&gt; checkpoint -&gt; log.\n\n\n\ntrain.coach.Coach.self_play_phase()\nGenerate training data through parallel self-play.\n\n\n\ntrain.coach.Coach.training_phase()\nTrain the network on sampled positions from the replay buffer.\ntarget_value is already normalised to [-1, 1] by self_play (raw backgammon returns ±1/±2/±3 divided by 3), so it can be matched directly against the tanh-bounded value head output."
+  },
+  {
+    "objectID": "reference/train.self_play.html",
+    "href": "reference/train.self_play.html",
+    "title": "train.self_play",
+    "section": "",
+    "text": "train.self_play\nSelf-play game generation for training data.\n\n\n\n\n\nName\nDescription\n\n\n\n\nplay_one_game\nPlay a complete self-play game and return training examples + stats.\n\n\n\n\n\ntrain.self_play.play_one_game(\n    network,\n    num_simulations=100,\n    temperature=1.0,\n    temp_threshold=30,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n    value_bootstrap_alpha=1.0,\n)\nPlay a complete self-play game and return training examples + stats."
+  },
+  {
+    "objectID": "reference/train.self_play.html#functions",
+    "href": "reference/train.self_play.html#functions",
+    "title": "train.self_play",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nplay_one_game\nPlay a complete self-play game and return training examples + stats.\n\n\n\n\n\ntrain.self_play.play_one_game(\n    network,\n    num_simulations=100,\n    temperature=1.0,\n    temp_threshold=30,\n    virtual_loss_count=1,\n    dirichlet_alpha=0.0,\n    noise_eps=0.25,\n    value_bootstrap_alpha=1.0,\n)\nPlay a complete self-play game and return training examples + stats."
   },
   {
     "objectID": "architecture.html",

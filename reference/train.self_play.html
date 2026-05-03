@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>architecture – Raccoon</title>
+<title>train.self_play – Raccoon</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,26 +23,61 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-4897d45d2f75ed4f519693be625836c5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-4897d45d2f75ed4f519693be625836c5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -81,7 +116,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">Raccoon</span>
     </a>
   </div>
@@ -92,7 +127,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -101,11 +136,11 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
         <li>
-    <a class="dropdown-item" href="./mcts_explained.html">
+    <a class="dropdown-item" href="../mcts_explained.html">
  <span class="dropdown-text">MCTS Explained</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./architecture.html">
+    <a class="dropdown-item" href="../architecture.html">
  <span class="dropdown-text">Architecture</span></a>
   </li>  
     </ul>
@@ -116,21 +151,21 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
         <li>
-    <a class="dropdown-item" href="./training_parameters.html">
+    <a class="dropdown-item" href="../training_parameters.html">
  <span class="dropdown-text">Parameters</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./training_analysis.html">
+    <a class="dropdown-item" href="../training_analysis.html">
  <span class="dropdown-text">Analysis</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="./gcp_guide.html"> 
+    <a class="nav-link" href="../gcp_guide.html"> 
 <span class="menu-text">Developer</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./reference/index.html"> 
+    <a class="nav-link" href="../reference/index.html"> 
 <span class="menu-text">Reference</span></a>
   </li>  
 </ul>
@@ -149,14 +184,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#architecture" id="toc-architecture" class="nav-link active" data-scroll-target="#architecture">Architecture</a>
+  <li><a href="#raccoon.train.self_play" id="toc-raccoon.train.self_play" class="nav-link active" data-scroll-target="#raccoon.train.self_play">train.self_play</a>
   <ul class="collapse">
-  <li><a href="#board-encoding" id="toc-board-encoding" class="nav-link" data-scroll-target="#board-encoding">Board Encoding</a></li>
-  <li><a href="#neural-network" id="toc-neural-network" class="nav-link" data-scroll-target="#neural-network">Neural Network</a></li>
-  <li><a href="#mcts" id="toc-mcts" class="nav-link" data-scroll-target="#mcts">MCTS</a></li>
-  <li><a href="#training-loop" id="toc-training-loop" class="nav-link" data-scroll-target="#training-loop">Training Loop</a></li>
-  <li><a href="#action-space" id="toc-action-space" class="nav-link" data-scroll-target="#action-space">Action Space</a></li>
-  <li><a href="#evaluation" id="toc-evaluation" class="nav-link" data-scroll-target="#evaluation">Evaluation</a></li>
+  <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
+  <ul class="collapse">
+  <li><a href="#raccoon.train.self_play.play_one_game" id="toc-raccoon.train.self_play.play_one_game" class="nav-link" data-scroll-target="#raccoon.train.self_play.play_one_game">play_one_game</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -167,98 +200,42 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="architecture" class="level1">
-<h1>Architecture</h1>
-<p>Raccoon follows the standard AlphaZero pipeline: a ResNet policy-value network guides Monte Carlo Tree Search, with self-play generating the training data. OpenSpiel provides game logic; all ML and search code is written from scratch in Python/PyTorch.</p>
-<section id="board-encoding" class="level2">
-<h2 class="anchored" data-anchor-id="board-encoding">Board Encoding</h2>
-<p>States are encoded as <strong>(17, 2, 12)</strong> float32 tensors — 17 channels, 2 rows (board halves), 12 columns (points per half).</p>
-<p>The 2D layout mirrors the physical board: points 13–24 on the top row (left to right), points 12–1 on the bottom row. Channels:</p>
+<section id="raccoon.train.self_play" class="level1">
+<h1>train.self_play</h1>
+<p><code>train.self_play</code></p>
+<p>Self-play game generation for training data.</p>
+<section id="functions" class="level2">
+<h2 class="anchored" data-anchor-id="functions">Functions</h2>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>Channel(s)</th>
-<th>Content</th>
+<th>Name</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>0–3</td>
-<td>Current player checkers: ≥1, ≥2, ≥3, overflow</td>
-</tr>
-<tr class="even">
-<td>4–7</td>
-<td>Opponent checkers: ≥1, ≥2, ≥3, overflow</td>
-</tr>
-<tr class="odd">
-<td>8–9</td>
-<td>Bar counts (current player, opponent) broadcast</td>
-</tr>
-<tr class="even">
-<td>10–11</td>
-<td>Borne-off counts (current player, opponent) broadcast</td>
-</tr>
-<tr class="odd">
-<td>12</td>
-<td>Side-to-move flag</td>
-</tr>
-<tr class="even">
-<td>13–14</td>
-<td>Dice values broadcast across columns</td>
-</tr>
-<tr class="odd">
-<td>15</td>
-<td>Doubles flag</td>
-</tr>
-<tr class="even">
-<td>16</td>
-<td>Mid-doubles flag (one die already used in a doubles move)</td>
+<td><a href="#raccoon.train.self_play.play_one_game">play_one_game</a></td>
+<td>Play a complete self-play game and return training examples + stats.</td>
 </tr>
 </tbody>
 </table>
-<p>All encoding is from the <strong>current player’s perspective</strong> — the network always sees “my checkers” and “their checkers” in fixed channels, regardless of which physical side is moving. The wrapper applies a perspective flip when it is the second player’s turn.</p>
-<p><code>CHANNEL_NAMES</code> in <code>raccoon/env/encoder.py</code> is the authoritative registry. <code>dump_tensor()</code> pretty-prints all planes for debugging.</p>
-</section>
-<section id="neural-network" class="level2">
-<h2 class="anchored" data-anchor-id="neural-network">Neural Network</h2>
-<p>PyTorch ResNet in <code>raccoon/model/network.py</code> with a shared convolutional trunk and two heads:</p>
-<ul>
-<li><strong>Policy head</strong>: 1352 logits (one per OpenSpiel action). Masked softmax over legal moves gives move probabilities for MCTS.</li>
-<li><strong>Value head</strong>: scalar via tanh, in [−1, 1]. Positive means the current player is winning.</li>
-</ul>
-<p>Default size: <strong>6 residual blocks, 128 channels</strong> — tuned for CPU training. Scale depth/width when GPU is available. Architecture is saved in checkpoints, so <code>--resume</code> automatically picks up the correct shape.</p>
-</section>
-<section id="mcts" class="level2">
-<h2 class="anchored" data-anchor-id="mcts">MCTS</h2>
-<p>AlphaZero-style MCTS in <code>raccoon/search/mcts.py</code> with PUCT selection. Key design choices:</p>
-<p><strong>Chance node sampling.</strong> Dice rolls are sampled and skipped — the tree contains only decision and terminal nodes. The network is never evaluated at chance nodes. With 100+ simulations, the various dice outcomes are explored naturally through repeated sampling.</p>
-<p><strong>Temperature.</strong> Controls exploitation vs exploration when selecting a move from visit counts. High temperature (early training) selects near-uniformly; low temperature (late training / evaluation) selects the most-visited move.</p>
-<p><strong>Batched inference.</strong> Leaf positions collected during a simulation round are evaluated in a single network forward pass, amortizing the GPU overhead.</p>
-<p>See <a href="./mcts_explained.html">MCTS Explained</a> for a deep dive into simulations, PUCT, Dirichlet noise, and the plateau problem.</p>
-</section>
-<section id="training-loop" class="level2">
-<h2 class="anchored" data-anchor-id="training-loop">Training Loop</h2>
-<p>Implemented in <code>raccoon/train/</code>:</p>
-<ol type="1">
-<li><strong>Self-play</strong> (<code>self_play.py</code>): play N games using current network + MCTS. Record <code>(observation, MCTS policy, outcome)</code> tuples.</li>
-<li><strong>Replay buffer</strong> (<code>replay_buffer.py</code>): circular buffer keeps recent positions. New games overwrite the oldest.</li>
-<li><strong>SGD</strong> (<code>coach.py</code>): sample mini-batches; minimize cross-entropy(policy) + MSE(value) + L2 (via <code>weight_decay</code>).</li>
-<li><strong>Checkpoint</strong>: save network weights; optionally evaluate vs previous checkpoint.</li>
-</ol>
-<p>Value targets blend the terminal game outcome and MCTS root Q-value. <code>--value-bootstrap-alpha</code> controls the mix (1.0 = pure outcome, 0.0 = pure Q).</p>
-</section>
-<section id="action-space" class="level2">
-<h2 class="anchored" data-anchor-id="action-space">Action Space</h2>
-<p>OpenSpiel encodes 1352 distinct backgammon actions (base-26 packed checker moves). The policy head outputs a logit for each; illegal moves are masked to −∞ before softmax in <code>raccoon/env/actions.py</code>.</p>
-</section>
-<section id="evaluation" class="level2">
-<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
-<ul>
-<li><strong>Checkpoint vs checkpoint</strong> (<code>raccoon/eval/arena.py</code>): tracks whether new iterations improve on old ones.</li>
-<li><strong>GNUBG benchmark</strong> (<code>raccoon/eval/gnubg_harness.py</code>): automated money game matches against the GNUBG CLI. The primary success metric.</li>
-</ul>
+<section id="raccoon.train.self_play.play_one_game" class="level3">
+<h3 class="anchored" data-anchor-id="raccoon.train.self_play.play_one_game">play_one_game</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>train.self_play.play_one_game(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    network,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    num_simulations<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    temperature<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    temp_threshold<span class="op">=</span><span class="dv">30</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    virtual_loss_count<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    dirichlet_alpha<span class="op">=</span><span class="fl">0.0</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    noise_eps<span class="op">=</span><span class="fl">0.25</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    value_bootstrap_alpha<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Play a complete self-play game and return training examples + stats.</p>
 
 
+</section>
 </section>
 </section>
 
