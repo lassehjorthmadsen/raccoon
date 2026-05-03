@@ -539,7 +539,8 @@ for exp_id, exp in experiments.items():
 - **exp002 iter_147 vs iter_125 (n=50, 100 eval sims): 26-24 (52%), +0.300 ppg.** Within-experiment check for exp002, same methodology. Not statistically significant (SE ≈ 0.25 ppg, z ≈ 1.2). 22 iterations of training produced no detectable strength gain. Same plateau pattern as exp001.
 - **exp002 iter_147 vs exp001 iter_282 (n=50, 100 eval sims): 20-30 (40%), -0.440 ppg.** Cross-experiment comparison. Despite exp002's better loss curves (faster descent, lower minima), exp001 iter_282 beats exp002 iter_147. More training iterations outweigh the smaller buffer's fitting improvement. exp001 remains the stronger checkpoint.
 - **exp002 iter_147 vs GNUBG 0-ply (n=50, 100 sims): 0-50 (0%), -2.300 ppg.** GNUBG conceded 19 gammons and 23 backgammons; Raccoon conceded 0 gammons and 0 backgammons. Virtually identical to exp001 iter_282's result (-2.32 ppg, 43 gammon/bg conceded). The smaller buffer's improved fitting did not translate to stronger play against an external benchmark.
-- **exp003 iter_220 vs iter_150 (100 games, 50 eval sims): 40-60 (40%), -0.430 ppg.** The only internal evaluation run for exp003. The newer checkpoint lost to the older one — not a plateau but an outright regression. No GNUBG benchmark was run; the regression result made it unnecessary.
+- **exp003 iter_220 vs iter_150 (100 games, 50 eval sims): 40-60 (40%), -0.430 ppg.** The newer checkpoint lost to the older one — not a plateau but an outright regression.
+- **exp003 iter_280 vs iter_150 (100 games, 50 eval sims): 48-52 (48%), -0.130 ppg.** End-of-run checkpoint vs the same baseline. Statistically indistinguishable from 50/50 (z ≈ 0.4, SE ≈ 0.25 ppg), but still a loss. 130 iterations of training with Dirichlet noise produced zero detectable improvement over iter_150. No GNUBG benchmark was run.
 - **All four experiments are crushed by GNUBG even at the weakest setting.** The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings, and more iterations of any of these experiments as-is won't get us there.
 
 ## Summary and Next Steps
@@ -600,7 +601,7 @@ exp003 has been abandoned (2026-05-03). All three hypotheses tested so far (buff
 
 2. ~~**Track MCTS visit-distribution entropy over training.**~~ **Done** (exp003). Visit entropy logged throughout; flat at ~1.37 for all 137 iterations. Exploration is not collapsing, but it is also not improving.
 
-3. ~~**Add Dirichlet root noise.**~~ **Done** (exp003). Dirichlet noise (alpha=0.3, eps=0.25) added in exp003. Did not break the plateau — iter_220 lost to iter_150 (equity -0.43 over 100 games). Exploration collapse was not the root cause.
+3. ~~**Add Dirichlet root noise.**~~ **Done** (exp003). Dirichlet noise (alpha=0.3, eps=0.25) added in exp003. Did not break the plateau — iter_220 lost to iter_150 (-0.43 ppg) and iter_280 drew iter_150 (-0.13 ppg, n.s.). 130 iterations of training produced no detectable improvement. Exploration collapse was not the root cause.
 
 4. **Add a learning rate schedule.** Fixed LR 0.001 throughout all four experiments. Step decay (e.g. ×0.1 at iter 150 and iter 300) would allow the optimizer to settle rather than continuing to perturb weights. Low effort; likely to reduce the oscillation that currently prevents the value head from converging.
 
