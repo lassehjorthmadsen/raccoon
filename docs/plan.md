@@ -6,6 +6,18 @@ This plan builds a backgammon AI that outperforms GNUBG at money game, using Alp
 
 Work proceeds through 7 milestones, each with concrete deliverables and pass conditions. No milestone should be started until the previous one passes.
 
+## Milestone Status (as of 2026-05-03)
+
+| Milestone | Status | Notes |
+|-----------|--------|-------|
+| M1: Game Environment | ✅ Complete | |
+| M2: Neural Network | ✅ Complete | |
+| M3: Search (MCTS) | ✅ Complete | Dirichlet noise, entropy tracking, value-returning search added post-M3 |
+| M4: Training Loop | ✅ Complete | Value bootstrapping, LR schedule, parallel self-play added post-M4 |
+| M5: Internal Evaluation | ✅ Complete | Arena benchmarks run for exp001–exp004 |
+| M6: GNUBG Benchmark | ✅ Complete | Harness working; all experiments crushed by GNUBG even at 0-ply |
+| M7: Strength Scaling | 🔄 In progress | exp001–exp003 plateaued; exp004 testing bootstrapping + LR schedule |
+
 ---
 
 ## M1: Game Environment
@@ -65,7 +77,7 @@ class BoardView:
 
 **File**: `raccoon/env/encoder.py`
 
-Converts a `BoardView` into a `(16, 2, 12)` float32 numpy array.
+Converts a `BoardView` into a `(17, 2, 12)` float32 numpy array.
 
 Board layout mapping:
 - Top row (row 0): points 13, 14, ..., 24 → columns 0, 1, ..., 11
@@ -94,14 +106,14 @@ Channel layout (16 channels):
 Key interface:
 ```python
 def encode_state(board_view: BoardView) -> np.ndarray:
-    """Returns tensor of shape (16, 2, 12), dtype float32."""
+    """Returns tensor of shape (17, 2, 12), dtype float32."""
 
 def encode_batch(board_views: list[BoardView]) -> np.ndarray:
-    """Returns tensor of shape (N, 16, 2, 12), dtype float32."""
+    """Returns tensor of shape (N, 17, 2, 12), dtype float32."""
 ```
 
 **Tests** (`tests/test_encoder.py`):
-- Starting position produces correct shape (16, 2, 12)
+- Starting position produces correct shape (17, 2, 12)
 - All values are finite and in expected ranges
 - Empty board → all checker channels zero
 - Known position (e.g., 5 checkers on point 6) → channels 0-2 are 1.0, channel 3 is 1.0 at correct grid cell
@@ -153,7 +165,7 @@ class ResidualBlock(nn.Module):
 class RaccoonNet(nn.Module):
     def __init__(
         self,
-        in_channels: int = 16,
+        in_channels: int = 17,
         board_h: int = 2,
         board_w: int = 12,
         num_actions: int = 1352,
@@ -164,7 +176,7 @@ class RaccoonNet(nn.Module):
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
         """
         Args:
-            x: (batch, 16, 2, 12)
+            x: (batch, 17, 2, 12)
         Returns:
             policy_logits: (batch, 1352) — raw logits, NOT masked
             value: (batch, 1) — in [-1, 1]
@@ -175,7 +187,7 @@ class RaccoonNet(nn.Module):
         Single-position inference for MCTS.
         
         Args:
-            obs: (16, 2, 12) numpy array
+            obs: (17, 2, 12) numpy array
             legal_actions: list of valid action indices
             
         Returns:
@@ -209,10 +221,10 @@ def load_checkpoint(path, model, optimizer=None) -> dict: ...
 Checkpoint format: `{"model_state_dict": ..., "optimizer_state_dict": ..., "step": ..., "config": ...}`
 
 **Tests** (`tests/test_network.py`):
-- Forward pass with random input (1, 16, 2, 12) produces policy_logits shape (1, 1352) and value shape (1, 1)
+- Forward pass with random input (1, 17, 2, 12) produces policy_logits shape (1, 1352) and value shape (1, 1)
 - `predict()` returns probabilities summing to ~1.0
 - `predict()` returns zero probability for illegal actions
-- Batch forward pass works (32, 16, 2, 12)
+- Batch forward pass works (32, 17, 2, 12)
 - Save/load checkpoint round-trips without changing model output
 - Model parameter count is reasonable (print it, sanity check)
 
@@ -337,7 +349,7 @@ All M3 tests pass. MCTS runs end-to-end on arbitrary positions. Chance nodes are
 ```python
 @dataclass
 class TrainingExample:
-    observation: np.ndarray     # (16, 2, 12)
+    observation: np.ndarray     # (17, 2, 12)
     policy_target: np.ndarray   # (1352,) — MCTS visit distribution
     value_target: float         # game outcome from this player's perspective
 
@@ -398,16 +410,16 @@ class Coach:
         training_steps_per_iteration: int = 100,
         checkpoint_dir: str = "checkpoints",
         log_dir: str = "logs",
+        num_workers: int = 8,
+        dirichlet_alpha: float = 0.0,
+        noise_eps: float = 0.25,
+        value_bootstrap_alpha: float = 1.0,  # 1.0=pure outcome, 0.0=pure MCTS Q
+        scheduler: LRScheduler | None = None,
+        notes: str = "",
     ): ...
     
     def run_iteration(self, iteration: int):
         """One full iteration: self-play → train → checkpoint → log."""
-    
-    def self_play_phase(self) -> list[TrainingExample]: ...
-    def training_phase(self) -> dict[str, float]:  # loss metrics
-        """Sample from replay buffer and train network."""
-    def save_checkpoint(self, iteration: int): ...
-    def log_metrics(self, iteration: int, metrics: dict): ...
 ```
 
 Training step loss:
@@ -419,12 +431,12 @@ def compute_loss(policy_logits, value, target_policy, target_value):
 ```
 
 Metadata logged per iteration:
-- Iteration number
-- Number of self-play games, total positions generated
-- Replay buffer size
-- Policy loss, value loss, total loss
-- Average game length
-- Timestamp, time per phase
+- Iteration number, run ID, timestamp
+- Number of self-play games, total positions generated, replay buffer size
+- Policy loss, value loss, total loss, current LR
+- Average game length, average outcome (player-0 equity), gammon/backgammon counts
+- Average MCTS visit entropy (when `dirichlet_alpha > 0`)
+- Time per phase (self-play, training, total)
 
 **File**: `scripts/train.py` — CLI entry point:
 ```bash
@@ -712,7 +724,7 @@ M6.1 → M6.2 → M6.3 → (M6 tests + first GNUBG benchmark)
 M7 (iterate until goal is met)
 ```
 
-Estimated CPU timeline on 2013 iMac:
+Estimated CPU timeline on a 16-core development machine:
 - M1-M3: 1-2 sessions (code + tests, no heavy compute)
 - M4: 1 session (code + first smoke training)
 - M5: 1 session (eval infrastructure + initial training runs)
@@ -724,10 +736,10 @@ Estimated CPU timeline on 2013 iMac:
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Game engine | OpenSpiel | Proven, correct rules, 1352-action encoding |
-| Board encoding | (16, 2, 12) tensor | ResNet-compatible, captures spatial structure |
+| Board encoding | (17, 2, 12) tensor | ResNet-compatible, captures spatial structure |
 | Network | ResNet 6×128 (start) | Small enough for CPU, proven architecture |
 | Action space | 1352 (OpenSpiel's) | No need to reinvent; mask illegal actions |
 | MCTS chance nodes | Sample + skip to decision | Never evaluate at chance; statistically covers dice |
-| Value target | Scalar ±1 (start) | Simple; upgrade to 5-output later for gammon awareness |
+| Value target | Blended scalar: `α * outcome + (1-α) * MCTS_Q` | `--value-bootstrap-alpha` controls mix; pure outcome (α=1) is noisy, blending with Q stabilises value loss |
 | Framework | PyTorch | Best Python ecosystem, simple code |
 | Training | From scratch | Cleaner than patching OpenSpiel's AZ; full control |

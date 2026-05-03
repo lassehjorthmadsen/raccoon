@@ -2,6 +2,7 @@
 
 import json
 import os
+import platform
 import time
 import uuid
 from datetime import datetime, timezone
@@ -38,6 +39,7 @@ class Coach:
         noise_eps: float = 0.25,
         value_bootstrap_alpha: float = 1.0,
         scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
+        notes: str = "",
     ):
         self.network = network
         self.optimizer = optimizer
@@ -59,6 +61,7 @@ class Coach:
         self.noise_eps = noise_eps
         self.value_bootstrap_alpha = value_bootstrap_alpha
         self.scheduler = scheduler
+        self.notes = notes
         self._config_logged = False
 
     def _log_config(self) -> None:
@@ -96,7 +99,11 @@ class Coach:
                 "cuda_available": torch.cuda.is_available(),
                 "gpu": (torch.cuda.get_device_name(0)
                         if torch.cuda.is_available() else None),
+                "hostname": platform.node(),
+                "cpu_count": os.cpu_count(),
+                "torch_threads": torch.get_num_threads(),
             },
+            "notes": self.notes,
         }
         log_path = self.log_dir / "training_log.jsonl"
         with open(log_path, "a") as f:

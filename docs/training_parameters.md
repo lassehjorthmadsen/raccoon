@@ -150,6 +150,40 @@ The same name is also written into each JSONL log entry, so you can tell runs ap
 
 **Typical use**: Resuming after a spot VM preemption, or extending a completed run with more iterations. The `scripts/resume_training.sh` helper on the GCP VM resolves the latest checkpoint automatically.
 
+### `--dirichlet-alpha` and `--noise-eps`
+
+**What they are**: Parameters for AlphaZero-style Dirichlet noise injected at the root node of each MCTS search. `--dirichlet-alpha` (default 0.0, disabled) controls the concentration of the noise distribution; `--noise-eps` (default 0.25) controls the mixing weight: `prior = (1 - eps) * network_prior + eps * noise`.
+
+**Intuition**: Without noise, MCTS always starts from the same root prior and may repeatedly explore the same branches. Dirichlet noise at the root randomises the prior each move, forcing the search to consider alternatives the network underrates. This prevents *exploration collapse* — where self-play locks into a narrow repertoire of positions.
+
+**Recommended values**: `--dirichlet-alpha 0.3 --noise-eps 0.25` (standard AlphaZero settings for board games). Alpha = 0.3 gives moderately spread noise; for games with very large branching factors, lower alpha spreads noise more evenly.
+
+**Trade-off**: Noise degrades the quality of individual move selections slightly (you're deliberately corrupting the prior). The benefit is that self-play explores a broader distribution of positions, which prevents the network from overfitting to a narrow self-play repertoire. At eval/benchmark time, noise is always off.
+
+### `--value-bootstrap-alpha`
+
+**What it is**: Blending coefficient for the value training target. `0.0` = use MCTS root Q (search estimate only); `1.0` = use terminal game outcome only (original behaviour); values in between blend the two: `target = alpha * outcome + (1 - alpha) * Q`. Default 1.0.
+
+**Intuition**: Raw game outcomes are noisy labels — a position that's +0.3 equity generates a ±1/3, ±2/3, or ±1 label depending entirely on whether the game ends in a single/gammon/backgammon. MCTS root Q is a smoother, lower-variance estimate of the same quantity. Blending in Q (e.g. `alpha=0.5`) gives the value head a denser gradient signal and tends to produce lower, more stable value loss.
+
+**Trade-off**: Bootstrapped targets introduce bias: Q is only as good as the current network, so early in training you're partly training on noisy self-estimates. The terminal outcome is unbiased but high-variance. In practice, `alpha=0.5` has shown lower value loss and more stable training than `alpha=1.0` without obvious regression in play strength.
+
+### `--lr-milestones` and `--lr-gamma`
+
+**What they are**: Learning rate schedule. `--lr-milestones` takes a comma-separated list of iteration numbers (e.g. `"200,400"`); at each milestone the learning rate is multiplied by `--lr-gamma` (default 0.1). Empty milestones = fixed LR throughout.
+
+**Intuition**: A fixed LR keeps perturbing the weights even once the network has largely converged, preventing the value head from settling. Step decay lets the optimizer make large updates early (fast initial learning) and smaller, more precise updates later (fine-tuning). This is standard practice in supervised learning and directly addresses the weight oscillation that contributes to rising value loss in later training.
+
+**Example**: `--lr-milestones 200,400 --lr-gamma 0.1` starts at LR 0.001, drops to 0.0001 at iter 200, and 0.00001 at iter 400.
+
+### `--notes`
+
+**What it is**: A freetext string written into the config header of the training log. Has no effect on training. Default empty.
+
+**Intuition**: After several experiments it becomes hard to remember what hypothesis each run was testing — especially when the experiment name only captures the architecture and sim count. `--notes` is the place to record the one-sentence reason the experiment exists.
+
+**Example**: `--notes "Testing value bootstrapping (alpha=0.5) + LR schedule to break the plateau seen in exp001-003"`
+
 ## Parameters We Don't Usually Set (CLI Defaults)
 
 | Parameter | Default | What it does |
@@ -167,7 +201,7 @@ A few important constants are baked into the code rather than exposed as flags. 
 | `MCTS.c_puct` (`raccoon/search/mcts.py`) | 1.5 | PUCT exploration constant. Higher → more exploration, lower → trust the network's prior more |
 | `play_one_game.temperature` (`raccoon/train/self_play.py`) | 1.0 | Sampling temperature for self-play move selection during the early game |
 | `play_one_game.temp_threshold` | 30 | After move 30, temperature drops to 0 (greedy) — concentrates training data on the strongest moves once the position is well-defined |
-| Root Dirichlet noise | *not implemented* | Standard AlphaZero adds Dirichlet noise to root priors to keep self-play exploring. Raccoon doesn't currently — exploration relies on PUCT + early-game temperature only |
+| Root Dirichlet noise | `--dirichlet-alpha 0.3 --noise-eps 0.25` | AlphaZero-style noise injected at the MCTS root prior each move. Off by default (`--dirichlet-alpha 0.0`); see `--dirichlet-alpha` above |
 | Optimizer | Adam | AlphaZero papers use SGD with momentum; Raccoon uses Adam, so learning rate and weight-decay numbers don't transfer directly |
 | Value target normalization | `returns / 3.0` | Backgammon's raw returns are ±1/±2/±3 (single/gammon/backgammon). Dividing by 3 puts targets in `[-1, 1]` so they fit the value head's `tanh` output. So labels actually live in `{±1/3, ±2/3, ±1}` |
 | Loss | `cross_entropy(policy) + MSE(value)` | No L2 term in the loss itself — weight decay handles regularization via the optimizer |
@@ -192,13 +226,14 @@ The fundamental constraint is **compute time**. On CPU, the bottleneck is MCTS s
 
 ## How to Read the Training Log
 
-The first line of each run is a `{"type": "config", ...}` header recording network architecture, hyperparameters, and system info (PyTorch version, GPU). Each subsequent line is one iteration's metrics:
+The first line of each run is a `{"type": "config", ...}` header recording network architecture, hyperparameters, system info (PyTorch version, GPU, hostname, CPU count, PyTorch thread count), and the freetext `notes` field. Each subsequent line is one iteration's metrics:
 
 - **`policy_loss`** — Cross-entropy between the network's predicted policy and MCTS's visit distribution. Starts around 7.2 (`ln(1352)`, random over the 1,352-action space) and should decrease. Below ~4 the network is picking up strong move preferences; values around 2 are typical for trained Raccoon networks.
-- **`value_loss`** — MSE between the network's value head and the (normalized) game outcome. Targets are in `{±1/3, ±2/3, ±1}` after the `returns / 3.0` normalization, so a network predicting 0 has MSE ≈ 0.5. Empirically Raccoon starts near ~0.10–0.12 (the value head's tanh output is small at init, and many games end in gammon/bg so outcome variance is concentrated near the extremes) and may drift slightly upward or stay flat as training progresses — see `docs/training_analysis.qmd` for what this can mean.
+- **`value_loss`** — MSE between the network's value head and the value target. With `--value-bootstrap-alpha 1.0` (default) the target is the normalized game outcome in `{±1/3, ±2/3, ±1}`; with `alpha < 1.0` it is blended with MCTS root Q, producing a lower-variance target and typically lower loss. A network predicting 0 has MSE ≈ 0.5 against pure outcome labels. Empirically Raccoon starts near ~0.10–0.12 with `alpha=1.0` and ~0.04 with `alpha=0.5`; may drift upward as training progresses — see `docs/training_analysis.qmd` for what this can mean.
 - **`avg_game_length`** — Average moves per game. May decrease as play becomes more efficient.
 - **`avg_outcome`** — Should hover near 0 in self-play (both sides use the same network). A persistent non-zero value points to a player-side bias amplified by shallow MCTS; see the analysis doc.
 - **`gammons`/`backgammons`** — Counts (not rates) per iteration. Strong-vs-strong play has gammon rates around 15–20% and backgammon rates around 1%; weak play produces much higher rates of both. Watch the trend, not the absolute value.
+- **`avg_visit_entropy`** — Shannon entropy of MCTS visit counts averaged across all moves in the iteration's self-play games. High entropy (near `ln(num_legal_moves)`) means visits are spread broadly; low entropy means MCTS concentrates on a few actions. A declining trend can signal exploration collapse. Enabled when `--dirichlet-alpha > 0`.
 - **`self_play_time` / `training_time` / `total_time`** — Seconds spent in each phase. Self-play dominates; SGD is cheap.
 
 ## Further Reading

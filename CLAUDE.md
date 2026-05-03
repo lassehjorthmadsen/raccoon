@@ -38,7 +38,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 
 1. **`raccoon/env/`** — OpenSpiel wrapper + custom tensor encoder + action mapping
    - `game_wrapper.py`: Wraps `pyspiel.load_game("backgammon")`, handles perspective flipping so the network always sees the board from the current player's view
-   - `encoder.py`: Converts board state to **(17, 2, 12)** float32 tensor (17 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag
+   - `encoder.py`: Converts board state to **(17, 2, 12)** float32 tensor (17 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag. `CHANNEL_NAMES` is the authoritative registry of channel meanings; `dump_tensor()` pretty-prints the planes for debugging.
    - `actions.py`: Legal action masking over OpenSpiel's 1352 action space
 
 2. **`raccoon/model/network.py`** — `RaccoonNet`: ResNet with shared trunk → policy head (1352 logits) + value head (scalar in [-1,1] via tanh). Default: 6 residual blocks, 128 channels. `predict()` method handles masking + softmax for MCTS inference.
@@ -63,11 +63,11 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 - Board encoding is always from the **current player's perspective** (perspective flip applied in the wrapper)
 - MCTS never evaluates the network at chance nodes — it samples dice and advances to the next decision node
 - Loss = cross-entropy(policy) + MSE(value) + L2 regularization (via optimizer weight_decay)
-- Training examples store the game outcome from each position's player's perspective as value target
+- Training examples store a value target blended from the terminal game outcome and MCTS root Q (`--value-bootstrap-alpha` controls the mix; 1.0 = pure outcome, 0.0 = pure Q)
 
 ## Hardware
 
-- **Local dev**: 2013 Intel iMac (CPU only). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
+- **Local dev**: Windows PC (WSL2, 16 CPU cores, no GPU). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
 - **Cloud training**: GCP spot VM with T4 GPU (`raccoon-gpu` in `europe-west1-b`). Auto-detects CUDA. See `docs/gcp_guide.md` for workflow.
 
 ## Key Files

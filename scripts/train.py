@@ -43,6 +43,8 @@ def main():
                              "--lr-gamma (e.g. '200,400'). Empty = no schedule.")
     parser.add_argument("--lr-gamma", type=float, default=0.1,
                         help="LR multiplier applied at each milestone (default: 0.1)")
+    parser.add_argument("--notes", type=str, default="",
+                        help="Freetext description of what this experiment is testing.")
     args = parser.parse_args()
 
     exp_root = f"experiments/{args.experiment_name}"
@@ -111,6 +113,7 @@ def main():
         noise_eps=args.noise_eps,
         value_bootstrap_alpha=args.value_bootstrap_alpha,
         scheduler=scheduler,
+        notes=args.notes,
     )
 
     last_iter = start_iter + args.iterations - 1
