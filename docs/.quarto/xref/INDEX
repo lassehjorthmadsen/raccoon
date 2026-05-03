@@ -1,5 +1,56 @@
 {
   "training_analysis.qmd": {
     "training_analysis.html": "0edd1ea9"
+  },
+  "index.qmd": {
+    "index.html": "c8a3bb37"
+  },
+  "architecture.md": {
+    "architecture.html": "8294c95c"
+  },
+  "gcp_guide.md": {
+    "gcp_guide.html": "cc009282"
+  },
+  "mcts_explained.md": {
+    "mcts_explained.html": "589f5b3b"
+  },
+  "training_parameters.md": {
+    "training_parameters.html": "19e346f7"
+  },
+  "reference/env.actions.qmd": {
+    "env.actions.html": "942d3ba3"
+  },
+  "reference/env.encoder.qmd": {
+    "env.encoder.html": "824dd9c9"
+  },
+  "reference/env.game_wrapper.qmd": {
+    "env.game_wrapper.html": "3bb5e49d"
+  },
+  "reference/eval.arena.qmd": {
+    "eval.arena.html": "c7d11bbf"
+  },
+  "reference/eval.gnubg_harness.qmd": {
+    "eval.gnubg_harness.html": "5df660ec"
+  },
+  "reference/index.qmd": {
+    "index.html": "43a8f367"
+  },
+  "reference/model.network.qmd": {
+    "model.network.html": "28fc15c4"
+  },
+  "reference/protocol.rgp.qmd": {
+    "protocol.rgp.html": "9bbd8896"
+  },
+  "reference/search.mcts.qmd": {
+    "search.mcts.html": "516fdb9e"
+  },
+  "reference/train.coach.qmd": {
+    "train.coach.html": "21eb321a"
+  },
+  "reference/train.replay_buffer.qmd": {
+    "train.replay_buffer.html": "fcf6a2f1"
+  },
+  "reference/train.self_play.qmd": {
+    "train.self_play.html": "f77aa3af"
   }
 }

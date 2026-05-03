@@ -1,0 +1,51 @@
+# protocol.rgp { #raccoon.protocol.rgp }
+
+`protocol.rgp`
+
+Raccoon Game Protocol (RGP) — text-based engine communication.
+
+Inspired by UCI (chess). Communication via stdin/stdout.
+
+Controller -> Engine commands:
+    rgp                     identify protocol
+    isready                 ready check
+    newgame                 start new game
+    position <state_str>    set board position (OpenSpiel state string)
+    dice <d1> <d2>          set dice for next move
+    go simulations <N>      search with N simulations
+    quit                    exit
+
+Engine -> Controller responses:
+    id name Raccoon v0.1
+    rgpok                   protocol acknowledged
+    readyok                 ready
+    bestmove <action>       chosen move (OpenSpiel action index)
+    info score <value> nodes <N>    search info
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [RGPEngine](#raccoon.protocol.rgp.RGPEngine) | Raccoon Game Protocol engine. |
+
+### RGPEngine { #raccoon.protocol.rgp.RGPEngine }
+
+```python
+protocol.rgp.RGPEngine(network, default_simulations=100)
+```
+
+Raccoon Game Protocol engine.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [run](#raccoon.protocol.rgp.RGPEngine.run) | Main loop: read commands from stdin, write responses to stdout. |
+
+##### run { #raccoon.protocol.rgp.RGPEngine.run }
+
+```python
+protocol.rgp.RGPEngine.run(input_stream=None, output_stream=None)
+```
+
+Main loop: read commands from stdin, write responses to stdout.

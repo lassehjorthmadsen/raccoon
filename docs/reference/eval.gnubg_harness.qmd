@@ -1,0 +1,51 @@
+# eval.gnubg_harness { #raccoon.eval.gnubg_harness }
+
+`eval.gnubg_harness`
+
+Automated money-game sessions against GNUBG via the `gnubg-nn` package.
+
+This is the M6 benchmark harness. Raccoon (driven by MCTS on a RaccoonNet)
+plays a cubeless money game against GNUBG's neural-net evaluator. Gammons
+and backgammons are scored (2x / 3x) via OpenSpiel's terminal_result.
+
+The GNUBG FFI is isolated in ``raccoon.eval.gnubg_adapter`` so this module
+stays free of conditional imports.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [GnubgHarness](#raccoon.eval.gnubg_harness.GnubgHarness) | Play a session of money games between Raccoon and GNUBG. |
+
+### GnubgHarness { #raccoon.eval.gnubg_harness.GnubgHarness }
+
+```python
+eval.gnubg_harness.GnubgHarness(
+    raccoon_network,
+    gnubg_level='world',
+    num_simulations=200,
+    ply=None,
+    log_games=False,
+    raccoon_version='unknown',
+)
+```
+
+Play a session of money games between Raccoon and GNUBG.
+
+``gnubg_level`` is a friendly string (e.g. ``"world"``) mapped to a ply
+integer via ``gnubg_adapter.level_to_ply``. Pass ``ply`` explicitly to
+override (``0`` = fastest, ``2`` = strongest).
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [play_match](#raccoon.eval.gnubg_harness.GnubgHarness.play_match) | Play ``num_games`` money games and return aggregated results. |
+
+##### play_match { #raccoon.eval.gnubg_harness.GnubgHarness.play_match }
+
+```python
+eval.gnubg_harness.GnubgHarness.play_match(num_games=1000)
+```
+
+Play ``num_games`` money games and return aggregated results.

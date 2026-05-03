@@ -1,0 +1,33 @@
+# eval.arena { #raccoon.eval.arena }
+
+`eval.arena`
+
+Checkpoint vs checkpoint evaluation arena.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [Arena](#raccoon.eval.arena.Arena) | Play matches between two networks. |
+
+### Arena { #raccoon.eval.arena.Arena }
+
+```python
+eval.arena.Arena(player1, player2, num_games=100, num_simulations=50)
+```
+
+Play matches between two networks.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [play_session](#raccoon.eval.arena.Arena.play_session) | Play num_games, alternating who goes first. |
+
+##### play_session { #raccoon.eval.arena.Arena.play_session }
+
+```python
+eval.arena.Arena.play_session()
+```
+
+Play num_games, alternating who goes first.

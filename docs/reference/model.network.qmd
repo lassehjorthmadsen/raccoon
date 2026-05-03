@@ -1,0 +1,105 @@
+# model.network { #raccoon.model.network }
+
+`model.network`
+
+ResNet policy-value network for backgammon.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [RaccoonNet](#raccoon.model.network.RaccoonNet) | ResNet with policy and value heads for backgammon. |
+| [ResidualBlock](#raccoon.model.network.ResidualBlock) | Conv3x3 -> BN -> ReLU -> Conv3x3 -> BN -> skip add -> ReLU. |
+
+### RaccoonNet { #raccoon.model.network.RaccoonNet }
+
+```python
+model.network.RaccoonNet(
+    in_channels=17,
+    board_h=2,
+    board_w=12,
+    num_actions=1352,
+    channels=128,
+    num_blocks=6,
+)
+```
+
+ResNet with policy and value heads for backgammon.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [forward](#raccoon.model.network.RaccoonNet.forward) | Forward pass. |
+| [predict](#raccoon.model.network.RaccoonNet.predict) | Single-position inference for MCTS. |
+| [predict_batch](#raccoon.model.network.RaccoonNet.predict_batch) | Batched inference for multiple positions. |
+
+##### forward { #raccoon.model.network.RaccoonNet.forward }
+
+```python
+model.network.RaccoonNet.forward(x)
+```
+
+Forward pass.
+
+Args:
+    x: (batch, 16, 2, 12)
+
+Returns:
+    policy_logits: (batch, 1352) raw logits (not masked)
+    value: (batch, 1) in [-1, 1]
+
+##### predict { #raccoon.model.network.RaccoonNet.predict }
+
+```python
+model.network.RaccoonNet.predict(obs, legal_actions)
+```
+
+Single-position inference for MCTS.
+
+Args:
+    obs: (17, 2, 12) numpy array
+    legal_actions: list of valid action indices
+
+Returns:
+    policy: dict mapping action -> probability (sums to ~1, only legal)
+    value: scalar float in [-1, 1]
+
+##### predict_batch { #raccoon.model.network.RaccoonNet.predict_batch }
+
+```python
+model.network.RaccoonNet.predict_batch(obs_list, legal_actions_list)
+```
+
+Batched inference for multiple positions.
+
+Args:
+    obs_list: list of (17, 2, 12) numpy arrays
+    legal_actions_list: list of legal action lists
+
+Returns:
+    list of (policy_dict, value) tuples
+
+### ResidualBlock { #raccoon.model.network.ResidualBlock }
+
+```python
+model.network.ResidualBlock(channels)
+```
+
+Conv3x3 -> BN -> ReLU -> Conv3x3 -> BN -> skip add -> ReLU.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [load_model](#raccoon.model.network.load_model) | Create a RaccoonNet from a checkpoint, using its saved config. |
+
+### load_model { #raccoon.model.network.load_model }
+
+```python
+model.network.load_model(path)
+```
+
+Create a RaccoonNet from a checkpoint, using its saved config.
+
+Falls back to default config for older checkpoints without config.

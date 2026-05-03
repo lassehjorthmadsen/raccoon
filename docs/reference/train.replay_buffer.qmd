@@ -1,0 +1,38 @@
+# train.replay_buffer { #raccoon.train.replay_buffer }
+
+`train.replay_buffer`
+
+Circular replay buffer for training positions.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [ReplayBuffer](#raccoon.train.replay_buffer.ReplayBuffer) | Stores training positions and samples random batches. |
+
+### ReplayBuffer { #raccoon.train.replay_buffer.ReplayBuffer }
+
+```python
+train.replay_buffer.ReplayBuffer(max_size=100000)
+```
+
+Stores training positions and samples random batches.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [sample_batch](#raccoon.train.replay_buffer.ReplayBuffer.sample_batch) | Sample a random batch as PyTorch tensors. |
+
+##### sample_batch { #raccoon.train.replay_buffer.ReplayBuffer.sample_batch }
+
+```python
+train.replay_buffer.ReplayBuffer.sample_batch(batch_size)
+```
+
+Sample a random batch as PyTorch tensors.
+
+Returns:
+    obs_batch: (batch, 16, 2, 12)
+    policy_batch: (batch, 1352)
+    value_batch: (batch,)

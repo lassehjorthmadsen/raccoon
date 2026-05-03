@@ -1,0 +1,28 @@
+# train.self_play { #raccoon.train.self_play }
+
+`train.self_play`
+
+Self-play game generation for training data.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [play_one_game](#raccoon.train.self_play.play_one_game) | Play a complete self-play game and return training examples + stats. |
+
+### play_one_game { #raccoon.train.self_play.play_one_game }
+
+```python
+train.self_play.play_one_game(
+    network,
+    num_simulations=100,
+    temperature=1.0,
+    temp_threshold=30,
+    virtual_loss_count=1,
+    dirichlet_alpha=0.0,
+    noise_eps=0.25,
+    value_bootstrap_alpha=1.0,
+)
+```
+
+Play a complete self-play game and return training examples + stats.

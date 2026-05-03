@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "quartodoc", "griffe<1.0"]
 gnubg = ["gnubg-nn>=1.1.0a6"]
 
 [tool.setuptools.packages.find]

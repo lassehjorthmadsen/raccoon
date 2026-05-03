@@ -4,6 +4,7 @@ project:
   render:
     - "*.qmd"
     - "*.md"
+    - "reference/*.qmd"
     - "!training_research.qmd"
     - "!plan.md"
     - "!matches/**"
@@ -31,6 +32,8 @@ website:
             file: training_analysis.qmd
       - text: "Developer"
         file: gcp_guide.md
+      - text: "Reference"
+        file: reference/index.qmd
 
 format:
   html:
@@ -42,3 +45,39 @@ execute:
   freeze: auto
 
 jupyter: python3
+
+quartodoc:
+  package: raccoon
+  source_dir: ..
+  dir: reference
+  title: "API Reference"
+  sections:
+    - title: "Environment"
+      desc: "OpenSpiel wrapper, board encoder, and action masking"
+      contents:
+        - env.game_wrapper
+        - env.encoder
+        - env.actions
+    - title: "Model"
+      desc: "ResNet policy-value network"
+      contents:
+        - model.network
+    - title: "Search"
+      desc: "MCTS with chance-node handling"
+      contents:
+        - search.mcts
+    - title: "Training"
+      desc: "Self-play loop, replay buffer, and coach"
+      contents:
+        - train.self_play
+        - train.replay_buffer
+        - train.coach
+    - title: "Evaluation"
+      desc: "Checkpoint arena and GNUBG benchmark"
+      contents:
+        - eval.arena
+        - eval.gnubg_harness
+    - title: "Protocol"
+      desc: "Raccoon Game Protocol (RGP)"
+      contents:
+        - protocol.rgp

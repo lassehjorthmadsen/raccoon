@@ -1,3 +1,4 @@
 /.quarto/jupyter/
+/_site/
 
 **/*.quarto_ipynb

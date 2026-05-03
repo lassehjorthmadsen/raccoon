@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     branches: [main]
-    paths: ["docs/**"]
+    paths: ["docs/**", "raccoon/**"]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and quartodoc
+        run: pip install -e ".[dev]" "griffe<1.0"
+
       - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Build API reference
+        run: quartodoc build
+        working-directory: docs
 
       - name: Deploy to GitHub Pages
         uses: quarto-dev/quarto-actions/publish@v2

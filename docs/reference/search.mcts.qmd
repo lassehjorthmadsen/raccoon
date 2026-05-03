@@ -1,0 +1,104 @@
+# search.mcts { #raccoon.search.mcts }
+
+`search.mcts`
+
+AlphaZero-style MCTS with chance-node handling for backgammon.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [Analysis](#raccoon.search.mcts.Analysis) | Full MCTS analysis of a position, for display/debugging. |
+| [Candidate](#raccoon.search.mcts.Candidate) | A single candidate move from MCTS analysis. |
+| [MCTS](#raccoon.search.mcts.MCTS) | Monte Carlo Tree Search with PUCT selection. |
+| [MCTSNode](#raccoon.search.mcts.MCTSNode) | A node in the MCTS tree. Only decision and terminal nodes are stored. |
+
+### Analysis { #raccoon.search.mcts.Analysis }
+
+```python
+search.mcts.Analysis(candidates, root_value, num_simulations)
+```
+
+Full MCTS analysis of a position, for display/debugging.
+
+### Candidate { #raccoon.search.mcts.Candidate }
+
+```python
+search.mcts.Candidate(action, visits, visit_prob, prior, q_value)
+```
+
+A single candidate move from MCTS analysis.
+
+### MCTS { #raccoon.search.mcts.MCTS }
+
+```python
+search.mcts.MCTS(
+    network,
+    num_simulations=100,
+    c_puct=1.5,
+    virtual_loss_count=1,
+    dirichlet_alpha=0.0,
+    noise_eps=0.25,
+)
+```
+
+Monte Carlo Tree Search with PUCT selection.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [analyze](#raccoon.search.mcts.MCTS.analyze) | Run MCTS and return a full Analysis with per-candidate stats. |
+| [search](#raccoon.search.mcts.MCTS.search) | Run MCTS and return (action -> visit proportion, visit entropy). |
+| [search_with_value](#raccoon.search.mcts.MCTS.search_with_value) | Run MCTS and return (action_probs, visit_entropy, root_q_value). |
+
+##### analyze { #raccoon.search.mcts.MCTS.analyze }
+
+```python
+search.mcts.MCTS.analyze(state)
+```
+
+Run MCTS and return a full Analysis with per-candidate stats.
+
+##### search { #raccoon.search.mcts.MCTS.search }
+
+```python
+search.mcts.MCTS.search(state)
+```
+
+Run MCTS and return (action -> visit proportion, visit entropy).
+
+##### search_with_value { #raccoon.search.mcts.MCTS.search_with_value }
+
+```python
+search.mcts.MCTS.search_with_value(state)
+```
+
+Run MCTS and return (action_probs, visit_entropy, root_q_value).
+
+### MCTSNode { #raccoon.search.mcts.MCTSNode }
+
+```python
+search.mcts.MCTSNode(state, parent=None, parent_action=None, prior=0.0)
+```
+
+A node in the MCTS tree. Only decision and terminal nodes are stored.
+
+Uses lazy child creation: when a node is expanded (evaluated by the
+network), only the prior probabilities are stored. Child nodes are
+created on-demand when first selected by PUCT, avoiding expensive
+state cloning for actions that are never visited.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [select_action](#raccoon.search.mcts.select_action) | Sample an action from the visit distribution. |
+
+### select_action { #raccoon.search.mcts.select_action }
+
+```python
+search.mcts.select_action(action_probs, temperature=1.0)
+```
+
+Sample an action from the visit distribution.

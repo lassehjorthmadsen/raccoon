@@ -1,0 +1,74 @@
+# train.coach { #raccoon.train.coach }
+
+`train.coach`
+
+Training orchestrator: self-play -> replay buffer -> SGD -> checkpoint.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [Coach](#raccoon.train.coach.Coach) | Runs the AlphaZero training loop. |
+
+### Coach { #raccoon.train.coach.Coach }
+
+```python
+train.coach.Coach(
+    network,
+    optimizer,
+    replay_buffer,
+    num_simulations=100,
+    batch_size=256,
+    games_per_iteration=50,
+    training_steps_per_iteration=100,
+    checkpoint_dir='checkpoints',
+    log_dir='logs',
+    experiment_name='',
+    checkpoint_every=10,
+    num_workers=8,
+    virtual_loss_count=1,
+    dirichlet_alpha=0.0,
+    noise_eps=0.25,
+    value_bootstrap_alpha=1.0,
+    scheduler=None,
+    notes='',
+)
+```
+
+Runs the AlphaZero training loop.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [run_iteration](#raccoon.train.coach.Coach.run_iteration) | One full iteration: self-play -> train -> checkpoint -> log. |
+| [self_play_phase](#raccoon.train.coach.Coach.self_play_phase) | Generate training data through parallel self-play. |
+| [training_phase](#raccoon.train.coach.Coach.training_phase) | Train the network on sampled positions from the replay buffer. |
+
+##### run_iteration { #raccoon.train.coach.Coach.run_iteration }
+
+```python
+train.coach.Coach.run_iteration(iteration, last_iteration=None)
+```
+
+One full iteration: self-play -> train -> checkpoint -> log.
+
+##### self_play_phase { #raccoon.train.coach.Coach.self_play_phase }
+
+```python
+train.coach.Coach.self_play_phase()
+```
+
+Generate training data through parallel self-play.
+
+##### training_phase { #raccoon.train.coach.Coach.training_phase }
+
+```python
+train.coach.Coach.training_phase()
+```
+
+Train the network on sampled positions from the replay buffer.
+
+``target_value`` is already normalised to [-1, 1] by ``self_play``
+(raw backgammon returns ±1/±2/±3 divided by 3), so it can be matched
+directly against the tanh-bounded value head output.

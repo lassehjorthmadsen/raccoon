@@ -1,0 +1,54 @@
+# API Reference {.doc .doc-index}
+
+## Environment
+
+OpenSpiel wrapper, board encoder, and action masking
+
+| | |
+| --- | --- |
+| [env.game_wrapper](env.game_wrapper.qmd#raccoon.env.game_wrapper) | OpenSpiel backgammon wrapper with perspective-relative board views. |
+| [env.encoder](env.encoder.qmd#raccoon.env.encoder) | Encode a BoardView into a (17, 2, 12) tensor for the neural network. |
+| [env.actions](env.actions.qmd#raccoon.env.actions) | Action space utilities for OpenSpiel backgammon. |
+
+## Model
+
+ResNet policy-value network
+
+| | |
+| --- | --- |
+| [model.network](model.network.qmd#raccoon.model.network) | ResNet policy-value network for backgammon. |
+
+## Search
+
+MCTS with chance-node handling
+
+| | |
+| --- | --- |
+| [search.mcts](search.mcts.qmd#raccoon.search.mcts) | AlphaZero-style MCTS with chance-node handling for backgammon. |
+
+## Training
+
+Self-play loop, replay buffer, and coach
+
+| | |
+| --- | --- |
+| [train.self_play](train.self_play.qmd#raccoon.train.self_play) | Self-play game generation for training data. |
+| [train.replay_buffer](train.replay_buffer.qmd#raccoon.train.replay_buffer) | Circular replay buffer for training positions. |
+| [train.coach](train.coach.qmd#raccoon.train.coach) | Training orchestrator: self-play -> replay buffer -> SGD -> checkpoint. |
+
+## Evaluation
+
+Checkpoint arena and GNUBG benchmark
+
+| | |
+| --- | --- |
+| [eval.arena](eval.arena.qmd#raccoon.eval.arena) | Checkpoint vs checkpoint evaluation arena. |
+| [eval.gnubg_harness](eval.gnubg_harness.qmd#raccoon.eval.gnubg_harness) | Automated money-game sessions against GNUBG via the `gnubg-nn` package. |
+
+## Protocol
+
+Raccoon Game Protocol (RGP)
+
+| | |
+| --- | --- |
+| [protocol.rgp](protocol.rgp.qmd#raccoon.protocol.rgp) | Raccoon Game Protocol (RGP) — text-based engine communication. |
