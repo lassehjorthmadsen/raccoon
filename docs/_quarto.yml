@@ -1,10 +1,38 @@
 project:
-  type: default
+  type: website
+  output-dir: _site
+
+website:
+  title: "Raccoon"
+  description: "AlphaZero-style backgammon AI"
+  repo-url: https://github.com/lassehjorthmadsen/raccoon
+  repo-actions: [issue]
+  navbar:
+    left:
+      - text: "Home"
+        file: index.qmd
+      - text: "Concepts"
+        menu:
+          - text: "MCTS Explained"
+            file: mcts_explained.md
+          - text: "Architecture"
+            file: architecture.md
+      - text: "Training"
+        menu:
+          - text: "Parameters"
+            file: training_parameters.md
+          - text: "Analysis"
+            file: training_analysis.qmd
+      - text: "Developer"
+        file: gcp_guide.md
 
 format:
   html:
-    code-fold: true
-    toc: true
     theme: cosmo
+    toc: true
+    code-fold: true
+
+execute:
+  freeze: auto
 
 jupyter: python3

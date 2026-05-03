@@ -1,0 +1,48 @@
+---
+title: "Raccoon"
+subtitle: "AlphaZero-style backgammon AI"
+---
+
+Raccoon is a backgammon AI that uses AlphaZero-style reinforcement learning to challenge GNUBG at money game play. The name is a nod to the doubling cube term in backgammon.
+
+GNUBG, the strongest open-source backgammon engine, uses TD reinforcement learning with value-only neural networks and shallow search — a design from the 1990s (TD-Gammon era). Modern AlphaZero-style training (policy+value network + Monte Carlo Tree Search) has beaten world-class engines in chess, shogi, and Go. This project applies that approach to backgammon.
+
+## Quick Start
+
+```bash
+make setup          # Install in editable mode with dev deps
+make test           # Run all tests
+make smoke          # Quick sanity: 2 iterations, 3 games, 10 sims
+make train          # Full training run
+make play           # Play against Raccoon in terminal
+```
+
+Training with custom parameters (`--experiment-name` is required; outputs go to `experiments/<name>/`):
+
+```bash
+python3 scripts/train.py --experiment-name my-run --iterations 100 \
+  --games-per-iter 50 --simulations 100 --lr 0.001 \
+  --channels 128 --num-blocks 6 --checkpoint-every 10
+```
+
+## Project Map
+
+| Doc | What it covers |
+|---|---|
+| [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
+| [MCTS Explained](mcts_explained.md) | Concepts: simulations, PUCT selection, temperature, Dirichlet noise |
+| [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |
+| [Training Analysis](training_analysis.qmd) | Loss curves, equity progression, GNUBG benchmark results across experiments |
+| [GCP Guide](gcp_guide.md) | Running training on Google Cloud GPU VMs |
+
+## Tech Stack
+
+- **Python 3.10+**, **PyTorch** — neural network training
+- **OpenSpiel** — backgammon game logic and 1352-action encoding
+- **NumPy** — tensor encoding
+- **pytest** — testing
+- **GNUBG** — evaluation benchmark (CLI mode)
+
+## Source
+
+[github.com/lassehjorthmadsen/raccoon](https://github.com/lassehjorthmadsen/raccoon)

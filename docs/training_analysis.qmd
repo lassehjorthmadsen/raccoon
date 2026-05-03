@@ -1,12 +1,6 @@
 ---
 title: "Raccoon Training Analysis"
 subtitle: "AlphaZero self-play for backgammon"
-format:
-  html:
-    code-fold: true
-    toc: true
-    theme: cosmo
-    embed-resources: true
 jupyter: python3
 ---
 
