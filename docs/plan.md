@@ -623,6 +623,8 @@ Try these if raw scaling isn't enough:
 - **Bearoff database**: For positions where all checkers are in the home board, use a precomputed table instead of the network. This frees network capacity for contact positions.
 - **Better encoding features**: Add pip count, contact/race classification, prime detection as extra channels.
 - **Training curriculum**: Start with shorter games (bearoff positions), gradually introduce full games.
+- **Afterstate MCTS (architectural)**: Currently MCTS samples dice during expansion so each simulation only explores one chance outcome. Switching to afterstate evaluation (evaluate the deterministic state after the dice roll but before the move) is the approach Stochastic MuZero used for backgammon and is provably more sample-efficient for stochastic games. Non-trivial refactor of `raccoon/search/mcts.py`. Consider if exp004 + sim scaling still plateau — the current plateau pattern (flat gammon rates, rising value loss, no within-experiment strength gain) is consistent with MCTS Q-estimates being too noisy at 100 sims to serve as useful targets in stochastic games.
+- **TD-Gammon-style value-head warm-start**: Before launching AlphaZero self-play, pre-train the value head with TD(λ) at 1-ply on ~50–100k self-play games (no MCTS). TD-Gammon reached near-grandmaster level with this alone, and the games run in milliseconds each on CPU. A pre-trained value function gives MCTS a materially better baseline and may bypass the weak-play equilibrium that pure-from-scratch AlphaZero self-play falls into for long stochastic games. Consider as a fallback if exp004 + sim scaling + afterstate MCTS all fail to break the plateau.
 
 ### M7.3: Evaluation Cadence
 

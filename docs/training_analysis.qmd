@@ -174,7 +174,7 @@ plt.show()
 
 - Resumed from an existing checkpoint at iter 148 with an empty replay buffer
 - Policy loss jumped from ~1.88 → ~2.19 in the first 15 iterations, then immediately plateaued. This is a buffer fill artifact: the buffer was empty at resume, so the first few iterations trained on a concentrated slice of the current policy (low cross-entropy); as it filled with ~25k diverse positions over ~11 iterations, the loss rose and locked in
-- Visit entropy tracked for the first time: flat at ~1.37 throughout all 137 logged iterations — no improvement in MCTS decisiveness despite Dirichlet noise
+- Visit entropy tracked for the first time: flat at ~1.37 throughout all 137 logged iterations — no improvement in MCTS decisiveness despite Dirichlet noise. For context, a uniform distribution over typical backgammon move counts (~20–30 legal actions per decision) would give entropy ≈ log(25) ≈ 3.2 nats. At 1.37, MCTS visits are concentrated at roughly 43% of the theoretical maximum — already quite peaked. "Not collapsing" is the right summary, but the absolute level is low enough to raise the question of whether Dirichlet ε=0.25 is actually diversifying an already-peaked prior, or getting washed out by confident logits
 - Experiment abandoned at iter 284 with no evidence of improvement
 
 **Candidate explanations (we don't yet know which apply):**
