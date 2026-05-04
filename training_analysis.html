@@ -231,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="experiment-overview" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-overview">Experiment Overview</h2>
 <p>This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.</p>
-<div id="2494a319" class="cell" data-execution_count="2">
+<div id="e418b7ab" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>| Experiment                     | Network      |   MCTS Sims |   Games/Iter |   Iterations |   Total Games | Status   |
 |:-------------------------------|:-------------|------------:|-------------:|-------------:|--------------:|:---------|
@@ -253,7 +253,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-curves-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-curves-comparison">Loss Curves Comparison</h2>
 <p>Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.</p>
-<div id="365507c3" class="cell page-columns page-full" data-execution_count="3">
+<div id="a63013c5" class="cell page-columns page-full" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
@@ -313,7 +313,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li>Resumed from an existing checkpoint at iter 148 with an empty replay buffer</li>
 <li>Policy loss jumped from ~1.88 → ~2.19 in the first 15 iterations, then immediately plateaued. This is a buffer fill artifact: the buffer was empty at resume, so the first few iterations trained on a concentrated slice of the current policy (low cross-entropy); as it filled with ~25k diverse positions over ~11 iterations, the loss rose and locked in</li>
-<li>Visit entropy tracked for the first time: flat at ~1.37 throughout all 137 logged iterations — no improvement in MCTS decisiveness despite Dirichlet noise</li>
+<li>Visit entropy tracked for the first time: flat at ~1.37 throughout all 137 logged iterations — no improvement in MCTS decisiveness despite Dirichlet noise. For context, a uniform distribution over typical backgammon move counts (~20–30 legal actions per decision) would give entropy ≈ log(25) ≈ 3.2 nats. At 1.37, MCTS visits are concentrated at roughly 43% of the theoretical maximum — already quite peaked. “Not collapsing” is the right summary, but the absolute level is low enough to raise the question of whether Dirichlet ε=0.25 is actually diversifying an already-peaked prior, or getting washed out by confident logits</li>
 <li>Experiment abandoned at iter 284 with no evidence of improvement</li>
 </ul>
 <p><strong>Candidate explanations (we don’t yet know which apply):</strong></p>
@@ -356,7 +356,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-trend-detail-policy-and-value-separately" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</h2>
 <p>Policy and value loss are doing different things; reading them together via <code>total_loss</code> obscures the signal. We fit a linear trend on each over a “late phase” (after the first 20% of each run), so the early warmup doesn’t dominate the slope.</p>
-<div id="57e947e0" class="cell page-columns page-full" data-execution_count="4">
+<div id="053fcff9" class="cell page-columns page-full" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
@@ -428,7 +428,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet) — Value Loss (MSE): 0.0635 →
 <section id="game-dynamics-is-play-quality-improving" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</h2>
 <p>The clearest diagnostic for whether training is making progress isn’t loss — it’s whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it’s flat, play is stuck.</p>
-<div id="35b4c1aa" class="cell page-columns page-full" data-execution_count="5">
+<div id="26fc1e05" class="cell page-columns page-full" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">9</span>))</span>
@@ -522,7 +522,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet) — Value Loss (MSE): 0.0635 →
 <section id="player-0-equity-bias" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="player-0-equity-bias">Player-0 Equity Bias</h2>
 <p>OpenSpiel’s opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0’s perspective should be approximately zero.</p>
-<div id="c951d916" class="cell page-columns page-full" data-execution_count="6">
+<div id="087b8fb3" class="cell page-columns page-full" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
@@ -574,7 +574,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet): avg outcome = +0.064  SE≈0.03
 <section id="training-efficiency-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="training-efficiency-comparison">Training Efficiency Comparison</h2>
 <p>How does more compute per iteration (8x MCTS sims, 5x games) affect training time?</p>
-<div id="5b181673" class="cell page-columns page-full" data-execution_count="7">
+<div id="bfb3d7a6" class="cell page-columns page-full" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">8</span>))</span>
@@ -643,7 +643,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet): avg outcome = +0.064  SE≈0.03
 </div>
 </div>
 </div>
-<div id="89e7b08c" class="cell" data-execution_count="8">
+<div id="0afe457e" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print efficiency stats for each experiment</span></span>
@@ -708,7 +708,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet):
 <section id="benchmark-results" class="level2">
 <h2 class="anchored" data-anchor-id="benchmark-results">Benchmark Results</h2>
 <p>Evaluation results from each experiment (when available):</p>
-<div id="9241582a" class="cell" data-execution_count="9">
+<div id="76094a0c" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ============================================================
@@ -864,7 +864,7 @@ exp003 (100 sims, 25 games, 25k buf, Dirichlet)
 <li><strong>Resolved (2026-05-03):</strong> Dirichlet root noise does <em>not</em> break the gammon/bg plateau (exp003).</li>
 <li>Can value-target bootstrapping (root <code>Q</code> instead of terminal return) fix the rising value loss and break the plateau?</li>
 <li>Would a LR schedule (step decay) reduce weight oscillation enough to let the value head converge?</li>
-<li>At what point does scaling up the network architecture (10 blocks, 256 channels) make sense, vs.&nbsp;fixing the training signal at current architecture first?</li>
+<li>At what point does scaling up the network architecture (10 blocks, 256 channels) make sense, vs.&nbsp;fixing the training signal at current architecture first? <strong>Current position: deliberately deferred behind signal-quality fixes.</strong> The plateau pattern (flat gammon rates at 33–43%, rising value loss, no within-experiment strength gain) is a training-target problem, not a capacity problem — a larger network fitting the same self-play distribution will still plateau at the same weak-play equilibrium, just with more parameters. TD-Gammon reached near-human with a 40-hidden-unit MLP, so capacity has never been the binding constraint for backgammon strength. Network scaling compounds signal improvements; it doesn’t substitute for them. Revisit once bootstrapping (exp004), afterstate MCTS, or a TD-style warm-start has demonstrably improved play quality at the current 6×128 size.</li>
 </ul>
 
 
