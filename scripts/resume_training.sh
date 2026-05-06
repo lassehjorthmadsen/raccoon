@@ -53,13 +53,22 @@ with open(sys.argv[1]) as f:
 if config is None:
     sys.exit("no config entry found")
 t = config["training"]
-print(
-    f"--games-per-iter {t['games_per_iteration']} "
-    f"--simulations {t['num_simulations']} "
-    f"--training-steps {t['training_steps_per_iteration']} "
-    f"--batch-size {t['batch_size']} "
-    f"--replay-size {t['replay_size']}"
-)
+parts = [
+    f"--games-per-iter {t['games_per_iteration']}",
+    f"--simulations {t['num_simulations']}",
+    f"--training-steps {t['training_steps_per_iteration']}",
+    f"--batch-size {t['batch_size']}",
+    f"--replay-size {t['replay_size']}",
+    f"--dirichlet-alpha {t['dirichlet_alpha']}",
+    f"--noise-eps {t['noise_eps']}",
+    f"--value-bootstrap-alpha {t['value_bootstrap_alpha']}",
+]
+sched = t.get("lr_schedule", {})
+milestones = [k for k in sched.get("milestones", {}) if k.isdigit()]
+if milestones:
+    parts.append(f"--lr-milestones {','.join(sorted(milestones, key=int))}")
+    parts.append(f"--lr-gamma {sched.get('gamma', 0.1)}")
+print(" ".join(parts))
 PYEOF
 )"
 
