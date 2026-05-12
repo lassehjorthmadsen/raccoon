@@ -30,3 +30,15 @@ fi
 runuser -l lasse -c "gcloud config set account '$SA'" >/dev/null
 
 echo "setup_vm.sh: active gcloud account set to $SA for user lasse"
+
+# Load NVIDIA kernel modules. After a kernel upgrade the modules may not be
+# present for the new kernel version; install them if missing, then load.
+KVER="$(uname -r)"
+if ! modinfo nvidia >/dev/null 2>&1; then
+  echo "setup_vm.sh: NVIDIA module missing for kernel $KVER — installing"
+  apt-get install -y "linux-modules-nvidia-580-server-open-${KVER}" >/dev/null 2>&1 || \
+    echo "setup_vm.sh: WARNING — could not install NVIDIA modules for $KVER" >&2
+fi
+modprobe nvidia     2>/dev/null || echo "setup_vm.sh: WARNING — modprobe nvidia failed" >&2
+modprobe nvidia-uvm 2>/dev/null || true
+echo "setup_vm.sh: NVIDIA modules loaded ($(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo 'unknown'))"

@@ -63,8 +63,8 @@ parts = [
     f"--noise-eps {t['noise_eps']}",
     f"--value-bootstrap-alpha {t['value_bootstrap_alpha']}",
 ]
-sched = t.get("lr_schedule", {})
-milestones = [k for k in sched.get("milestones", {}) if k.isdigit()]
+sched = t.get("lr_schedule") or {}
+milestones = [k for k in sched.get("milestones", {}) if str(k).isdigit()]
 if milestones:
     parts.append(f"--lr-milestones {','.join(sorted(milestones, key=int))}")
     parts.append(f"--lr-gamma {sched.get('gamma', 0.1)}")
