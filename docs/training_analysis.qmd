@@ -45,6 +45,11 @@ EXPERIMENTS = {
         "label": "exp004 (100 sims, 25 games, 25k buf, bootstrap α=0.5, LR decay)",
         "color": "#d62728",
     },
+    "exp005": {
+        "name": "exp005-6x128-800sims",
+        "label": "exp005 (800 sims, 25 games, 25k buf, Dirichlet, bootstrap α=0.5)",
+        "color": "#e377c2",
+    },
     "exp006": {
         "name": "exp006-6x128-25sims-extend",
         "label": "exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)",
