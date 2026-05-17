@@ -388,6 +388,7 @@ for exp_id, exp in experiments.items():
 ax.axhline(0, color="black", linewidth=0.8)
 ax.set_ylabel("Slope of rate (per 100 iters)")
 ax.set_title("Trend in gammon / backgammon rates\n(negative = play improving; near-zero = plateau)")
+ax.tick_params(axis="x", rotation=45)
 ax.grid(True, alpha=0.3, axis="y")
 
 fig.tight_layout()
