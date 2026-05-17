@@ -12,6 +12,7 @@ experiments/*
 experiments/*/checkpoints/
 experiments/smoke/
 experiments/*/logs/*.out
+experiments/*/logs/stdout.log
 perplexity-conversation.md
 *.html
 *_files/
