@@ -1,4 +1,4 @@
-.PHONY: setup test smoke train eval eval-gnubg play
+.PHONY: setup test smoke train eval eval-gnubg play download-wildbg pretrain-smoke pretrain
 
 PYTHON := .venv/bin/python3
 
@@ -24,3 +24,13 @@ eval-gnubg:
 
 play:
 	$(PYTHON) scripts/play.py
+
+download-wildbg:
+	./scripts/download_wildbg.sh
+
+pretrain-smoke:
+	$(PYTHON) scripts/pretrain.py --experiment-name pretrain-smoke --epochs 1 --max-positions 2000
+
+pretrain:
+	@if [ -z "$(NAME)" ]; then echo "Usage: make pretrain NAME=pretrain-wildbg-v1"; exit 1; fi
+	$(PYTHON) scripts/pretrain.py --experiment-name $(NAME)

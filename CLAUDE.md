@@ -16,6 +16,9 @@ make train          # Full training run
 make eval           # Checkpoint vs checkpoint evaluation
 make eval-gnubg     # Automated benchmark against GNUBG CLI
 make play           # Interactive terminal play
+make download-wildbg # Fetch wildbg-training labeled positions (CC0) into data/wildbg/
+make pretrain-smoke  # 1 epoch on 2k positions — sanity check before a full pretrain
+make pretrain NAME=… # Full supervised pretraining on wildbg data
 
 # Run a single test file or test
 python3 -m pytest tests/test_encoder.py -v
@@ -28,6 +31,12 @@ python3 scripts/train.py --experiment-name my-run --iterations 100 --games-per-i
 # Resume training from a checkpoint (architecture is read from the checkpoint)
 python3 scripts/train.py --experiment-name my-run --iterations 100 \
   --resume experiments/my-run/checkpoints/iter_0200.pt
+
+# Supervised pretraining on wildbg data, then continue with self-play
+./scripts/download_wildbg.sh   # one-off; ~17 MB into data/wildbg/
+python3 scripts/pretrain.py --experiment-name pretrain-wildbg-v1 --epochs 20
+python3 scripts/train.py --experiment-name exp007-pretrained \
+  --resume experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt --simulations 800
 ```
 
 ## Architecture
