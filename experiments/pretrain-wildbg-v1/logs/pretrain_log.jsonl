@@ -1,0 +1,21 @@
+{"type": "config", "run_id": "a6371fd6", "experiment_name": "pretrain-wildbg-v1", "timestamp": "2026-05-28T06:25:46.313498+00:00", "git_sha": "79ebe54", "network": {"channels": 128, "num_blocks": 6, "in_channels": 17, "board_h": 2, "board_w": 12, "num_actions": 1352}, "training": {"kind": "supervised-pretrain", "data_dir": "data/wildbg", "epochs": 20, "batch_size": 256, "lr": 0.001, "weight_decay": 0.0001, "val_split": 0.05, "n_train": 285000, "n_val": 15000, "seed": 42, "max_positions": null}, "system": {"torch_version": "2.11.0+cu130", "cuda_available": false, "gpu": null, "hostname": "lasse-iMac14-2", "cpu_count": 4}, "notes": ""}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T06:31:56.871506+00:00", "epoch": 1, "train_mse": 0.006774, "val_mse": 0.005128, "lr": 0.001, "epoch_time": 365.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T06:38:57.912392+00:00", "epoch": 2, "train_mse": 0.004104, "val_mse": 0.004494, "lr": 0.001, "epoch_time": 421.0}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T06:46:13.129055+00:00", "epoch": 3, "train_mse": 0.003506, "val_mse": 0.003363, "lr": 0.001, "epoch_time": 435.2}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T07:07:38.967016+00:00", "epoch": 4, "train_mse": 0.003102, "val_mse": 0.004113, "lr": 0.001, "epoch_time": 1285.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T09:26:35.264338+00:00", "epoch": 5, "train_mse": 0.002767, "val_mse": 0.005869, "lr": 0.001, "epoch_time": 8336.3}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T12:22:28.221046+00:00", "epoch": 6, "train_mse": 0.00258, "val_mse": 0.004257, "lr": 0.001, "epoch_time": 10552.9}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T14:08:29.522999+00:00", "epoch": 7, "train_mse": 0.002449, "val_mse": 0.002629, "lr": 0.001, "epoch_time": 6361.3}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T15:24:18.960125+00:00", "epoch": 8, "train_mse": 0.002381, "val_mse": 0.002074, "lr": 0.001, "epoch_time": 4549.4}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T16:36:03.658343+00:00", "epoch": 9, "train_mse": 0.002309, "val_mse": 0.002259, "lr": 0.001, "epoch_time": 4304.7}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T17:42:46.889791+00:00", "epoch": 10, "train_mse": 0.002272, "val_mse": 0.002216, "lr": 0.001, "epoch_time": 4003.2}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T18:45:40.451303+00:00", "epoch": 11, "train_mse": 0.002226, "val_mse": 0.0023, "lr": 0.001, "epoch_time": 3773.6}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T19:45:17.334733+00:00", "epoch": 12, "train_mse": 0.002145, "val_mse": 0.002566, "lr": 0.001, "epoch_time": 3576.9}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T20:42:37.110266+00:00", "epoch": 13, "train_mse": 0.002144, "val_mse": 0.001867, "lr": 0.001, "epoch_time": 3439.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T21:38:32.904419+00:00", "epoch": 14, "train_mse": 0.002077, "val_mse": 0.002193, "lr": 0.001, "epoch_time": 3355.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T22:33:06.973385+00:00", "epoch": 15, "train_mse": 0.002095, "val_mse": 0.00179, "lr": 0.001, "epoch_time": 3274.1}
+{"run_id": "a6371fd6", "timestamp": "2026-05-28T23:26:06.826639+00:00", "epoch": 16, "train_mse": 0.002044, "val_mse": 0.002744, "lr": 0.001, "epoch_time": 3179.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-29T00:17:49.671413+00:00", "epoch": 17, "train_mse": 0.002091, "val_mse": 0.001869, "lr": 0.001, "epoch_time": 3102.8}
+{"run_id": "a6371fd6", "timestamp": "2026-05-29T01:08:26.983497+00:00", "epoch": 18, "train_mse": 0.001952, "val_mse": 0.001942, "lr": 0.001, "epoch_time": 3037.3}
+{"run_id": "a6371fd6", "timestamp": "2026-05-29T01:58:12.665542+00:00", "epoch": 19, "train_mse": 0.002004, "val_mse": 0.002293, "lr": 0.001, "epoch_time": 2985.7}
+{"run_id": "a6371fd6", "timestamp": "2026-05-29T02:46:33.459554+00:00", "epoch": 20, "train_mse": 0.001992, "val_mse": 0.002134, "lr": 0.001, "epoch_time": 2900.8}
