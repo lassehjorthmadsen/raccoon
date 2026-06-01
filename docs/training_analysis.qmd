@@ -613,6 +613,25 @@ Value-only pretraining is **not** sufficient to produce a competent standalone p
 
 **But it does point to a refinement:** if the wildbg dataset includes recommended-move labels (worth checking), a parallel policy-pretraining pass on those labels would address the missing-policy-prior problem directly and likely outperform value-only pretraining as both a standalone player and a self-play seed. The current pretrained.pt is half of what it could be.
 
+## Pretraining Evaluation (pretrain-wildbg-v2 — policy distillation)
+
+The refinement above, executed. The wildbg dataset has **no** move labels (each row is value-only), so policy targets were *synthesised*: replay ~5000 human matches from the bglab corpus (lasse + Llabba, ~238k decision positions; 99.5%/98.9% OpenSpiel-replay success) and at each decision do **1-ply V-lookahead** with pretrained.pt's value head — evaluate every legal child, one-hot the argmax as the policy target. Value target = pretrained.pt's own V(s) (knowledge distillation, to anchor the calibrated value head while the trunk learns the dice channels for the first time). Then a 10-epoch combined-loss fine-tune (policy CE + value MSE) from pretrained.pt → **pretrained_v2.pt**.
+
+Stage-2 training behaved exactly as intended on its own terms: val top1 (policy agreement with the 1-ply teacher) rose 0.1% → ~38%, val policy_CE 7.28 → 1.96, and val value_MSE held flat at ~0.005 throughout — distillation kept the value head from drifting while the trunk adapted. The question is whether 38%-accurate imitation of a *weak* teacher translates to standalone strength.
+
+### Results
+
+- **pretrained_v2.pt vs exp005 iter_0447 (n=100, 100 eval sims): 22-78 (22%), -1.240 ppg.** P1 gammons/BG: 6/0. P2 gammons/BG: 34/20. Avg game length 75.5 moves. Compare to value-only pretrained.pt vs the same opponent (3%, -2.03 ppg): policy pretraining is a **large, unambiguous improvement** — win rate 3% → 22%, equity +0.79 ppg (~4-5 SE). But pretrained_v2 **still loses** to iter_0447: it did not surpass the strongest from-scratch self-play checkpoint.
+- **pretrained_v2.pt vs GNUBG ply=0 (n=100, 100 eval sims): 0-100 (0%), -2.590 ppg.** GNUBG gammons/BG: 31/64. Marginally better than value-only pretrained.pt (-2.725 ppg) but still **0 wins** — no external progress. In line with every other checkpoint: M6 remains out of reach.
+
+### Interpretation
+
+**The mechanism is validated; the standalone result is a partial success.** The random-policy prior *was* a real bottleneck — giving MCTS a coherent prior moved the needle a lot (3%→22% vs iter_0447). But you can't distill past your teacher: the policy targets are 1-ply argmax under pretrained.pt's value head, and that value head loses 0-200 to GNUBG on its own. iter_0447's policy was trained on **800-sim MCTS** targets — far better-informed than 1-ply lookahead. The ~38% top1 ceiling says it directly: the student agrees with even its own weak teacher only ~⅜ of the time.
+
+**Does this refute the exp007 pretrain-as-seed hypothesis?** No — pretrained_v2 is the best self-play *seed* we have (calibrated value + coherent, if imperfect, policy; far better than random-policy pretrained.pt). exp007's question was always "does self-play converge faster/higher from this seed than from scratch," not "is the seed already strong." But the uncomfortable counter-question — *why would self-play from pretrained_v2 beat the self-play that produced iter_0447?* — argues for improving the seed before committing GPU hours.
+
+**Next step (pretrain-wildbg-v2b): improve the teacher.** Re-synthesise policy targets using iter_0447's network (our strongest value function) for the 1-ply lookahead instead of pretrained.pt's. Better labels → a seed that might actually surpass iter_0447, turning exp007 from a hopeful bet into a confident one. Cheap (~4h CPU, no GPU), directly attacks the diagnosed weakness.
+
 ## Summary and Next Steps
 
 ### Key Findings Across Experiments
