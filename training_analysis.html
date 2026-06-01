@@ -198,6 +198,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation">Interpretation</a></li>
   </ul></li>
+  <li><a href="#pretraining-evaluation-pretrain-wildbg-v2-policy-distillation" id="toc-pretraining-evaluation-pretrain-wildbg-v2-policy-distillation" class="nav-link" data-scroll-target="#pretraining-evaluation-pretrain-wildbg-v2-policy-distillation">Pretraining Evaluation (pretrain-wildbg-v2 — policy distillation)</a>
+  <ul class="collapse">
+  <li><a href="#results-1" id="toc-results-1" class="nav-link" data-scroll-target="#results-1">Results</a></li>
+  <li><a href="#interpretation-1" id="toc-interpretation-1" class="nav-link" data-scroll-target="#interpretation-1">Interpretation</a></li>
+  </ul></li>
   <li><a href="#summary-and-next-steps" id="toc-summary-and-next-steps" class="nav-link" data-scroll-target="#summary-and-next-steps">Summary and Next Steps</a>
   <ul class="collapse">
   <li><a href="#key-findings-across-experiments" id="toc-key-findings-across-experiments" class="nav-link" data-scroll-target="#key-findings-across-experiments">Key Findings Across Experiments</a></li>
@@ -236,7 +241,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="experiment-overview" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-overview">Experiment Overview</h2>
 <p>This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.</p>
-<div id="3722edee" class="cell" data-execution_count="2">
+<div id="ae54df01" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>| Experiment                     | Network      |   MCTS Sims |   Games/Iter |   Iterations |   Total Games | Status   |
 |:-------------------------------|:-------------|------------:|-------------:|-------------:|--------------:|:---------|
@@ -264,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-curves-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-curves-comparison">Loss Curves Comparison</h2>
 <p>Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.</p>
-<div id="4295d7ac" class="cell page-columns page-full" data-execution_count="3">
+<div id="0f0025dc" class="cell page-columns page-full" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
@@ -396,7 +401,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-trend-detail-policy-and-value-separately" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</h2>
 <p>Policy and value loss are doing different things; reading them together via <code>total_loss</code> obscures the signal. We fit a linear trend on each over a “late phase” (after the first 20% of each run), so the early warmup doesn’t dominate the slope.</p>
-<div id="6a86b656" class="cell page-columns page-full" data-execution_count="4">
+<div id="d5bb5fce" class="cell page-columns page-full" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
@@ -474,7 +479,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000) — Value Loss (MS
 <section id="game-dynamics-is-play-quality-improving" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</h2>
 <p>The clearest diagnostic for whether training is making progress isn’t loss — it’s whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it’s flat, play is stuck.</p>
-<div id="415963f1" class="cell page-columns page-full" data-execution_count="5">
+<div id="60c05087" class="cell page-columns page-full" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">9</span>))</span>
@@ -571,7 +576,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000) — Value Loss (MS
 <section id="player-0-equity-bias" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="player-0-equity-bias">Player-0 Equity Bias</h2>
 <p>OpenSpiel’s opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0’s perspective should be approximately zero.</p>
-<div id="b19ae40a" class="cell page-columns page-full" data-execution_count="6">
+<div id="bc05b634" class="cell page-columns page-full" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
@@ -626,7 +631,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000): avg outcome = +0.
 <section id="training-efficiency-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="training-efficiency-comparison">Training Efficiency Comparison</h2>
 <p>How does more compute per iteration (8x MCTS sims, 5x games) affect training time?</p>
-<div id="3e611fd6" class="cell page-columns page-full" data-execution_count="7">
+<div id="8425ed3a" class="cell page-columns page-full" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">8</span>))</span>
@@ -695,7 +700,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000): avg outcome = +0.
 </div>
 </div>
 </div>
-<div id="dd13377c" class="cell" data-execution_count="8">
+<div id="73a1ec13" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print efficiency stats for each experiment</span></span>
@@ -785,7 +790,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000):
 <section id="benchmark-results" class="level2">
 <h2 class="anchored" data-anchor-id="benchmark-results">Benchmark Results</h2>
 <p>Evaluation results from each experiment (when available):</p>
-<div id="d9f66039" class="cell" data-execution_count="9">
+<div id="6864fea5" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ============================================================
@@ -935,6 +940,24 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 <p>Value-only pretraining is <strong>not</strong> sufficient to produce a competent standalone player. The policy head is essential: with a random policy prior, MCTS at 100 sims explores too uniformly to find good moves even when the value head correctly identifies which positions are good. Search rarely reaches the promising lines.</p>
 <p><strong>This does not refute the pretrain-as-seed hypothesis for exp007.</strong> The intended use is as the <em>starting point</em> for self-play training, where the calibrated value bootstrap should give meaningful targets early while the policy head trains from scratch via MCTS visit distributions. Whether that converges faster than from-scratch self-play remains the empirical question exp007 is designed to answer.</p>
 <p><strong>But it does point to a refinement:</strong> if the wildbg dataset includes recommended-move labels (worth checking), a parallel policy-pretraining pass on those labels would address the missing-policy-prior problem directly and likely outperform value-only pretraining as both a standalone player and a self-play seed. The current pretrained.pt is half of what it could be.</p>
+</section>
+</section>
+<section id="pretraining-evaluation-pretrain-wildbg-v2-policy-distillation" class="level2">
+<h2 class="anchored" data-anchor-id="pretraining-evaluation-pretrain-wildbg-v2-policy-distillation">Pretraining Evaluation (pretrain-wildbg-v2 — policy distillation)</h2>
+<p>The refinement above, executed. The wildbg dataset has <strong>no</strong> move labels (each row is value-only), so policy targets were <em>synthesised</em>: replay ~5000 human matches from the bglab corpus (lasse + Llabba, ~238k decision positions; 99.5%/98.9% OpenSpiel-replay success) and at each decision do <strong>1-ply V-lookahead</strong> with pretrained.pt’s value head — evaluate every legal child, one-hot the argmax as the policy target. Value target = pretrained.pt’s own V(s) (knowledge distillation, to anchor the calibrated value head while the trunk learns the dice channels for the first time). Then a 10-epoch combined-loss fine-tune (policy CE + value MSE) from pretrained.pt → <strong>pretrained_v2.pt</strong>.</p>
+<p>Stage-2 training behaved exactly as intended on its own terms: val top1 (policy agreement with the 1-ply teacher) rose 0.1% → ~38%, val policy_CE 7.28 → 1.96, and val value_MSE held flat at ~0.005 throughout — distillation kept the value head from drifting while the trunk adapted. The question is whether 38%-accurate imitation of a <em>weak</em> teacher translates to standalone strength.</p>
+<section id="results-1" class="level3">
+<h3 class="anchored" data-anchor-id="results-1">Results</h3>
+<ul>
+<li><strong>pretrained_v2.pt vs exp005 iter_0447 (n=100, 100 eval sims): 22-78 (22%), -1.240 ppg.</strong> P1 gammons/BG: 6/0. P2 gammons/BG: 34/20. Avg game length 75.5 moves. Compare to value-only pretrained.pt vs the same opponent (3%, -2.03 ppg): policy pretraining is a <strong>large, unambiguous improvement</strong> — win rate 3% → 22%, equity +0.79 ppg (~4-5 SE). But pretrained_v2 <strong>still loses</strong> to iter_0447: it did not surpass the strongest from-scratch self-play checkpoint.</li>
+<li><strong>pretrained_v2.pt vs GNUBG ply=0 (n=100, 100 eval sims): 0-100 (0%), -2.590 ppg.</strong> GNUBG gammons/BG: 31/64. Marginally better than value-only pretrained.pt (-2.725 ppg) but still <strong>0 wins</strong> — no external progress. In line with every other checkpoint: M6 remains out of reach.</li>
+</ul>
+</section>
+<section id="interpretation-1" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-1">Interpretation</h3>
+<p><strong>The mechanism is validated; the standalone result is a partial success.</strong> The random-policy prior <em>was</em> a real bottleneck — giving MCTS a coherent prior moved the needle a lot (3%→22% vs iter_0447). But you can’t distill past your teacher: the policy targets are 1-ply argmax under pretrained.pt’s value head, and that value head loses 0-200 to GNUBG on its own. iter_0447’s policy was trained on <strong>800-sim MCTS</strong> targets — far better-informed than 1-ply lookahead. The ~38% top1 ceiling says it directly: the student agrees with even its own weak teacher only ~⅜ of the time.</p>
+<p><strong>Does this refute the exp007 pretrain-as-seed hypothesis?</strong> No — pretrained_v2 is the best self-play <em>seed</em> we have (calibrated value + coherent, if imperfect, policy; far better than random-policy pretrained.pt). exp007’s question was always “does self-play converge faster/higher from this seed than from scratch,” not “is the seed already strong.” But the uncomfortable counter-question — <em>why would self-play from pretrained_v2 beat the self-play that produced iter_0447?</em> — argues for improving the seed before committing GPU hours.</p>
+<p><strong>Next step (pretrain-wildbg-v2b): improve the teacher.</strong> Re-synthesise policy targets using iter_0447’s network (our strongest value function) for the 1-ply lookahead instead of pretrained.pt’s. Better labels → a seed that might actually surpass iter_0447, turning exp007 from a hopeful bet into a confident one. Cheap (~4h CPU, no GPU), directly attacks the diagnosed weakness.</p>
 </section>
 </section>
 <section id="summary-and-next-steps" class="level2">
