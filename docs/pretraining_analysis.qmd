@@ -1,0 +1,242 @@
+---
+title: "Raccoon Pretraining Analysis"
+subtitle: "Supervised warm-starts for backgammon self-play"
+jupyter: python3
+---
+
+## Why this is a separate track
+
+The self-play experiments (see [Training Analysis](training_analysis.qmd)) reached a blunt conclusion: **pure AlphaZero self-play from a random initialization, at our compute scale, does not produce competitive backgammon.** The plateau is slow rather than absolute — exp006 showed a statistically significant but tiny gain over 2000 extra iterations (+0.270 ppg), and exp005 showed 800-sim search is the best lever — but closing the ~2.3 ppg gap to GNUBG that way would take on the order of 17,000 iterations. The bottleneck is the *quality of the self-play training signal*, not the amount of it.
+
+Supervised pretraining is the algorithmic pivot: instead of bootstrapping a network from noise, **seed it from existing backgammon knowledge** and only then continue with self-play. This document tracks that track end to end — the data, the pipeline, each pretraining stage, and what each one taught us. It is deliberately separate from the self-play analysis: different data sources, different methodology, different success criteria.
+
+The hypothesis under test (exp007, not yet run): *self-play that starts from a competent value **and** policy converges faster, or to a higher endpoint, than self-play from scratch.* Everything here is in service of producing the best possible seed for that test — and of learning whether a good seed is even reachable by supervised means.
+
+```{python}
+#| echo: false
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams["figure.dpi"] = 120
+
+EXP_ROOT = Path("../experiments")
+
+
+def load_pretrain_log(exp_name):
+    """Return (config_dict, epoch_dataframe) for a pretrain run.
+
+    A log may contain multiple config lines (e.g. a crashed attempt plus
+    the real run). We keep the run_id that has the most epoch rows.
+    """
+    path = EXP_ROOT / exp_name / "logs" / "pretrain_log.jsonl"
+    if not path.exists():
+        return None, pd.DataFrame()
+    rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    configs = [r for r in rows if r.get("type") == "config"]
+    epoch_rows = [r for r in rows if "epoch" in r]
+    if not epoch_rows:
+        cfg = configs[-1] if configs else None
+        return cfg, pd.DataFrame()
+    # Pick the run_id with the most epoch rows (the successful run).
+    counts = {}
+    for r in epoch_rows:
+        counts[r["run_id"]] = counts.get(r["run_id"], 0) + 1
+    best_run = max(counts, key=counts.get)
+    df = pd.DataFrame([r for r in epoch_rows if r["run_id"] == best_run])
+    df = df.sort_values("epoch").reset_index(drop=True)
+    cfg = next((c for c in configs if c["run_id"] == best_run), configs[-1] if configs else None)
+    return cfg, df
+
+
+def load_arena_eval(exp_name):
+    """Return list of arena (checkpoint-vs-checkpoint) eval dicts."""
+    path = EXP_ROOT / exp_name / "logs" / "eval_log.jsonl"
+    if not path.exists():
+        return []
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+
+
+def load_gnubg_eval(exp_name):
+    """Return list of GNUBG benchmark eval dicts."""
+    path = EXP_ROOT / exp_name / "logs" / "gnubg_eval_log.jsonl"
+    if not path.exists():
+        return []
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+```
+
+## The supervised pipeline
+
+Two ingredients feed the pretraining stages: a **value** signal (from wildbg) and a **policy** signal (synthesised from human match positions). The pipeline:
+
+1. **Decode** — wildbg ships positions as GNU Backgammon Position IDs; bglab ships human matches as Backgammon-Studio text. Both are decoded into a perspective-relative `BoardView` (`raccoon/data/wildbg.py`, `raccoon/data/bgmatch.py`).
+2. **Encode** — `BoardView` → the same `(17, 2, 12)` tensor the self-play network consumes (`raccoon/env/encoder.py`). The encoder is shared, so a pretrained checkpoint is a drop-in `--resume` target for `scripts/train.py`.
+3. **Replay** (policy only) — human matches are walked move-by-move through OpenSpiel (`raccoon/data/bgmatch_replay.py`) so that at every decision we have the legal-action set and can index moves into the 1352-action space. Matching is robust to notation variants (chained vs. split moves, doubles split into two sub-actions, bar/bear-off, forfeits) by falling back to a **final-board-signature** comparison. Replay success: 99.5% (lasse) / 98.9% (Llabba), ~238k decisions, zero per-step errors.
+4. **1-ply V-lookahead** (policy only) — at each replayed decision, evaluate every legal child position with a value head and one-hot the argmax as the **policy target** (`scripts/synthesize_policy_dataset.py`). This manufactures policy labels that wildbg does not provide.
+5. **Distill + fine-tune** — train both heads on the synthesised cache with `policy_CE + value_MSE` (`scripts/pretrain_policy.py`). The value term is knowledge distillation against the teacher's own `V(s)`, intended to keep the value head calibrated while the shared trunk learns the dice channels (which the value-only stage never saw — wildbg positions are all pre-roll).
+
+### Data sources
+
+| Source | License | What it provides | Size |
+|---|---|---|---|
+| [wildbg-training](https://github.com/carsten-wenderdel/wildbg-training) | CC0 | Pre-roll positions with rollout **equities** (`win`, `win_g`, `win_bg`, `lose_g`, `lose_bg`) — value labels only, no move labels | ~300k positions |
+| [bglab](https://github.com/lassehjorthmadsen/bglab) match archive | personal match data | Human **match positions** (BackgammonGalaxy/Studio); used only as a position *distribution* to replay through OpenSpiel — the human's move is just "advance," the policy target comes from V-lookahead | ~1777 matches → ~238k decisions |
+
+A note on the bglab equities: the analysed files carry **match-normalised** equities (cube-aware, match-score-dependent), not the cubeless money-game equities Raccoon trains for. We therefore ignore bglab's own labels entirely and use only the raw move sequences as a position source. All value targets come from a network, not from bglab.
+
+## Stage 1 — value-only pretrain (`pretrain-wildbg-v1`)
+
+A 20-epoch supervised regression of the value head onto wildbg's cubeless equities. The policy head receives no gradient and stays at its random initialisation.
+
+```{python}
+#| echo: false
+cfg1, df1 = load_pretrain_log("pretrain-wildbg-v1")
+
+fig, ax = plt.subplots(figsize=(9, 4))
+ax.plot(df1["epoch"], df1["train_mse"], "o-", label="train MSE", color="#1f77b4")
+ax.plot(df1["epoch"], df1["val_mse"], "s-", label="val MSE", color="#ff7f0e")
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Value MSE")
+ax.set_title("Stage 1 (value-only): value head fits wildbg equities cleanly")
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.show()
+
+print(f"Final val MSE: {df1['val_mse'].iloc[-1]:.4f}  "
+      f"(epoch {int(df1['epoch'].iloc[-1])})")
+```
+
+The value head fits the rollout equities tightly (val MSE ≈ 0.002 — recall the value target is in [-1, 1], so this is a small residual). On its own terms, stage 1 succeeds. The question is whether a calibrated value with a *random policy* is a usable player.
+
+**It is not.** As a standalone player, `pretrained.pt` loses 6-194 (-2.03 ppg) to the strongest self-play checkpoint (exp005 iter_0447) and 0-200 (-2.725 ppg) to GNUBG ply=0 — slightly *worse* against GNUBG than iter_0447 itself. The diagnosis: with a uniform-ish policy prior, MCTS at 100 simulations explores too broadly to find good moves even when the value head correctly ranks positions. **The missing policy prior is the bottleneck.** Search rarely reaches the lines the value head would reward.
+
+## Stage 2 — policy distillation (`pretrain-wildbg-v2`)
+
+Stage 1's lesson motivates synthesising a policy. Since wildbg has no move labels, we generate them: replay human matches, and at each position do 1-ply lookahead with stage-1's value head, one-hotting the best child. Then fine-tune both heads (policy CE + value distillation) from `pretrained.pt`.
+
+```{python}
+#| echo: false
+cfg2, df2 = load_pretrain_log("pretrain-wildbg-v2")
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+
+ax = axes[0]
+ax.plot(df2["epoch"], df2["train_policy_loss"], "o-", label="train", color="#1f77b4")
+ax.plot(df2["epoch"], df2["val_policy_loss"], "s-", label="val", color="#ff7f0e")
+ax.set_xlabel("Epoch"); ax.set_ylabel("Policy cross-entropy")
+ax.set_title("Stage 2: policy head learns the 1-ply teacher")
+ax.legend(); ax.grid(True, alpha=0.3)
+
+ax = axes[1]
+ax.plot(df2["epoch"], df2["val_top1_acc"] * 100, "D-", color="#2ca02c")
+ax.set_xlabel("Epoch"); ax.set_ylabel("Val top-1 agreement (%)")
+ax.set_title("Agreement with the 1-ply argmax target")
+ax.grid(True, alpha=0.3)
+ax.set_ylim(0, 50)
+plt.show()
+
+print(f"Final: val policy_CE={df2['val_policy_loss'].iloc[-1]:.3f}  "
+      f"top1={df2['val_top1_acc'].iloc[-1]*100:.1f}%  "
+      f"val value_MSE={df2['val_value_loss'].iloc[-1]:.4f}")
+```
+
+The policy head learns the target well: top-1 agreement rises from ~0% to ~38%, and value MSE stays flat (distillation holds the value head steady). But **top-1 plateaus at ~38%** — the student agrees with even its *own teacher* only ⅜ of the time, and the teacher (1-ply argmax under a GNUBG-weak value head) is itself weak.
+
+**Standalone result: a large improvement, but not enough.** `pretrained_v2` beats value-only `pretrained.pt` substantially — vs iter_0447 it goes from 3% to 22% wins (+0.79 ppg) — confirming the policy prior was a real bottleneck. But it **still loses to iter_0447** (22-78, -1.24 ppg) and is **still crushed 0-100 by GNUBG ply=0** (-2.59 ppg). The mechanism is validated; the absolute strength is not there. You cannot distill past your teacher.
+
+## Stage 2b — stronger teacher (`pretrain-wildbg-v2b`)
+
+Stage 2's ceiling is the teacher. The fix: re-synthesise the policy targets using our **strongest** value function — exp005 iter_0447 — for the 1-ply lookahead, instead of the weak stage-1 value head. Same matches, same pipeline, better labels. (A side effect: the value-distillation target also becomes iter_0447's `V(s)`, so v2b distills *both* heads from iter_0447 rather than merely anchoring the value head. The baseline val MSE jumps to ~0.25, quantifying how much the wildbg-trained value head disagrees with iter_0447.)
+
+```{python}
+#| echo: false
+cfg2b, df2b = load_pretrain_log("pretrain-wildbg-v2b")
+
+if len(df2b) == 0:
+    print("Stage 2b training in progress — no completed epochs logged yet.")
+    print("Re-render this document once pretrain-wildbg-v2b finishes to populate the curves.")
+else:
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+    ax = axes[0]
+    ax.plot(df2b["epoch"], df2b["val_policy_loss"], "s-", label="v2b (iter_0447 teacher)", color="#d62728")
+    if len(df2) > 0:
+        ax.plot(df2["epoch"], df2["val_policy_loss"], "s--", label="v2 (stage-1 teacher)", color="#ff7f0e", alpha=0.6)
+    ax.set_xlabel("Epoch"); ax.set_ylabel("Val policy cross-entropy")
+    ax.set_title("Stage 2b vs 2b: policy fit"); ax.legend(); ax.grid(True, alpha=0.3)
+
+    ax = axes[1]
+    ax.plot(df2b["epoch"], df2b["val_top1_acc"] * 100, "D-", label="v2b", color="#d62728")
+    if len(df2) > 0:
+        ax.plot(df2["epoch"], df2["val_top1_acc"] * 100, "D--", label="v2", color="#2ca02c", alpha=0.6)
+    ax.set_xlabel("Epoch"); ax.set_ylabel("Val top-1 (%)")
+    ax.set_title("Top-1 agreement with teacher"); ax.legend(); ax.grid(True, alpha=0.3)
+    ax.set_ylim(0, 50)
+    plt.show()
+    print(f"Final: val policy_CE={df2b['val_policy_loss'].iloc[-1]:.3f}  "
+          f"top1={df2b['val_top1_acc'].iloc[-1]*100:.1f}%  "
+          f"val value_MSE={df2b['val_value_loss'].iloc[-1]:.4f}")
+```
+
+::: {.callout-note}
+Note that v2b's top-1 is agreement with a *different, stronger* teacher than v2's — the two top-1 numbers are not directly comparable as "policy quality." The decisive comparison is the standalone strength eval below, not the fitting metric.
+:::
+
+## Standalone strength — all stages
+
+The only test that matters: how strong is each checkpoint as an actual player? Two opponents — exp005 iter_0447 (our strongest self-play checkpoint, the internal bar to clear) and GNUBG ply=0 (the external benchmark). Loaded from each experiment's eval logs.
+
+```{python}
+#| echo: false
+def summarise(exp_name, label):
+    rows = []
+    for e in load_arena_eval(exp_name):
+        opp = Path(e.get("opponent", "")).stem
+        rows.append({
+            "checkpoint": label,
+            "opponent": opp,
+            "result": f"{e['p1_wins']}-{e['p2_wins']}",
+            "win%": f"{e['p1_wins'] / e['num_games'] * 100:.0f}%",
+            "ppg": f"{e.get('equity', 0):+.3f}",
+            "n": e["num_games"],
+        })
+    for g in load_gnubg_eval(exp_name):
+        rows.append({
+            "checkpoint": label,
+            "opponent": f"GNUBG {g.get('opponent', 'ply?')}".replace("gnubg(level=world)", "ply=0"),
+            "result": f"{g['raccoon_wins']}-{g['gnubg_wins']}",
+            "win%": f"{g.get('win_rate', 0) * 100:.0f}%",
+            "ppg": f"{g['equity_per_game']:+.3f}",
+            "n": g["num_games"],
+        })
+    return rows
+
+all_rows = []
+all_rows += summarise("pretrain-wildbg-v1", "v1 (value-only)")
+all_rows += summarise("pretrain-wildbg-v2", "v2 (1-ply teacher)")
+all_rows += summarise("pretrain-wildbg-v2b", "v2b (iter_0447 teacher)")
+
+if all_rows:
+    print(pd.DataFrame(all_rows).to_markdown(index=False))
+else:
+    print("No eval logs found yet.")
+```
+
+The progression to watch, top to bottom: value-only (random policy) → 1-ply-distilled policy → stronger-teacher policy. v1→v2 was a large jump against iter_0447 (3%→22%) but still a loss. The open question v2b answers is whether a stronger teacher finally pushes a *standalone* pretrain past iter_0447 — which would turn exp007 from a hopeful bet into a confident one.
+
+## What we've learned
+
+1. **A calibrated value head is not a player.** Stage 1 fit wildbg equities to val MSE ≈ 0.002 yet lost 0-200 to GNUBG. With a random policy prior, MCTS at 100 sims cannot exploit a good value function — it never searches the right moves. The policy prior is load-bearing.
+2. **Synthesising policy labels works as a mechanism.** 1-ply V-lookahead on human match positions produced a usable policy prior and a large standalone-strength gain (v1→v2: +0.79 ppg vs iter_0447, 3%→22% wins). The random-policy bottleneck was real and is now addressed.
+3. **You cannot distill past your teacher.** v2's policy targets are 1-ply argmax under a GNUBG-weak value head; top-1 plateaued at ~38% and the resulting player still lost to iter_0447. Label *quality* — not label *quantity* or training duration — is the binding constraint. Hence v2b.
+4. **The replay layer is reusable infrastructure.** Matching human moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across two corpora and is independent of the pretraining question — useful for any future work that needs human positions (move-quality analysis, opening books, eval suites).
+
+## Open questions
+
+- **Does v2b clear the bar?** Does an iter_0447-taught policy produce a standalone player that beats iter_0447 — or at least closes meaningfully on GNUBG? (Eval pending v2b completion.)
+- **Is distilling the value head toward iter_0447 (v2b) better or worse than anchoring it to wildbg (v2)?** iter_0447 has dice-position experience the wildbg value head lacks, but is itself GNUBG-weak. The eval, not the val MSE, decides.
+- **The actual exp007 question remains untouched:** even a seed that *loses* to iter_0447 standalone may still bootstrap *faster-converging* self-play than a random start — that is a different claim than "the seed is strong," and only a self-play run from the seed can test it.
+- **Better-than-1-ply teachers.** If 1-ply argmax caps out, shallow MCTS targets (a few hundred sims per position) would be stronger labels — at materially higher synthesis cost. Worth it only if v2b shows the teacher-quality lever still has room.
