@@ -53,29 +53,76 @@ def _git_sha() -> str:
 
 def load_cache(
     path: str | Path,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
-    """Load the npz produced by synthesize_policy_dataset.py."""
+) -> tuple[np.ndarray, object, np.ndarray, dict, bool]:
+    """Load a policy-pretrain npz; returns ``(obs, policy, val, meta, is_soft)``.
+
+    Two cache formats are supported:
+      - **hard** (v1/v2/v2b, ``synthesize_policy_dataset.py``): ``policy_targets``
+        (N,) int — one class index per example. ``policy`` is that array.
+      - **soft** (v3, ``synthesize_gnubg_dataset.py``): ``policy_actions`` (N,K)
+        and ``policy_probs`` (N,K) — a small distribution over candidate
+        actions. ``policy`` is the tuple ``(actions, probs)``.
+    """
     data = np.load(path, allow_pickle=True)
     obs = data["observations"].astype(np.float32, copy=False)
-    pol = data["policy_targets"].astype(np.int64, copy=False)
     val = data["value_targets"].astype(np.float32, copy=False)
+    is_soft = "policy_actions" in data.files
+    if is_soft:
+        actions = data["policy_actions"].astype(np.int64, copy=False)
+        probs = data["policy_probs"].astype(np.float32, copy=False)
+        policy: object = (actions, probs)
+    else:
+        policy = data["policy_targets"].astype(np.int64, copy=False)
     meta_raw = data["meta"].item() if "meta" in data.files else "{}"
     try:
         meta = json.loads(meta_raw) if isinstance(meta_raw, str) else {}
     except Exception:
         meta = {}
-    return obs, pol, val, meta
+    return obs, policy, val, meta, is_soft
+
+
+def _policy_loss(policy_logits: torch.Tensor, pol, is_soft: bool) -> torch.Tensor:
+    """Policy loss: soft cross-entropy over candidates, or hard cross-entropy."""
+    if is_soft:
+        actions, probs = pol  # (B,K) long, (B,K) float
+        logp = F.log_softmax(policy_logits, dim=1)
+        gathered = logp.gather(1, actions.clamp(min=0))  # pad -1 → col 0, prob 0
+        return -(probs * gathered).sum(dim=1).mean()
+    return F.cross_entropy(policy_logits, pol)
+
+
+def _policy_correct(policy_logits: torch.Tensor, pol, is_soft: bool) -> int:
+    """Count predictions whose argmax matches the (money-)best target action."""
+    pred = policy_logits.argmax(dim=-1)
+    target = pol[0][:, 0] if is_soft else pol  # soft: col 0 is the best move
+    return int((pred == target).sum().item())
+
+
+def _index_policy(pol, idx, is_soft: bool):
+    """Index into the policy tensors for a batch/split."""
+    if is_soft:
+        return pol[0][idx], pol[1][idx]
+    return pol[idx]
+
+
+def _to_device(pol, idx, is_soft, device):
+    """Slice a batch of policy targets and move to device."""
+    if is_soft:
+        a, p = pol[0][idx], pol[1][idx]
+        return a.to(device, non_blocking=True), p.to(device, non_blocking=True)
+    return pol[idx].to(device, non_blocking=True)
 
 
 def train_one_epoch(
     network: RaccoonNet,
     optimizer: torch.optim.Optimizer,
     obs: torch.Tensor,
-    pol: torch.Tensor,
+    pol,
     val: torch.Tensor,
     batch_size: int,
     device: torch.device,
     value_weight: float,
+    is_soft: bool,
 ) -> tuple[float, float, float]:
     """Train one epoch; returns (avg_total, avg_policy, avg_value) losses."""
     network.train()
@@ -86,10 +133,10 @@ def train_one_epoch(
     for start in range(0, n, batch_size):
         idx = perm[start:start + batch_size]
         x = obs[idx].to(device, non_blocking=True)
-        p_target = pol[idx].to(device, non_blocking=True)
+        p_target = _to_device(pol, idx, is_soft, device)
         v_target = val[idx].to(device, non_blocking=True)
         policy_logits, value_pred = network(x)
-        policy_loss = F.cross_entropy(policy_logits, p_target)
+        policy_loss = _policy_loss(policy_logits, p_target, is_soft)
         value_loss = F.mse_loss(value_pred.squeeze(-1), v_target)
         loss = policy_loss + value_weight * value_loss
         optimizer.zero_grad()
@@ -107,10 +154,11 @@ def train_one_epoch(
 def evaluate(
     network: RaccoonNet,
     obs: torch.Tensor,
-    pol: torch.Tensor,
+    pol,
     val: torch.Tensor,
     batch_size: int,
     device: torch.device,
+    is_soft: bool,
 ) -> tuple[float, float, float]:
     """Returns (val_policy_loss, val_value_loss, val_top1_acc)."""
     network.eval()
@@ -120,14 +168,16 @@ def evaluate(
     count = 0
     for start in range(0, n, batch_size):
         end = start + batch_size
-        x = obs[start:end].to(device, non_blocking=True)
-        p_t = pol[start:end].to(device, non_blocking=True)
-        v_t = val[start:end].to(device, non_blocking=True)
+        idx = slice(start, end)
+        x = obs[idx].to(device, non_blocking=True)
+        p_t = _to_device(pol, idx, is_soft, device)
+        v_t = val[idx].to(device, non_blocking=True)
         policy_logits, value_pred = network(x)
-        sum_p += F.cross_entropy(policy_logits, p_t, reduction="sum").item()
+        bs = x.size(0)
+        sum_p += _policy_loss(policy_logits, p_t, is_soft).item() * bs
         sum_v += F.mse_loss(value_pred.squeeze(-1), v_t, reduction="sum").item()
-        correct += int((policy_logits.argmax(dim=-1) == p_t).sum().item())
-        count += p_t.size(0)
+        correct += _policy_correct(policy_logits, p_t, is_soft)
+        count += bs
     count = max(count, 1)
     return sum_p / count, sum_v / count, correct / count
 
@@ -188,9 +238,14 @@ def main() -> None:
     network = load_model(args.base_checkpoint).to(device)
 
     print(f"Loading policy cache {args.cache}", flush=True)
-    obs_np, pol_np, val_np, cache_meta = load_cache(args.cache)
-    print(f"  observations: {obs_np.shape}  "
-          f"policy: range {pol_np.min()}-{pol_np.max()}  "
+    obs_np, policy_np, val_np, cache_meta, is_soft = load_cache(args.cache)
+    if is_soft:
+        actions_np, probs_np = policy_np
+        pol_desc = (f"SOFT targets, {actions_np.shape[1]} cols, "
+                    f"actions {actions_np.max()} max")
+    else:
+        pol_desc = f"HARD targets, range {policy_np.min()}-{policy_np.max()}"
+    print(f"  observations: {obs_np.shape}  policy: {pol_desc}  "
           f"value: mean={val_np.mean():.3f} std={val_np.std():.3f}", flush=True)
 
     n_total = obs_np.shape[0]
@@ -200,13 +255,20 @@ def main() -> None:
     val_idx = perm[:n_val]
     train_idx = perm[n_val:]
     obs_train = torch.from_numpy(obs_np[train_idx])
-    pol_train = torch.from_numpy(pol_np[train_idx])
-    val_train = torch.from_numpy(val_np[train_idx])
     obs_val = torch.from_numpy(obs_np[val_idx])
-    pol_val = torch.from_numpy(pol_np[val_idx])
+    val_train = torch.from_numpy(val_np[train_idx])
     val_val = torch.from_numpy(val_np[val_idx])
-    del obs_np, pol_np, val_np
-    print(f"Split: {len(obs_train):,} train / {len(obs_val):,} val", flush=True)
+    if is_soft:
+        pol_train = (torch.from_numpy(actions_np[train_idx]),
+                     torch.from_numpy(probs_np[train_idx]))
+        pol_val = (torch.from_numpy(actions_np[val_idx]),
+                   torch.from_numpy(probs_np[val_idx]))
+    else:
+        pol_train = torch.from_numpy(policy_np[train_idx])
+        pol_val = torch.from_numpy(policy_np[val_idx])
+    del obs_np, val_np
+    print(f"Split: {len(obs_train):,} train / {len(obs_val):,} val "
+          f"({'soft' if is_soft else 'hard'} policy targets)", flush=True)
 
     optimizer = torch.optim.Adam(
         network.parameters(), lr=args.lr, weight_decay=args.weight_decay,
@@ -222,6 +284,7 @@ def main() -> None:
         "network": network.config,
         "training": {
             "kind": "supervised-pretrain-policy",
+            "policy_target": "soft" if is_soft else "hard",
             "base_checkpoint": args.base_checkpoint,
             "cache": args.cache,
             "epochs": args.epochs,
@@ -250,7 +313,7 @@ def main() -> None:
 
     # Baseline (no training yet).
     p0, v0, acc0 = evaluate(
-        network, obs_val, pol_val, val_val, args.batch_size, device,
+        network, obs_val, pol_val, val_val, args.batch_size, device, is_soft,
     )
     print(f"Baseline val: policy_CE={p0:.4f}  value_MSE={v0:.4f}  "
           f"top1_acc={acc0*100:.1f}%", flush=True)
@@ -260,10 +323,10 @@ def main() -> None:
         t0 = time.time()
         train_total, train_p, train_v = train_one_epoch(
             network, optimizer, obs_train, pol_train, val_train,
-            args.batch_size, device, args.value_weight,
+            args.batch_size, device, args.value_weight, is_soft,
         )
         val_p, val_v, val_acc = evaluate(
-            network, obs_val, pol_val, val_val, args.batch_size, device,
+            network, obs_val, pol_val, val_val, args.batch_size, device, is_soft,
         )
         elapsed = time.time() - t0
 
