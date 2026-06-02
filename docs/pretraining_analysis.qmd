@@ -166,7 +166,7 @@ else:
     if len(df2) > 0:
         ax.plot(df2["epoch"], df2["val_policy_loss"], "s--", label="v2 (stage-1 teacher)", color="#ff7f0e", alpha=0.6)
     ax.set_xlabel("Epoch"); ax.set_ylabel("Val policy cross-entropy")
-    ax.set_title("Stage 2b vs 2b: policy fit"); ax.legend(); ax.grid(True, alpha=0.3)
+    ax.set_title("Policy fit: v2b vs v2"); ax.legend(); ax.grid(True, alpha=0.3)
 
     ax = axes[1]
     ax.plot(df2b["epoch"], df2b["val_top1_acc"] * 100, "D-", label="v2b", color="#d62728")
@@ -181,8 +181,10 @@ else:
           f"val value_MSE={df2b['val_value_loss'].iloc[-1]:.4f}")
 ```
 
+Note the curves: v2b fits its teacher *less* closely than v2 did (final top-1 ~28% vs ~38%, higher policy CE), and its value MSE is ~2× higher — it is relearning iter_0447's value function (baseline disagreement MSE ≈ 0.25) while fitting a harder policy target. By the fitting metrics alone, v2b looks *worse* than v2. The standalone eval below shows the opposite, which is the whole point of the next callout.
+
 ::: {.callout-note}
-Note that v2b's top-1 is agreement with a *different, stronger* teacher than v2's — the two top-1 numbers are not directly comparable as "policy quality." The decisive comparison is the standalone strength eval below, not the fitting metric.
+v2b's top-1 is agreement with a *different, stronger* teacher than v2's — the two numbers are not comparable as "policy quality." A lower top-1 against a better teacher can still yield a stronger player. The decisive comparison is the standalone strength eval below, not the fitting metric — and here it is decisive: v2b reaches **parity with iter_0447** despite the worse-looking curves.
 :::
 
 ## Standalone strength — all stages
@@ -225,18 +227,28 @@ else:
     print("No eval logs found yet.")
 ```
 
-The progression to watch, top to bottom: value-only (random policy) → 1-ply-distilled policy → stronger-teacher policy. v1→v2 was a large jump against iter_0447 (3%→22%) but still a loss. The open question v2b answers is whether a stronger teacher finally pushes a *standalone* pretrain past iter_0447 — which would turn exp007 from a hopeful bet into a confident one.
+The progression against iter_0447 is the headline of this whole track:
+
+| Stage | Teacher | Result vs iter_0447 | Equity | vs GNUBG ply=0 |
+|---|---|---|---|---|
+| v1 | — (random policy) | 6-194 (3%) | -2.03 ppg | -2.725 |
+| v2 | pretrained.pt 1-ply | 22-78 (22%) | -1.24 ppg | -2.590 |
+| **v2b** | **iter_0447 1-ply** | **49-51 (49%)** | **-0.040 ppg** | **-2.290** |
+
+**v2b reaches parity with iter_0447** (-0.040 ppg, n=100, z ≈ -0.2 — indistinguishable from 50/50), playing it to long balanced games (avg 89.6 moves vs v2's quick 75.5-move collapses). The stronger teacher fully closed the gap that v1 and v2 could not — confirming the binding constraint was *label quality*, not the method.
+
+Two caveats keep this honest. First, **parity is the expected ceiling of distillation, not a surplus**: v2b's teacher *was* iter_0447, so matching it means we have *compressed* iter_0447's strength into a supervised checkpoint — reached in ~21h CPU vs the ~290 GPU-hours of self-play that produced iter_0447 — but we have not *exceeded* it. Second, v2b is nonetheless the **best checkpoint we have against GNUBG** (-2.29 ppg, beating iter_0109's -2.52; GNUBG's backgammon count fell to 42 from 59-64) — still 0-100, but losing less catastrophically.
 
 ## What we've learned
 
 1. **A calibrated value head is not a player.** Stage 1 fit wildbg equities to val MSE ≈ 0.002 yet lost 0-200 to GNUBG. With a random policy prior, MCTS at 100 sims cannot exploit a good value function — it never searches the right moves. The policy prior is load-bearing.
 2. **Synthesising policy labels works as a mechanism.** 1-ply V-lookahead on human match positions produced a usable policy prior and a large standalone-strength gain (v1→v2: +0.79 ppg vs iter_0447, 3%→22% wins). The random-policy bottleneck was real and is now addressed.
-3. **You cannot distill past your teacher.** v2's policy targets are 1-ply argmax under a GNUBG-weak value head; top-1 plateaued at ~38% and the resulting player still lost to iter_0447. Label *quality* — not label *quantity* or training duration — is the binding constraint. Hence v2b.
-4. **The replay layer is reusable infrastructure.** Matching human moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across two corpora and is independent of the pretraining question — useful for any future work that needs human positions (move-quality analysis, opening books, eval suites).
+3. **You cannot distill past your teacher — and teacher quality is the whole game.** v2's 1-ply argmax under a GNUBG-weak value head capped the student below iter_0447. Swapping in iter_0447 as the teacher (v2b) closed the gap to parity with *no other change*. Label *quality*, not quantity or training duration, was the binding constraint — and it was movable. Strikingly, v2b matches iter_0447 with only ~28% top-1 agreement with its own labels: MCTS at eval time recovers strength from a merely directionally-correct prior (the same "search rescues a diffuse policy" effect seen in exp005).
+4. **Supervised distillation can compress ~290 GPU-hours of self-play into ~21h of CPU.** v2b reaches iter_0447-strength purely from wildbg value labels + human-match positions + 1-ply relabelling, no self-play and no GPU. That is the practical headline: a reproducible, cheap path to our best-known strength — and a clean seed (calibrated value, broad position coverage, no LR-collapse history) for whatever comes next.
+5. **The replay layer is reusable infrastructure.** Matching human moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across two corpora and is independent of the pretraining question — useful for any future work that needs human positions (move-quality analysis, opening books, eval suites).
 
 ## Open questions
 
-- **Does v2b clear the bar?** Does an iter_0447-taught policy produce a standalone player that beats iter_0447 — or at least closes meaningfully on GNUBG? (Eval pending v2b completion.)
-- **Is distilling the value head toward iter_0447 (v2b) better or worse than anchoring it to wildbg (v2)?** iter_0447 has dice-position experience the wildbg value head lacks, but is itself GNUBG-weak. The eval, not the val MSE, decides.
-- **The actual exp007 question remains untouched:** even a seed that *loses* to iter_0447 standalone may still bootstrap *faster-converging* self-play than a random start — that is a different claim than "the seed is strong," and only a self-play run from the seed can test it.
-- **Better-than-1-ply teachers.** If 1-ply argmax caps out, shallow MCTS targets (a few hundred sims per position) would be stronger labels — at materially higher synthesis cost. Worth it only if v2b shows the teacher-quality lever still has room.
+- **Can we exceed iter_0447, not just match it?** Parity is the distillation ceiling when iter_0447 *is* the teacher. Two candidate levers: (a) **iterated/offline expert iteration** — relabel the same 238k positions with v2b *plus deeper MCTS* (e.g. 400 sims), whose move choices strictly improve on v2b's own 1-ply argmax, then re-distill → v3, repeating AlphaZero's policy-improvement step offline on CPU; (b) **exp007** — continue self-play from the v2b seed on the GPU. The first attacks the teacher-quality ceiling we just proved is binding and stays on CPU; the second is the eventual test but spends GPU probing a known-sticky plateau.
+- **Was distilling the value head toward iter_0447 (v2b) the right call vs anchoring it to wildbg (v2)?** v2b shifted the value head ~0.25 MSE away from its wildbg calibration toward iter_0447's evaluations and came out stronger — but the two changes (better policy labels, shifted value) are confounded. An ablation (iter_0447 policy labels + wildbg value anchor) would separate them, if it matters.
+- **The exp007 convergence question is still open regardless of standalone strength:** does self-play from a seed at iter_0447-strength *climb above* iter_0447 faster than from scratch, or does it re-plateau? Only a self-play run answers it.
