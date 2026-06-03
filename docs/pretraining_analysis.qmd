@@ -187,6 +187,37 @@ Note the curves: v2b fits its teacher *less* closely than v2 did (final top-1 ~2
 v2b's top-1 is agreement with a *different, stronger* teacher than v2's — the two numbers are not comparable as "policy quality." A lower top-1 against a better teacher can still yield a stronger player. The decisive comparison is the standalone strength eval below, not the fitting metric — and here it is decisive: v2b reaches **parity with iter_0447** despite the worse-looking curves.
 :::
 
+## Stage 3 — GNUBG 4-ply teacher (`pretrain-gnubg-v3`)
+
+v2b proved teacher quality was the binding, movable constraint — and that distillation tops out at the teacher's own strength. The way past the ceiling is therefore a *better teacher than any network we own*. The bglab match archive ships one: `analyzed/4-ply/` holds GNUBG 4-ply analysis — the world-class strength the whole project is measured against.
+
+The pipeline (`raccoon/data/bganalyzed.py`, `scripts/synthesize_gnubg_dataset.py`): replay each analysed game through OpenSpiel (reusing the board-signature matcher) and, at every **non-doubles** decision, read GNUBG's labels straight off the file — a **soft** policy target `softmax(money_equities / T)` over the deepest-ply candidates, and a money-equity value from each move's probability tuple. ~139k positions from ~4319 games (lasse + Llabba 4-ply, plus lasse 2-ply extras), with per-decision Position-ID verification (0 mismatches). Doubles are advanced but unlabeled — OpenSpiel splits them into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous.
+
+Two design choices, both confirmed with the user: **soft targets** (a distribution over GNUBG's candidates, so near-ties are taught as near-ties — `scripts/pretrain_policy.py` auto-detects them and uses a soft cross-entropy) and **cubeless-money re-ranking** (money equities from the tuples, never GNUBG's match-cubeful `Eq.`).
+
+```{python}
+#| echo: false
+cfg3, df3 = load_pretrain_log("pretrain-gnubg-v3")
+if len(df3) == 0:
+    print("Stage 3 training in progress — no completed epochs logged yet.")
+else:
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+    ax = axes[0]
+    ax.plot(df3["epoch"], df3["val_policy_loss"], "s-", color="#9467bd", label="soft CE")
+    ax.set_xlabel("Epoch"); ax.set_ylabel("Val soft cross-entropy")
+    ax.set_title("Stage 3: policy fit to GNUBG 4-ply"); ax.grid(True, alpha=0.3); ax.legend()
+    ax = axes[1]
+    ax.plot(df3["epoch"], df3["val_value_loss"], "D-", color="#8c564b")
+    ax.set_xlabel("Epoch"); ax.set_ylabel("Val value MSE (money equity)")
+    ax.set_title("Value head fits GNUBG money equity"); ax.grid(True, alpha=0.3)
+    plt.show()
+    print(f"Final: val soft_CE={df3['val_policy_loss'].iloc[-1]:.3f}  "
+          f"val value_MSE={df3['val_value_loss'].iloc[-1]:.4f}  "
+          f"top1={df3['val_top1_acc'].iloc[-1]*100:.1f}%")
+```
+
+The value head snaps onto GNUBG money equities within one epoch (val MSE 0.28 → 0.009) and settles near 0.0075 — the best-calibrated value of any stage. As before, the fitting metrics (top-1 ~28%, same as v2b) say little; the standalone eval below is the verdict, and it is emphatic.
+
 ## Standalone strength — all stages
 
 The only test that matters: how strong is each checkpoint as an actual player? Two opponents — exp005 iter_0447 (our strongest self-play checkpoint, the internal bar to clear) and GNUBG ply=0 (the external benchmark). Loaded from each experiment's eval logs.
@@ -220,6 +251,7 @@ all_rows = []
 all_rows += summarise("pretrain-wildbg-v1", "v1 (value-only)")
 all_rows += summarise("pretrain-wildbg-v2", "v2 (1-ply teacher)")
 all_rows += summarise("pretrain-wildbg-v2b", "v2b (iter_0447 teacher)")
+all_rows += summarise("pretrain-gnubg-v3", "v3 (GNUBG 4-ply teacher)")
 
 if all_rows:
     print(pd.DataFrame(all_rows).to_markdown(index=False))
@@ -233,22 +265,29 @@ The progression against iter_0447 is the headline of this whole track:
 |---|---|---|---|---|
 | v1 | — (random policy) | 6-194 (3%) | -2.03 ppg | -2.725 |
 | v2 | pretrained.pt 1-ply | 22-78 (22%) | -1.24 ppg | -2.590 |
-| **v2b** | **iter_0447 1-ply** | **49-51 (49%)** | **-0.040 ppg** | **-2.290** |
+| v2b | iter_0447 1-ply | 49-51 (49%) | -0.040 ppg | -2.290 |
+| **v3** | **GNUBG 4-ply** | **83-17 (83%)** | **+1.380 ppg** | **-1.790** |
 
-**v2b reaches parity with iter_0447** (-0.040 ppg, n=100, z ≈ -0.2 — indistinguishable from 50/50), playing it to long balanced games (avg 89.6 moves vs v2's quick 75.5-move collapses). The stronger teacher fully closed the gap that v1 and v2 could not — confirming the binding constraint was *label quality*, not the method.
+**v2b reaches parity with iter_0447** (-0.040 ppg, n=100, z ≈ -0.2 — indistinguishable from 50/50), playing it to long balanced games (avg 89.6 moves vs v2's quick 75.5-move collapses). The stronger teacher fully closed the gap that v1 and v2 could not — confirming the binding constraint was *label quality*, not the method. But parity is the expected **ceiling** of distillation when iter_0447 *is* the teacher: v2b *compresses* iter_0447's strength (≈290 GPU-hours of self-play) into a ~21h-CPU supervised checkpoint, but cannot exceed it.
 
-Two caveats keep this honest. First, **parity is the expected ceiling of distillation, not a surplus**: v2b's teacher *was* iter_0447, so matching it means we have *compressed* iter_0447's strength into a supervised checkpoint — reached in ~21h CPU vs the ~290 GPU-hours of self-play that produced iter_0447 — but we have not *exceeded* it. Second, v2b is nonetheless the **best checkpoint we have against GNUBG** (-2.29 ppg, beating iter_0109's -2.52; GNUBG's backgammon count fell to 42 from 59-64) — still 0-100, but losing less catastrophically.
+**v3 breaks that ceiling by distilling a teacher far above iter_0447.** GNUBG 4-ply analysis (from the bglab match archive) gives world-class soft policy targets and money-equity values for ~139k non-doubles positions. The result is decisive on both fronts:
+
+- **v3 dominates iter_0447: 83-17, +1.380 ppg** (n=100). Not edged wins — v3 won 42 gammons + 20 backgammons to iter_0447's 6/2. The ceiling lifts exactly as the teacher-quality thesis predicts: you *can* exceed a teacher you never had, by distilling one stronger than your previous best.
+- **v3 wins its first games against GNUBG ply=0: 3-97, -1.790 ppg** — every prior checkpoint in the entire project (self-play and supervised) went 0-100. The equity gap closed from v2b's -2.29 to **-1.79 ppg** (+0.5 ppg), and GNUBG's backgammon count against us fell to 17 (from 42-64) — v3 no longer gets blitzed.
+
+M6 (beating GNUBG at money game) is not yet reached — -1.79 ppg, 3% wins — but this is the first hard evidence the gap is closable by supervised means, on a 6×128 net with 100-sim MCTS, no self-play and no GPU. The value head fits GNUBG money equities to val MSE ≈ 0.0075 (better-calibrated than any earlier stage), which is the structural reason search now finds and holds good lines.
 
 ## What we've learned
 
 1. **A calibrated value head is not a player.** Stage 1 fit wildbg equities to val MSE ≈ 0.002 yet lost 0-200 to GNUBG. With a random policy prior, MCTS at 100 sims cannot exploit a good value function — it never searches the right moves. The policy prior is load-bearing.
 2. **Synthesising policy labels works as a mechanism.** 1-ply V-lookahead on human match positions produced a usable policy prior and a large standalone-strength gain (v1→v2: +0.79 ppg vs iter_0447, 3%→22% wins). The random-policy bottleneck was real and is now addressed.
 3. **You cannot distill past your teacher — and teacher quality is the whole game.** v2's 1-ply argmax under a GNUBG-weak value head capped the student below iter_0447. Swapping in iter_0447 as the teacher (v2b) closed the gap to parity with *no other change*. Label *quality*, not quantity or training duration, was the binding constraint — and it was movable. Strikingly, v2b matches iter_0447 with only ~28% top-1 agreement with its own labels: MCTS at eval time recovers strength from a merely directionally-correct prior (the same "search rescues a diffuse policy" effect seen in exp005).
-4. **Supervised distillation can compress ~290 GPU-hours of self-play into ~21h of CPU.** v2b reaches iter_0447-strength purely from wildbg value labels + human-match positions + 1-ply relabelling, no self-play and no GPU. That is the practical headline: a reproducible, cheap path to our best-known strength — and a clean seed (calibrated value, broad position coverage, no LR-collapse history) for whatever comes next.
-5. **The replay layer is reusable infrastructure.** Matching human moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across two corpora and is independent of the pretraining question — useful for any future work that needs human positions (move-quality analysis, opening books, eval suites).
+4. **Supervised distillation can compress ~290 GPU-hours of self-play into ~21h of CPU — and then surpass it.** v2b reaches iter_0447-strength purely from supervised distillation, no self-play and no GPU. v3, distilling a teacher stronger than iter_0447, *exceeds* it by +1.38 ppg. The ceiling is the teacher, and the teacher is a free parameter: point distillation at GNUBG 4-ply and you inherit (a fraction of) GNUBG's strength.
+5. **A world-class teacher is the unlock — and the gap to GNUBG is closable.** v3 is the first checkpoint in the project to beat iter_0447 and the first to win games against GNUBG ply=0 (3-97, -1.79 ppg, from a universal 0-100 before). No new search, no bigger net, no self-play — only better labels. The seven self-play experiments plateaued because the *self-generated* training signal was too weak; an external world-class signal breaks the plateau directly.
+6. **The replay layer is reusable infrastructure.** Matching moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across the raw and analysed corpora — useful for any future work needing human/engine positions (move-quality analysis, opening books, eval suites).
 
 ## Open questions
 
-- **Can we exceed iter_0447, not just match it?** Parity is the distillation ceiling when iter_0447 *is* the teacher. Two candidate levers: (a) **iterated/offline expert iteration** — relabel the same 238k positions with v2b *plus deeper MCTS* (e.g. 400 sims), whose move choices strictly improve on v2b's own 1-ply argmax, then re-distill → v3, repeating AlphaZero's policy-improvement step offline on CPU; (b) **exp007** — continue self-play from the v2b seed on the GPU. The first attacks the teacher-quality ceiling we just proved is binding and stays on CPU; the second is the eventual test but spends GPU probing a known-sticky plateau.
-- **Was distilling the value head toward iter_0447 (v2b) the right call vs anchoring it to wildbg (v2)?** v2b shifted the value head ~0.25 MSE away from its wildbg calibration toward iter_0447's evaluations and came out stronger — but the two changes (better policy labels, shifted value) are confounded. An ablation (iter_0447 policy labels + wildbg value anchor) would separate them, if it matters.
-- **The exp007 convergence question is still open regardless of standalone strength:** does self-play from a seed at iter_0447-strength *climb above* iter_0447 faster than from scratch, or does it re-plateau? Only a self-play run answers it.
+- **How far does the GNUBG-teacher path go?** v3 is at -1.79 ppg vs GNUBG ply=0. Levers to close the remaining gap, roughly in cost order: (a) **more eval search** — v3 used 100 sims; GNUBG itself is 0-ply here, so more MCTS at eval time may convert more games cheaply; (b) **label the doubles** — ~30k positions (~18%) are currently dropped; emitting per-half targets would recover them; (c) **bigger network** (10×256) now that we finally have a training signal a larger net could exploit; (d) **more/deeper data** — the full bglab archive, or higher-ply analysis.
+- **Self-play fine-tune from the v3 seed (the real exp007).** v3 is by far the strongest seed we have ever had — calibrated world-class value, GNUBG-imitating policy. Does self-play now *climb above* v3, or does the self-play signal-quality ceiling reassert itself? This is the question the whole self-play track was stuck on, now asked from a far better starting point.
+- **Cube + match play.** Everything here is cubeless money-game checker play. GNUBG's analysis also contains cube decisions we currently skip; modelling the cube is the path from "competitive checker play" to a complete money-game opponent.
