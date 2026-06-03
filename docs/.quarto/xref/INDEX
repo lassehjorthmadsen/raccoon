@@ -52,5 +52,8 @@
   },
   "reference/train.self_play.qmd": {
     "train.self_play.html": "f77aa3af"
+  },
+  "pretraining_analysis.qmd": {
+    "pretraining_analysis.html": "51e68378"
   }
 }
