@@ -298,25 +298,48 @@ The only test that matters: how strong is each checkpoint as an actual player? T
 ```{python}
 #| echo: false
 def summarise(exp_name, label):
-    rows = []
+    """One row per (opponent, sim-count), game-weighted.
+
+    A benchmark is sometimes logged as several rows — a GNUBG eval split into
+    game-chunks (e.g. 8×50 to break up a long CPU job), or the same checkpoint
+    run at more than one sim setting. Grouping by (opponent, sims) collapses
+    those into a single pooled line instead of one row per chunk, so a stage
+    that was benchmarked more heavily doesn't sprawl across the table.
+    """
+    groups = {}  # (opponent, sims) -> pooled wins/losses/points/games
+    order = []   # preserve first-seen ordering of the groups
+
+    def add(opponent, sims, wins, losses, points, n):
+        key = (opponent, sims)
+        if key not in groups:
+            groups[key] = {"wins": 0, "losses": 0, "points": 0.0, "n": 0}
+            order.append(key)
+        g = groups[key]
+        g["wins"] += wins; g["losses"] += losses
+        g["points"] += points; g["n"] += n
+
     for e in load_arena_eval(exp_name):
         opp = Path(e.get("opponent", "")).stem
+        add(opp, e.get("simulations"), e["p1_wins"], e["p2_wins"],
+            e.get("equity", 0.0) * e["num_games"], e["num_games"])
+    for g in load_gnubg_eval(exp_name):
+        opp = f"GNUBG {g.get('opponent', 'ply?')}".replace("gnubg(level=world)", "ply=0")
+        add(opp, g.get("simulations"), g["raccoon_wins"], g["gnubg_wins"],
+            g["equity_per_game"] * g["num_games"], g["num_games"])
+
+    rows = []
+    for key in order:
+        opp, sims = key
+        g = groups[key]
+        n = max(g["n"], 1)
         rows.append({
             "checkpoint": label,
             "opponent": opp,
-            "result": f"{e['p1_wins']}-{e['p2_wins']}",
-            "win%": f"{e['p1_wins'] / e['num_games'] * 100:.0f}%",
-            "ppg": f"{e.get('equity', 0):+.3f}",
-            "n": e["num_games"],
-        })
-    for g in load_gnubg_eval(exp_name):
-        rows.append({
-            "checkpoint": label,
-            "opponent": f"GNUBG {g.get('opponent', 'ply?')}".replace("gnubg(level=world)", "ply=0"),
-            "result": f"{g['raccoon_wins']}-{g['gnubg_wins']}",
-            "win%": f"{g.get('win_rate', 0) * 100:.0f}%",
-            "ppg": f"{g['equity_per_game']:+.3f}",
-            "n": g["num_games"],
+            "sims": sims,
+            "result": f"{g['wins']}-{g['losses']}",
+            "win%": f"{g['wins'] / n * 100:.0f}%",
+            "ppg": f"{g['points'] / n:+.3f}",
+            "n": g["n"],
         })
     return rows
 
