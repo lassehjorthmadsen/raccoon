@@ -114,6 +114,7 @@ class _Stats:
         self.games_failed = 0
         self.decisions_emitted = 0
         self.doubles_skipped = 0
+        self.doubles_value_only = 0
         self.nocand_skipped = 0
         self.posid_mismatch_games = 0
         self.cand_match_fail = 0
@@ -196,7 +197,24 @@ def _synthesize_game(
                     out_values.append(np.float32(matched[0][1]))
                     stats.decisions_emitted += 1
         else:
-            stats.doubles_skipped += 1
+            # Doubles: OpenSpiel splits the play into two decision nodes while
+            # GNUBG scores the whole 4-checker move with one equity, so the
+            # first-half *policy* action is ambiguous. The *value* is not — the
+            # best candidate's money equity is the position value — so emit a
+            # value-only example (empty policy, zero probs => masked in the soft
+            # CE) to give the value head doubles coverage (~18% of decisions).
+            deep = best_candidates(dec)
+            if not deep:
+                stats.doubles_skipped += 1
+            else:
+                best_eq = max(_candidate_money_equity(c.probs) for c in deep)
+                out_obs.append(
+                    encode_state(GameState(state).board_from_perspective())
+                )
+                out_actions.append(np.full(MAX_K, -1, dtype=np.int32))
+                out_probs.append(np.zeros(MAX_K, dtype=np.float32))
+                out_values.append(np.float32(best_eq))
+                stats.doubles_value_only += 1
 
         # --- Advance replay with the played move ---
         if dec.played_move_str is None:
@@ -278,6 +296,7 @@ def main() -> None:
                 "games_failed": stats.games_failed,
                 "decisions_emitted": stats.decisions_emitted,
                 "doubles_skipped": stats.doubles_skipped,
+                "doubles_value_only": stats.doubles_value_only,
                 "posid_mismatch_games": stats.posid_mismatch_games,
                 "cand_match_fail": stats.cand_match_fail,
                 "wall_time_sec": round(time.time() - t0, 1),
@@ -329,7 +348,8 @@ def main() -> None:
         f"  examples: {len(out_obs):,}\n"
         f"  games ok={stats.games_ok} fail={stats.games_failed} "
         f"(posid_mismatch={stats.posid_mismatch_games})\n"
-        f"  doubles skipped={stats.doubles_skipped:,} "
+        f"  doubles value-only={stats.doubles_value_only:,} "
+        f"doubles skipped={stats.doubles_skipped:,} "
         f"nocand={stats.nocand_skipped:,} cand_match_fail={stats.cand_match_fail:,}\n"
         f"  value mean={vals.mean():.3f} std={vals.std():.3f} "
         f"min={vals.min():.3f} max={vals.max():.3f}\n"

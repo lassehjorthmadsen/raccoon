@@ -244,6 +244,53 @@ else:
 
 On the fitting metrics the bigger net is unambiguously better: **top-1 climbs to 31.2%** (v3: ~28%) and **value MSE falls to 0.0066** (v3: 0.0075) — more of the world-class teacher is captured. Whether that converts to strength is the standalone table below; the short answer is *yes against the internal bar, no against the external one.*
 
+## Stage 5 — coverage via doubles-recovery (`pretrain-gnubg-v5-10x256-dbl`)
+
+Stage 4 isolated capacity and the standalone section below rules out eval-search; both left the GNUBG gap intact, which pointed at the second student-side axis — **coverage** (learning #8, and the open question). Stage 5 attacks the most concrete coverage hole in the cache: the **~18% of decisions that are doubles**, dropped entirely by v3/v4. They were dropped because OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole four-checker move with a single equity — so the first-half *policy* action is genuinely ambiguous.
+
+The *value* of those positions is not ambiguous, though: the best candidate's money equity is the position's value regardless of how the move is later split. So `synthesize_gnubg_dataset.py` now emits each doubles decision as a **value-only** example — empty policy (a `-1` sentinel the soft cross-entropy masks out), real value target. That recovers **+25,157 doubles** as value labels (cache 139k → 164k) and gives the value head doubles coverage for the first time. The policy head still gets *no* doubles signal — this buys value-calibration breadth, not move-selection breadth. (`pretrain_policy.py`'s top-1 metric is correspondingly fixed to exclude the value-only rows, so they neither count as wrong nor deflate the accuracy.)
+
+Same 10×256 net and same single-stage-from-random recipe as v4, 20 epochs. (Trained locally in fragments: the iMac's OpenMP threads busy-spin-collapse under desktop contention — ~12× slower — so the run carries an `OMP_WAIT_POLICY=PASSIVE` fix that lets idle threads sleep, after which contention degrades gracefully instead of stalling.) Fit plateaus by ~epoch 11 and the last epochs mildly overfit (train CE ↓ to 1.63 while val CE drifts up to 2.37) — the cache is saturated for this net. Final fit edges v4: **top-1 33.0%** (v4: 31.2%) and **value MSE 0.0061** (v4: 0.0066) — and v5's value number now *includes* the doubles it learned to evaluate.
+
+```{python}
+#| echo: false
+def gnubg_ppg(exp_name, sims=100):
+    """Game-weighted equity/game vs GNUBG ply=0 at a given sim count."""
+    rows = [g for g in load_gnubg_eval(exp_name) if g.get("simulations") == sims]
+    if not rows:
+        return None
+    return sum(g["raccoon_equity"] for g in rows) / sum(g["num_games"] for g in rows)
+
+stages = [
+    ("v2b\n(iter_0447 teacher)", gnubg_ppg("pretrain-wildbg-v2b"), "#d62728"),
+    ("v3\n(GNUBG 4-ply)", gnubg_ppg("pretrain-gnubg-v3"), "#9467bd"),
+    ("v4\n(10×256 capacity)", gnubg_ppg("pretrain-gnubg-v4-10x256"), "#1f77b4"),
+    ("v4 @ 800\n(eval-search)", gnubg_ppg("pretrain-gnubg-v4-10x256", sims=800), "#7f7f7f"),
+    ("v5\n(+doubles coverage)", gnubg_ppg("pretrain-gnubg-v5-10x256-dbl"), "#2ca02c"),
+]
+labels = [s for s, v, c in stages]
+vals = [v for s, v, c in stages]
+colors = [c for s, v, c in stages]
+
+fig, ax = plt.subplots(figsize=(9, 4))
+bars = ax.barh(labels, vals, color=colors)
+ax.axvline(0, color="k", lw=1.2)
+ax.set_xlabel("Equity per game vs GNUBG ply=0   (0 = money parity, the M6 bar)")
+ax.set_title("Three student-side levers, one stuck gap:\ncapacity, eval-search, and coverage all leave it at ~-1.6 ppg")
+ax.set_xlim(-2.6, 0.25)
+for b, v in zip(bars, vals):
+    ax.text(v - 0.04, b.get_y() + b.get_height() / 2, f"{v:+.2f}",
+            va="center", ha="right", fontsize=9, color="white", fontweight="bold")
+ax.invert_yaxis()
+ax.grid(True, axis="x", alpha=0.3)
+plt.show()
+
+print("vs GNUBG ply=0 (equity/game):  "
+      + "   ".join(f"{lab.splitlines()[0]}={v:+.2f}" for lab, v, c in stages))
+```
+
+On the fitting metrics doubles-recovery is a clean small win. Whether it converts against GNUBG is the standalone table below — and the answer completes the trio: it does not.
+
 ## Standalone strength — all stages
 
 The only test that matters: how strong is each checkpoint as an actual player? Two opponents — exp005 iter_0447 (our strongest self-play checkpoint, the internal bar to clear) and GNUBG ply=0 (the external benchmark). Loaded from each experiment's eval logs.
@@ -279,6 +326,7 @@ all_rows += summarise("pretrain-wildbg-v2", "v2 (1-ply teacher)")
 all_rows += summarise("pretrain-wildbg-v2b", "v2b (iter_0447 teacher)")
 all_rows += summarise("pretrain-gnubg-v3", "v3 (GNUBG 4-ply teacher)")
 all_rows += summarise("pretrain-gnubg-v4-10x256", "v4 (10x256, same teacher)")
+all_rows += summarise("pretrain-gnubg-v5-10x256-dbl", "v5 (10x256, +doubles)")
 
 if all_rows:
     print(pd.DataFrame(all_rows).to_markdown(index=False))
@@ -295,6 +343,7 @@ The progression against iter_0447 is the headline of this whole track:
 | v2b | iter_0447 1-ply | 49-51 (49%) | -0.040 ppg | -2.290 |
 | **v3** | **GNUBG 4-ply** | **83-17 (83%)** | **+1.380 ppg** | **-1.790** |
 | **v4** | **GNUBG 4-ply, 10×256 net** | **93-7 (93%)** | **+1.960 ppg** | **-1.660** |
+| **v5** | **GNUBG 4-ply, 10×256 +doubles** | **93-7 (93%)** | **+1.980 ppg** | **-1.590** |
 
 **v2b reaches parity with iter_0447** (-0.040 ppg, n=100, z ≈ -0.2 — indistinguishable from 50/50), playing it to long balanced games (avg 89.6 moves vs v2's quick 75.5-move collapses). The stronger teacher fully closed the gap that v1 and v2 could not — confirming the binding constraint was *label quality*, not the method. But parity is the expected **ceiling** of distillation when iter_0447 *is* the teacher: v2b *compresses* iter_0447's strength (≈290 GPU-hours of self-play) into a ~21h-CPU supervised checkpoint, but cannot exceed it.
 
@@ -312,6 +361,15 @@ M6 (beating GNUBG at money game) is not yet reached — -1.79 ppg, 3% wins — b
 
 The split is the finding: **capacity is real but it is not the M6 unlock.** It buys strength against opponents near our own training distribution (iter_0447, a self-play net at a comparable level) yet does almost nothing against GNUBG playing its own lines. That is the signature of the *second* axis — coverage/generalisation: a net that fits the human-match-position teacher better still meets unfamiliar positions when GNUBG steers the game, and there a bigger-but-equally-narrow net has no edge. The remaining GNUBG gap is a data-coverage and eval-search problem, not a parameter-count one.
 
+**And eval search turns out not to be the missing piece either.** Re-running v4 against GNUBG at **800 sims** — 8× the search — over n=400 does *not* close the gap: it lands at **-1.840 ppg** (16-384, 4%), flat-to-slightly-worse than the -1.660 at 100 sims, with GNUBG's gammon/backgammon rate against us if anything higher (202/84 over 400 games). The lesson is that **search is bounded by evaluation quality**: deeper MCTS just optimises v4's off-distribution prior *more confidently*, sometimes walking further into trouble rather than out of it. So of the two suspects above, eval search is ruled out — the remaining GNUBG gap is a **data-coverage / generalisation** problem, full stop. (It also tempers, without settling, the hope that high-sim self-play alone rescues the seed — though self-play *retrains* the prior, so that is a separate test.)
+
+**Stage 5 (`v5`) tests the coverage lever directly — and the gap holds.** Recovering the dropped doubles as value labels (+25k, cache 139k→164k) leaves both verdicts essentially where v4 was:
+
+- **Internally, dead level with v4.** v5 beats iter_0447 **93-7, +1.980 ppg** (v4: +1.960) — the same crush, within noise. The extra value coverage neither helps nor hurts against a distribution-near opponent (it does shift the win style: 41 gammons + 36 backgammons, even more lopsided than v4's blowouts).
+- **Externally, the best result yet — but inside the noise.** v5 goes **8-92, -1.590 ppg** vs GNUBG ply=0, against v4's 5-95, -1.660: +0.07 ppg and three more wins, comfortably within the ±0.5 ppg CI (8% ±5.3% vs 5% ±4.3%). What *did* shift is the loss profile — GNUBG's gammons against us fell **55 → 37** (backgammons rose 12 → 19) — so the better-calibrated value head trims some of the worst blowouts even as the headline gap stands.
+
+The reading matches capacity and eval-search: **the third student-side lever moves the needle by less than noise.** And the *why* is instructive. The recovery is value-only, so v5's policy head still has zero idea how to play a double — and doubles are ~18% of every game's high-leverage decisions. Broadening value *calibration* was never going to teach move *selection* on the lines GNUBG forces. So coverage in the narrow sense of "more labels of the same kind" is now also spent: the binding gap is **on-distribution *policy*** — the moves GNUBG steers into that the bglab human-match archive simply does not contain. That is a job for self-play (which manufactures its own on-distribution policy targets) or a categorically broader policy source, not for more value labels.
+
 ## What we've learned
 
 1. **A calibrated value head is not a player.** Stage 1 fit wildbg equities to val MSE ≈ 0.002 yet lost 0-200 to GNUBG. With a random policy prior, MCTS at 100 sims cannot exploit a good value function — it never searches the right moves. The policy prior is load-bearing.
@@ -321,13 +379,15 @@ The split is the finding: **capacity is real but it is not the M6 unlock.** It b
 5. **A world-class teacher is the unlock — and the gap to GNUBG is closable.** v3 is the first checkpoint in the project to beat iter_0447 and the first to win games against GNUBG ply=0 (3-97, -1.79 ppg, from a universal 0-100 before). No new search, no bigger net, no self-play — only better labels. The seven self-play experiments plateaued because the *self-generated* training signal was too weak; an external world-class signal breaks the plateau directly.
 6. **The replay layer is reusable infrastructure.** Matching moves into OpenSpiel's action space by final-board signature (rather than notation) gave 99%+ replay success across the raw and analysed corpora — useful for any future work needing human/engine positions (move-quality analysis, opening books, eval suites).
 7. **The binding constraint has shifted from teacher to student.** v3 distils GNUBG 4-ply (world-class) yet loses to GNUBG *0-ply* (-1.79 ppg) — a faithful 4-ply imitator would win, so v3 captures only a fraction of its teacher (top-1 ~28%). The remaining gap is student-side (capacity, coverage, eval search), not teacher strength; and the teacher is effectively maxed — the bglab archive holds only 2-ply/4-ply analysis (no rollouts), and 4-ply already sits far above v3's play. The lever that carried v1→v3 (a stronger teacher) is spent. A corollary, important for the next experiment: *small* ply differences no longer matter — the 826 lasse 2-ply-only games (~19% of the corpus) are only marginally weaker than 4-ply and earn their place as coverage, not dilution. The one signal genuinely wasted is the 18% of decisions (~29.8k doubles) dropped entirely.
-8. **Capacity converts to strength — but only against the internal bar.** Stage 4 scaled the net to 10×256 on the same GNUBG 4-ply teacher. It fit the teacher better (top-1 28→31%, value MSE 0.0075→0.0066) and beat iter_0447 far harder than v3 (93-7, +1.96 ppg, +0.58 over v3) — *despite* dropping v3's value warm-start. Yet against GNUBG ply=0 it gained nothing within noise (-1.66 vs -1.79, ±0.43 CI). So of the two student-side axes in #7, **capacity is necessary but not sufficient**: it lifts play against distribution-near opponents but leaves the external GNUBG gap intact, isolating *coverage/generalisation* (and eval search) as the binding levers for M6. v4 is, however, now the strongest seed the project has — the checkpoint exp007 should start from.
+8. **Capacity converts to strength — but only against the internal bar.** Stage 4 scaled the net to 10×256 on the same GNUBG 4-ply teacher. It fit the teacher better (top-1 28→31%, value MSE 0.0075→0.0066) and beat iter_0447 far harder than v3 (93-7, +1.96 ppg, +0.58 over v3) — *despite* dropping v3's value warm-start. Yet against GNUBG ply=0 it gained nothing within noise (-1.66 vs -1.79, ±0.43 CI). So of the two student-side axes in #7, **capacity is necessary but not sufficient**: it lifts play against distribution-near opponents but leaves the external GNUBG gap intact, isolating *coverage/generalisation* (and eval search) as the binding levers for M6. v4 is, however, now the strongest seed the project has — the architecture exp007 should start from (Stage 5 keeps the size and adds coverage; #9).
+
+9. **Coverage-as-more-labels is spent too — the binding gap is on-distribution *policy*.** Stage 5 recovered the dropped doubles (~18% of decisions) as value-only labels (+25k, cache 139k→164k) — the most concrete coverage hole — on the same 10×256 net. It improved value calibration (MSE 0.0066→0.0061) and trimmed the worst losses (GNUBG gammons-against 55→37), giving the project's best external result, **8-92, -1.59 ppg** — but within noise of v4, and dead level vs iter_0447 (93-7, +1.98). That closes the loop on the student side: **three levers tested in isolation — capacity (v4), eval-search (v4@800), coverage (v5) — and none moves the GNUBG gap beyond noise; it sits at ~-1.6 ppg.** The diagnosis sharpens to a specific shortfall. The doubles recovery is *value-only* (OpenSpiel's split makes the policy target ambiguous), so the policy head never learns to play a double; and more broadly the bglab human-match archive does not contain the lines GNUBG forces. Supervised distillation from a fixed position archive structurally cannot supply on-distribution *policy* data — which is exactly what's missing. That is the case for self-play (the real exp007) as the next lever, now seeded from the strongest, broadest checkpoint the track has produced (v5: v4's strength plus doubles-value coverage).
 
 ## Open questions
 
 This track exists to produce a **seed for self-play** (the real exp007), so the figure of merit is the strength of the *endpoint* self-play reaches, not the seed's own eval. Mostly those track together — a stronger seed gives a stronger endpoint, so optimising the seed's strength is the right instinct. But two effects pull seed-value and standalone-strength apart, and both point the same way: a bigger net on broader data.
 
 - **Capacity — tested in Stage 4: necessary but not sufficient.** The 10×256 net (v4) beat iter_0447 by +0.58 ppg more than v3, yet moved the GNUBG gap by only +0.13 ppg (within noise). So capacity converts to strength against distribution-near opponents and gives self-play more representational headroom — but on its own it does not close the external gap. v4 is now the strongest seed we have and the right architecture for exp007; the binding lever for M6 is the *other* axis below. (Mechanism, still standing: the from-scratch self-play track plateaued on 6×128, so a *stronger* 6×128 seed could re-plateau at that cap — a 10×256 has headroom self-play can use.)
-- **Coverage / generalisation — now the prime suspect for the GNUBG gap.** v4's split (decisive vs iter_0447, flat vs GNUBG) is the signature of distribution shift. "Stronger" is measured on human-match / GNUBG positions; the instant self-play — or GNUBG — steers the game it leaves the bglab distribution. Strength that comes from generalisation carries over; strength that comes from fitting the bglab distribution tightly may not. So for a seed, broad coverage and not-overfitting are part of *real* strength even though they barely move the standalone number: keep the 2-ply games (only marginally weaker than 4-ply — worth more as coverage than the tiny quality gap costs), recover the dropped doubles as value labels (+18%), and consider folding in wildbg's ~300k pre-roll positions (rollout-quality value labels already in hand). The breadth also insures the larger net against overfitting.
-- **Does self-play preserve the seed, or regress it? (the real exp007).** Even a perfect seed only pays off if self-play doesn't erode it. In self-play the teacher is MCTS-on-the-current-net, and MCTS(v4) at 100 sims is *weaker* than the GNUBG-4-ply signal that created it (v4 loses to GNUBG 0-ply, -1.66 ppg). Resume at low sims and self-play can pull the seed *down* toward the self-play signal-quality ceiling — the very plateau this track escaped. Self-play climbs only if its search generates targets that beat the seed, so exp007 must run at **800+ sims** (exp005 showed 800-sim self-play far outperformed 25). Free diagnostic first: re-eval v4 at 400/800 sims — if MCTS barely lifts it, self-play likely can't exceed the supervised seed at feasible compute, and the higher-value path is to push the *supervised* seed further (capacity, coverage, the doubles policy) with self-play as polish, not the main climb.
+- **Coverage / generalisation — partly tested in Stage 5; the *value* half is spent.** v4's split (decisive vs iter_0447, flat vs GNUBG) is the signature of distribution shift: "stronger" is measured on human-match / GNUBG positions, and the instant self-play — or GNUBG — steers the game it leaves the bglab distribution. Stage 5 tested the most concrete coverage increment — the dropped doubles, recovered as value labels (+25k) — and it behaved exactly like capacity: better calibration, the best external number yet (-1.59 ppg), but the gap unmoved within noise. The lesson narrows the question rather than answering it: the recovery was *value-only*, so it could never address the **policy** side of coverage, and that is where the gap now points. The still-untested value-coverage ideas (folding in wildbg's ~300k pre-roll positions; the 2-ply games are already kept) would likely behave the same — marginal calibration, no external gap movement — because the binding hole is on-distribution *move selection*, not value breadth. The breadth still earns its place as overfitting insurance for the larger net and as a better seed, just not as the M6 unlock.
+- **Does self-play preserve the seed, or regress it? (the real exp007).** Even a perfect seed only pays off if self-play doesn't erode it. In self-play the teacher is MCTS-on-the-current-net, and MCTS(v4) at 100 sims is *weaker* than the GNUBG-4-ply signal that created it (v4 loses to GNUBG 0-ply, -1.66 ppg). Resume at low sims and self-play can pull the seed *down* toward the self-play signal-quality ceiling — the very plateau this track escaped. Self-play climbs only if its search generates targets that beat the seed, so exp007 must run at **800+ sims** (exp005 showed 800-sim self-play far outperformed 25). The free diagnostic this bullet first proposed has now run — re-evaluating v4 at 800 sims barely moved it (-1.84 vs -1.66, if anything worse) — so raw search does *not* lift the fixed prior. But that cuts both ways: it argues against "self-play as mere search-polish" while leaving open the one thing self-play does that pure eval-search cannot — **retrain the policy on its own on-distribution targets**, the exact gap Stage 5 isolated. The other path the diagnostic pointed at, pushing the *supervised* seed further, also came up flat externally (v5). So the levers narrow to a single live bet: exp007 at 800+ sims, where the open question is whether MCTS(seed) generates *policy* targets that beat the seed on the lines GNUBG forces, or whether self-play instead pulls the seed back toward its own signal-quality ceiling.
 - **Cube + match play.** Everything here is cubeless money-game checker play. GNUBG's analysis also contains cube decisions we currently skip; modelling the cube is the path from "competitive checker play" to a complete money-game opponent.

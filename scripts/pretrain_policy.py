@@ -28,6 +28,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+
+# Idle OpenMP threads sleep instead of busy-spinning at barriers, so CPU
+# contention (e.g. opening a browser mid-run) degrades gracefully rather than
+# collapsing throughput (IPC ~0.09). Must run before the torch import below.
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")
+
 import platform
 import subprocess
 import time
@@ -91,11 +97,16 @@ def _policy_loss(policy_logits: torch.Tensor, pol, is_soft: bool) -> torch.Tenso
     return F.cross_entropy(policy_logits, pol)
 
 
-def _policy_correct(policy_logits: torch.Tensor, pol, is_soft: bool) -> int:
-    """Count predictions whose argmax matches the (money-)best target action."""
+def _policy_correct(policy_logits: torch.Tensor, pol, is_soft: bool) -> tuple[int, int]:
+    """Return (correct, n_valid): argmax matches the (money-)best target, over
+    rows that actually carry a policy target. Value-only rows (recovered
+    doubles) use a -1 sentinel in column 0 and are excluded so they neither
+    count as wrong nor deflate top-1."""
     pred = policy_logits.argmax(dim=-1)
     target = pol[0][:, 0] if is_soft else pol  # soft: col 0 is the best move
-    return int((pred == target).sum().item())
+    valid = target >= 0
+    correct = int(((pred == target) & valid).sum().item())
+    return correct, int(valid.sum().item())
 
 
 def _index_policy(pol, idx, is_soft: bool):
@@ -165,6 +176,7 @@ def evaluate(
     n = obs.size(0)
     sum_p = sum_v = 0.0
     correct = 0
+    valid_count = 0
     count = 0
     for start in range(0, n, batch_size):
         end = start + batch_size
@@ -176,10 +188,15 @@ def evaluate(
         bs = x.size(0)
         sum_p += _policy_loss(policy_logits, p_t, is_soft).item() * bs
         sum_v += F.mse_loss(value_pred.squeeze(-1), v_t, reduction="sum").item()
-        correct += _policy_correct(policy_logits, p_t, is_soft)
+        c, vc = _policy_correct(policy_logits, p_t, is_soft)
+        correct += c
+        valid_count += vc
         count += bs
     count = max(count, 1)
-    return sum_p / count, sum_v / count, correct / count
+    valid_count = max(valid_count, 1)
+    # Policy CE and top-1 over policy-labeled rows only (value-only doubles
+    # rows carry a -1 sentinel and are excluded); value MSE over all rows.
+    return sum_p / valid_count, sum_v / count, correct / valid_count
 
 
 def save_pretrained(
