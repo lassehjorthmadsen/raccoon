@@ -14,7 +14,7 @@ make test           # Run all tests (pytest tests/ -v)
 make smoke          # Quick sanity check: 2 iterations, 3 games, 10 sims
 make train          # Full training run
 make eval           # Checkpoint vs checkpoint evaluation
-make eval-gnubg     # Automated benchmark against GNUBG CLI
+make eval-gnubg     # Automated benchmark against GNUBG (gnubg-nn engine; level=world → full-width 2-ply)
 make play           # Interactive terminal play
 make download-wildbg # Fetch wildbg-training labeled positions (CC0) into data/wildbg/
 make pretrain-smoke  # 1 epoch on 2k positions — sanity check before a full pretrain
@@ -71,7 +71,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 
 5. **`raccoon/eval/`** — Evaluation infrastructure
    - `arena.py`: Checkpoint vs checkpoint matches
-   - `gnubg_harness.py`: Automated money game matches against GNUBG CLI
+   - `gnubg_harness.py`: Automated cubeless money game matches against GNUBG's evaluation engine (the `gnubg-nn` library — GNUBG's real nets, programmatically queryable; default `level=world` → full-width 2-ply)
 
 6. **`raccoon/protocol/rgp.py`** — Raccoon Game Protocol: text-based stdin/stdout protocol inspired by UCI for future GUI frontends
 

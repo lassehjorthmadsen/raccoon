@@ -36,7 +36,7 @@ def log_dir_from_checkpoint(checkpoint_path):
     return Path("logs")
 
 
-def log_summary(result, args, checkpoint_path: str, log_dir: str | None = None) -> Path:
+def log_summary(result, args, checkpoint_path: str, ply: int, log_dir: str | None = None) -> Path:
     """Append a one-line JSON summary to gnubg_eval_log.jsonl in the experiment's log dir."""
     if log_dir is None:
         log_dir = log_dir_from_checkpoint(checkpoint_path)
@@ -46,7 +46,7 @@ def log_summary(result, args, checkpoint_path: str, log_dir: str | None = None) 
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "checkpoint": checkpoint_path,
-        "opponent": f"gnubg(level={args.gnubg_level})",
+        "opponent": f"gnubg(level={args.gnubg_level},ply={ply})",
         "num_games": result.num_games,
         "simulations": args.simulations,
         "raccoon_wins": result.raccoon_wins,
@@ -120,7 +120,7 @@ def main():
     result = harness.play_match(num_games=args.games)
     print(result.summary())
 
-    summary_path = log_summary(result, args, args.checkpoint)
+    summary_path = log_summary(result, args, args.checkpoint, ply=harness.ply)
     print(f"Summary appended to {summary_path}")
 
     if not args.no_log_games:
