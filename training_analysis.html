@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-94b323657c735dfe3b1bf6ebb2c33a55.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-bba5ebae505b5c03f3f0d8040a416a6b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -236,7 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="experiment-overview" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-overview">Experiment Overview</h2>
 <p>This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.</p>
-<div id="c6e4588d" class="cell" data-execution_count="2">
+<div id="f1599fe6" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>| Experiment                     | Network      |   MCTS Sims |   Games/Iter |   Iterations |   Total Games | Status   |
 |:-------------------------------|:-------------|------------:|-------------:|-------------:|--------------:|:---------|
@@ -264,7 +264,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-curves-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-curves-comparison">Loss Curves Comparison</h2>
 <p>Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.</p>
-<div id="8c6d1621" class="cell page-columns page-full" data-execution_count="3">
+<div id="7ba77587" class="cell page-columns page-full" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
@@ -396,7 +396,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-trend-detail-policy-and-value-separately" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</h2>
 <p>Policy and value loss are doing different things; reading them together via <code>total_loss</code> obscures the signal. We fit a linear trend on each over a “late phase” (after the first 20% of each run), so the early warmup doesn’t dominate the slope.</p>
-<div id="eaa63bf2" class="cell page-columns page-full" data-execution_count="4">
+<div id="71878dbd" class="cell page-columns page-full" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
@@ -474,7 +474,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000) — Value Loss (MS
 <section id="game-dynamics-is-play-quality-improving" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</h2>
 <p>The clearest diagnostic for whether training is making progress isn’t loss — it’s whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it’s flat, play is stuck.</p>
-<div id="4dfff7de" class="cell page-columns page-full" data-execution_count="5">
+<div id="c0a645ac" class="cell page-columns page-full" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">9</span>))</span>
@@ -571,7 +571,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000) — Value Loss (MS
 <section id="player-0-equity-bias" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="player-0-equity-bias">Player-0 Equity Bias</h2>
 <p>OpenSpiel’s opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0’s perspective should be approximately zero.</p>
-<div id="d846afc3" class="cell page-columns page-full" data-execution_count="6">
+<div id="3cb1d879" class="cell page-columns page-full" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
@@ -626,7 +626,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000): avg outcome = +0.
 <section id="training-efficiency-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="training-efficiency-comparison">Training Efficiency Comparison</h2>
 <p>How does more compute per iteration (8x MCTS sims, 5x games) affect training time?</p>
-<div id="3e6b9886" class="cell page-columns page-full" data-execution_count="7">
+<div id="9de4be00" class="cell page-columns page-full" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">8</span>))</span>
@@ -695,7 +695,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000): avg outcome = +0.
 </div>
 </div>
 </div>
-<div id="6332cc7b" class="cell" data-execution_count="8">
+<div id="98e0a428" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print efficiency stats for each experiment</span></span>
@@ -785,7 +785,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000):
 <section id="benchmark-results" class="level2">
 <h2 class="anchored" data-anchor-id="benchmark-results">Benchmark Results</h2>
 <p>Evaluation results from each experiment (when available):</p>
-<div id="eb2b9dd5" class="cell" data-execution_count="9">
+<div id="c3c1b32e" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ============================================================
@@ -900,6 +900,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 </div>
 </div>
 <p><strong>Interpretation (with sample-size caveats):</strong></p>
+<p>“GNUBG world-class” throughout means the <code>gnubg-nn</code> engine at <code>level=world</code>, which the adapter maps to <strong>2-ply</strong> with every legal move evaluated at full depth (no move filters) — i.e.&nbsp;genuine World-class checker play. (Earlier versions of these pages mislabeled this opponent “ply=0”; the underlying evals were always 2-ply.)</p>
 <ul>
 <li><strong>exp000 vs GNUBG world-class (n=10): 0-10, -2.50 ppg.</strong> With n=10, the 95% CI on per-game equity is ~±1.5 ppg, so this is only weak evidence of <em>how badly</em> it loses — though a 0-10 sweep at any sample size confirms the network is nowhere near world-class GNUBG strength.</li>
 <li><strong>exp001 iter_112 vs GNUBG world-class (n=50): 1-49 (2%), -2.22 ppg.</strong> 19 gammons and 22 backgammons conceded in 50 games. The backgammon concession rate of 44% is in line with the self-play finding that this network leaves checkers stranded.</li>
@@ -915,13 +916,13 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 <li><strong>exp004 iter_260 vs iter_200 (100 games total, 100 eval sims): 48-52 (48%), -0.100 ppg combined.</strong> Two 50-game matches: +0.120 ppg and -0.320 ppg. Not significant (SE ≈ 0.18 ppg over 100 games). The 60 iterations after the LR decay at iter 200 produced no strength gain; the second match shows the newer checkpoint lost outright. No GNUBG benchmark was run for exp004.</li>
 <li><strong>exp006 iter_2498 vs exp000 iter_0498 (n=200, 100 eval sims): 116-84 (58%), +0.270 ppg.</strong> The first statistically significant within-experiment strength gain across all experiments (z≈2.26, p≈0.024). 2000 additional iterations of identical 25-sim self-play produced a real but modest improvement. To put the rate in perspective: extrapolating +0.270 ppg per 2000 iters, closing the ~2.30 ppg gap to GNUBG world-class would require ~17,000 more iterations at the same pace. The plateau is slow, not absolute — but pure iteration count alone is not a viable path to GNUBG-competitive play.</li>
 <li><strong>exp005 iter_0109 vs iter_0040 (n=100, 100 eval sims): 58-42 (58%), +0.380 ppg.</strong> P1 gammons/BG: 30/11; P2 gammons/BG: 16/7. Avg game length: 92 moves. Statistically significant (SE ≈ 0.18 ppg, z ≈ 2.1, p ≈ 0.035) — the pre-restart phase produced genuine strength improvement over 69 iterations at 800 sims. The gammon/BG concession ratio (iter_0109 conceded far fewer) is consistent with the BG rate decline seen in training.</li>
-<li><strong>exp005 iter_0109 vs GNUBG world-class ply=0 (n=100, 100 sims): 0-100 (0%), -2.520 ppg.</strong> GNUBG gammons/bg: 34/59; Raccoon gammons/bg: 0/0. The 59% backgammon concession rate is notably higher than exp001 iter_282 (~44% over 50 games) and exp002 iter_147, despite exp005 showing the strongest self-play game-quality signal. exp005 iter_0109 was only 109 training iterations (vs 282 for exp001), so the network is less mature overall even if it was improving faster. Result is firmly in line with all other experiments: the M6 milestone is not in reach at current training settings. iter_0109 (or iter_0447 — strength-equivalent per the within-experiment arena) remains the strongest self-play checkpoint we have; in the <a href="./pretraining_analysis.html">Pretraining Analysis</a> track it serves as the internal benchmark every supervised checkpoint is measured against.</li>
+<li><strong>exp005 iter_0109 vs GNUBG world-class (2-ply; n=100, 100 sims): 0-100 (0%), -2.520 ppg.</strong> GNUBG gammons/bg: 34/59; Raccoon gammons/bg: 0/0. The 59% backgammon concession rate is notably higher than exp001 iter_282 (~44% over 50 games) and exp002 iter_147, despite exp005 showing the strongest self-play game-quality signal. exp005 iter_0109 was only 109 training iterations (vs 282 for exp001), so the network is less mature overall even if it was improving faster. Result is firmly in line with all other experiments: the M6 milestone is not in reach at current training settings. iter_0109 (or iter_0447 — strength-equivalent per the within-experiment arena) remains the strongest self-play checkpoint we have; in the <a href="./pretraining_analysis.html">Pretraining Analysis</a> track it serves as the internal benchmark every supervised checkpoint is measured against.</li>
 <li><strong>Across experiments 000–006, all tested checkpoints are crushed by GNUBG world-class.</strong> The M6 milestone (money-game wins against GNUBG) is not in reach at current training settings. exp006 demonstrates that improvement is possible with iteration count, but the rate is far too slow; the algorithmic pivot (GNUBG pretraining, TD warm-start) remains the necessary next step.</li>
 </ul>
 </section>
 <section id="the-pretraining-pivot-a-separate-track" class="level2">
 <h2 class="anchored" data-anchor-id="the-pretraining-pivot-a-separate-track">The pretraining pivot — a separate track</h2>
-<p>The plateau above motivated the algorithmic pivot: rather than bootstrap from noise, <strong>seed the network from existing backgammon knowledge, then continue with self-play.</strong> That work began here — value-only pretraining on wildbg equities (<code>pretrained.pt</code>), then policy distillation from a synthesised 1-ply teacher (<code>pretrained_v2.pt</code>) — but outgrew this page and now has its own end-to-end write-up. The headline from there: distillation tops out at its teacher’s strength, so <strong>teacher quality is the lever</strong> — and pointing it at a GNUBG 4-ply teacher (stage v3) produced the first checkpoint in the project to beat iter_0447 (83-17, +1.38 ppg) and the first to win games against GNUBG ply=0, with no self-play and no GPU.</p>
+<p>The plateau above motivated the algorithmic pivot: rather than bootstrap from noise, <strong>seed the network from existing backgammon knowledge, then continue with self-play.</strong> That work began here — value-only pretraining on wildbg equities (<code>pretrained.pt</code>), then policy distillation from a synthesised 1-ply teacher (<code>pretrained_v2.pt</code>) — but outgrew this page and now has its own end-to-end write-up. The headline from there: distillation tops out at its teacher’s strength, so <strong>teacher quality is the lever</strong> — and pointing it at a GNUBG 4-ply teacher (stage v3) produced the first checkpoint in the project to beat iter_0447 (83-17, +1.38 ppg) and the first to win games against GNUBG world-class (2-ply), with no self-play and no GPU.</p>
 <p>→ <strong><a href="./pretraining_analysis.html">Pretraining Analysis</a></strong> — data sources, the synthesis/distillation pipeline, every stage (v1 → v2 → v2b → v3), and the standalone-strength evals previously summarised here.</p>
 </section>
 <section id="summary-and-next-steps" class="level2">
@@ -1013,7 +1014,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 <li>exp000 iter_498: 0-10 vs GNUBG world-class (n=10, wide CI).</li>
 <li>exp001 iter_282: <strong>0-50 (-2.32 ppg) vs GNUBG world-class</strong>. After 170 more iters than iter_112: no improvement.</li>
 <li>exp002 iter_147: <strong>0-50 (-2.300 ppg) vs GNUBG world-class</strong> — indistinguishable from exp001 despite better fitting metrics.</li>
-<li>exp005 iter_0109: <strong>0-100 (-2.520 ppg) vs GNUBG world-class ply=0</strong> — 59 backgammons conceded, 0 won. Despite the strongest self-play improvement signal, external benchmark performance is indistinguishable from exp001/exp002.</li>
+<li>exp005 iter_0109: <strong>0-100 (-2.520 ppg) vs GNUBG world-class (2-ply)</strong> — 59 backgammons conceded, 0 won. Despite the strongest self-play improvement signal, external benchmark performance is indistinguishable from exp001/exp002.</li>
 <li>exp005 iter_0447 vs iter_0109 (n=100, 100 eval sims): <strong>52-48, +0.050 ppg (n.s.).</strong> Statistically indistinguishable. Despite the 290-iter lr=1e-5 extension producing visibly degraded fitting metrics (pol_loss 3.0 vs 1.7, BG rate 45% vs 27%), play strength was preserved. Not benchmarked against GNUBG — no reason to expect a result different from iter_0109’s 0-100.</li>
 <li>exp006 iter_2498: beats exp000 iter_0498 by +0.270 ppg — still nowhere near GNUBG-competitive, but the first confirmed cross-checkpoint strength gap.</li>
 <li>M6 milestone (money-game wins against GNUBG) requires an algorithmic change, not just more iterations.</li>
@@ -1030,7 +1031,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 <li><p><del><strong>Value target bootstrapping.</strong></del> <strong>Done</strong> (exp004). Lower value loss; no play quality improvement.</p></li>
 <li><p><del><strong>Scale sims (400–800).</strong></del> <strong>Done</strong> (exp005, partially). 800 sims produced the fastest policy improvement and clearest BG rate decline of any experiment in the useful phase (iters 1–109). Arena result (iter_0109 vs iter_0040: <strong>+0.380 ppg, p≈0.035</strong>) confirms genuine strength gain. <strong>The lever works — but the run was confounded by a hardware restart + premature LR decay.</strong> The watchdog-driven extension to iter 447 (290 iters at lr=1e-5) produced no further strength gain (iter_0447 vs iter_0109: +0.050 ppg, n.s.) — but did not weaken the network either, so iter_0447 and iter_0109 are interchangeable as seed checkpoints. A clean re-run of exp005 without the LR schedule remains the priority. Recommended: resume from exp005 iter_0109 (or fresh start) with 800 sims, no LR decay, no value bootstrap (or retain bootstrap — the question is sims, not targets).</p></li>
 <li><p><del><strong>Test whether more iterations alone break the plateau.</strong></del> <strong>Done</strong> (exp006). Yes — but slowly. +0.270 ppg per 2000 iterations is far too slow to reach GNUBG-competitive strength. Pure iteration count is not the path.</p></li>
-<li><p><strong>Algorithmic pivot: supervised pretraining + self-play fine-tune.</strong> Started (pretrain-wildbg-v1, value-only on 285k wildbg-labeled positions, val_mse ≈ 0.0021). Standalone strength is poor: -2.03 ppg vs iter_0447, -2.725 ppg vs GNUBG ply=0 — the missing policy head is the bottleneck (random prior + 100 MCTS sims can’t compensate for an untrained policy even with a good value). The wildbg dataset has no move labels (value-only by design — wildbg uses 1-ply lookahead, no policy net). <strong>Recommended next experiment (cheapest, before exp007):</strong> synthesize policy labels by 1-ply lookahead with pretrained.pt’s value head — for each wildbg position, evaluate each legal child and one-hot the argmax. Re-pretrain with combined value+policy loss. This addresses the random-policy bottleneck without external dependencies. <strong>Then launch exp007</strong>: self-play from the value+policy pretrained checkpoint. If that converges faster or to a stronger endpoint than from-scratch, the pretraining pivot is validated.</p></li>
+<li><p><strong>Algorithmic pivot: supervised pretraining + self-play fine-tune.</strong> Started (pretrain-wildbg-v1, value-only on 285k wildbg-labeled positions, val_mse ≈ 0.0021). Standalone strength is poor: -2.03 ppg vs iter_0447, -2.725 ppg vs GNUBG world-class (2-ply) — the missing policy head is the bottleneck (random prior + 100 MCTS sims can’t compensate for an untrained policy even with a good value). The wildbg dataset has no move labels (value-only by design — wildbg uses 1-ply lookahead, no policy net). <strong>Recommended next experiment (cheapest, before exp007):</strong> synthesize policy labels by 1-ply lookahead with pretrained.pt’s value head — for each wildbg position, evaluate each legal child and one-hot the argmax. Re-pretrain with combined value+policy loss. This addresses the random-policy bottleneck without external dependencies. <strong>Then launch exp007</strong>: self-play from the value+policy pretrained checkpoint. If that converges faster or to a stronger endpoint than from-scratch, the pretraining pivot is validated.</p></li>
 <li><p><strong>Infrastructure.</strong> Future experiments should be added to the <code>EXPERIMENTS</code> dict; download logs from GCS and re-render.</p></li>
 </ol>
 </section>
@@ -1045,7 +1046,7 @@ exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)
 <li><strong>Resolved (2026-05-13):</strong> More iterations alone produce slow but real improvement (exp006, +0.270 ppg / 2000 iters, p≈0.024) — but the rate is far too slow for pure self-play from scratch to reach GNUBG-competitive strength.</li>
 <li><strong>Resolved (2026-05-13):</strong> 800-sim MCTS produces meaningfully better training signal than 25–200 sims (exp005 pre-restart). Search depth is the most promising lever. A clean high-sim run without the confounds of exp005 is the priority.</li>
 <li><strong>Resolved (2026-05-17):</strong> exp005 pre-restart phase produced genuine strength gain (iter_0109 vs iter_0040: +0.380 ppg, p≈0.035, n=100). 800-sim MCTS works; the confounds were the restart and premature LR decay, not the sim count.</li>
-<li><strong>Resolved (2026-05-29):</strong> Value-only supervised pretraining on wildbg labels does <em>not</em> produce a competent standalone player. pretrained.pt loses to exp005 iter_0447 6-194 (-2.03 ppg) and to GNUBG ply=0 0-200 (-2.725 ppg) — worse than exp005’s strongest checkpoint against the same opponent. The random-init policy head is the bottleneck: MCTS at 100 sims can’t compensate for a uniform-ish prior even with a calibrated value function.</li>
+<li><strong>Resolved (2026-05-29):</strong> Value-only supervised pretraining on wildbg labels does <em>not</em> produce a competent standalone player. pretrained.pt loses to exp005 iter_0447 6-194 (-2.03 ppg) and to GNUBG world-class (2-ply) 0-200 (-2.725 ppg) — worse than exp005’s strongest checkpoint against the same opponent. The random-init policy head is the bottleneck: MCTS at 100 sims can’t compensate for a uniform-ish prior even with a calibrated value function.</li>
 <li><strong>Open:</strong> Does a clean 800-sim run (no LR decay, stable GPU throughout) sustain improvement beyond 109 iters and converge toward competitive strength?</li>
 <li><strong>Open:</strong> Does seeding self-play from pretrained.pt (good value, random policy) converge faster or to a stronger endpoint than from scratch or from exp005 iter_0109? (Exp007 will test this.)</li>
 <li><strong>Resolved (2026-05-29):</strong> The wildbg dataset does <em>not</em> include move labels — each row is just (position_id, win, win_g, win_bg, lose_g, lose_bg). This is value-only data because wildbg’s own architecture is value-only-with-1-ply-lookahead and doesn’t need move labels. For our AlphaZero-style architecture, the cheapest way to get policy targets is to do 1-ply lookahead with the current pretrained value head: enumerate legal moves → evaluate each child position → argmax → one-hot policy label. No external dependency, runnable in a few hours on the iMac. Likely the next experiment to run before exp007.</li>
