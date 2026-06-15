@@ -55,6 +55,12 @@ EXPERIMENTS = {
         "label": "exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)",
         "color": "#8c564b",
     },
+    "exp007": {
+        "name": "exp007-10x256-v5seed-800sims",
+        "label": "exp007 (800 sims, 8 games, 10×256, v5 seed)",
+        "color": "#17becf",
+        "network": "10×256 ResNet",
+    },
 }
 
 def load_experiment(exp_name):
@@ -112,7 +118,7 @@ for exp_id, exp in experiments.items():
     df = exp["df"]
     summary_data.append({
         "Experiment": exp["name"],
-        "Network": "6x128 ResNet",
+        "Network": exp.get("network", "6×128 ResNet"),
         "MCTS Sims": next((p.replace("sims", "") for p in exp["name"].split("-") if p.endswith("sims")), "N/A"),
         "Games/Iter": df["num_games"].iloc[0] if len(df) > 0 else "N/A",
         "Iterations": len(df),
@@ -133,6 +139,7 @@ print(summary_df.to_markdown(index=False))
 6. **exp005 (800 sims — scale up search depth)**: Scales MCTS simulations 8× vs exp004 (800 vs 100), keeping other exp004 settings (Dirichlet, bootstrapping, 25k buffer). Tests whether deeper search at training time produces qualitatively better policy targets. Pre-restart phase (iters 1–109) produced the fastest policy improvement of any experiment and a confirmed strength gain (iter_0109 vs iter_0040: +0.380 ppg, p≈0.035). After a hardware restart at iter 110 and premature LR decay (1e-3 → 1e-4 at iter 115; → 1e-5 at iter 155), training destabilized. A local watchdog then auto-resumed through repeated spot-VM preemptions, extending the run to iter 447 with lr clamped at 1e-5 throughout. Fitting metrics never recovered — but **play strength was preserved**: iter_0447 vs iter_0109 = 52-48, +0.050 ppg (n.s.). The extension is a sharp example of loss-strength divergence: the lr=1e-5 phase diffused the policy distribution without weakening the network's play.
 7. **exp006 (massive iteration extension of exp000)**: Extends exp000 by 2000 additional iterations (iter 499–2498) using identical hyperparameters (25 sims, no noise, no bootstrap, no LR schedule). Tests whether sheer iteration count eventually breaks the plateau — and provides a clean falsification if it doesn't.
 8. **Is training actually converging?** Loss curves are one signal; gammon/backgammon rates, game length, and the within-experiment strength curve are more diagnostic. Several candidate explanations exist for the trends we see — this analysis tries to distinguish them.
+9. **exp007 (self-play from the v5 supervised seed)**: The pretraining track (see [Pretraining Analysis](pretraining_analysis.qmd)) produced a 10×256 net distilled from GNUBG 4-ply analysis — the v5 seed, which beats iter_0447 93-7 (+1.98 ppg). Does high-sim self-play fine-tuning from this seed climb above it, or regress it toward the self-play signal-quality ceiling? And does a larger architecture (10×256 vs 6×128) give self-play more headroom to exploit?
 
 ## Loss Curves Comparison
 
@@ -214,6 +221,11 @@ plt.show()
 - A local watchdog then auto-resumed the run through ~14 spot-VM preemptions, extending it to iter 447 (290 more iters). lr stayed clamped at 1e-5 for the entire extension. Policy loss drifted weakly from 3.14 → 3.02; value loss flat at ~0.055; BG rate stuck at 44–48% throughout; visit entropy locked at ~1.22. **The lr=1e-5 phase produced essentially zero recovery in fitting metrics over 290 iterations**
 - **But strength was preserved.** Arena at the end of the extension: iter_0447 vs iter_0109 = 52-48 wins, +0.050 ppg (n=100, n.s.). The lr=1e-5 phase neither improved nor weakened the network's play despite a large metric divergence. The most parsimonious read: MCTS at eval time (100 sims) is robust to the diffuse policy that lr=1e-5 produced — search compensates for a noisier prior as long as it remains directionally correct
 - The useful training data is still iters 1–109 (the only phase where metrics *and* strength both improved). The extension's value is methodological: it's the cleanest example in this project of loss/policy metrics misleading about strength
+
+**exp007 (800 sims, 10×256, v5 seed — 50 iters)**:
+
+- Policy loss drops from 2.94 → ~1.93 within 6 iterations, then plateaus flat for the remaining 44 iters. The network adapts to its own MCTS@800 distribution almost immediately — far faster than any prior experiment. The 10×256 capacity and strong supervised prior make the self-play distribution easy to fit, but easy-to-fit ≠ improving at backgammon.
+- Value loss starts at 0.041 (the GNUBG-money-equity-calibrated value head encountering discrete self-play terminal outcomes for the first time), falls to ~0.022 by iter 5, then drifts back up to ~0.028 by iter 49. The value head gradually pulls off its supervised calibration toward the self-play signal. See the exp007 section below for the full strength verdict.
 
 **exp006 (25 sims, 10 games, 100k buf, +2000 iters from exp000)**:
 
@@ -598,9 +610,74 @@ for exp_id, exp in experiments.items():
 
 ## The pretraining pivot — a separate track
 
-The plateau above motivated the algorithmic pivot: rather than bootstrap from noise, **seed the network from existing backgammon knowledge, then continue with self-play.** That work began here — value-only pretraining on wildbg equities (`pretrained.pt`), then policy distillation from a synthesised 1-ply teacher (`pretrained_v2.pt`) — but outgrew this page and now has its own end-to-end write-up. The headline from there: distillation tops out at its teacher's strength, so **teacher quality is the lever** — and pointing it at a GNUBG 4-ply teacher (stage v3) produced the first checkpoint in the project to beat iter_0447 (83-17, +1.38 ppg) and the first to win games against GNUBG world-class (2-ply), with no self-play and no GPU.
+The plateau above motivated the algorithmic pivot: rather than bootstrap from noise, **seed the network from existing backgammon knowledge, then continue with self-play.** That work began here — value-only pretraining on wildbg equities (`pretrained.pt`), then policy distillation from a synthesised 1-ply teacher (`pretrained_v2.pt`) — but outgrew this page and now has its own end-to-end write-up. The headline from there: distillation tops out at its teacher's strength, so **teacher quality is the lever** — and pointing it at a GNUBG 4-ply teacher (stage v3) produced the first checkpoint in the project to beat iter_0447 (83-17, +1.38 ppg) and the first to win games against GNUBG world-class (2-ply), with no self-play and no GPU. Three student-side levers were tested (capacity v4, eval-search, coverage v5); all left the external gap at ~−1.6 ppg. The best seed produced — v5, 10×256, 93-7 vs iter_0447 — feeds directly into exp007 below.
 
-→ **[Pretraining Analysis](pretraining_analysis.qmd)** — data sources, the synthesis/distillation pipeline, every stage (v1 → v2 → v2b → v3), and the standalone-strength evals previously summarised here.
+→ **[Pretraining Analysis](pretraining_analysis.qmd)** — data sources, the synthesis/distillation pipeline, every stage (v1 → v5), and the standalone-strength evals.
+
+## exp007 — Self-play from the v5 supervised seed
+
+exp007 is the experiment the pretraining track built toward: does high-sim self-play **climb above** the v5 supervised seed, or **regress** it toward the self-play signal-quality ceiling (the "regression trap")?
+
+**Seed**: `pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt` — a 10×256 net distilled from GNUBG 4-ply analysis over 20 epochs. Standalone: 93-7 vs iter_0447 (+1.98 ppg), 8-92 vs GNUBG 2-ply (−1.59 ppg). The policy head learned GNUBG's move preferences; the value head was calibrated to GNUBG money equities (continuous expectations, mean ~0.04, std ~0.27). See [Pretraining Analysis](pretraining_analysis.qmd) for the seed backstory.
+
+**Config**: 800 sims, 8 games/iter, 50 iters, lr 5×10⁻⁴, bootstrap α=0.5, Dirichlet 0.3/eps 0.25, 25k buffer, 4 workers (iMac CPU). No LR decay. Total wall time ~5.5 days (~90 min/iter early, ~270 min/iter late as MCTS steered into more compute-heavy positions).
+
+**The verdict: the regression trap closed completely.**
+
+```{python}
+#| echo: false
+import json
+from pathlib import Path
+
+exp007_evals = []
+el_path = Path("../experiments/exp007-10x256-v5seed-800sims/logs/eval_log.jsonl")
+gl_path = Path("../experiments/exp007-10x256-v5seed-800sims/logs/gnubg_eval_log.jsonl")
+if el_path.exists():
+    for l in el_path.read_text().splitlines():
+        if l.strip():
+            r = json.loads(l)
+            opp = Path(r.get("opponent","?")).stem
+            exp007_evals.append({
+                "Opponent": opp.replace("pretrained_v2","v5 seed").replace("iter_0447","iter_0447 (6×128 self-play)"),
+                "Result": f"{r['p1_wins']}-{r['p2_wins']}",
+                "Win%": f"{r['p1_wins']/r['num_games']*100:.0f}%",
+                "Equity": f"{r['equity']:+.3f}",
+                "Δ vs seed": f"{r['equity']-1.98:+.2f}" if "pretrained" not in r.get("opponent","") else "—",
+                "n": r["num_games"],
+            })
+if gl_path.exists():
+    g = json.loads(gl_path.read_text())
+    exp007_evals.append({
+        "Opponent": "GNUBG 2-ply",
+        "Result": f"{g['raccoon_wins']}-{g['gnubg_wins']}",
+        "Win%": f"{g['win_rate']*100:.0f}%",
+        "Equity": f"{g['equity_per_game']:+.3f}",
+        "Δ vs seed": f"{g['equity_per_game']-(-1.59):+.2f}",
+        "n": g["num_games"],
+    })
+if exp007_evals:
+    import pandas as pd
+    print(pd.DataFrame(exp007_evals).to_markdown(index=False))
+else:
+    print("exp007 eval logs not found.")
+```
+
+50 iterations of self-play took a network that dominated iter_0447 **93-7 (+1.98 ppg)** to one at **dead parity (51-49, 0.000 ppg)**. Against GNUBG it went from −1.59 to −2.24 ppg — nearly back to where the project started before the pretraining pivot. The network lost 10-90 (−1.74 ppg) to its own starting point. The regression trap was complete.
+
+**Why it happened.** Two mechanisms, both foreseeable:
+
+1. **Signal-quality ceiling.** For self-play to improve a seed, MCTS must generate policy targets *better than the current prior*. v5 loses 8-92 to GNUBG 2-ply, so MCTS(v5) at 800 sims generates targets that reflect a player losing 92% to GNUBG. Training on those targets teaches the network to imitate a weaker player than the one GNUBG 4-ply distillation produced. Policy loss fell (2.94→1.93) — the network *successfully* fitted its self-play targets. The problem is those targets encoded worse backgammon than the GNUBG 4-ply signal that made the seed.
+
+2. **Value target mismatch.** The v5 value head was trained on GNUBG **money equities** — continuous expectations in roughly [−0.8, +0.8]. Self-play value targets are `0.5 × terminal_outcome + 0.5 × MCTS_Q`, where terminal outcomes are **discrete** ±{1/3, 2/3, 1}. Same numeric range, completely different distribution: money equity is a smooth probability-weighted expectation; terminal outcomes are single-game realizations with much higher variance. The bootstrap blend (α=0.5) mixes these incompatible signals every step, gradually pulling the value head off its GNUBG calibration. Value loss drifted from 0.022 → 0.028, a slow but consistent deviation that compounds over 50 iterations.
+
+**What did not regress: the architecture.** Despite the −1.74 ppg loss to the seed, exp007-final still matched iter_0447 (51-49, 0.000 ppg) — the best 6×128 self-play checkpoint. The 10×256 net retained enough representational headroom that even after full supervised-signal erosion, it sat at parity rather than below pure self-play. Architecture matters; the training signal was the problem.
+
+**Also notable: the self-play game dynamics were extreme.** Gammon/bg rates in exp007 were far higher than any prior self-play experiment — 41% gammons, 39% bg even in iters 0–9, rising to 47%/40% late. Both sides were playing into messes their GNUBG-distilled policies had never seen before: two copies of a GNUBG-mimicking prior playing against each other with 800-sim MCTS produces very different position distributions than either a random-init net or the GNUBG games the seed was trained on. This mismatch between training and seed distributions is itself part of the regression mechanism.
+
+**Fixes (open for exp008).** The root problem is that pure self-play fully discards the supervised signal within ~30 iterations (the 25k buffer saturates at ~800 positions/iter × 31 iters):
+
+- **Pure MCTS Q (`--value-bootstrap-alpha 0.0`)**: Q is an average over 800 simulated trajectories — closer in spirit to money equity than a single terminal outcome. Reduces discrete-outcome noise in the value target without requiring any external label.
+- **Expert iteration**: keep a fraction of the replay buffer labeled by `gnubg-nn` (available at ~10 ms/decision, 0-ply). The supervised value and policy signals are never fully overwritten. Standard fix for this failure mode.
 
 ## Summary and Next Steps
 
@@ -612,6 +689,7 @@ The plateau above motivated the algorithmic pivot: rather than bootstrap from no
 - exp001/exp002: policy loss drops early then flattens; value loss rises clearly (0.105→0.140). Rising value loss is not by itself evidence of improvement or regression.
 - exp004: value loss is 3× lower (0.038–0.053) due to bootstrapped targets. Lower MSE on smoother targets does not imply a better value function — gammon/BG rates and head-to-head results are unchanged.
 - **exp005**: most rapid policy loss decline of any experiment (3.37→1.73 in 109 iters at 800 sims), reflecting higher-quality MCTS targets. After a hardware restart and premature LR decay, policy loss reversed (rising back to 3.15 by iter 173). A watchdog-driven extension to iter 447 at lr=1e-5 saw losses stay at ~3.0 for 290 more iters — *but* the iter_0447 vs iter_0109 arena (52-48, +0.050 ppg, n.s.) shows strength was preserved across the entire 338-iter post-iter-109 period. The cleanest example in this project of loss not tracking strength.
+- **exp007**: policy loss fell cleanly (2.94→1.93 in 6 iters, then stable) while the network *regressed* −1.74 ppg against its own seed. The sharpest example of loss-strength divergence in the *wrong* direction: loss fell because the network successfully adapted to weaker self-play targets, not because it improved at backgammon.
 - In all cases: loss measures how well the network fits its training targets — not how strong it plays. The decisive test is always the within-experiment strength comparison.
 
 **2. The plateau is slow, not absolute — but too slow for pure self-play from scratch.**
@@ -620,6 +698,7 @@ The plateau above motivated the algorithmic pivot: rather than bootstrap from no
 - **exp005 (iters 1–109, 800 sims)**: BG rate declined from 41%→27% — the sharpest game-quality improvement across all experiments. 800-sim MCTS produces qualitatively better policy targets. Arena result (iter_0109 vs iter_0040: **58/100, +0.380 ppg, p≈0.035**) confirms this translated to genuine strength gain — 69 iterations produced a statistically significant improvement, far faster than exp006's 2000 iterations. The post-iter-173 extension (290 iters at lr=1e-5) showed metric degradation (BG rate back to ~45%, pol_loss ~3.0) but the iter_0447 vs iter_0109 arena (**52/100, +0.050 ppg, n.s.**) shows the network's underlying play strength was preserved through the extension.
 - **exp006 (2000 additional iters at 25 sims)**: BG rate drifted from 15%→11%, gammon from 32%→28% — slow but directionally consistent over the full run. Head-to-head benchmark (iter_2498 vs exp000 iter_0498): **116/200 wins, +0.270 ppg, p≈0.024** — the **first statistically significant within-experiment strength gain** across all seven experiments.
 - Calibrating the rate: +0.270 ppg over 2000 iterations. The gap to GNUBG world-class is ~2.30 ppg. Closing it at this rate would require ~17,000 more iterations of identical training. This is not a viable path.
+- **exp007 (50 iters, 800 sims, 10×256, v5 seed)**: gammon/bg rates immediately exploded (41%/39% in iters 0–9) and stayed high throughout — the GNUBG-calibrated seed playing against itself produced position distributions neither player knew how to handle. Final result: 10-90 vs the seed (−1.74 ppg), 1-99 vs GNUBG (−2.24 ppg), 51-49 vs iter_0447 (parity). The regression trap closed completely: 50 iterations of pure self-play erased all pretraining advantage over the internal benchmark.
 
 **3. Six interventions tested, none broke the plateau decisively.**
 
@@ -632,6 +711,7 @@ The plateau above motivated the algorithmic pivot: rather than bootstrap from no
 | LR decay | exp004, exp005 | No benefit in exp004; metric destabilization in exp005 (cold buffer + LR cut). 290-iter extension at lr=1e-5 produced no metric recovery — but arena (iter_0447 vs iter_0109: 52-48, n.s.) shows strength was preserved. The metric "catastrophe" did not correspond to strength loss. |
 | More MCTS sims (800) | exp005 | Fastest policy improvement seen; BG rate declining pre-restart; arena confirms +0.380 ppg / 69 iters (p≈0.035) — **most promising lever** |
 | More iterations (2000 extra) | exp006 | Slow but real improvement (+0.270 ppg, p≈0.024); rate far too slow to be viable alone |
+| v5 supervised seed + pure self-play | exp007 | Complete regression: 10-90 vs seed (−1.74 ppg); parity with iter_0447 (51-49, 0.000). Pure self-play discards the supervised signal — fix requires expert iteration or pure-Q value targets |
 
 **4. Player-0 equity bias is a training artifact of low-sim MCTS, not an engine bug.**
 
@@ -674,7 +754,7 @@ Seven experiments have now been run. The core conclusion: **pure self-play from 
 
 7. ~~**Test whether more iterations alone break the plateau.**~~ **Done** (exp006). Yes — but slowly. +0.270 ppg per 2000 iterations is far too slow to reach GNUBG-competitive strength. Pure iteration count is not the path.
 
-8. **Algorithmic pivot: supervised pretraining + self-play fine-tune.** Started (pretrain-wildbg-v1, value-only on 285k wildbg-labeled positions, val_mse ≈ 0.0021). Standalone strength is poor: -2.03 ppg vs iter_0447, -2.725 ppg vs GNUBG world-class (2-ply) — the missing policy head is the bottleneck (random prior + 100 MCTS sims can't compensate for an untrained policy even with a good value). The wildbg dataset has no move labels (value-only by design — wildbg uses 1-ply lookahead, no policy net). **Recommended next experiment (cheapest, before exp007):** synthesize policy labels by 1-ply lookahead with pretrained.pt's value head — for each wildbg position, evaluate each legal child and one-hot the argmax. Re-pretrain with combined value+policy loss. This addresses the random-policy bottleneck without external dependencies. **Then launch exp007**: self-play from the value+policy pretrained checkpoint. If that converges faster or to a stronger endpoint than from-scratch, the pretraining pivot is validated.
+8. ~~**Algorithmic pivot: supervised pretraining + self-play fine-tune.**~~ **Done** (exp007, 2026-06-14). The v5 supervised seed (10×256, GNUBG 4-ply distilled, 93-7 vs iter_0447) was continued with 50 iters of 800-sim self-play. Result: complete regression — 10-90 vs the seed (−1.74 ppg), 51-49 vs iter_0447 (parity), 1-99 vs GNUBG (−2.24 ppg). Pure self-play discards the supervised signal in ~30 iters (replay buffer saturation) and replaces it with weaker self-play targets. The pretraining pivot as-implemented does **not** validate the hypothesis. The next step is **exp008: expert iteration** — keep a fraction of GNUBG-labeled positions in the replay buffer throughout self-play, preventing the supervised signal from being discarded.
 
 9. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
 
@@ -690,7 +770,8 @@ Seven experiments have now been run. The core conclusion: **pure self-play from 
 - **Resolved (2026-05-17):** exp005 pre-restart phase produced genuine strength gain (iter_0109 vs iter_0040: +0.380 ppg, p≈0.035, n=100). 800-sim MCTS works; the confounds were the restart and premature LR decay, not the sim count.
 - **Resolved (2026-05-29):** Value-only supervised pretraining on wildbg labels does *not* produce a competent standalone player. pretrained.pt loses to exp005 iter_0447 6-194 (-2.03 ppg) and to GNUBG world-class (2-ply) 0-200 (-2.725 ppg) — worse than exp005's strongest checkpoint against the same opponent. The random-init policy head is the bottleneck: MCTS at 100 sims can't compensate for a uniform-ish prior even with a calibrated value function.
 - **Open:** Does a clean 800-sim run (no LR decay, stable GPU throughout) sustain improvement beyond 109 iters and converge toward competitive strength?
-- **Open:** Does seeding self-play from pretrained.pt (good value, random policy) converge faster or to a stronger endpoint than from scratch or from exp005 iter_0109? (Exp007 will test this.)
+- **Resolved (2026-06-14, exp007):** Seeding self-play from a strong supervised checkpoint (v5: 10×256, GNUBG 4-ply distilled) does **not** improve on the seed with pure self-play — it regresses it completely. 50 iters of 800-sim self-play took a 93-7 advantage over iter_0447 to parity (51-49), and dropped GNUBG performance from −1.59 to −2.24 ppg. The mechanism: (a) MCTS(v5) at 800 sims generates targets reflecting a GNUBG-2-ply-losing player, weaker than the GNUBG-4-ply signal that made the seed; (b) discrete terminal outcomes (±1/3, ±2/3, ±1) are incompatible with the money-equity expectations the value head was calibrated on, causing progressive value head drift. The regression trap is real. Fix: expert iteration (keep GNUBG labels flowing alongside self-play) or pure MCTS Q (α=0) to remove discrete-outcome noise.
 - **Resolved (2026-05-29):** The wildbg dataset does *not* include move labels — each row is just (position_id, win, win_g, win_bg, lose_g, lose_bg). This is value-only data because wildbg's own architecture is value-only-with-1-ply-lookahead and doesn't need move labels. For our AlphaZero-style architecture, the cheapest way to get policy targets is to do 1-ply lookahead with the current pretrained value head: enumerate legal moves → evaluate each child position → argmax → one-hot policy label. No external dependency, runnable in a few hours on the iMac. Likely the next experiment to run before exp007.
-- **Open:** At what point does scaling network architecture (10×256) make sense? **Current position: deferred.** Seven experiments have not yet produced a training signal that a larger network could exploit. Revisit only after a clean high-sim run demonstrates sustained play quality improvement.
-- **Next unsolved question:** does combined value + policy supervised pretraining (vs value-only as in pretrain-wildbg-v1) produce a seed that breaks the weak-play equilibrium when continued with self-play? Failing that, do afterstate value learning or TD-style warm starts offer a better path?
+- **Resolved (2026-06-14, exp007):** Scaling to 10×256 is not sufficient on its own — architecture only helps if the training signal can exploit the capacity. exp007 final (10×256, 50 iters from v5 seed) reached parity with iter_0447 (6×128 self-play) but no more. The 10×256 retained enough capacity to not collapse below pure self-play, but that is a low bar. A 10×256 net with *correct* training signal (expert iteration, pure-Q value targets) is the remaining hypothesis.
+- **Open (exp008):** Does expert iteration — mixing fresh GNUBG-labeled positions into the replay buffer throughout self-play, preventing the supervised signal from being discarded — allow a seeded 10×256 net to improve from the v5 baseline rather than regress to it? The `gnubg-nn` oracle is available at ~10 ms/decision (0-ply); adding an `--oracle-fraction` mode to the coach is ~30 lines.
+- **Open (exp008b):** Does using pure MCTS Q (`--value-bootstrap-alpha 0.0`) alone slow the regression enough to allow the policy head to find genuine improvements before the value head drifts off calibration?
