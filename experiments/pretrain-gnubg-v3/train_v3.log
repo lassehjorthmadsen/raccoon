@@ -1,0 +1,20 @@
+Device: cpu
+Loading base checkpoint experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt
+Loading policy cache data/bglab/gnubg4ply_cache.npz
+  observations: (139266, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1350 max  value: mean=0.030 std=0.266
+Split: 132,303 train / 6,963 val (soft policy targets)
+Baseline val: policy_CE=7.3089  value_MSE=0.2757  top1_acc=0.0%
+Epoch   1/10: train pol=5.2543 val=0.0204 | val pol=4.3026 val=0.0095 top1=12.1% | 3896.9s
+Epoch   2/10: train pol=3.8781 val=0.0096 | val pol=3.5592 val=0.0089 top1=17.4% | 3395.4s
+Epoch   3/10: train pol=3.3282 val=0.0090 | val pol=3.2133 val=0.0084 top1=20.3% | 3283.9s
+Epoch   4/10: train pol=3.0402 val=0.0087 | val pol=3.0009 val=0.0082 top1=23.7% | 3314.7s
+Epoch   5/10: train pol=2.8578 val=0.0084 | val pol=2.8871 val=0.0081 top1=24.3% | 3358.6s
+Epoch   6/10: train pol=2.7258 val=0.0082 | val pol=2.7980 val=0.0085 top1=26.0% | 3377.1s
+Epoch   7/10: train pol=2.6273 val=0.0080 | val pol=2.7176 val=0.0085 top1=26.1% | 3400.5s
+Epoch   8/10: train pol=2.5486 val=0.0078 | val pol=2.6925 val=0.0078 top1=26.2% | 3414.8s
+Epoch   9/10: train pol=2.4819 val=0.0076 | val pol=2.6544 val=0.0076 top1=26.4% | 3441.1s
+Epoch  10/10: train pol=2.4246 val=0.0074 | val pol=2.6003 val=0.0075 top1=28.4% | 3459.1s
+
+Saved experiments/pretrain-gnubg-v3/checkpoints/pretrained_v2.pt
+  final val: pol=2.6003 val=0.0075 top1=28.4%
+  total 572.4 min
