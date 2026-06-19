@@ -21,7 +21,7 @@ GNU Position ID (decoded); any desync aborts that game (counted, never
 silently mislabeled).
 
 Output ``data/bglab/gnubg4ply_cache.npz``:
-  observations  (N,17,2,12) f32
+  observations  (N,26,2,12) f32
   value_targets (N,)        f32
   policy_actions(N,K)       i32  (padded -1)
   policy_probs  (N,K)       f32  (padded 0, valid entries sum to 1)

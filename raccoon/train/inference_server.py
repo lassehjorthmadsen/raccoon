@@ -97,7 +97,7 @@ class InferenceServer:
         batch: list[tuple[int, np.ndarray, list[list[int]]]],
     ) -> None:
         # Each request: (worker_idx, obs_batch, legal_actions_list)
-        # obs_batch shape: (V, 17, 2, 12); legal_actions_list: V lists
+        # obs_batch shape: (V, C, 2, 12); legal_actions_list: V lists
         all_obs = [obs for _, obs, _ in batch]
         request_meta = [
             (w, obs.shape[0], legal) for w, obs, legal in batch

@@ -18,7 +18,7 @@ def network():
 def _client_worker(request_queue, response_queue, worker_idx, result_queue):
     """Worker that sends a single inference request."""
     client = InferenceClient(request_queue, response_queue, worker_idx)
-    obs = np.random.randn(17, 2, 12).astype(np.float32)
+    obs = np.random.randn(26, 2, 12).astype(np.float32)
     legal_actions = [0, 1, 2, 3]
     policy, value = client.predict(obs, legal_actions)
     result_queue.put((worker_idx, dict(policy), float(value)))
@@ -90,7 +90,7 @@ def test_concurrent_requests(network):
 
 def test_matches_direct_predict(network):
     """InferenceServer produces the same output as RaccoonNet.predict."""
-    obs = np.random.randn(17, 2, 12).astype(np.float32)
+    obs = np.random.randn(26, 2, 12).astype(np.float32)
     legal = [0, 5, 10, 50, 100]
 
     direct_policy, direct_value = network.predict(obs, legal)
@@ -100,7 +100,7 @@ def test_matches_direct_predict(network):
     response_queues = [ctx.Queue()]
     server = InferenceServer(network, request_queue, response_queues)
 
-    # Batch protocol: obs is (V, 17, 2, 12), legal is list of V lists
+    # Batch protocol: obs is (V, 26, 2, 12), legal is list of V lists
     request_queue.put((0, obs[np.newaxis], [legal]))
     batch = server._collect_batch()
     server._process_batch(batch)

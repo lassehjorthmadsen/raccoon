@@ -27,7 +27,7 @@ def starting_board(wrapper):
 
 def test_encode_shape(starting_board):
     tensor = encode_state(starting_board)
-    assert tensor.shape == (17, 2, 12)
+    assert tensor.shape == (26, 2, 12)
     assert tensor.dtype == np.float32
 
 
@@ -135,7 +135,7 @@ def test_encode_bar_and_off():
 
 def test_encode_batch_shape(starting_board):
     batch = encode_batch([starting_board, starting_board])
-    assert batch.shape == (2, 17, 2, 12)
+    assert batch.shape == (2, 26, 2, 12)
 
 
 def test_top_row_points_13_to_24():
@@ -154,7 +154,7 @@ def test_top_row_points_13_to_24():
 
 def test_channel_names_match_tensor_depth():
     """CHANNEL_NAMES must stay in lockstep with the tensor's first axis."""
-    assert NUM_CHANNELS == 17
+    assert NUM_CHANNELS == 26
     assert len(CHANNEL_NAMES) == NUM_CHANNELS
 
 
@@ -168,10 +168,10 @@ def test_dump_tensor_includes_all_channels(starting_board):
 
 def test_dump_tensor_reports_broadcast_for_constant_planes(starting_board):
     out = dump_tensor(starting_board)
-    # Opening position: all 9 broadcast channels (8..16) are constant by
+    # Opening position: all 18 broadcast channels (8..25) are constant by
     # construction, and all 8 spatial channels have varied values, so
-    # exactly 9 planes should be tagged.
-    assert out.count("(broadcast)") == 9
+    # exactly 18 planes should be tagged.
+    assert out.count("(broadcast)") == 18
 
 
 def test_bottom_row_points_1_to_12():
@@ -186,3 +186,167 @@ def test_bottom_row_points_1_to_12():
     tensor = encode_state(bv)
     assert tensor[0, 1, 11] == 1.0  # point 1 -> row 1, col 11
     assert tensor[0, 1, 0] == 1.0   # point 12 -> row 1, col 0
+
+
+# --- Handcrafted feature tests ---
+
+
+def test_encode_pip_count_starting_position(starting_board):
+    """Starting position has 167 pips for both sides."""
+    tensor = encode_state(starting_board)
+    assert tensor[17, 0, 0] == pytest.approx(167.0, abs=0.1)
+    assert tensor[18, 0, 0] == pytest.approx(167.0, abs=0.1)
+    # Ratio should be 0.5 when both sides are equal
+    assert tensor[19, 0, 0] == pytest.approx(0.5, abs=0.01)
+
+
+def test_encode_pip_count_bar():
+    """Bar checkers contribute 25 pips each."""
+    bv = BoardView(
+        my_points=np.zeros(24), opp_points=np.zeros(24),
+        my_bar=2, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    assert tensor[17, 0, 0] == pytest.approx(50.0)  # 2 * 25
+    assert tensor[18, 0, 0] == pytest.approx(0.0)
+
+
+def test_encode_pip_ratio_all_zero():
+    """When both pip counts are zero, ratio should be 0.5."""
+    bv = BoardView(
+        my_points=np.zeros(24), opp_points=np.zeros(24),
+        my_bar=0, opp_bar=0, my_off=15, opp_off=15, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    assert tensor[19, 0, 0] == pytest.approx(0.5)
+
+
+def test_encode_blots():
+    """Count of exposed single checkers."""
+    my_points = np.zeros(24)
+    my_points[0] = 1   # blot
+    my_points[5] = 1   # blot
+    my_points[10] = 2  # not a blot
+    opp_points = np.zeros(24)
+    opp_points[3] = 1  # blot
+    bv = BoardView(
+        my_points=my_points, opp_points=opp_points,
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    assert tensor[20, 0, 0] == pytest.approx(2.0)  # my blots
+    assert tensor[21, 0, 0] == pytest.approx(1.0)  # opp blots
+
+
+def test_encode_blots_starting_position(starting_board):
+    """Starting position has no blots."""
+    tensor = encode_state(starting_board)
+    assert tensor[20, 0, 0] == pytest.approx(0.0)
+    assert tensor[21, 0, 0] == pytest.approx(0.0)
+
+
+def test_encode_anchors():
+    """Anchors are made points (>=2) in opponent's home board."""
+    my_points = np.zeros(24)
+    my_points[18] = 2  # anchor in opp's home
+    my_points[20] = 3  # anchor in opp's home
+    my_points[5] = 2   # NOT an anchor (in my outer board)
+    opp_points = np.zeros(24)
+    opp_points[2] = 2  # anchor in my home
+    opp_points[18] = 4  # NOT an anchor (in opp's outer board from their view)
+    bv = BoardView(
+        my_points=my_points, opp_points=opp_points,
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    assert tensor[22, 0, 0] == pytest.approx(2.0)  # my anchors
+    assert tensor[23, 0, 0] == pytest.approx(1.0)  # opp anchors
+
+
+def test_encode_contact_pure_race():
+    """Pure race: all my checkers already past all opp checkers — contact = 0."""
+    my_points = np.zeros(24)
+    my_points[0] = 5
+    my_points[1] = 5
+    my_points[2] = 5
+    opp_points = np.zeros(24)
+    opp_points[20] = 5
+    opp_points[21] = 5
+    opp_points[22] = 5
+    bv = BoardView(
+        my_points=my_points, opp_points=opp_points,
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    assert tensor[24, 0, 0] == pytest.approx(0.0)  # my contact
+    assert tensor[25, 0, 0] == pytest.approx(0.0)  # opp contact
+
+
+def test_encode_contact_simple():
+    """2 checkers each, 1 pip apart: 4 pips to break contact."""
+    my_points = np.zeros(24)
+    my_points[5] = 2
+    opp_points = np.zeros(24)
+    opp_points[4] = 2  # opp's least-advanced at index 4
+    bv = BoardView(
+        my_points=my_points, opp_points=opp_points,
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    # my_contact: Σ my[i] × max(0, i - min_opp + 1) = 2 × (5-4+1) = 4
+    assert tensor[24, 0, 0] == pytest.approx(4.0)
+    # opp_contact: Σ opp[j] × max(0, max_my - j + 1) = 2 × (5-4+1) = 4
+    assert tensor[25, 0, 0] == pytest.approx(4.0)
+
+
+def test_encode_contact_asymmetric():
+    """Asymmetric: I have one back checker, opp is all home — contact differs."""
+    my_points = np.zeros(24)
+    my_points[20] = 1   # one straggler deep in opp territory
+    my_points[0] = 14   # rest safely home
+    opp_points = np.zeros(24)
+    opp_points[23] = 5  # opp fully home (high indices)
+    opp_points[22] = 5
+    opp_points[21] = 5
+    bv = BoardView(
+        my_points=my_points, opp_points=opp_points,
+        my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
+    )
+    tensor = encode_state(bv)
+    # min_opp = 21, max_my = 20
+    # my_contact: only my[20] has i=20 < min_opp=21, so max(0, 20-21+1)=0 → 0
+    assert tensor[24, 0, 0] == pytest.approx(0.0)
+    # opp_contact: max_my=20; opp at 21,22,23: max(0, 20-21+1)=0, etc → 0
+    assert tensor[25, 0, 0] == pytest.approx(0.0)
+
+
+def test_encode_contact_starting_position(starting_board):
+    """Starting position: contact equals pip count (opp sits on ace point)."""
+    tensor = encode_state(starting_board)
+    # min_opp = 0 (opp has 2 on the ace point), so my_contact = my pip count = 167
+    assert tensor[24, 0, 0] == pytest.approx(167.0)
+    assert tensor[25, 0, 0] == pytest.approx(167.0)  # symmetric
+
+
+def test_encode_contact_bar_increases_contact():
+    """Bar checkers affect both min_opp and opp_contact contribution."""
+    my_points = np.zeros(24)
+    my_points[10] = 2  # max_my = 10
+    opp_points = np.zeros(24)
+    opp_points[5] = 2  # min_opp = 5 (on board, no bar)
+    # Without bar: my_contact = 2 × (10-5+1) = 12; opp_contact = 2 × (10-5+1) = 12
+    bv_no_bar = BoardView(my_points=my_points, opp_points=opp_points,
+                          my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1))
+    t_no_bar = encode_state(bv_no_bar)
+    assert t_no_bar[24, 0, 0] == pytest.approx(12.0)
+    assert t_no_bar[25, 0, 0] == pytest.approx(12.0)
+
+    # With 1 opp checker on bar:
+    #   min_opp drops to 0 (bar re-enters on home board)
+    #   my_contact: 2 × (10-0+1) = 22
+    #   opp_contact: board 2×(10-5+1)=12, bar 1×(10+2)=12, total=24
+    bv_bar = BoardView(my_points=my_points, opp_points=opp_points,
+                       my_bar=0, opp_bar=1, my_off=0, opp_off=0, dice=(3, 1))
+    t_bar = encode_state(bv_bar)
+    assert t_bar[24, 0, 0] == pytest.approx(22.0)
+    assert t_bar[25, 0, 0] == pytest.approx(24.0)

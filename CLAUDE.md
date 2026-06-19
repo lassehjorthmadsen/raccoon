@@ -57,7 +57,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 
 1. **`raccoon/env/`** — OpenSpiel wrapper + custom tensor encoder + action mapping
    - `game_wrapper.py`: Wraps `pyspiel.load_game("backgammon")`, handles perspective flipping so the network always sees the board from the current player's view
-   - `encoder.py`: Converts board state to **(17, 2, 12)** float32 tensor (17 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag. `CHANNEL_NAMES` is the authoritative registry of channel meanings; `dump_tensor()` pretty-prints the planes for debugging.
+   - `encoder.py`: Converts board state to **(26, 2, 12)** float32 tensor (26 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag, plus handcrafted features (pip count, blots, anchors, contact pressure). `CHANNEL_NAMES` is the authoritative registry of channel meanings; `dump_tensor()` pretty-prints the planes for debugging.
    - `actions.py`: Legal action masking over OpenSpiel's 1352 action space
 
 2. **`raccoon/model/network.py`** — `RaccoonNet`: ResNet with shared trunk → policy head (1352 logits) + value head (scalar in [-1,1] via tanh). Default: 6 residual blocks, 128 channels. `predict()` method handles masking + softmax for MCTS inference.

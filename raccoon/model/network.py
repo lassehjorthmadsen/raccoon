@@ -30,7 +30,7 @@ class RaccoonNet(nn.Module):
 
     def __init__(
         self,
-        in_channels: int = 17,
+        in_channels: int = 26,
         board_h: int = 2,
         board_w: int = 12,
         num_actions: int = 1352,
@@ -74,7 +74,7 @@ class RaccoonNet(nn.Module):
         """Forward pass.
 
         Args:
-            x: (batch, 16, 2, 12)
+            x: (batch, in_channels, 2, 12)
 
         Returns:
             policy_logits: (batch, 1352) raw logits (not masked)
@@ -108,7 +108,7 @@ class RaccoonNet(nn.Module):
         """Single-position inference for MCTS.
 
         Args:
-            obs: (17, 2, 12) numpy array
+            obs: (C, 2, 12) numpy array (C = in_channels)
             legal_actions: list of valid action indices
 
         Returns:
@@ -135,7 +135,7 @@ class RaccoonNet(nn.Module):
         """Batched inference for multiple positions.
 
         Args:
-            obs_list: list of (17, 2, 12) numpy arrays
+            obs_list: list of (C, 2, 12) numpy arrays (C = in_channels)
             legal_actions_list: list of legal action lists
 
         Returns:

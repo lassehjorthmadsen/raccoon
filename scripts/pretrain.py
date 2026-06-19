@@ -49,7 +49,7 @@ def load_dataset(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Decode + encode every CSV under ``data_dir`` into stacked arrays.
 
-    Returns ``(observations, values)`` of shapes ``(N, 17, 2, 12)`` and
+    Returns ``(observations, values)`` of shapes ``(N, 26, 2, 12)`` and
     ``(N,)`` respectively. ~300k positions fit in ~32 MB so we hold the
     full dataset in memory.
     """

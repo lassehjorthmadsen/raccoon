@@ -129,7 +129,7 @@ def test_load_wildbg_dir_no_csvs(tmp_path: Path):
 def test_decoded_position_encodes_to_tensor():
     bv = decode_position_id(STARTING_POSITION_ID)
     tensor = encode_state(bv)
-    assert tensor.shape == (17, 2, 12)
+    assert tensor.shape == (26, 2, 12)
     assert tensor.dtype == np.float32
     assert np.all(np.isfinite(tensor))
     # Dice/doubles channels (13-16) must be zero for pre-roll positions

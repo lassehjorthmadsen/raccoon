@@ -18,7 +18,7 @@ For each decision state reached while replaying a match, we:
 
 Output: ``data/bglab/policy_cache.npz`` with three arrays:
 
-  - ``observations`` : (N, 17, 2, 12) float32
+  - ``observations`` : (N, 26, 2, 12) float32
   - ``policy_targets``: (N,) int32  — chosen action index in 0..1351
   - ``value_targets`` : (N,) float32 in [-1, 1]
 
@@ -171,7 +171,7 @@ def _process_decision(
         if is_term:
             tv = _terminal_value(child_state, me)
             child_meta.append((a, dec_player, True, tv))
-            child_obs.append(np.zeros((17, 2, 12), dtype=np.float32))
+            child_obs.append(np.zeros((26, 2, 12), dtype=np.float32))
         else:
             obs_c = _encode_pre_roll(child_state, dec_player)
             child_meta.append((a, dec_player, False, 0.0))
@@ -328,7 +328,7 @@ def main() -> None:
             print(f"    -> intermediate save: {out_path}", flush=True)
 
     _save(final=True)
-    obs_arr = np.stack(all_obs).astype(np.float32) if all_obs else np.empty((0, 17, 2, 12), np.float32)
+    obs_arr = np.stack(all_obs).astype(np.float32) if all_obs else np.empty((0, 26, 2, 12), np.float32)
     pol_arr = np.array(all_pol, dtype=np.int32)
     val_arr = np.array(all_val, dtype=np.float32)
     elapsed = time.time() - t0

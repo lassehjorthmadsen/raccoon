@@ -28,6 +28,6 @@ def test_example_shapes(network):
         num_workers=2,     )
     for r in results:
         for ex in r.examples:
-            assert ex.observation.shape == (17, 2, 12)
+            assert ex.observation.shape == (26, 2, 12)
             assert ex.policy_target.shape == (1352,)
             assert -1.0 <= ex.value_target <= 1.0
