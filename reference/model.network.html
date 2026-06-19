@@ -236,7 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="raccoon.model.network.RaccoonNet" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet">RaccoonNet</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    in_channels<span class="op">=</span><span class="dv">17</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    in_channels<span class="op">=</span><span class="dv">26</span>,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    board_h<span class="op">=</span><span class="dv">2</span>,</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    board_w<span class="op">=</span><span class="dv">12</span>,</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    num_actions<span class="op">=</span><span class="dv">1352</span>,</span>
@@ -272,21 +272,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.forward">forward</h5>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.forward(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Forward pass.</p>
-<p>Args: x: (batch, 16, 2, 12)</p>
+<p>Args: x: (batch, in_channels, 2, 12)</p>
 <p>Returns: policy_logits: (batch, 1352) raw logits (not masked) value: (batch, 1) in [-1, 1]</p>
 </section>
 <section id="raccoon.model.network.RaccoonNet.predict" class="level5">
 <h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.predict">predict</h5>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.predict(obs, legal_actions)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Single-position inference for MCTS.</p>
-<p>Args: obs: (17, 2, 12) numpy array legal_actions: list of valid action indices</p>
+<p>Args: obs: (C, 2, 12) numpy array (C = in_channels) legal_actions: list of valid action indices</p>
 <p>Returns: policy: dict mapping action -&gt; probability (sums to ~1, only legal) value: scalar float in [-1, 1]</p>
 </section>
 <section id="raccoon.model.network.RaccoonNet.predict_batch" class="level5">
 <h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.predict_batch">predict_batch</h5>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.predict_batch(obs_list, legal_actions_list)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Batched inference for multiple positions.</p>
-<p>Args: obs_list: list of (17, 2, 12) numpy arrays legal_actions_list: list of legal action lists</p>
+<p>Args: obs_list: list of (C, 2, 12) numpy arrays (C = in_channels) legal_actions_list: list of legal action lists</p>
 <p>Returns: list of (policy_dict, value) tuples</p>
 </section>
 </section>
