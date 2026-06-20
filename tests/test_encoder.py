@@ -5,10 +5,12 @@ import pytest
 
 from raccoon.env.encoder import (
     CHANNEL_NAMES,
+    FEATURE_GROUPS,
     NUM_CHANNELS,
     dump_tensor,
     encode_batch,
     encode_state,
+    resolve_channels,
 )
 from raccoon.env.game_wrapper import BoardView, GameWrapper
 
@@ -350,3 +352,82 @@ def test_encode_contact_bar_increases_contact():
     t_bar = encode_state(bv_bar)
     assert t_bar[24, 0, 0] == pytest.approx(22.0)
     assert t_bar[25, 0, 0] == pytest.approx(24.0)
+
+
+# --- Channel-subset selection (feature ablation) ---
+
+def test_feature_groups_partition_all_channels():
+    """The feature groups together must cover exactly the 26 channels once."""
+    covered = sorted(i for idxs in FEATURE_GROUPS.values() for i in idxs)
+    assert covered == list(range(NUM_CHANNELS))
+
+
+def test_resolve_channels_none_and_all():
+    full = list(range(NUM_CHANNELS))
+    assert resolve_channels(None) == full
+    assert resolve_channels(["all"]) == full
+
+
+def test_resolve_channels_base_only():
+    assert resolve_channels([]) == list(range(17))
+
+
+def test_resolve_channels_pip_appends_to_base():
+    assert resolve_channels(["pip"]) == list(range(17)) + [17, 18, 19]
+
+
+def test_resolve_channels_is_sorted_and_deduped():
+    # base is implied; passing it explicitly must not duplicate it
+    assert resolve_channels(["contact", "base"]) == list(range(17)) + [24, 25]
+
+
+def test_resolve_channels_unknown_raises():
+    with pytest.raises(ValueError):
+        resolve_channels(["bogus"])
+
+
+def test_encode_state_subset_shape_and_values(starting_board):
+    sel = resolve_channels(["pip"])  # 20 channels
+    full = encode_state(starting_board)
+    subset = encode_state(starting_board, sel)
+    assert subset.shape == (len(sel), 2, 12)
+    # Selected planes are identical to the corresponding full-encoder planes
+    for out_idx, ch in enumerate(sel):
+        assert np.array_equal(subset[out_idx], full[ch])
+
+
+def test_encode_batch_subset_shape(starting_board):
+    sel = [0, 1, 17]
+    batch = encode_batch([starting_board, starting_board], sel)
+    assert batch.shape == (2, 3, 2, 12)
+
+
+def test_normalize_scales_handcrafted_into_unit_range(starting_board):
+    """normalize divides handcrafted channels by FEATURE_SCALES; base untouched."""
+    from raccoon.env.encoder import FEATURE_SCALES
+
+    raw = encode_state(starting_board)
+    normed = encode_state(starting_board, normalize=True)
+    # Base channels (0..16) are byte-for-byte identical.
+    for ch in range(17):
+        assert np.array_equal(raw[ch], normed[ch])
+    # Handcrafted channels are exactly raw / scale.
+    for ch, scale in FEATURE_SCALES.items():
+        assert np.allclose(normed[ch], raw[ch] / scale)
+    # And all land in a sane ~[0, 2] range at the opening position.
+    assert normed[17:].max() < 2.0
+
+
+def test_normalize_composes_with_channel_subset(starting_board):
+    sel = resolve_channels(["pip"])  # 20 channels incl. 17,18,19
+    full_normed = encode_state(starting_board, normalize=True)
+    subset_normed = encode_state(starting_board, sel, normalize=True)
+    assert subset_normed.shape == (len(sel), 2, 12)
+    for out_idx, ch in enumerate(sel):
+        assert np.array_equal(subset_normed[out_idx], full_normed[ch])
+
+
+def test_encode_batch_normalize(starting_board):
+    batch = encode_batch([starting_board], normalize=True)
+    single = encode_state(starting_board, normalize=True)
+    assert np.array_equal(batch[0], single)

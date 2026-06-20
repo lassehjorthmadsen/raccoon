@@ -30,8 +30,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from raccoon.data.wildbg import load_wildbg_dir
-from raccoon.env.encoder import encode_batch
+from raccoon.data.wildbg import load_wildbg_dir_tagged
+from raccoon.env.encoder import encode_batch, resolve_channels
 from raccoon.model.network import RaccoonNet
 
 
@@ -45,28 +45,42 @@ def _git_sha() -> str:
 
 
 def load_dataset(
-    data_dir: str, max_positions: int | None = None,
-) -> tuple[np.ndarray, np.ndarray]:
+    data_dir: str,
+    max_positions: int | None = None,
+    channels: list[int] | None = None,
+    seed: int = 42,
+    normalize: bool = False,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Decode + encode every CSV under ``data_dir`` into stacked arrays.
 
-    Returns ``(observations, values)`` of shapes ``(N, 26, 2, 12)`` and
-    ``(N,)`` respectively. ~300k positions fit in ~32 MB so we hold the
-    full dataset in memory.
+    Returns ``(observations, values, sources)`` of shapes ``(N, C, 2, 12)``,
+    ``(N,)`` and ``(N,)`` respectively, where ``C = len(channels)`` (or 26
+    when ``channels is None``) and ``sources[i]`` is the originating CSV stem
+    (e.g. ``"race"`` / ``"contact"``). ~300k positions fit in ~32 MB so we
+    hold the full dataset in memory.
+
+    When ``max_positions`` is set, a deterministic random subsample (keyed by
+    ``seed``) is drawn *across all CSVs* — not the first N rows, which would be
+    a single file since the loader concatenates files in sorted order (and
+    would defeat the race/contact breakdown).
     """
     print(f"Loading wildbg CSVs from {data_dir} ...", flush=True)
     t0 = time.time()
-    rows = load_wildbg_dir(data_dir)
-    if max_positions is not None:
-        rows = rows[:max_positions]
+    rows, sources = load_wildbg_dir_tagged(data_dir)
+    if max_positions is not None and max_positions < len(rows):
+        sub = np.random.default_rng(seed).permutation(len(rows))[:max_positions]
+        rows = [rows[i] for i in sub]
+        sources = [sources[i] for i in sub]
     print(f"  decoded {len(rows):,} positions in {time.time() - t0:.1f}s", flush=True)
 
     t0 = time.time()
     boards = [bv for bv, _ in rows]
-    obs = encode_batch(boards)
+    obs = encode_batch(boards, channels, normalize)
     values = np.array([v for _, v in rows], dtype=np.float32)
+    sources = np.array(sources)
     print(f"  encoded tensor {obs.shape} ({obs.nbytes / 1e6:.1f} MB) "
           f"in {time.time() - t0:.1f}s", flush=True)
-    return obs, values
+    return obs, values, sources
 
 
 def train_one_epoch(
@@ -103,18 +117,37 @@ def evaluate(
     values: torch.Tensor,
     batch_size: int,
     device: torch.device,
-) -> float:
+    sources: np.ndarray | None = None,
+) -> tuple[float, dict[str, float]]:
+    """Return ``(overall_mse, per_source_mse)`` over ``obs``.
+
+    ``per_source_mse`` maps each distinct ``sources`` label (e.g. ``"race"``,
+    ``"contact"``) to its exact MSE (sum of squared errors / count). It is
+    empty when ``sources is None``.
+    """
     network.eval()
     n = obs.size(0)
     total = 0.0
     count = 0
+    src_sse: dict[str, float] = {}
+    src_cnt: dict[str, int] = {}
     for start in range(0, n, batch_size):
         x = obs[start:start + batch_size].to(device, non_blocking=True)
         y = values[start:start + batch_size].to(device, non_blocking=True)
         _, value_pred = network(x)
-        total += F.mse_loss(value_pred.squeeze(-1), y, reduction="sum").item()
+        se = (value_pred.squeeze(-1) - y) ** 2
+        total += se.sum().item()
         count += y.size(0)
-    return total / max(count, 1)
+        if sources is not None:
+            batch_src = sources[start:start + batch_size]
+            se_np = se.cpu().numpy()
+            for s in np.unique(batch_src):
+                mask = batch_src == s
+                src_sse[s] = src_sse.get(s, 0.0) + float(se_np[mask].sum())
+                src_cnt[s] = src_cnt.get(s, 0) + int(mask.sum())
+    overall = total / max(count, 1)
+    per_source = {s: src_sse[s] / max(src_cnt[s], 1) for s in src_sse}
+    return overall, per_source
 
 
 def save_pretrained(
@@ -157,6 +190,21 @@ def main() -> None:
                         help="Save an epoch_NN.pt every N epochs (always saves pretrained.pt at end)")
     parser.add_argument("--max-positions", type=int, default=None,
                         help="Optional cap on positions for smoke runs.")
+    parser.add_argument("--features", type=str, nargs="*", default=None,
+                        help="Handcrafted feature groups to enable on top of "
+                             "base channels: any of {pip, blots, anchors, "
+                             "contact}, or 'all'. Omit the flag for the full "
+                             "26-channel encoder; pass it with no values for "
+                             "base-only (17ch). E.g. '--features pip' -> 20ch.")
+    parser.add_argument("--feature-norm", action="store_true",
+                        help="Fix-N: rescale handcrafted channels in the "
+                             "encoder (FEATURE_SCALES) into the base planes' "
+                             "[0,1] range. Mutually exclusive in practice with "
+                             "--input-bn.")
+    parser.add_argument("--input-bn", action="store_true",
+                        help="Fix-B: add a BatchNorm over the raw input "
+                             "channels before the input conv (standardises "
+                             "feature scale inside the network instead).")
     parser.add_argument("--notes", type=str, default="")
     args = parser.parse_args()
 
@@ -173,7 +221,25 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}", flush=True)
 
-    obs_np, values_np = load_dataset(args.data_dir, max_positions=args.max_positions)
+    channels = resolve_channels(args.features)
+    if args.features is None:
+        feat_label = "all (full 26ch)"
+    elif args.features == []:
+        feat_label = "base-only"
+    else:
+        feat_label = "base + " + ", ".join(args.features)
+    fix_label = (
+        "feature-norm (Fix-N)" if args.feature_norm
+        else "input-bn (Fix-B)" if args.input_bn
+        else "raw (no scaling fix)"
+    )
+    print(f"Feature groups: {feat_label} -> {len(channels)} channels  "
+          f"| scaling: {fix_label}", flush=True)
+
+    obs_np, values_np, sources_np = load_dataset(
+        args.data_dir, max_positions=args.max_positions, channels=channels,
+        seed=args.seed, normalize=args.feature_norm,
+    )
     n_total = obs_np.shape[0]
     n_val = max(1, int(n_total * args.val_split))
     rng = np.random.default_rng(args.seed)
@@ -184,10 +250,14 @@ def main() -> None:
     val_train = torch.from_numpy(values_np[train_idx])
     obs_val = torch.from_numpy(obs_np[val_idx])
     val_val = torch.from_numpy(values_np[val_idx])
+    sources_val = sources_np[val_idx]
     del obs_np, values_np
     print(f"Split: {len(obs_train):,} train / {len(obs_val):,} val", flush=True)
 
-    network = RaccoonNet(channels=args.channels, num_blocks=args.num_blocks).to(device)
+    network = RaccoonNet(
+        channels=args.channels, num_blocks=args.num_blocks,
+        feature_channels=channels, input_bn=args.input_bn,
+    ).to(device)
     optimizer = torch.optim.Adam(
         network.parameters(), lr=args.lr, weight_decay=args.weight_decay,
     )
@@ -212,6 +282,11 @@ def main() -> None:
             "n_val": len(obs_val),
             "seed": args.seed,
             "max_positions": args.max_positions,
+            "features": args.features,
+            "feature_channels": channels,
+            "in_channels": len(channels),
+            "feature_norm": args.feature_norm,
+            "input_bn": args.input_bn,
         },
         "system": {
             "torch_version": torch.__version__,
@@ -226,7 +301,9 @@ def main() -> None:
     with open(log_path, "a") as f:
         f.write(json.dumps(config_entry) + "\n")
 
-    val_mse_baseline = evaluate(network, obs_val, val_val, args.batch_size, device)
+    val_mse_baseline, _ = evaluate(
+        network, obs_val, val_val, args.batch_size, device, sources_val,
+    )
     print(f"Baseline val MSE (random init): {val_mse_baseline:.4f}", flush=True)
 
     best_val_mse = float("inf")
@@ -237,7 +314,9 @@ def main() -> None:
         train_mse = train_one_epoch(
             network, optimizer, obs_train, val_train, args.batch_size, device,
         )
-        val_mse = evaluate(network, obs_val, val_val, args.batch_size, device)
+        val_mse, val_mse_by_source = evaluate(
+            network, obs_val, val_val, args.batch_size, device, sources_val,
+        )
         elapsed = time.time() - t0
         last_val_mse = val_mse
         best_val_mse = min(best_val_mse, val_mse)
@@ -251,13 +330,18 @@ def main() -> None:
             "lr": optimizer.param_groups[0]["lr"],
             "epoch_time": round(elapsed, 1),
         }
+        for src, mse in sorted(val_mse_by_source.items()):
+            row[f"val_mse_{src}"] = round(mse, 6)
         with open(log_path, "a") as f:
             f.write(json.dumps(row) + "\n")
 
+        by_src = "  ".join(
+            f"{src}={mse:.4f}" for src, mse in sorted(val_mse_by_source.items())
+        )
         print(
             f"Epoch {epoch:3d}/{args.epochs}: "
             f"train_mse={train_mse:.4f}  val_mse={val_mse:.4f}  "
-            f"time={elapsed:.1f}s",
+            f"[{by_src}]  time={elapsed:.1f}s",
             flush=True,
         )
 

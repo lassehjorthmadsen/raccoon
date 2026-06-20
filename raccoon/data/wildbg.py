@@ -144,6 +144,29 @@ def load_wildbg_dir(data_dir: str | Path) -> list[tuple[BoardView, float]]:
     return out
 
 
+def load_wildbg_dir_tagged(
+    data_dir: str | Path,
+) -> tuple[list[tuple[BoardView, float]], list[str]]:
+    """Like ``load_wildbg_dir`` but also return a per-row source label.
+
+    Returns ``(rows, sources)`` where ``sources[i]`` is the originating CSV's
+    stem (e.g. ``"race"`` / ``"contact"``). This is the only place the file
+    provenance survives, which lets pretraining report value-MSE broken down
+    by position type (pip-count features should help races more than contact).
+    """
+    data_dir = Path(data_dir)
+    csv_paths = sorted(data_dir.rglob("*.csv"))
+    if not csv_paths:
+        raise FileNotFoundError(f"No CSVs found under {data_dir}")
+    rows: list[tuple[BoardView, float]] = []
+    sources: list[str] = []
+    for p in csv_paths:
+        file_rows = load_wildbg_csv(p)
+        rows.extend(file_rows)
+        sources.extend([p.stem] * len(file_rows))
+    return rows, sources
+
+
 def _main() -> None:
     """``python -m raccoon.data.wildbg <position_id>`` debug helper.
 

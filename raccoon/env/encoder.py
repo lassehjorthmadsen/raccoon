@@ -37,9 +37,66 @@ CHANNEL_NAMES = [
 
 NUM_CHANNELS = len(CHANNEL_NAMES)
 
+# Named feature groups -> the channel indices they own. "base" is every
+# non-handcrafted channel (checker planes, bar/off, dice, doubles); the four
+# handcrafted groups can be toggled on top of it for ablation experiments.
+# Indices are the contract; CHANNEL_NAMES stays the single source of truth.
+FEATURE_GROUPS: dict[str, list[int]] = {
+    "base": list(range(0, 17)),
+    "pip": [17, 18, 19],
+    "blots": [20, 21],
+    "anchors": [22, 23],
+    "contact": [24, 25],
+}
 
-def encode_state(board_view: BoardView) -> np.ndarray:
-    """Encode a board position as a (26, 2, 12) float32 tensor.
+# Per-channel divisors that bring the handcrafted features into the ~[0, 1]
+# range the base planes already live in (bar/15, off/15, die/6). The raw
+# handcrafted values are ~100x larger (pip ~95, contact ~52), which lets them
+# dominate the input convolution and destabilises value-head training — see
+# Stage 6 of docs/pretraining_analysis.qmd. Pip and contact are pip-scale
+# quantities (/167, the opening pip count); blots scale by checker count (/15);
+# anchors by the six home-board points (/6); pip ratio is already in [0, 1].
+# Only used when ``normalize=True`` is passed to the encoder.
+FEATURE_SCALES: dict[int, float] = {
+    17: 167.0,  # my pip count
+    18: 167.0,  # opp pip count
+    19: 1.0,    # pip ratio (already normalised)
+    20: 15.0,   # my blots
+    21: 15.0,   # opp blots
+    22: 6.0,    # my anchors
+    23: 6.0,    # opp anchors
+    24: 167.0,  # my contact
+    25: 167.0,  # opp contact
+}
+
+
+def resolve_channels(features: list[str] | None) -> list[int]:
+    """Map a list of feature-group names to sorted channel indices.
+
+    ``features=None`` (or a list containing ``"all"``) selects every channel,
+    so existing callers that pass nothing are unaffected. ``"base"`` is always
+    included. An empty list selects base-only. Unknown group names raise.
+    """
+    if features is None or "all" in features:
+        return list(range(NUM_CHANNELS))
+    unknown = [f for f in features if f not in FEATURE_GROUPS]
+    if unknown:
+        raise ValueError(
+            f"Unknown feature group(s) {unknown}; "
+            f"valid groups: {sorted(FEATURE_GROUPS)} (or 'all')"
+        )
+    selected = set(FEATURE_GROUPS["base"])  # base is always included
+    for f in features:
+        selected.update(FEATURE_GROUPS[f])
+    return sorted(selected)
+
+
+def encode_state(
+    board_view: BoardView,
+    channels: list[int] | None = None,
+    normalize: bool = False,
+) -> np.ndarray:
+    """Encode a board position as a (C, 2, 12) float32 tensor.
 
     Board layout:
         Top row (row 0): perspective points 13..24 -> columns 0..11
@@ -47,6 +104,15 @@ def encode_state(board_view: BoardView) -> np.ndarray:
 
     Channel meanings live in ``CHANNEL_NAMES`` so the audit/debug tooling
     and the encoder can't drift apart.
+
+    All ``NUM_CHANNELS`` planes are always computed; ``channels`` (a list of
+    channel indices, e.g. from ``resolve_channels``) optionally selects a
+    subset, returning a ``(len(channels), 2, 12)`` tensor. ``None`` returns
+    the full 26-channel tensor.
+
+    ``normalize=True`` divides the handcrafted feature channels by
+    ``FEATURE_SCALES`` so they share the base planes' ~[0, 1] range; the base
+    channels are untouched. Applied before any channel slicing.
     """
     tensor = np.zeros((NUM_CHANNELS, 2, 12), dtype=np.float32)
 
@@ -144,12 +210,29 @@ def encode_state(board_view: BoardView) -> np.ndarray:
     tensor[24, :, :] = my_contact
     tensor[25, :, :] = opp_contact
 
-    return tensor
+    if normalize:
+        for ch, scale in FEATURE_SCALES.items():
+            tensor[ch] /= scale
+
+    if channels is None:
+        return tensor
+    return tensor[channels]
 
 
-def encode_batch(board_views: list[BoardView]) -> np.ndarray:
-    """Encode multiple board positions. Returns shape (N, 26, 2, 12)."""
-    return np.stack([encode_state(bv) for bv in board_views])
+def encode_batch(
+    board_views: list[BoardView],
+    channels: list[int] | None = None,
+    normalize: bool = False,
+) -> np.ndarray:
+    """Encode multiple board positions. Returns shape (N, C, 2, 12).
+
+    ``channels`` selects a channel subset (see ``encode_state``); ``None``
+    yields the full 26-channel tensor. ``normalize`` rescales the handcrafted
+    channels into the base planes' range (see ``encode_state``).
+    """
+    return np.stack(
+        [encode_state(bv, channels, normalize) for bv in board_views]
+    )
 
 
 def dump_tensor(board_view: BoardView, *, precision: int = 3) -> str:

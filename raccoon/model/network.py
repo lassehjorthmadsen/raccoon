@@ -36,8 +36,15 @@ class RaccoonNet(nn.Module):
         num_actions: int = 1352,
         channels: int = 128,
         num_blocks: int = 6,
+        feature_channels: list[int] | None = None,
+        input_bn: bool = False,
     ):
         super().__init__()
+        # When a channel subset is given, the input channel count is derived
+        # from it so the two can never disagree. ``None`` keeps the full 26
+        # channels (and old checkpoints without this key reconstruct as None).
+        if feature_channels is not None:
+            in_channels = len(feature_channels)
         self.config = {
             "channels": channels,
             "num_blocks": num_blocks,
@@ -45,10 +52,21 @@ class RaccoonNet(nn.Module):
             "board_h": board_h,
             "board_w": board_w,
             "num_actions": num_actions,
+            "feature_channels": feature_channels,
+            "input_bn": input_bn,
         }
+        self.feature_channels = feature_channels
         self.board_h = board_h
         self.board_w = board_w
         self.num_actions = num_actions
+
+        # Optional input normalisation: a BatchNorm over the *raw* input
+        # channels (run before the input conv) standardises each channel to
+        # ~unit scale per batch. This is the architecture-side alternative to
+        # normalising the handcrafted features in the encoder — see Stage 6 of
+        # docs/pretraining_analysis.qmd. Off by default (old checkpoints whose
+        # config lacks this key reconstruct as False).
+        self.input_norm = nn.BatchNorm2d(in_channels) if input_bn else None
 
         # Input convolution
         self.input_conv = nn.Conv2d(in_channels, channels, 3, padding=1)
@@ -81,6 +99,8 @@ class RaccoonNet(nn.Module):
             value: (batch, 1) in [-1, 1]
         """
         # Shared trunk
+        if self.input_norm is not None:
+            x = self.input_norm(x)
         out = F.relu(self.input_bn(self.input_conv(x)))
         out = self.trunk(out)
 
