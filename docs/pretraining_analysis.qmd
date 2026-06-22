@@ -74,7 +74,7 @@ def load_gnubg_eval(exp_name):
 Two ingredients feed the pretraining stages: a **value** signal (from wildbg) and a **policy** signal (synthesised from human match positions). The pipeline:
 
 1. **Decode** — wildbg ships positions as GNU Backgammon Position IDs; bglab ships human matches as Backgammon-Studio text. Both are decoded into a perspective-relative `BoardView` (`raccoon/data/wildbg.py`, `raccoon/data/bgmatch.py`).
-2. **Encode** — `BoardView` → the same `(17, 2, 12)` tensor the self-play network consumes (`raccoon/env/encoder.py`). The encoder is shared, so a pretrained checkpoint is a drop-in `--resume` target for `scripts/train.py`.
+2. **Encode** — `BoardView` → the same `(26, 2, 12)` tensor the self-play network consumes (`raccoon/env/encoder.py`): 17 raw board planes plus 9 handcrafted feature channels added in commit `23463f0` (and stress-tested in Stage 6 below). The encoder is shared, so a pretrained checkpoint is a drop-in `--resume` target for `scripts/train.py`.
 3. **Replay** (policy only) — human matches are walked move-by-move through OpenSpiel (`raccoon/data/bgmatch_replay.py`) so that at every decision we have the legal-action set and can index moves into the 1352-action space. Matching is robust to notation variants (chained vs. split moves, doubles split into two sub-actions, bar/bear-off, forfeits) by falling back to a **final-board-signature** comparison. Replay success: 99.5% (lasse) / 98.9% (Llabba), ~238k decisions, zero per-step errors.
 4. **1-ply V-lookahead** (policy only) — at each replayed decision, evaluate every legal child position with a value head and one-hot the argmax as the **policy target** (`scripts/synthesize_policy_dataset.py`). This manufactures policy labels that wildbg does not provide.
 5. **Distill + fine-tune** — train both heads on the synthesised cache with `policy_CE + value_MSE` (`scripts/pretrain_policy.py`). The value term is knowledge distillation against the teacher's own `V(s)`, intended to keep the value head calibrated while the shared trunk learns the dice channels (which the value-only stage never saw — wildbg positions are all pre-roll).
@@ -431,6 +431,103 @@ GNUBG's 0.171 ppg self-error — it played 2-ply in the match, scored against it
 
 The implication for exp008: expert iteration must replace **both** the policy target (GNUBG oracle move labels instead of MCTS visit counts) and the value target (GNUBG oracle money equity instead of discrete terminal outcomes). Fixing only the policy target leaves the value head free to mislead MCTS tree backup, and fixing only the value target leaves the policy prior unimproved on the positions GNUBG steers into.
 
+## Stage 6 — do the handcrafted encoder features earn their place?
+
+Stages 1–5 held the encoder fixed. Commit `23463f0` then grew it from 17 to 26 channels, bolting nine **handcrafted** broadcast features onto the raw board planes — pip count (my / opp / ratio), blot counts, anchor counts, and a "contact" pressure term — switched on wholesale and untested. These features are deterministic functions of the board, so a large net on abundant data could in principle re-derive them; their value, if any, is an **inductive-bias shortcut** that should matter most when data and capacity are tight. This stage asks whether they pay for their channels.
+
+**Method.** A paired ablation in a deliberately data-limited regime: 50k wildbg positions, 15 epochs, the default 6×128 net, two seeds per condition (same seed ⇒ same train/val split, so conditions differ *only* in the features and the input-conv shape). The yardstick is held-out value-MSE, split by wildbg's `race` and `contact` files — a pip count should help races, where equity is nearly pure pip-difference, far more than contact positions. There is no play-strength number here: pretraining leaves the policy head random, so MCTS strength is not meaningful (Stage 1's lesson). The caveat is baked into the design — this measures the features as a *small-scale* inductive bias, not at full data, where a larger net may simply learn them.
+
+```{python}
+#| echo: false
+def seed_curves(exps, col="val_mse"):
+    curves = []
+    for e in exps:
+        _, df = load_pretrain_log(e)
+        if not df.empty and col in df:
+            curves.append(df.set_index("epoch")[col])
+    if not curves:
+        return None, None, None, None
+    M = pd.concat(curves, axis=1)
+    return M.index.values, M.mean(axis=1).values, M.min(axis=1).values, M.max(axis=1).values
+
+fig, ax = plt.subplots(figsize=(7, 4))
+for label, exps, c in [
+    ("base (17ch)", [f"pretrain-feat-base-s{s}" for s in (0, 1)], "C0"),
+    ("base + pip, RAW (20ch)", [f"pretrain-feat-pip-s{s}" for s in (0, 1)], "C3"),
+]:
+    x, m, lo, hi = seed_curves(exps)
+    ax.plot(x, m, color=c, label=label)
+    ax.fill_between(x, lo, hi, color=c, alpha=0.2)
+ax.set_xlabel("epoch"); ax.set_ylabel("held-out value MSE")
+ax.set_title("Stage 6a — raw handcrafted features destabilise the value head")
+ax.legend(); plt.tight_layout(); plt.show()
+
+def floor(exps):
+    vals = [load_pretrain_log(e)[1]["val_mse"].min()
+            for e in exps if not load_pretrain_log(e)[1].empty]
+    return float(np.mean(vals))
+b = floor([f"pretrain-feat-base-s{s}" for s in (0, 1)])
+p = floor([f"pretrain-feat-pip-s{s}" for s in (0, 1)])
+print(f"best val-MSE (2-seed mean):  base={b:.4f}   base+pip RAW={p:.4f}   ({(p / b - 1) * 100:+.0f}%)")
+```
+
+**The first answer was a trap: the features were silently mis-scaled.** Adding pip count *raised* val-MSE by ~88% (0.0058 vs base 0.0031) and the curve is visibly unstable. The cause is not the information — it is the magnitude. The base planes live in [0,1] by construction (`bar/15`, `off/15`, `die/6`); the handcrafted channels were emitted **raw** — pip count ~95–230, contact ~50–200, roughly 100× larger. A single input convolution reads every channel through one weight scale, so the giant channels dominate the gradient and swamp the value head. The information was useful all along — even while overall MSE blew up, raw-pip's *race* MSE tracked base (0.0040 vs 0.0038) — the encoder's normalisation convention had simply never been extended to the new channels.
+
+```{python}
+#| echo: false
+groups = ["base", "pip", "blots", "anchors", "contact", "all"]
+
+def best3(exp):
+    _, df = load_pretrain_log(exp)
+    if df.empty:
+        return None
+    r = df.loc[df["val_mse"].idxmin()]
+    return (float(r["val_mse"]),
+            float(r.get("val_mse_race", np.nan)),
+            float(r.get("val_mse_contact", np.nan)))
+
+def agg(g, mode):
+    if mode == "raw" and g not in ("base", "pip"):
+        return None
+    if mode == "norm" and g == "base":          # Fix-N base == raw base
+        exps = [f"pretrain-feat-base-s{s}" for s in (0, 1)]
+    elif mode == "raw":
+        exps = [f"pretrain-feat-{g}-s{s}" for s in (0, 1)]
+    else:
+        exps = [f"pretrain-feat-{mode}-{g}-s{s}" for s in (0, 1)]
+    vs = [best3(e) for e in exps]
+    vs = [v for v in vs if v]
+    if not vs:
+        return None
+    return tuple(float(np.mean([v[i] for v in vs])) for i in range(3))
+
+fig, ax = plt.subplots(figsize=(8, 4))
+x = np.arange(len(groups)); w = 0.38
+nm = [agg(g, "norm") for g in groups]
+bn = [agg(g, "inbn") for g in groups]
+ax.bar(x - w / 2, [v[0] if v else 0 for v in nm], w, label="Fix-N (encoder normalise)", color="C0")
+ax.bar(x + w / 2, [v[0] if v else 0 for v in bn], w, label="Fix-B (input BatchNorm)", color="C1")
+raw_base = agg("base", "raw")[0]
+ax.axhline(raw_base, ls="--", color="gray", lw=1, label=f"raw base floor ({raw_base:.4f})")
+ax.set_ylim(0, 0.004)
+ax.set_xticks(x); ax.set_xticklabels(groups)
+ax.set_ylabel("best val-MSE (2-seed mean)")
+ax.set_title("Stage 6 — both fixes repair pip; Fix-N edges Fix-B (raw pip = 0.0058, off-scale)")
+ax.legend(fontsize=8); plt.tight_layout(); plt.show()
+
+hdr = f"{'feature':8} {'raw':>22} {'Fix-N (norm)':>22} {'Fix-B (inbn)':>22}"
+print(hdr); print("-" * len(hdr))
+def cell(v):
+    return f"{v[0]:.4f} ({v[1]:.4f}/{v[2]:.4f})" if v else "-"
+for g in groups:
+    print(f"{g:8} {cell(agg(g,'raw')):>22} {cell(agg(g,'norm')):>22} {cell(agg(g,'inbn')):>22}")
+print("\ncells: overall (race / contact); 2-seed mean of each run's best epoch")
+```
+
+**Both fixes work; normalising in the encoder is the better one.** Two ways to restore scale: **Fix-N** divides each handcrafted channel by a fixed constant in the encoder (pip & contact ÷167, blots ÷15, anchors ÷6); **Fix-B** prepends a `BatchNorm` over the raw input channels so the network standardises them itself. Both pull pip back from 0.0058 to ~0.0028, fully repairing the blowup. Across the grid Fix-N edges Fix-B on every feature group (blots 0.0027 vs 0.0031, contact 0.0027 vs 0.0030, full-26 0.0022 vs 0.0026), and tellingly **Fix-B slightly *hurts* the clean base** (0.0034 vs 0.0031): standardising channels that were already normalised just injects per-batch noise. Encoder normalisation is the fix to adopt — it is free at inference and adds no parameters.
+
+**Once scaled, the features do earn their place — modestly, and mostly on races.** The full 26-channel encoder under Fix-N reaches **0.0022** vs base **0.0031** (−29%) and gets to base's floor in **4 epochs instead of 15** — a real training-speed win in this regime. The gain is concentrated exactly where predicted: race MSE drops to **0.0018** from base's **0.0038** (−53%) while contact barely moves. Individually the single-feature groups all land at or just below base (0.0027–0.0029), but those gaps sit *inside* the seed-to-seed spread — base alone swings 0.0028↔0.0034 across two seeds — so no one feature is decisively justified on its own. The robust effects are the full set together and the race-side improvement; the production move is to **normalise the existing 26-channel encoder** (Fix-N) rather than to prune to a subset.
+
 ## What we've learned
 
 1. **A calibrated value head is not a player.** Stage 1 fit wildbg equities to val MSE ≈ 0.002 yet lost 0-200 to GNUBG. With a random policy prior, MCTS at 100 sims cannot exploit a good value function — it never searches the right moves. The policy prior is load-bearing.
@@ -442,6 +539,8 @@ The implication for exp008: expert iteration must replace **both** the policy ta
 7. **The binding constraint has shifted from teacher to student.** v3 distils GNUBG 4-ply yet loses heavily to GNUBG *2-ply* (-1.79 ppg) — a faithful 4-ply imitator would beat 2-ply, so v3 captures only a fraction of its teacher (top-1 ~28%). The remaining gap is student-side (capacity, coverage, eval search), not teacher strength; and the *archive* is effectively maxed — the bglab archive holds only 2-ply/4-ply analysis (no rollouts), and 4-ply already sits far above v3's play. The lever that carried v1→v3 (a stronger teacher from the archive) is spent. (The installed `gnubg-nn` *engine* — the benchmark opponent itself — can however label arbitrary new positions programmatically; that is a distinct, untapped label source, separate from the fixed archive.) A corollary, important for the next experiment: *small* ply differences no longer matter — the 826 lasse 2-ply-only games (~19% of the corpus) are only marginally weaker than 4-ply and earn their place as coverage, not dilution. The one signal genuinely wasted is the 18% of decisions (~29.8k doubles) dropped entirely.
 8. **Capacity converts to strength — but only against the internal bar.** Stage 4 scaled the net to 10×256 on the same GNUBG 4-ply teacher. It fit the teacher better (top-1 28→31%, value MSE 0.0075→0.0066) and beat iter_0447 far harder than v3 (93-7, +1.96 ppg, +0.58 over v3) — *despite* dropping v3's value warm-start. Yet against GNUBG 2-ply it gained nothing within noise (-1.66 vs -1.79, ±0.43 CI). So of the two student-side axes in #7, **capacity is necessary but not sufficient**: it lifts play against distribution-near opponents but leaves the external GNUBG gap intact, isolating *coverage/generalisation* (and eval search) as the binding levers for M6. v4 is, however, now the strongest seed the project has — the architecture exp007 should start from (Stage 5 keeps the size and adds coverage; #9).
 
+10. **Input scaling is load-bearing, and was silently broken.** The nine handcrafted channels added in `23463f0` were emitted at raw magnitude (~100× the [0,1] base planes), and adding pip count alone *raised* value-MSE 88% via input-conv domination — a regression hiding in plain sight because the features were never ablated. Restoring the encoder's normalisation convention (Fix-N, ÷ a fixed constant per channel) both repairs it and turns the features into a net win: the full 26-channel encoder reaches val-MSE 0.0022 vs 0.0031 for raw board planes (−29%, −53% on races) and converges ~4× faster in the data-limited regime. The lesson generalises beyond these features — any new channel must enter at the base planes' scale, and a `BatchNorm`-over-inputs alternative (Fix-B) under-performs because it taxes the already-normalised channels. (Stage 6.)
+
 9. **Coverage-as-more-labels is spent too — the binding gap is on-distribution *policy*.** Stage 5 recovered the dropped doubles (~18% of decisions) as value-only labels (+25k, cache 139k→164k) — the most concrete coverage hole — on the same 10×256 net. It improved value calibration (MSE 0.0066→0.0061) and trimmed the worst losses (GNUBG gammons-against 55→37), giving the project's best external result, **8-92, -1.59 ppg** — but within noise of v4, and dead level vs iter_0447 (93-7, +1.98). That closes the loop on the student side: **three levers tested in isolation — capacity (v4), eval-search (v4@800), coverage (v5) — and none moves the GNUBG gap beyond noise; it sits at ~-1.6 ppg.** The diagnosis sharpens to a specific shortfall. The doubles recovery is *value-only* (OpenSpiel's split makes the policy target ambiguous), so the policy head never learns to play a double; and more broadly the bglab human-match archive does not contain the lines GNUBG forces. Supervised distillation from a fixed position archive structurally cannot supply on-distribution *policy* data — which is exactly what's missing. That is the case for self-play (the real exp007) as the next lever, now seeded from the strongest, broadest checkpoint the track has produced (v5: v4's strength plus doubles-value coverage).
 
 ## Open questions
@@ -451,4 +550,5 @@ This track exists to produce a **seed for self-play** (the real exp007), so the 
 - **Capacity — tested in Stage 4: necessary but not sufficient.** The 10×256 net (v4) beat iter_0447 by +0.58 ppg more than v3, yet moved the GNUBG gap by only +0.13 ppg (within noise). So capacity converts to strength against distribution-near opponents and gives self-play more representational headroom — but on its own it does not close the external gap. v4 is now the strongest seed we have and the right architecture for exp007; the binding lever for M6 is the *other* axis below. (Mechanism, still standing: the from-scratch self-play track plateaued on 6×128, so a *stronger* 6×128 seed could re-plateau at that cap — a 10×256 has headroom self-play can use.)
 - **Coverage / generalisation — partly tested in Stage 5; the *value* half is spent.** v4's split (decisive vs iter_0447, flat vs GNUBG) is the signature of distribution shift: "stronger" is measured on human-match / GNUBG positions, and the instant self-play — or GNUBG — steers the game it leaves the bglab distribution. Stage 5 tested the most concrete coverage increment — the dropped doubles, recovered as value labels (+25k) — and it behaved exactly like capacity: better calibration, the best external number yet (-1.59 ppg), but the gap unmoved within noise. The lesson narrows the question rather than answering it: the recovery was *value-only*, so it could never address the **policy** side of coverage, and that is where the gap now points. The still-untested value-coverage ideas (folding in wildbg's ~300k pre-roll positions; the 2-ply games are already kept) would likely behave the same — marginal calibration, no external gap movement — because the binding hole is on-distribution *move selection*, not value breadth. The breadth still earns its place as overfitting insurance for the larger net and as a better seed, just not as the M6 unlock.
 - **Resolved (2026-06-14, exp007): self-play regresses the seed completely.** 50 iterations of 800-sim self-play from v5 took a 93-7 advantage over iter_0447 to dead parity (51-49, 0.000 ppg) and GNUBG performance from -1.59 to -2.24 ppg — nearly back to pre-pretraining levels. Two mechanisms: (a) MCTS(v5) at 800 sims generates policy targets reflecting a GNUBG-2-ply-losing player, weaker than the GNUBG-4-ply signal that made the seed; (b) discrete terminal outcomes (±1/3, ±2/3, ±1) are incompatible with the money-equity expectations the value head was calibrated on, causing progressive value-head drift. The 25k replay buffer saturates in ~31 iters (~800 positions/iter), at which point the supervised signal is fully overwritten. See the exp007 section in [Training Analysis](training_analysis.qmd) for the full account. **The fix is expert iteration (exp008)**: keep GNUBG oracle labels flowing into the replay buffer throughout self-play so the supervised signal is never discarded. Per-decision error profiling and the v5@800-sim diagnostic (see Decision-error profile section above) further show that expert iteration must replace *both* the policy target and the value target with GNUBG oracle estimates — fixing only one leaves the other free to mislead MCTS tree backup.
+- **Promote the normalised encoder, then re-measure downstream.** Stage 6 settles the *value-MSE* question (normalise the 26-channel encoder; Fix-N), but the figure of merit for this track is self-play / GNUBG strength, not val-MSE. The features help most on races, yet the binding M6 gap is on-distribution *contact* policy (point #9) — so the open question is whether normalised features move the external number at all, or merely the value floor. The cheap next step is to make Fix-N the encoder default and fold it into the next teacher-distillation seed; the features cost nine channels and a constant divide, and the race-side calibration gain is free insurance even if it does not close the GNUBG gap.
 - **Cube + match play.** Everything here is cubeless money-game checker play. GNUBG's analysis also contains cube decisions we currently skip; modelling the cube is the path from "competitive checker play" to a complete money-game opponent. Note the scope gap: `goal.md`'s success criterion says *money games* against GNUBG world class — money play proper includes the doubling cube, which the benchmark harness deliberately excludes. Reaching parity on this page's cubeless metric is therefore necessary but not sufficient for M6 as written; either the goal gets re-scoped to cubeless explicitly, or cube modelling joins the roadmap.
