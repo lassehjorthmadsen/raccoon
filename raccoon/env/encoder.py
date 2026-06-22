@@ -23,16 +23,18 @@ CHANNEL_NAMES = [
     "die 2 / 6",
     "doubles flag",
     "mid-doubles flag",
-    # Handcrafted features (raw values; BatchNorm handles scaling)
-    "my pip count",
-    "opp pip count",
+    # Handcrafted features, normalised into ~[0,1] by default (Fix-N); the
+    # divisor is baked into the name like the base planes above, e.g.
+    # "my bar / 15". See FEATURE_SCALES and encode_state(normalize=...).
+    "my pip count / 167",
+    "opp pip count / 167",
     "pip ratio",
-    "my blots",
-    "opp blots",
-    "my anchors",
-    "opp anchors",
-    "my contact",
-    "opp contact",
+    "my blots / 15",
+    "opp blots / 15",
+    "my anchors / 6",
+    "opp anchors / 6",
+    "my contact / 167",
+    "opp contact / 167",
 ]
 
 NUM_CHANNELS = len(CHANNEL_NAMES)
@@ -56,7 +58,8 @@ FEATURE_GROUPS: dict[str, list[int]] = {
 # Stage 6 of docs/pretraining_analysis.qmd. Pip and contact are pip-scale
 # quantities (/167, the opening pip count); blots scale by checker count (/15);
 # anchors by the six home-board points (/6); pip ratio is already in [0, 1].
-# Only used when ``normalize=True`` is passed to the encoder.
+# Applied by default (``normalize=True``); pass ``normalize=False`` to recover
+# the raw magnitudes (e.g. for feature-math tests or reproducing Stage 6a).
 FEATURE_SCALES: dict[int, float] = {
     17: 167.0,  # my pip count
     18: 167.0,  # opp pip count
@@ -94,7 +97,7 @@ def resolve_channels(features: list[str] | None) -> list[int]:
 def encode_state(
     board_view: BoardView,
     channels: list[int] | None = None,
-    normalize: bool = False,
+    normalize: bool = True,
 ) -> np.ndarray:
     """Encode a board position as a (C, 2, 12) float32 tensor.
 
@@ -110,9 +113,12 @@ def encode_state(
     subset, returning a ``(len(channels), 2, 12)`` tensor. ``None`` returns
     the full 26-channel tensor.
 
-    ``normalize=True`` divides the handcrafted feature channels by
-    ``FEATURE_SCALES`` so they share the base planes' ~[0, 1] range; the base
-    channels are untouched. Applied before any channel slicing.
+    ``normalize`` (default ``True``, i.e. Fix-N) divides the handcrafted
+    feature channels by ``FEATURE_SCALES`` so they share the base planes'
+    ~[0, 1] range; the base channels are untouched. Applied before any channel
+    slicing. Pass ``normalize=False`` to recover the raw magnitudes (the
+    pre-Stage-6 behaviour; needed for feature-math tests and for the Fix-B
+    input-BatchNorm path, which standardises raw inputs itself).
     """
     tensor = np.zeros((NUM_CHANNELS, 2, 12), dtype=np.float32)
 
@@ -154,7 +160,7 @@ def encode_state(
     if board_view.mid_doubles:
         tensor[16, :, :] = 1.0
 
-    # --- Handcrafted features (raw values; BatchNorm handles scaling) ---
+    # --- Handcrafted features (computed raw here; scaled below if normalize) ---
     my_pts = board_view.my_points
     opp_pts = board_view.opp_points
 
@@ -222,13 +228,14 @@ def encode_state(
 def encode_batch(
     board_views: list[BoardView],
     channels: list[int] | None = None,
-    normalize: bool = False,
+    normalize: bool = True,
 ) -> np.ndarray:
     """Encode multiple board positions. Returns shape (N, C, 2, 12).
 
     ``channels`` selects a channel subset (see ``encode_state``); ``None``
-    yields the full 26-channel tensor. ``normalize`` rescales the handcrafted
-    channels into the base planes' range (see ``encode_state``).
+    yields the full 26-channel tensor. ``normalize`` (default ``True``)
+    rescales the handcrafted channels into the base planes' range (see
+    ``encode_state``).
     """
     return np.stack(
         [encode_state(bv, channels, normalize) for bv in board_views]

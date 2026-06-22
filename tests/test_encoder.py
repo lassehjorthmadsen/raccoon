@@ -195,7 +195,7 @@ def test_bottom_row_points_1_to_12():
 
 def test_encode_pip_count_starting_position(starting_board):
     """Starting position has 167 pips for both sides."""
-    tensor = encode_state(starting_board)
+    tensor = encode_state(starting_board, normalize=False)
     assert tensor[17, 0, 0] == pytest.approx(167.0, abs=0.1)
     assert tensor[18, 0, 0] == pytest.approx(167.0, abs=0.1)
     # Ratio should be 0.5 when both sides are equal
@@ -208,7 +208,7 @@ def test_encode_pip_count_bar():
         my_points=np.zeros(24), opp_points=np.zeros(24),
         my_bar=2, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
     )
-    tensor = encode_state(bv)
+    tensor = encode_state(bv, normalize=False)
     assert tensor[17, 0, 0] == pytest.approx(50.0)  # 2 * 25
     assert tensor[18, 0, 0] == pytest.approx(0.0)
 
@@ -235,7 +235,7 @@ def test_encode_blots():
         my_points=my_points, opp_points=opp_points,
         my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
     )
-    tensor = encode_state(bv)
+    tensor = encode_state(bv, normalize=False)
     assert tensor[20, 0, 0] == pytest.approx(2.0)  # my blots
     assert tensor[21, 0, 0] == pytest.approx(1.0)  # opp blots
 
@@ -260,7 +260,7 @@ def test_encode_anchors():
         my_points=my_points, opp_points=opp_points,
         my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
     )
-    tensor = encode_state(bv)
+    tensor = encode_state(bv, normalize=False)
     assert tensor[22, 0, 0] == pytest.approx(2.0)  # my anchors
     assert tensor[23, 0, 0] == pytest.approx(1.0)  # opp anchors
 
@@ -294,7 +294,7 @@ def test_encode_contact_simple():
         my_points=my_points, opp_points=opp_points,
         my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1),
     )
-    tensor = encode_state(bv)
+    tensor = encode_state(bv, normalize=False)
     # my_contact: Σ my[i] × max(0, i - min_opp + 1) = 2 × (5-4+1) = 4
     assert tensor[24, 0, 0] == pytest.approx(4.0)
     # opp_contact: Σ opp[j] × max(0, max_my - j + 1) = 2 × (5-4+1) = 4
@@ -324,7 +324,7 @@ def test_encode_contact_asymmetric():
 
 def test_encode_contact_starting_position(starting_board):
     """Starting position: contact equals pip count (opp sits on ace point)."""
-    tensor = encode_state(starting_board)
+    tensor = encode_state(starting_board, normalize=False)
     # min_opp = 0 (opp has 2 on the ace point), so my_contact = my pip count = 167
     assert tensor[24, 0, 0] == pytest.approx(167.0)
     assert tensor[25, 0, 0] == pytest.approx(167.0)  # symmetric
@@ -339,7 +339,7 @@ def test_encode_contact_bar_increases_contact():
     # Without bar: my_contact = 2 × (10-5+1) = 12; opp_contact = 2 × (10-5+1) = 12
     bv_no_bar = BoardView(my_points=my_points, opp_points=opp_points,
                           my_bar=0, opp_bar=0, my_off=0, opp_off=0, dice=(3, 1))
-    t_no_bar = encode_state(bv_no_bar)
+    t_no_bar = encode_state(bv_no_bar, normalize=False)
     assert t_no_bar[24, 0, 0] == pytest.approx(12.0)
     assert t_no_bar[25, 0, 0] == pytest.approx(12.0)
 
@@ -349,7 +349,7 @@ def test_encode_contact_bar_increases_contact():
     #   opp_contact: board 2×(10-5+1)=12, bar 1×(10+2)=12, total=24
     bv_bar = BoardView(my_points=my_points, opp_points=opp_points,
                        my_bar=0, opp_bar=1, my_off=0, opp_off=0, dice=(3, 1))
-    t_bar = encode_state(bv_bar)
+    t_bar = encode_state(bv_bar, normalize=False)
     assert t_bar[24, 0, 0] == pytest.approx(22.0)
     assert t_bar[25, 0, 0] == pytest.approx(24.0)
 
@@ -406,7 +406,7 @@ def test_normalize_scales_handcrafted_into_unit_range(starting_board):
     """normalize divides handcrafted channels by FEATURE_SCALES; base untouched."""
     from raccoon.env.encoder import FEATURE_SCALES
 
-    raw = encode_state(starting_board)
+    raw = encode_state(starting_board, normalize=False)
     normed = encode_state(starting_board, normalize=True)
     # Base channels (0..16) are byte-for-byte identical.
     for ch in range(17):

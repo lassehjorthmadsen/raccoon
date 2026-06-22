@@ -49,7 +49,7 @@ def load_dataset(
     max_positions: int | None = None,
     channels: list[int] | None = None,
     seed: int = 42,
-    normalize: bool = False,
+    normalize: bool = True,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Decode + encode every CSV under ``data_dir`` into stacked arrays.
 
@@ -196,15 +196,18 @@ def main() -> None:
                              "contact}, or 'all'. Omit the flag for the full "
                              "26-channel encoder; pass it with no values for "
                              "base-only (17ch). E.g. '--features pip' -> 20ch.")
+    parser.add_argument("--raw-features", action="store_true",
+                        help="Emit handcrafted channels at raw magnitude "
+                             "(pre-Stage-6 behaviour). Default is normalized "
+                             "(Fix-N) — the encoder default. Use this to "
+                             "reproduce the Stage 6a broken baseline.")
     parser.add_argument("--feature-norm", action="store_true",
-                        help="Fix-N: rescale handcrafted channels in the "
-                             "encoder (FEATURE_SCALES) into the base planes' "
-                             "[0,1] range. Mutually exclusive in practice with "
-                             "--input-bn.")
+                        help="(deprecated; normalization is now the default) "
+                             "accepted as a no-op for older invocations.")
     parser.add_argument("--input-bn", action="store_true",
                         help="Fix-B: add a BatchNorm over the raw input "
-                             "channels before the input conv (standardises "
-                             "feature scale inside the network instead).")
+                             "channels before the input conv. Implies raw "
+                             "features (the BN standardises scale itself).")
     parser.add_argument("--notes", type=str, default="")
     args = parser.parse_args()
 
@@ -228,17 +231,20 @@ def main() -> None:
         feat_label = "base-only"
     else:
         feat_label = "base + " + ", ".join(args.features)
+    # Fix-N (normalize in encoder) is the default. Fix-B (--input-bn) and the
+    # explicit --raw-features baseline both feed raw-magnitude channels.
+    normalize = not (args.raw_features or args.input_bn)
     fix_label = (
-        "feature-norm (Fix-N)" if args.feature_norm
-        else "input-bn (Fix-B)" if args.input_bn
-        else "raw (no scaling fix)"
+        "input-bn (Fix-B; raw inputs)" if args.input_bn
+        else "raw (Stage 6a baseline)" if args.raw_features
+        else "feature-norm (Fix-N, default)"
     )
     print(f"Feature groups: {feat_label} -> {len(channels)} channels  "
           f"| scaling: {fix_label}", flush=True)
 
     obs_np, values_np, sources_np = load_dataset(
         args.data_dir, max_positions=args.max_positions, channels=channels,
-        seed=args.seed, normalize=args.feature_norm,
+        seed=args.seed, normalize=normalize,
     )
     n_total = obs_np.shape[0]
     n_val = max(1, int(n_total * args.val_split))
@@ -285,7 +291,8 @@ def main() -> None:
             "features": args.features,
             "feature_channels": channels,
             "in_channels": len(channels),
-            "feature_norm": args.feature_norm,
+            "feature_norm": normalize,
+            "raw_features": args.raw_features,
             "input_bn": args.input_bn,
         },
         "system": {
