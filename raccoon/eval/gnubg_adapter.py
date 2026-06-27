@@ -61,30 +61,33 @@ def evaluate_equity(board: list[list[int]], ply: int = 0) -> float:
     return win + wg + wbg - (1.0 - win) - lg - lbg
 
 
-def _best_action_and_opp_equity(
-    state: GameState, ply: int
-) -> tuple[int, float]:
-    """Return ``(best_action, resulting_opp_equity)`` for the side to move.
+def candidate_equities(state: GameState, ply: int = 0) -> list[tuple[int, float]]:
+    """Return ``[(action, my_equity)]`` for every legal action of the side to move.
 
-    ``resulting_opp_equity`` is the cubeless equity from the **opponent's**
-    POV after our full turn is played out, so the caller picks the action
-    with the minimum value.
+    ``my_equity`` is GNUBG's cubeless equity from the **current player's** POV
+    after playing ``action`` (and, for doubles, the best half-2 continuation),
+    on GNUBG's native *points* scale where a terminal win counts as ``+3.0`` and
+    ``my_equity = -evaluate_equity(opponent_position)`` otherwise. The move
+    GNUBG plays is ``max(candidate_equities(...), key=lambda t: t[1])[0]`` (see
+    ``pick_move``); the position's value under best play is the max ``my_equity``.
+
+    Divide by 3 for the ``[-1, 1]`` money-equity convention used by the value
+    head and the wildbg/GNUBG distillation targets (``equity_from_wildbg`` =
+    ``evaluate_equity / 3``).
 
     Doubles handling: OpenSpiel splits a doubles roll into two consecutive
     half-turns by the same player with no intervening chance node. After
-    applying a half-1 action we are still the current player, and evaluating
-    the board would read back our *own* equity (not the opponent's). We
-    recurse into the half-2 sub-problem to find our best continuation and
-    propagate that evaluation up.
+    applying a half-1 action we are still the current player, so we recurse to
+    score that half-1 action by its best half-2 continuation.
+
+    Raises ``ValueError`` if ``state`` has no legal actions.
     """
     legal = state.legal_actions()
     if not legal:
-        raise ValueError("pick_move called on a state with no legal actions")
+        raise ValueError("candidate_equities called on a state with no legal actions")
 
     me = state.current_player()
-    best_action = legal[0]
-    best_opp_equity = float("inf")
-
+    out: list[tuple[int, float]] = []
     for action in legal:
         child = state.clone()
         child.apply_action(action)
@@ -92,37 +95,44 @@ def _best_action_and_opp_equity(
 
         if child.is_terminal():
             # The game ended with our move — we won.
-            opp_equity = -3.0
+            my_equity = 3.0
         elif child.current_player() == me:
-            # Doubles half-1 still pending a half-2 by the same player.
-            # Recurse to find our best half-2 continuation; its opp-equity
-            # is what this half-1 candidate is actually worth to us.
-            _, opp_equity = _best_action_and_opp_equity(child, ply)
+            # Doubles half-1 still pending a half-2 by the same player. Our
+            # equity for this half-1 action is the best over the half-2 subgame.
+            my_equity = max(eq for _, eq in candidate_equities(child, ply))
         else:
-            opp_view = child.board_from_perspective()
-            opp_board = board_from_view(opp_view)
-            opp_equity = evaluate_equity(opp_board, ply)
+            opp_board = board_from_view(child.board_from_perspective())
+            my_equity = -evaluate_equity(opp_board, ply)
 
-        if opp_equity < best_opp_equity:
-            best_opp_equity = opp_equity
-            best_action = action
+        out.append((action, my_equity))
+    return out
 
-    return best_action, best_opp_equity
+
+def _best_action_and_opp_equity(
+    state: GameState, ply: int
+) -> tuple[int, float]:
+    """Back-compat shim: ``(best_action, resulting_opp_equity)`` for the side to move.
+
+    Kept for any external callers; thin wrapper over :func:`candidate_equities`.
+    """
+    best_action, best_my_equity = max(
+        candidate_equities(state, ply), key=lambda t: t[1]
+    )
+    return best_action, -best_my_equity
 
 
 def pick_move(state: GameState, ply: int = 0) -> int:
     """Pick a move for the current player using GNUBG's evaluation.
 
-    Enumerates OpenSpiel legal actions, applies each to a clone, evaluates
-    the resulting position with GNUBG, and returns the action that
-    minimises the opponent's post-move equity (= maximises ours). For
-    doubles this looks ahead through both halves of the turn so the half-1
-    choice is scored by the best half-2 continuation. See
-    ``_best_action_and_opp_equity`` for details.
+    Enumerates OpenSpiel legal actions, evaluates each resulting position with
+    GNUBG, and returns the action that maximises our equity (= minimises the
+    opponent's post-move equity). For doubles this looks ahead through both
+    halves of the turn so the half-1 choice is scored by the best half-2
+    continuation. See :func:`candidate_equities`.
 
     Raises ``ValueError`` if ``state`` has no legal actions.
     """
-    return _best_action_and_opp_equity(state, ply)[0]
+    return max(candidate_equities(state, ply), key=lambda t: t[1])[0]
 
 
 # Friendly level-name → ply-integer mapping matching the M6 spec.

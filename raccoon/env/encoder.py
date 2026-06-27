@@ -94,6 +94,32 @@ def resolve_channels(features: list[str] | None) -> list[int]:
     return sorted(selected)
 
 
+def channels_for_network(config: dict) -> list[int] | None:
+    """Channel indices a network expects at inference, from its checkpoint config.
+
+    Newer checkpoints store ``feature_channels`` directly (the subset chosen at
+    training time). Legacy checkpoints (pre Stage-6) store only ``in_channels``:
+    ``NUM_CHANNELS`` (26) is the full Fix-N encoder (``None`` = all channels) and
+    17 is base-only (no handcrafted features). Any other count is ambiguous and
+    raises. The result is in the form ``encode_state(..., channels=...)`` wants,
+    so callers can encode observations that match an arbitrary checkpoint —
+    notably the 17-channel v5/iter_0447 nets now that the encoder defaults to 26.
+    """
+    fc = config.get("feature_channels")
+    if fc is not None:
+        return list(fc)
+    in_ch = int(config.get("in_channels", NUM_CHANNELS))
+    if in_ch == NUM_CHANNELS:
+        return None
+    if in_ch == len(FEATURE_GROUPS["base"]):
+        return list(FEATURE_GROUPS["base"])
+    raise ValueError(
+        f"Cannot infer feature channels for in_channels={in_ch}: checkpoint "
+        f"lacks 'feature_channels' and the count isn't {NUM_CHANNELS} (all) "
+        f"or {len(FEATURE_GROUPS['base'])} (base)."
+    )
+
+
 def encode_state(
     board_view: BoardView,
     channels: list[int] | None = None,

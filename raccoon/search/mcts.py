@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from raccoon.env.encoder import encode_state
+from raccoon.env.encoder import channels_for_network, encode_state
 from raccoon.env.game_wrapper import GameState
 
 
@@ -97,6 +97,10 @@ class MCTS:
         noise_eps: float = 0.25,
     ):
         self.network = network
+        # Encode observations to match this network's channel layout (17-ch
+        # legacy nets vs the 26-ch Fix-N default) instead of assuming the
+        # encoder default — otherwise a 17-ch checkpoint crashes the input conv.
+        self._channels = channels_for_network(network.config)
         self.num_simulations = num_simulations
         self.c_puct = c_puct
         self.virtual_loss_count = virtual_loss_count
@@ -249,7 +253,10 @@ class MCTS:
                 for idx in needs_eval:
                     leaf = pending[idx][0][-1]
                     obs_list.append(
-                        encode_state(leaf.state.board_from_perspective())
+                        encode_state(
+                            leaf.state.board_from_perspective(),
+                            channels=self._channels,
+                        )
                     )
                     legal_list.append(leaf.state.legal_actions())
                 eval_results = self.network.predict_batch(obs_list, legal_list)
@@ -294,7 +301,7 @@ class MCTS:
     def _expand(self, node: MCTSNode) -> float:
         """Expand a leaf node using the network. Returns the value estimate."""
         state = node.state
-        obs = encode_state(state.board_from_perspective())
+        obs = encode_state(state.board_from_perspective(), channels=self._channels)
         legal_actions = state.legal_actions()
         policy, value = self.network.predict(obs, legal_actions)
         self._expand_with_policy(node, policy)
