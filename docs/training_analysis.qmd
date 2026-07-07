@@ -679,6 +679,53 @@ else:
 - **Pure MCTS Q (`--value-bootstrap-alpha 0.0`)**: Q is an average over 800 simulated trajectories — closer in spirit to money equity than a single terminal outcome. Reduces discrete-outcome noise in the value target without requiring any external label.
 - **Expert iteration**: keep a fraction of the replay buffer labeled by `gnubg-nn` (available at ~10 ms/decision, 0-ply). The supervised value and policy signals are never fully overwritten. Standard fix for this failure mode.
 
+## exp008 — On-distribution GNUBG expert iteration (DAgger)
+
+exp007 showed that *pure* self-play from the v5 seed regresses it. exp008 tests the fix flagged above — **expert iteration** — implemented as **offline on-distribution distillation (DAgger)** rather than online replay-buffer mixing. The design attacks both mechanisms behind the regression trap:
+
+- **On-distribution states.** Each round the *current* net plays out games (its own move, temperature-sampled), so training positions are the lines the learner actually reaches — not the human-match archive, which the pretraining track identified as the coverage gap behind the residual ~−1.6 ppg.
+- **Both targets from the GNUBG oracle.** Every visited position is labeled *live* by `gnubg-nn` at **2-ply**: a soft policy over candidate moves *and* the money-equity value. This replaces MCTS visit counts (which reflect a GNUBG-2-ply-losing player) and discrete terminal outcomes (which pulled the value head off calibration) — the two things that broke exp007. Pure supervised distillation throughout, so the trap cannot recur by construction.
+
+**Loop (15 rounds, warm-started from v5, 10×256, 17-ch):** synthesize ~30–48k on-distribution GNUBG-2-ply labels (capped at 10 h/round) → merge with the 4-ply archive + the last 4 rounds' on-dist caches → fine-tune 4 epochs (lr 3×10⁻⁴) warm from the previous round → evaluate. Ran fully hands-off on the iMac CPU, 2026-06-27 → 07-06 (~8.9 days).
+
+**Coverage check.** The generated positions are a genuinely different distribution from the archive — but *not* by the vacuous "exact board never seen before" measure (the archive is 91.5% "novel" against *itself*; the state space is astronomically large). The meaningful signal is by capability: **v5's own error is far higher on its play distribution than on the archive** — value-MSE 0.016 vs 0.006, policy top-1 25% vs 49% against the stored labels (and v5's held-out archive top-1 ≈ its in-sample, so that gap is real, not memorization). The on-dist set is also far more contact/hitting-heavy (on-bar 46% vs 29%) and doubles-heavy (27% vs 15%) — exactly the regions the per-decision error profile flagged as the leak.
+
+**Infrastructure finding: denormal-float slowdown (10× CPU-training speedup).** The first attempt throttled badly — epoch time ballooned on identical data (37 → 73 → 207+ min) at full CPU and full clock (3.19 GHz, 87 °C — *not* thermal). Cause: weights/activations drift into **subnormal floats**, which hit the slow FPU path (subnormal weight fraction jumped 16× at the slow epoch). `torch.set_flush_denormal(True)` gave a measured **10.24×** speedup on the degraded weights; epoch times then stayed flat ~35–37 min for the whole run. This also retroactively explains exp007's unexplained "SGD crept 145 → 1074 s/iter" — same cause, not "optimizer accumulation."
+
+**Trajectory** (each round's checkpoint vs the fixed v5 seed, 100 games at 50 eval sims; GNUBG 2-ply every 4th round):
+
+| Round | vs v5 SEED | vs GNUBG 2-ply |
+|---|---|---|
+| 1  | 55-45  +0.16 | — |
+| 2  | 53-47  +0.14 | — |
+| 3  | 57-43  +0.29 | — |
+| 4  | 57-43  +0.37 | 7-93   −1.65 |
+| 5  | 55-45  +0.22 | — |
+| 6  | 54-46  +0.11 | — |
+| 7  | 56-44  +0.36 | — |
+| 8  | 55-45  +0.11 | 9-91   −1.42 |
+| 9  | 59-41  +0.40 | — |
+| 10 | 55-45  +0.26 | — |
+| 11 | 54-46  +0.20 | — |
+| 12 | 65-35  +0.60 | 10-90  −1.55 |
+| 13 | 60-40  +0.48 | — |
+| 14 | 57-43  +0.23 | — |
+| 15 | 63-37  +0.48 | 17-83  **−1.19** |
+
+(vs iter_0447 at rounds 4/8/12/15: 95-5, 96-4, 95-5, 98-2 — up from v5's 93-7.)
+
+**Verdict.**
+
+1. **The regression trap is decisively avoided** — the point of the experiment. exp007 took v5 to 10-90 / −1.74 ppg vs the seed; exp008 *climbs* to 63-37 / +0.48 by round 15. On-distribution GNUBG DAgger validates the pretraining pivot where naive self-play destroyed it.
+2. **Statistically-significant improvement over v5.** The per-round vs-seed climb is noisy but trends up (early ~+0.15–0.29 → late ~+0.48–0.60). Pooling the last four rounds: 245/400 = 61% vs parity (z ≈ 4.4); round 12 alone (65-35) is significant on its own. Arena at 50 sims, symmetric — a fair relative test.
+3. **The external GNUBG gap narrowed.** At fixed 50-sim conditions win rate rose 7% → 17% and equity −1.65 → −1.19 over rounds 4 → 15 (two-proportion test on 7% vs 17%: p ≈ 0.03). **−1.19 ppg / 17% is the project's best result vs GNUBG 2-ply.**
+
+**Head-to-head at 100 sims (apples-to-apples).** Re-evaluated under identical current conditions (100 games, 100 eval sims, GNUBG 2-ply): **v5 seed −1.720 ppg (3-97), round-15 −1.480 ppg (8-92)** — round 15 is +0.24 ppg ahead and concedes far fewer gammons (44 vs 58). That +0.24 ppg / 8%-vs-3% edge is *directional* (not individually significant at n=100), but it corroborates the far more powerful *direct* arena result: round 15 beats v5 head-to-head 63-37 (+0.48 ppg, highly significant). Two notes: (a) v5's −1.72 here is within noise of its documented −1.59 @ 100 sims (100-game samples, ±~0.3 ppg) — it's simply the fair same-conditions baseline; (b) both nets do *worse* at 100 sims than at 50 (round-15 −1.19 → −1.48), so the **"more sims hurt" pattern persists** — the value head is still miscalibrated enough that deeper search backs up worse Q-values, making it the standout next bottleneck. The best absolute result remains round 15 at 50 sims: **−1.19 ppg / 17%**.
+
+**Caveats.** It still *loses* to GNUBG (−1.19 ppg, 17% wins) — progress, not parity. The gain is ~0.4–0.5 ppg over 15 rounds (~200 CPU-hours), a modest per-round return; closing the remaining ~1.2 ppg likely needs a stronger signal (4-ply on-dist labels, doubles-policy recovery — now feasible via the live oracle — or more capacity), not just more rounds. 100-game evals are wide (±5–7% on win rate), so individual rounds bounce (e.g. the R12 GNUBG dip to −1.55).
+
+**Bottom line:** exp008 is the first experiment to *improve* on the strongest supervised seed rather than regress it, and it produced the project's best external result. The approach — on-distribution states + a strong fixed expert for both targets — is validated; reaching GNUBG parity remains open.
+
 ## Summary and Next Steps
 
 ### Key Findings Across Experiments
@@ -773,5 +820,5 @@ Seven experiments have now been run. The core conclusion: **pure self-play from 
 - **Resolved (2026-06-14, exp007):** Seeding self-play from a strong supervised checkpoint (v5: 10×256, GNUBG 4-ply distilled) does **not** improve on the seed with pure self-play — it regresses it completely. 50 iters of 800-sim self-play took a 93-7 advantage over iter_0447 to parity (51-49), and dropped GNUBG performance from −1.59 to −2.24 ppg. The mechanism: (a) MCTS(v5) at 800 sims generates targets reflecting a GNUBG-2-ply-losing player, weaker than the GNUBG-4-ply signal that made the seed; (b) discrete terminal outcomes (±1/3, ±2/3, ±1) are incompatible with the money-equity expectations the value head was calibrated on, causing progressive value head drift. The regression trap is real. Fix: expert iteration (keep GNUBG labels flowing alongside self-play) or pure MCTS Q (α=0) to remove discrete-outcome noise.
 - **Resolved (2026-05-29):** The wildbg dataset does *not* include move labels — each row is just (position_id, win, win_g, win_bg, lose_g, lose_bg). This is value-only data because wildbg's own architecture is value-only-with-1-ply-lookahead and doesn't need move labels. For our AlphaZero-style architecture, the cheapest way to get policy targets is to do 1-ply lookahead with the current pretrained value head: enumerate legal moves → evaluate each child position → argmax → one-hot policy label. No external dependency, runnable in a few hours on the iMac. Likely the next experiment to run before exp007.
 - **Resolved (2026-06-14, exp007):** Scaling to 10×256 is not sufficient on its own — architecture only helps if the training signal can exploit the capacity. exp007 final (10×256, 50 iters from v5 seed) reached parity with iter_0447 (6×128 self-play) but no more. The 10×256 retained enough capacity to not collapse below pure self-play, but that is a low bar. A 10×256 net with *correct* training signal (expert iteration, pure-Q value targets) is the remaining hypothesis.
-- **Open (exp008):** Does expert iteration — mixing fresh GNUBG-labeled positions into the replay buffer throughout self-play, preventing the supervised signal from being discarded — allow a seeded 10×256 net to improve from the v5 baseline rather than regress to it? The `gnubg-nn` oracle is available at ~10 ms/decision (0-ply); adding an `--oracle-fraction` mode to the coach is ~30 lines. Two new diagnostics (2026-06-16) sharpen the design requirement: (1) **v5 at 800 sims scores -1.880 ppg, worse than 100 sims (-1.590 ppg)** — more MCTS search actively hurts, confirming the value head is miscalibrated enough to override the distilled GNUBG policy prior with worse Q-value backups. (2) **Per-decision error profiling** (n=100 games, scored vs GNUBG 0-ply) shows non-doubles accounts for 61% of total equity loss (1.32 ppg/game) and doubles for 39% (0.85 ppg/game); doubles are 1.8× worse per decision but not the dominant absolute leak. Taken together: expert iteration must replace **both** the policy target (GNUBG oracle move labels instead of MCTS visit counts) and the value target (GNUBG oracle money equity instead of discrete terminal outcomes). Fixing only policy leaves a miscalibrated value head free to mislead MCTS backup; fixing only value leaves the policy prior unimproved on the positions GNUBG forces.
-- **Open (exp008b):** Does using pure MCTS Q (`--value-bootstrap-alpha 0.0`) alone slow the regression enough to allow the policy head to find genuine improvements before the value head drifts off calibration?
+- **Resolved (2026-07-06, exp008): Yes.** On-distribution GNUBG DAgger — the net's own play labeled *live* by `gnubg-nn` at 2-ply (both policy and value), warm-started from v5 over 15 rounds — improves on the seed rather than regressing it: **+0.48 ppg / 63-37 vs the v5 seed by round 15**, with the external gap narrowing **−1.65 → −1.19 ppg (7% → 17% wins)** — the project's best result. Still loses to GNUBG; parity is open. It was implemented **offline** (a synthesis script + `pretrain_policy` reuse), not the coach `--oracle-fraction` sketch — more robust for a 10-day unattended run and it sidesteps online buffer-mixing. See the exp008 section above. The design requirements it was built to satisfy held up: Two new diagnostics (2026-06-16) sharpen the design requirement: (1) **v5 at 800 sims scores -1.880 ppg, worse than 100 sims (-1.590 ppg)** — more MCTS search actively hurts, confirming the value head is miscalibrated enough to override the distilled GNUBG policy prior with worse Q-value backups. (2) **Per-decision error profiling** (n=100 games, scored vs GNUBG 0-ply) shows non-doubles accounts for 61% of total equity loss (1.32 ppg/game) and doubles for 39% (0.85 ppg/game); doubles are 1.8× worse per decision but not the dominant absolute leak. Taken together: expert iteration must replace **both** the policy target (GNUBG oracle move labels instead of MCTS visit counts) and the value target (GNUBG oracle money equity instead of discrete terminal outcomes). Fixing only policy leaves a miscalibrated value head free to mislead MCTS backup; fixing only value leaves the policy prior unimproved on the positions GNUBG forces.
+- **Superseded (2026-07-06, exp008):** Moot — exp008 uses the GNUBG oracle's money equity as the value target directly (pure supervised distillation), so discrete-outcome noise never enters and there is no regression to slow. The α=0 MCTS-Q variant was not needed.

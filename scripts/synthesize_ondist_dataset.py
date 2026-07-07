@@ -116,12 +116,16 @@ def main() -> None:
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    # Write incrementally to a .partial.npz and atomically promote to the real
+    # path only on the final save, so a killed run never leaves a partial cache
+    # at out_path (the pipeline treats an existing out_path as a complete cache).
+    tmp_path = out_path.with_name(out_path.stem + ".partial.npz")
 
     def _save(final: bool) -> None:
         if not out_obs:
             return
         np.savez_compressed(
-            out_path,
+            tmp_path,
             observations=np.stack(out_obs).astype(np.float32),
             policy_actions=np.stack(out_actions).astype(np.int32),
             policy_probs=np.stack(out_probs).astype(np.float32),
@@ -144,6 +148,8 @@ def main() -> None:
                 "final": final,
             })),
         )
+        if final:
+            os.replace(tmp_path, out_path)
 
     def _budget_done() -> bool:
         if args.max_decisions is not None and len(out_obs) >= args.max_decisions:

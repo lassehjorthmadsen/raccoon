@@ -45,6 +45,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+# CPU fine-tuning drifts weights/activations into subnormal floats, which hit the
+# slow FPU path and progressively collapse throughput (~10x on this iMac — see
+# the exp008 denormal diagnosis; also explains exp007's "SGD crept 145->1074
+# s/iter"). Flushing denormals to zero is negligible for a tanh/softmax net and
+# keeps epoch time flat. Set once, as early as possible, on the main thread.
+torch.set_flush_denormal(True)
+
 from raccoon.model.network import RaccoonNet, load_model
 
 
