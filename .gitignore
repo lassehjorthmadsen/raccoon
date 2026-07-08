@@ -10,6 +10,7 @@ experiments/*
 !experiments/*/logs/
 !experiments/*/logs/**
 experiments/*/checkpoints/
+experiments/*/caches/
 experiments/smoke/
 experiments/*/logs/*.out
 experiments/*/logs/stdout.log
