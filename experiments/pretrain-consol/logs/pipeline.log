@@ -1,0 +1,285 @@
+===== CONSOLIDATE START 2026-07-08_11:52:51 =====
+===== STAGE 1: merge 17ch cache 2026-07-08_11:52:51 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz: 37,553 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz: 42,190 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz: 43,377 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz: 36,175 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz: 55,879 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz: 30,449 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz: 49,610 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz: 47,352 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz: 46,487 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz: 60,000 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz: 40,066 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_13.npz: 39,896 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_14.npz: 46,509 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_15.npz: 56,324 examples
+Wrote experiments/pretrain-consol/caches/combined_17ch.npz: 843,962 examples (K=6)
+===== STAGE 2: re-encode to 26ch 2026-07-08_11:53:13 =====
+gnubg4ply_cache_dbl.npz -> experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz  (164,423 rows, 43s, verified)
+ondist_round_01.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_01_26ch.npz  (47,672 rows, 12s, verified)
+ondist_round_02.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_02_26ch.npz  (37,553 rows, 10s, verified)
+ondist_round_03.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_03_26ch.npz  (42,190 rows, 11s, verified)
+ondist_round_04.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_04_26ch.npz  (43,377 rows, 11s, verified)
+ondist_round_05.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_05_26ch.npz  (36,175 rows, 10s, verified)
+ondist_round_06.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_06_26ch.npz  (55,879 rows, 14s, verified)
+ondist_round_07.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_07_26ch.npz  (30,449 rows, 8s, verified)
+ondist_round_08.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_08_26ch.npz  (49,610 rows, 13s, verified)
+ondist_round_09.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_09_26ch.npz  (47,352 rows, 13s, verified)
+ondist_round_10.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_10_26ch.npz  (46,487 rows, 12s, verified)
+ondist_round_11.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_11_26ch.npz  (60,000 rows, 16s, verified)
+ondist_round_12.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz  (40,066 rows, 10s, verified)
+ondist_round_13.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz  (39,896 rows, 10s, verified)
+ondist_round_14.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz  (46,509 rows, 12s, verified)
+ondist_round_15.npz -> experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz  (56,324 rows, 14s, verified)
+===== STAGE 3: merge 26ch cache 2026-07-08_11:56:57 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_01_26ch.npz: 47,672 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_02_26ch.npz: 37,553 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_03_26ch.npz: 42,190 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_04_26ch.npz: 43,377 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_05_26ch.npz: 36,175 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_06_26ch.npz: 55,879 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_07_26ch.npz: 30,449 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_08_26ch.npz: 49,610 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_09_26ch.npz: 47,352 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_10_26ch.npz: 46,487 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_11_26ch.npz: 60,000 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz: 40,066 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz: 39,896 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz: 46,509 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz: 56,324 examples
+Wrote experiments/pretrain-consol/caches/combined_26ch.npz: 843,962 examples (K=6)
+===== STAGE 4: random-init bases 2026-07-08_11:57:27 =====
+saved experiments/pretrain-consol/checkpoints/base_random_17ch.pt in_channels=17
+saved experiments/pretrain-consol/checkpoints/base_random_26ch.pt in_channels=26
+===== STAGE 5: train 17ch 2026-07-08_11:57:34 =====
+Device: cuda
+Loading base checkpoint experiments/pretrain-consol/checkpoints/base_random_17ch.pt
+Loading policy cache experiments/pretrain-consol/caches/combined_17ch.npz
+  observations: (843962, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.034 std=0.326
+Split: 801,764 train / 42,198 val (soft policy targets)
+Baseline val: policy_CE=7.2027  value_MSE=0.1180  top1_acc=0.1%
+Epoch   1/12: train pol=2.7287 val=0.0158 | val pol=2.8976 val=0.0101 top1=28.5% | 313.2s
+Epoch   2/12: train pol=2.0722 val=0.0104 | val pol=2.6401 val=0.0094 top1=31.5% | 306.9s
+===== CONSOLIDATE START 2026-07-08_19:11:02 =====
+===== STAGE 1: merge 17ch cache 2026-07-08_19:11:02 =====
+===== STAGE 2: re-encode to 26ch 2026-07-08_19:11:02 =====
+===== STAGE 3: merge 26ch cache 2026-07-08_19:11:02 =====
+===== STAGE 4: random-init bases 2026-07-08_19:11:02 =====
+===== STAGE 5: train 17ch 2026-07-08_19:11:02 =====
+Device: cuda
+Loading base checkpoint experiments/pretrain-consol/checkpoints/base_random_17ch.pt
+Loading policy cache experiments/pretrain-consol/caches/combined_17ch.npz
+  observations: (843962, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.034 std=0.326
+Split: 801,764 train / 42,198 val (soft policy targets)
+Baseline val: policy_CE=7.2027  value_MSE=0.1180  top1_acc=0.1%
+Epoch   1/12: train pol=2.7358 val=0.0158 | val pol=2.9057 val=0.0106 top1=28.5% | 372.8s
+Epoch   2/12: train pol=2.0723 val=0.0103 | val pol=2.6519 val=0.0089 top1=31.2% | 354.6s
+Epoch   3/12: train pol=1.9404 val=0.0090 | val pol=2.5338 val=0.0082 top1=34.2% | 345.1s
+Epoch   4/12: train pol=1.8765 val=0.0083 | val pol=2.4595 val=0.0079 top1=33.1% | 337.8s
+Epoch   5/12: train pol=1.8372 val=0.0079 | val pol=2.4171 val=0.0076 top1=35.4% | 334.3s
+Epoch   6/12: train pol=1.8120 val=0.0076 | val pol=2.4063 val=0.0069 top1=35.1% | 331.7s
+Epoch   7/12: train pol=1.7919 val=0.0074 | val pol=2.3852 val=0.0069 top1=35.8% | 329.8s
+Epoch   8/12: train pol=1.7780 val=0.0072 | val pol=2.3581 val=0.0067 top1=36.4% | 329.3s
+Epoch   9/12: train pol=1.7655 val=0.0070 | val pol=2.3496 val=0.0069 top1=34.5% | 327.3s
+Epoch  10/12: train pol=1.7550 val=0.0068 | val pol=2.3356 val=0.0065 top1=35.6% | 326.6s
+Epoch  11/12: train pol=1.7470 val=0.0067 | val pol=2.3245 val=0.0063 top1=36.6% | 328.1s
+Epoch  12/12: train pol=1.7389 val=0.0066 | val pol=2.3090 val=0.0062 top1=36.4% | 325.7s
+Selected epoch 12 (lowest val combined loss 2.3152)
+
+Saved experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt
+  final val: pol=2.3090 val=0.0062 top1=36.4%
+  total 67.4 min
+===== STAGE 6: eval 17ch 2026-07-08_20:18:49 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-08_20:33:41 =====
+===== STAGE 1: merge 17ch cache 2026-07-08_20:33:41 =====
+===== STAGE 2: re-encode to 26ch 2026-07-08_20:33:41 =====
+===== STAGE 3: merge 26ch cache 2026-07-08_20:33:41 =====
+===== STAGE 4: random-init bases 2026-07-08_20:33:41 =====
+===== STAGE 5: train 17ch 2026-07-08_20:33:41 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-08_20:33:41 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-08_23:03:52 =====
+===== STAGE 1: merge 17ch cache 2026-07-08_23:03:52 =====
+===== STAGE 2: re-encode to 26ch 2026-07-08_23:03:52 =====
+===== STAGE 3: merge 26ch cache 2026-07-08_23:03:52 =====
+===== STAGE 4: random-init bases 2026-07-08_23:03:52 =====
+===== STAGE 5: train 17ch 2026-07-08_23:03:52 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-08_23:03:52 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+P1 wins: 36/50 (72.0%), Equity: +1.020 ppg, P1 gammons/bg: 20/5, P2 gammons/bg: 1/0, Avg length: 89 moves
+P1 wins: 40/50 (80.0%), Equity: +1.180 ppg, P1 gammons/bg: 24/4, P2 gammons/bg: 3/0, Avg length: 89 moves
+----- arena: 17ch_vs_round15 (2 x 50 games) -----
+P1 wins: 33/50 (66.0%), Equity: +0.640 ppg, P1 gammons/bg: 12/5, P2 gammons/bg: 6/0, Avg length: 90 moves
+P1 wins: 36/50 (72.0%), Equity: +0.760 ppg, P1 gammons/bg: 14/3, P2 gammons/bg: 4/0, Avg length: 92 moves
+----- gnubg: 17ch vs world/2-ply, 4 x 50 games -----
+  Wins: 12-38 (24.0% +/- 11.8%)
+  Equity/game: -0.820
+  Wins: 6-44 (12.0% +/- 9.0%)
+  Equity/game: -1.340
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.780
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.760
+===== STAGE 5: train 26ch 2026-07-09_07:08:04 =====
+Device: cuda
+Loading base checkpoint experiments/pretrain-consol/checkpoints/base_random_26ch.pt
+Loading policy cache experiments/pretrain-consol/caches/combined_26ch.npz
+  observations: (843962, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.034 std=0.326
+Split: 801,764 train / 42,198 val (soft policy targets)
+Baseline val: policy_CE=7.2045  value_MSE=0.1142  top1_acc=0.0%
+Epoch   1/12: train pol=2.7377 val=0.0132 | val pol=2.8913 val=0.0118 top1=30.0% | 352.8s
+Epoch   2/12: train pol=2.0528 val=0.0089 | val pol=2.6109 val=0.0084 top1=32.7% | 345.1s
+Epoch   3/12: train pol=1.9161 val=0.0076 | val pol=2.5090 val=0.0077 top1=32.7% | 334.5s
+Epoch   4/12: train pol=1.8528 val=0.0070 | val pol=2.4298 val=0.0069 top1=34.8% | 327.5s
+Epoch   5/12: train pol=1.8158 val=0.0067 | val pol=2.3882 val=0.0061 top1=36.3% | 322.4s
+Epoch   6/12: train pol=1.7906 val=0.0065 | val pol=2.3728 val=0.0064 top1=35.4% | 321.8s
+Epoch   7/12: train pol=1.7722 val=0.0063 | val pol=2.3463 val=0.0067 top1=36.3% | 322.0s
+Epoch   8/12: train pol=1.7584 val=0.0062 | val pol=2.3336 val=0.0063 top1=35.3% | 320.9s
+Epoch   9/12: train pol=1.7477 val=0.0061 | val pol=2.3181 val=0.0060 top1=35.8% | 319.4s
+Epoch  10/12: train pol=1.7374 val=0.0060 | val pol=2.3186 val=0.0068 top1=36.3% | 320.3s
+Epoch  11/12: train pol=1.7301 val=0.0059 | val pol=2.3153 val=0.0063 top1=36.4% | 321.0s
+Epoch  12/12: train pol=1.7236 val=0.0058 | val pol=2.3018 val=0.0058 top1=36.1% | 319.3s
+Selected epoch 12 (lowest val combined loss 2.3076)
+
+Saved experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt
+  final val: pol=2.3018 val=0.0058 top1=36.1%
+  total 65.5 min
+===== STAGE 6: eval 26ch 2026-07-09_08:13:51 =====
+----- arena: 26ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_10:10:11 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_10:10:11 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_10:10:11 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_10:10:11 =====
+===== STAGE 4: random-init bases 2026-07-09_10:10:11 =====
+===== STAGE 5: train 17ch 2026-07-09_10:10:11 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_10:10:11 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_10:37:59 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_10:37:59 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_10:37:59 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_10:37:59 =====
+===== STAGE 4: random-init bases 2026-07-09_10:37:59 =====
+===== STAGE 5: train 17ch 2026-07-09_10:37:59 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_10:37:59 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_13:33:43 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_13:33:43 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_13:33:43 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_13:33:43 =====
+===== STAGE 4: random-init bases 2026-07-09_13:33:43 =====
+===== STAGE 5: train 17ch 2026-07-09_13:33:43 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_13:33:43 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_14:02:39 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_14:02:39 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_14:02:39 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_14:02:39 =====
+===== STAGE 4: random-init bases 2026-07-09_14:02:39 =====
+===== STAGE 5: train 17ch 2026-07-09_14:02:39 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_14:02:39 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+P1 wins: 35/50 (70.0%), Equity: +0.900 ppg, P1 gammons/bg: 16/7, P2 gammons/bg: 5/0, Avg length: 89 moves
+P1 wins: 37/50 (74.0%), Equity: +0.780 ppg, P1 gammons/bg: 20/1, P2 gammons/bg: 7/0, Avg length: 82 moves
+----- arena: 17ch_vs_round15 (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_19:06:35 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_19:06:35 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_19:06:35 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_19:06:35 =====
+===== STAGE 4: random-init bases 2026-07-09_19:06:35 =====
+===== STAGE 5: train 17ch 2026-07-09_19:06:35 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_19:06:35 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+  chunk 1 already done — skipping
+  chunk 2 already done — skipping
+P1 wins: 35/50 (70.0%), Equity: +0.900 ppg, P1 gammons/bg: 16/7, P2 gammons/bg: 5/0, Avg length: 89 moves
+P1 wins: 37/50 (74.0%), Equity: +0.780 ppg, P1 gammons/bg: 20/1, P2 gammons/bg: 7/0, Avg length: 82 moves
+----- arena: 17ch_vs_round15 (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_19:13:02 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_19:13:02 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_19:13:02 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_19:13:02 =====
+===== STAGE 4: random-init bases 2026-07-09_19:13:02 =====
+===== STAGE 5: train 17ch 2026-07-09_19:13:02 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_19:13:02 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+  chunk 1 already done — skipping
+  chunk 2 already done — skipping
+P1 wins: 35/50 (70.0%), Equity: +0.900 ppg, P1 gammons/bg: 16/7, P2 gammons/bg: 5/0, Avg length: 89 moves
+P1 wins: 37/50 (74.0%), Equity: +0.780 ppg, P1 gammons/bg: 20/1, P2 gammons/bg: 7/0, Avg length: 82 moves
+----- arena: 17ch_vs_round15 (2 x 50 games) -----
+===== CONSOLIDATE START 2026-07-09_20:05:18 =====
+===== STAGE 1: merge 17ch cache 2026-07-09_20:05:18 =====
+===== STAGE 2: re-encode to 26ch 2026-07-09_20:05:18 =====
+===== STAGE 3: merge 26ch cache 2026-07-09_20:05:18 =====
+===== STAGE 4: random-init bases 2026-07-09_20:05:18 =====
+===== STAGE 5: train 17ch 2026-07-09_20:05:18 =====
+  experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 17ch 2026-07-09_20:05:18 =====
+----- arena: 17ch_vs_v5seed (2 x 50 games) -----
+  chunk 1 already done — skipping
+  chunk 2 already done — skipping
+P1 wins: 35/50 (70.0%), Equity: +0.900 ppg, P1 gammons/bg: 16/7, P2 gammons/bg: 5/0, Avg length: 89 moves
+P1 wins: 37/50 (74.0%), Equity: +0.780 ppg, P1 gammons/bg: 20/1, P2 gammons/bg: 7/0, Avg length: 82 moves
+----- arena: 17ch_vs_round15 (2 x 50 games) -----
+P1 wins: 28/50 (56.0%), Equity: +0.240 ppg, P1 gammons/bg: 15/2, P2 gammons/bg: 11/1, Avg length: 83 moves
+P1 wins: 25/50 (50.0%), Equity: +0.160 ppg, P1 gammons/bg: 15/3, P2 gammons/bg: 9/2, Avg length: 85 moves
+----- gnubg: 17ch vs world/2-ply, 4 x 50 games -----
+  chunk 1 already done — skipping
+  chunk 2 already done — skipping
+  chunk 3 already done — skipping
+  chunk 4 already done — skipping
+  Wins: 12-38 (24.0% +/- 11.8%)
+  Equity/game: -0.820
+  Wins: 6-44 (12.0% +/- 9.0%)
+  Equity/game: -1.340
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.780
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.760
+===== STAGE 5: train 26ch 2026-07-09_22:44:06 =====
+  experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt exists — skipping train
+===== STAGE 6: eval 26ch 2026-07-09_22:44:06 =====
+----- arena: 26ch_vs_v5seed (2 x 50 games) -----
+P1 wins: 40/50 (80.0%), Equity: +1.280 ppg, P1 gammons/bg: 22/8, P2 gammons/bg: 4/0, Avg length: 84 moves
+P1 wins: 37/50 (74.0%), Equity: +1.040 ppg, P1 gammons/bg: 16/8, P2 gammons/bg: 4/0, Avg length: 78 moves
+----- arena: 26ch_vs_round15 (2 x 50 games) -----
+P1 wins: 37/50 (74.0%), Equity: +0.860 ppg, P1 gammons/bg: 13/6, P2 gammons/bg: 6/0, Avg length: 89 moves
+P1 wins: 33/50 (66.0%), Equity: +0.620 ppg, P1 gammons/bg: 16/3, P2 gammons/bg: 5/1, Avg length: 78 moves
+----- gnubg: 26ch vs world/2-ply, 4 x 50 games -----
+  Wins: 9-41 (18.0% +/- 10.6%)
+  Equity/game: -1.040
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.760
+  Wins: 10-40 (20.0% +/- 11.1%)
+  Equity/game: -1.140
+  Wins: 11-39 (22.0% +/- 11.5%)
+  Equity/game: -0.880
+===== STAGE 7: round_15 GNUBG baseline n=200 2026-07-10_06:40:43 =====
+  Wins: 5-45 (10.0% +/- 8.3%)
+  Equity/game: -1.460
+  Wins: 5-45 (10.0% +/- 8.3%)
+  Equity/game: -1.580
+  Wins: 9-41 (18.0% +/- 10.6%)
+  Equity/game: -1.160
+  Wins: 7-43 (14.0% +/- 9.6%)
+  Equity/game: -1.300
+===== STAGE 9: gnubg ply pricing 2026-07-10_07:32:43 =====
+30 positions (mean 19.8 legal moves), net experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt
+ply=0:    0.003 s/decision  ->  1,379,869 labels/h/core
+ply=2:    0.305 s/decision  ->  11,816 labels/h/core
+ply=3:   16.205 s/decision  ->  222 labels/h/core  (53.2x 2-ply)
+ply=4:  262.299 s/decision  ->  14 labels/h/core  (860.9x 2-ply)
+===== CONSOLIDATE COMPLETE 2026-07-10_09:52:10 =====

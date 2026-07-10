@@ -1,0 +1,43 @@
+===== EXP008 START 2026-06-26_21:04:28 =====
+seed=experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt ply=2 rounds=15 maxdec=60000 maxmin=600 epochs=4 lr=3e-4 temp=1.0
+===== ROUND 01 SYNTH (net=experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt, ply=2) 2026-06-26_21:04:28 =====
+Rollout net: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,319 (nondbl=1,688 dbl_vo=631 dbl_pol=0) el=35.3min rate=66/min
+  games=50 emitted=4,981 (nondbl=3,632 dbl_vo=1,349 dbl_pol=0) el=68.9min rate=72/min
+  games=75 emitted=7,712 (nondbl=5,667 dbl_vo=2,045 dbl_pol=0) el=98.0min rate=79/min
+  games=100 emitted=10,391 (nondbl=7,645 dbl_vo=2,746 dbl_pol=0) el=123.4min rate=84/min
+  games=125 emitted=12,809 (nondbl=9,385 dbl_vo=3,424 dbl_pol=0) el=158.0min rate=81/min
+  games=150 emitted=15,296 (nondbl=11,233 dbl_vo=4,063 dbl_pol=0) el=206.3min rate=74/min
+  games=175 emitted=18,005 (nondbl=13,196 dbl_vo=4,809 dbl_pol=0) el=242.6min rate=74/min
+  games=200 emitted=20,234 (nondbl=14,783 dbl_vo=5,451 dbl_pol=0) el=286.6min rate=71/min
+  games=225 emitted=22,725 (nondbl=16,609 dbl_vo=6,116 dbl_pol=0) el=316.9min rate=72/min
+  games=250 emitted=25,440 (nondbl=18,613 dbl_vo=6,827 dbl_pol=0) el=352.5min rate=72/min
+  games=275 emitted=27,743 (nondbl=20,320 dbl_vo=7,423 dbl_pol=0) el=374.2min rate=74/min
+  games=300 emitted=30,391 (nondbl=22,288 dbl_vo=8,103 dbl_pol=0) el=401.6min rate=76/min
+  games=325 emitted=32,870 (nondbl=24,119 dbl_vo=8,751 dbl_pol=0) el=431.4min rate=76/min
+  games=350 emitted=35,375 (nondbl=25,955 dbl_vo=9,420 dbl_pol=0) el=455.6min rate=78/min
+  games=375 emitted=37,639 (nondbl=27,592 dbl_vo=10,047 dbl_pol=0) el=481.3min rate=78/min
+  games=400 emitted=39,956 (nondbl=29,287 dbl_vo=10,669 dbl_pol=0) el=510.0min rate=78/min
+  games=425 emitted=42,605 (nondbl=31,201 dbl_vo=11,404 dbl_pol=0) el=545.0min rate=78/min
+  games=450 emitted=44,802 (nondbl=32,835 dbl_vo=11,967 dbl_pol=0) el=561.9min rate=80/min
+  games=475 emitted=47,334 (nondbl=34,695 dbl_vo=12,639 dbl_pol=0) el=597.2min rate=79/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz
+  examples: 47,672  (games=481)
+  non-doubles policy=34,952  doubles value-only=12,720  doubles policy=0
+  value mean=0.035 std=0.328 min=-1.000 max=1.000
+  mean prob mass on best move: 0.368 (policy_temperature=0.02)
+  total 600.3 min
+===== ROUND 01 MERGE 2026-06-27_07:04:48 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_01.npz: 212,095 examples (K=6)
+===== ROUND 01 TRAIN (warm from experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt) 2026-06-27_07:04:52 =====
+Device: cpu
+Loading base checkpoint experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_01.npz
+  observations: (212095, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.038 std=0.283
+Split: 201,491 train / 10,604 val (soft policy targets)
+Baseline val: policy_CE=2.7988  value_MSE=0.0086  top1_acc=43.5%
+Epoch   1/4: train pol=1.8694 val=0.0070 | val pol=2.1721 val=0.0069 top1=48.9% | 2240.0s
+Epoch   2/4: train pol=1.7064 val=0.0064 | val pol=2.1461 val=0.0067 top1=48.2% | 4341.8s

@@ -1,0 +1,906 @@
+===== EXP008 START 2026-06-27_14:04:39 =====
+seed=experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt ply=2 rounds=15 maxdec=60000 maxmin=600 epochs=4 lr=3e-4 temp=1.0
+===== ROUND 01 SYNTH — reusing existing cache experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz 2026-06-27_14:04:39 =====
+===== ROUND 01 MERGE 2026-06-27_14:04:39 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_01.npz: 212,095 examples (K=6)
+===== ROUND 01 TRAIN (warm from experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt) 2026-06-27_14:04:43 =====
+Device: cpu
+Loading base checkpoint experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_01.npz
+  observations: (212095, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.038 std=0.283
+Split: 201,491 train / 10,604 val (soft policy targets)
+Baseline val: policy_CE=2.7988  value_MSE=0.0086  top1_acc=43.5%
+Epoch   1/4: train pol=1.8692 val=0.0069 | val pol=2.1706 val=0.0069 top1=48.9% | 2278.2s
+Epoch   2/4: train pol=1.7071 val=0.0064 | val pol=2.1475 val=0.0067 top1=48.1% | 2101.4s
+Epoch   3/4: train pol=1.6252 val=0.0063 | val pol=2.1512 val=0.0067 top1=47.4% | 2063.8s
+Epoch   4/4: train pol=1.5611 val=0.0062 | val pol=2.1748 val=0.0066 top1=46.8% | 2054.5s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt
+  final val: pol=2.1748 val=0.0066 top1=46.8%
+  total 141.6 min
+===== ROUND 01 EVAL 2026-06-27_16:26:51 =====
+----- arena: round_01 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +1.000 ppgGame 3/100  P1 1-1  Equity: +0.000 ppgGame 4/100  P1 1-2  Equity: -0.667 ppgGame 5/100  P1 1-3  Equity: -1.000 ppgGame 6/100  P1 2-3  Equity: -0.400 ppgGame 7/100  P1 2-4  Equity: -0.667 ppgGame 8/100  P1 2-5  Equity: -0.714 ppgGame 9/100  P1 3-5  Equity: -0.500 ppgGame 10/100  P1 4-5  Equity: -0.333 ppgGame 11/100  P1 5-5  Equity: -0.200 ppgGame 12/100  P1 5-6  Equity: -0.273 ppgGame 13/100  P1 6-6  Equity: -0.083 ppgGame 14/100  P1 6-7  Equity: -0.154 ppgGame 15/100  P1 6-8  Equity: -0.286 ppgGame 16/100  P1 7-8  Equity: -0.200 ppgGame 17/100  P1 8-8  Equity: -0.125 ppgGame 18/100  P1 9-8  Equity: -0.059 ppgGame 19/100  P1 9-9  Equity: -0.167 ppgGame 20/100  P1 10-9  Equity: -0.053 ppgGame 21/100  P1 11-9  Equity: +0.050 ppgGame 22/100  P1 12-9  Equity: +0.143 ppgGame 23/100  P1 13-9  Equity: +0.227 ppgGame 24/100  P1 14-9  Equity: +0.304 ppgGame 25/100  P1 14-10  Equity: +0.208 ppgGame 26/100  P1 14-11  Equity: +0.120 ppgGame 27/100  P1 14-12  Equity: +0.077 ppgGame 28/100  P1 15-12  Equity: +0.148 ppgGame 29/100  P1 16-12  Equity: +0.179 ppgGame 30/100  P1 16-13  Equity: +0.138 ppgGame 31/100  P1 16-14  Equity: +0.067 ppgGame 32/100  P1 17-14  Equity: +0.129 ppgGame 33/100  P1 18-14  Equity: +0.156 ppgGame 34/100  P1 19-14  Equity: +0.212 ppgGame 35/100  P1 19-15  Equity: +0.176 ppgGame 36/100  P1 20-15  Equity: +0.257 ppgGame 37/100  P1 20-16  Equity: +0.167 ppgGame 38/100  P1 20-17  Equity: +0.135 ppgGame 39/100  P1 21-17  Equity: +0.158 ppgGame 40/100  P1 22-17  Equity: +0.205 ppgGame 41/100  P1 22-18  Equity: +0.175 ppgGame 42/100  P1 23-18  Equity: +0.220 ppgGame 43/100  P1 23-19  Equity: +0.143 ppgGame 44/100  P1 23-20  Equity: +0.116 ppgGame 45/100  P1 23-21  Equity: +0.068 ppgGame 46/100  P1 24-21  Equity: +0.111 ppgGame 47/100  P1 24-22  Equity: +0.065 ppgGame 48/100  P1 25-22  Equity: +0.085 ppgGame 49/100  P1 25-23  Equity: +0.062 ppgGame 50/100  P1 26-23  Equity: +0.102 ppgGame 51/100  P1 27-23  Equity: +0.120 ppgGame 52/100  P1 27-24  Equity: +0.098 ppgGame 53/100  P1 28-24  Equity: +0.135 ppgGame 54/100  P1 29-24  Equity: +0.151 ppgGame 55/100  P1 29-25  Equity: +0.130 ppgGame 56/100  P1 30-25  Equity: +0.182 ppgGame 57/100  P1 30-26  Equity: +0.161 ppgGame 58/100  P1 31-26  Equity: +0.175 ppgGame 59/100  P1 32-26  Equity: +0.207 ppgGame 60/100  P1 32-27  Equity: +0.169 ppgGame 61/100  P1 32-28  Equity: +0.117 ppgGame 62/100  P1 33-28  Equity: +0.148 ppgGame 63/100  P1 34-28  Equity: +0.177 ppgGame 64/100  P1 35-28  Equity: +0.190 ppgGame 65/100  P1 35-29  Equity: +0.156 ppgGame 66/100  P1 36-29  Equity: +0.169 ppgGame 67/100  P1 36-30  Equity: +0.152 ppgGame 68/100  P1 36-31  Equity: +0.119 ppgGame 69/100  P1 36-32  Equity: +0.074 ppgGame 70/100  P1 36-33  Equity: +0.043 ppgGame 71/100  P1 37-33  Equity: +0.071 ppgGame 72/100  P1 37-34  Equity: +0.056 ppgGame 73/100  P1 37-35  Equity: +0.028 ppgGame 74/100  P1 38-35  Equity: +0.041 ppgGame 75/100  P1 39-35  Equity: +0.054 ppgGame 76/100  P1 40-35  Equity: +0.093 ppgGame 77/100  P1 41-35  Equity: +0.105 ppgGame 78/100  P1 42-35  Equity: +0.143 ppgGame 79/100  P1 42-36  Equity: +0.128 ppgGame 80/100  P1 43-36  Equity: +0.139 ppgGame 81/100  P1 44-36  Equity: +0.150 ppgGame 82/100  P1 45-36  Equity: +0.173 ppgGame 83/100  P1 45-37  Equity: +0.146 ppgGame 84/100  P1 46-37  Equity: +0.169 ppgGame 85/100  P1 47-37  Equity: +0.190 ppgGame 86/100  P1 47-38  Equity: +0.165 ppgGame 87/100  P1 48-38  Equity: +0.186 ppgGame 88/100  P1 49-38  Equity: +0.207 ppgGame 89/100  P1 50-38  Equity: +0.216 ppgGame 90/100  P1 51-38  Equity: +0.225 ppgGame 91/100  P1 51-39  Equity: +0.211 ppgGame 92/100  P1 52-39  Equity: +0.220 ppgGame 93/100  P1 52-40  Equity: +0.207 ppgGame 94/100  P1 53-40  Equity: +0.237 ppgGame 95/100  P1 53-41  Equity: +0.213 ppgGame 96/100  P1 53-42  Equity: +0.189 ppgGame 97/100  P1 53-43  Equity: +0.177 ppgGame 98/100  P1 54-43  Equity: +0.196 ppgGame 99/100  P1 55-43  Equity: +0.204 ppgGame 100/100  P1 55-44  Equity: +0.172 ppg
+P1 wins: 55/100 (55.0%), Equity: +0.160 ppg, P1 gammons/bg: 25/5, P2 gammons/bg: 19/5, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_01/logs/eval_log.jsonl
+===== ROUND 01 DONE (next=experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt) 2026-06-27_17:40:34 =====
+===== ROUND 02 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt, ply=2) 2026-06-27_17:40:34 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,722 (nondbl=1,980 dbl_vo=742 dbl_pol=0) el=52.1min rate=52/min
+  games=50 emitted=5,302 (nondbl=3,871 dbl_vo=1,431 dbl_pol=0) el=91.3min rate=58/min
+  games=75 emitted=8,076 (nondbl=5,951 dbl_vo=2,125 dbl_pol=0) el=115.7min rate=70/min
+  games=100 emitted=11,427 (nondbl=8,429 dbl_vo=2,998 dbl_pol=0) el=186.6min rate=61/min
+  games=125 emitted=14,020 (nondbl=10,322 dbl_vo=3,698 dbl_pol=0) el=228.4min rate=61/min
+  games=150 emitted=16,428 (nondbl=12,083 dbl_vo=4,345 dbl_pol=0) el=253.9min rate=65/min
+  games=175 emitted=19,430 (nondbl=14,292 dbl_vo=5,138 dbl_pol=0) el=323.6min rate=60/min
+  games=200 emitted=22,480 (nondbl=16,576 dbl_vo=5,904 dbl_pol=0) el=398.6min rate=56/min
+  games=225 emitted=25,174 (nondbl=18,486 dbl_vo=6,688 dbl_pol=0) el=439.9min rate=57/min
+  games=250 emitted=27,839 (nondbl=20,446 dbl_vo=7,393 dbl_pol=0) el=471.2min rate=59/min
+  games=275 emitted=30,454 (nondbl=22,346 dbl_vo=8,108 dbl_pol=0) el=505.8min rate=60/min
+  games=300 emitted=32,831 (nondbl=24,152 dbl_vo=8,679 dbl_pol=0) el=526.7min rate=62/min
+  games=325 emitted=35,440 (nondbl=26,080 dbl_vo=9,360 dbl_pol=0) el=554.6min rate=64/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz
+  examples: 37,553  (games=344)
+  non-doubles policy=27,637  doubles value-only=9,916  doubles policy=0
+  value mean=0.034 std=0.334 min=-1.000 max=1.000
+  mean prob mass on best move: 0.374 (policy_temperature=0.02)
+  total 601.5 min
+===== ROUND 02 MERGE 2026-06-28_03:42:08 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz: 37,553 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_02.npz: 249,648 examples (K=6)
+===== ROUND 02 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt) 2026-06-28_03:42:14 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_01/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_02.npz
+  observations: (249648, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.037 std=0.291
+Split: 237,166 train / 12,482 val (soft policy targets)
+Baseline val: policy_CE=2.0560  value_MSE=0.0067  top1_acc=55.4%
+Epoch   1/4: train pol=1.6478 val=0.0069 | val pol=2.0891 val=0.0067 top1=51.1% | 2262.9s
+Epoch   2/4: train pol=1.5781 val=0.0067 | val pol=2.1217 val=0.0064 top1=49.4% | 2233.8s
+Epoch   3/4: train pol=1.5262 val=0.0067 | val pol=2.1656 val=0.0066 top1=47.2% | 2222.9s
+Epoch   4/4: train pol=1.4836 val=0.0066 | val pol=2.2194 val=0.0067 top1=46.2% | 2205.6s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt
+  final val: pol=2.2194 val=0.0067 top1=46.2%
+  total 148.8 min
+===== ROUND 02 EVAL 2026-06-28_06:11:28 =====
+----- arena: round_02 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -1.000 ppgGame 3/100  P1 1-1  Equity: +0.500 ppgGame 4/100  P1 2-1  Equity: +0.667 ppgGame 5/100  P1 2-2  Equity: +0.250 ppgGame 6/100  P1 3-2  Equity: +0.800 ppgGame 7/100  P1 3-3  Equity: +0.500 ppgGame 8/100  P1 3-4  Equity: +0.286 ppgGame 9/100  P1 4-4  Equity: +0.375 ppgGame 10/100  P1 5-4  Equity: +0.444 ppgGame 11/100  P1 6-4  Equity: +0.500 ppgGame 12/100  P1 6-5  Equity: +0.273 ppgGame 13/100  P1 6-6  Equity: +0.167 ppgGame 14/100  P1 6-7  Equity: +0.077 ppgGame 15/100  P1 7-7  Equity: +0.214 ppgGame 16/100  P1 7-8  Equity: +0.067 ppgGame 17/100  P1 7-9  Equity: -0.125 ppgGame 18/100  P1 7-10  Equity: -0.176 ppgGame 19/100  P1 7-11  Equity: -0.222 ppgGame 20/100  P1 7-12  Equity: -0.316 ppgGame 21/100  P1 8-12  Equity: -0.250 ppgGame 22/100  P1 9-12  Equity: -0.143 ppgGame 23/100  P1 9-13  Equity: -0.227 ppgGame 24/100  P1 10-13  Equity: -0.130 ppgGame 25/100  P1 11-13  Equity: -0.083 ppgGame 26/100  P1 11-14  Equity: -0.120 ppgGame 27/100  P1 12-14  Equity: -0.038 ppgGame 28/100  P1 13-14  Equity: +0.037 ppgGame 29/100  P1 13-15  Equity: -0.036 ppgGame 30/100  P1 13-16  Equity: -0.069 ppgGame 31/100  P1 13-17  Equity: -0.100 ppgGame 32/100  P1 14-17  Equity: -0.065 ppgGame 33/100  P1 14-18  Equity: -0.125 ppgGame 34/100  P1 14-19  Equity: -0.182 ppgGame 35/100  P1 15-19  Equity: -0.118 ppgGame 36/100  P1 16-19  Equity: -0.057 ppgGame 37/100  P1 17-19  Equity: -0.028 ppgGame 38/100  P1 18-19  Equity: +0.027 ppgGame 39/100  P1 18-20  Equity: +0.000 ppgGame 40/100  P1 19-20  Equity: +0.026 ppgGame 41/100  P1 19-21  Equity: +0.000 ppgGame 42/100  P1 20-21  Equity: +0.049 ppgGame 43/100  P1 21-21  Equity: +0.095 ppgGame 44/100  P1 21-22  Equity: +0.047 ppgGame 45/100  P1 22-22  Equity: +0.091 ppgGame 46/100  P1 22-23  Equity: +0.044 ppgGame 47/100  P1 22-24  Equity: +0.022 ppgGame 48/100  P1 23-24  Equity: +0.064 ppgGame 49/100  P1 24-24  Equity: +0.104 ppgGame 50/100  P1 24-25  Equity: +0.082 ppgGame 51/100  P1 24-26  Equity: +0.060 ppgGame 52/100  P1 25-26  Equity: +0.078 ppgGame 53/100  P1 26-26  Equity: +0.115 ppgGame 54/100  P1 27-26  Equity: +0.132 ppgGame 55/100  P1 28-26  Equity: +0.148 ppgGame 56/100  P1 29-26  Equity: +0.164 ppgGame 57/100  P1 30-26  Equity: +0.179 ppgGame 58/100  P1 30-27  Equity: +0.140 ppgGame 59/100  P1 30-28  Equity: +0.103 ppgGame 60/100  P1 31-28  Equity: +0.119 ppgGame 61/100  P1 31-29  Equity: +0.100 ppgGame 62/100  P1 31-30  Equity: +0.066 ppgGame 63/100  P1 32-30  Equity: +0.097 ppgGame 64/100  P1 32-31  Equity: +0.079 ppgGame 65/100  P1 32-32  Equity: +0.062 ppgGame 66/100  P1 33-32  Equity: +0.077 ppgGame 67/100  P1 34-32  Equity: +0.091 ppgGame 68/100  P1 35-32  Equity: +0.104 ppgGame 69/100  P1 35-33  Equity: +0.088 ppgGame 70/100  P1 35-34  Equity: +0.072 ppgGame 71/100  P1 36-34  Equity: +0.100 ppgGame 72/100  P1 37-34  Equity: +0.127 ppgGame 73/100  P1 37-35  Equity: +0.111 ppgGame 74/100  P1 38-35  Equity: +0.123 ppgGame 75/100  P1 38-36  Equity: +0.108 ppgGame 76/100  P1 39-36  Equity: +0.133 ppgGame 77/100  P1 40-36  Equity: +0.145 ppgGame 78/100  P1 40-37  Equity: +0.130 ppgGame 79/100  P1 41-37  Equity: +0.154 ppgGame 80/100  P1 42-37  Equity: +0.165 ppgGame 81/100  P1 43-37  Equity: +0.175 ppgGame 82/100  P1 44-37  Equity: +0.198 ppgGame 83/100  P1 44-38  Equity: +0.183 ppgGame 84/100  P1 44-39  Equity: +0.157 ppgGame 85/100  P1 45-39  Equity: +0.179 ppgGame 86/100  P1 46-39  Equity: +0.188 ppgGame 87/100  P1 47-39  Equity: +0.209 ppgGame 88/100  P1 48-39  Equity: +0.230 ppgGame 89/100  P1 49-39  Equity: +0.239 ppgGame 90/100  P1 49-40  Equity: +0.225 ppgGame 91/100  P1 49-41  Equity: +0.200 ppgGame 92/100  P1 50-41  Equity: +0.231 ppgGame 93/100  P1 50-42  Equity: +0.207 ppgGame 94/100  P1 51-42  Equity: +0.237 ppgGame 95/100  P1 51-43  Equity: +0.223 ppgGame 96/100  P1 51-44  Equity: +0.200 ppgGame 97/100  P1 52-44  Equity: +0.208 ppgGame 98/100  P1 53-44  Equity: +0.216 ppgGame 99/100  P1 53-45  Equity: +0.184 ppgGame 100/100  P1 53-46  Equity: +0.162 ppg
+P1 wins: 53/100 (53.0%), Equity: +0.140 ppg, P1 gammons/bg: 24/3, P2 gammons/bg: 18/2, Avg length: 90 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_02/logs/eval_log.jsonl
+===== ROUND 02 DONE (next=experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt) 2026-06-28_07:23:40 =====
+===== ROUND 03 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt, ply=2) 2026-06-28_07:23:40 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,559 (nondbl=1,860 dbl_vo=699 dbl_pol=0) el=33.7min rate=76/min
+  games=50 emitted=5,273 (nondbl=3,831 dbl_vo=1,442 dbl_pol=0) el=70.2min rate=75/min
+  games=75 emitted=7,717 (nondbl=5,672 dbl_vo=2,045 dbl_pol=0) el=107.5min rate=72/min
+  games=100 emitted=10,284 (nondbl=7,570 dbl_vo=2,714 dbl_pol=0) el=130.8min rate=79/min
+  games=125 emitted=12,740 (nondbl=9,388 dbl_vo=3,352 dbl_pol=0) el=153.4min rate=83/min
+  games=150 emitted=15,279 (nondbl=11,260 dbl_vo=4,019 dbl_pol=0) el=188.6min rate=81/min
+  games=175 emitted=17,979 (nondbl=13,205 dbl_vo=4,774 dbl_pol=0) el=255.6min rate=70/min
+  games=200 emitted=20,103 (nondbl=14,765 dbl_vo=5,338 dbl_pol=0) el=278.0min rate=72/min
+  games=225 emitted=22,683 (nondbl=16,638 dbl_vo=6,045 dbl_pol=0) el=303.2min rate=75/min
+  games=250 emitted=25,613 (nondbl=18,757 dbl_vo=6,856 dbl_pol=0) el=380.0min rate=67/min
+  games=275 emitted=28,033 (nondbl=20,531 dbl_vo=7,502 dbl_pol=0) el=416.4min rate=67/min
+  games=300 emitted=30,337 (nondbl=22,239 dbl_vo=8,098 dbl_pol=0) el=439.1min rate=69/min
+  games=325 emitted=32,760 (nondbl=24,027 dbl_vo=8,733 dbl_pol=0) el=461.2min rate=71/min
+  games=350 emitted=35,117 (nondbl=25,813 dbl_vo=9,304 dbl_pol=0) el=494.9min rate=71/min
+  games=375 emitted=37,834 (nondbl=27,810 dbl_vo=10,024 dbl_pol=0) el=530.0min rate=71/min
+  games=400 emitted=40,289 (nondbl=29,634 dbl_vo=10,655 dbl_pol=0) el=561.6min rate=72/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz
+  examples: 42,190  (games=417)
+  non-doubles policy=31,034  doubles value-only=11,156  doubles policy=0
+  value mean=0.034 std=0.334 min=-1.000 max=1.000
+  mean prob mass on best move: 0.374 (policy_temperature=0.02)
+  total 600.3 min
+===== ROUND 03 MERGE 2026-06-28_17:23:59 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz: 37,553 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz: 42,190 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_03.npz: 291,838 examples (K=6)
+===== ROUND 03 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt) 2026-06-28_17:24:05 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_02/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_03.npz
+  observations: (291838, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.037 std=0.298
+Split: 277,247 train / 14,591 val (soft policy targets)
+Baseline val: policy_CE=1.9737  value_MSE=0.0072  top1_acc=56.6%
+Epoch   1/4: train pol=1.5895 val=0.0071 | val pol=2.0477 val=0.0070 top1=52.9% | 2852.3s
+Epoch   2/4: train pol=1.5277 val=0.0070 | val pol=2.0864 val=0.0072 top1=51.4% | 2803.8s
+Epoch   3/4: train pol=1.4905 val=0.0069 | val pol=2.1439 val=0.0069 top1=49.0% | 2726.2s
+Epoch   4/4: train pol=1.4582 val=0.0068 | val pol=2.1878 val=0.0075 top1=47.9% | 2741.1s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt
+  final val: pol=2.1878 val=0.0075 top1=47.9%
+  total 185.4 min
+===== ROUND 03 EVAL 2026-06-28_20:30:01 =====
+----- arena: round_03 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -1.000 ppgGame 3/100  P1 1-1  Equity: +0.000 ppgGame 4/100  P1 1-2  Equity: -0.333 ppgGame 5/100  P1 1-3  Equity: -0.750 ppgGame 6/100  P1 2-3  Equity: -0.200 ppgGame 7/100  P1 2-4  Equity: -0.333 ppgGame 8/100  P1 2-5  Equity: -0.429 ppgGame 9/100  P1 3-5  Equity: -0.125 ppgGame 10/100  P1 4-5  Equity: +0.111 ppgGame 11/100  P1 4-6  Equity: -0.100 ppgGame 12/100  P1 5-6  Equity: +0.091 ppgGame 13/100  P1 5-7  Equity: -0.083 ppgGame 14/100  P1 5-8  Equity: -0.231 ppgGame 15/100  P1 5-9  Equity: -0.286 ppgGame 16/100  P1 6-9  Equity: -0.133 ppgGame 17/100  P1 7-9  Equity: -0.062 ppgGame 18/100  P1 8-9  Equity: +0.059 ppgGame 19/100  P1 8-10  Equity: +0.000 ppgGame 20/100  P1 9-10  Equity: +0.053 ppgGame 21/100  P1 10-10  Equity: +0.150 ppgGame 22/100  P1 11-10  Equity: +0.238 ppgGame 23/100  P1 12-10  Equity: +0.273 ppgGame 24/100  P1 13-10  Equity: +0.348 ppgGame 25/100  P1 13-11  Equity: +0.292 ppgGame 26/100  P1 14-11  Equity: +0.360 ppgGame 27/100  P1 14-12  Equity: +0.269 ppgGame 28/100  P1 15-12  Equity: +0.370 ppgGame 29/100  P1 16-12  Equity: +0.393 ppgGame 30/100  P1 17-12  Equity: +0.448 ppgGame 31/100  P1 18-12  Equity: +0.500 ppgGame 32/100  P1 19-12  Equity: +0.516 ppgGame 33/100  P1 20-12  Equity: +0.531 ppgGame 34/100  P1 21-12  Equity: +0.576 ppgGame 35/100  P1 21-13  Equity: +0.529 ppgGame 36/100  P1 21-14  Equity: +0.457 ppgGame 37/100  P1 21-15  Equity: +0.389 ppgGame 38/100  P1 22-15  Equity: +0.405 ppgGame 39/100  P1 23-15  Equity: +0.447 ppgGame 40/100  P1 24-15  Equity: +0.487 ppgGame 41/100  P1 24-16  Equity: +0.400 ppgGame 42/100  P1 24-17  Equity: +0.341 ppgGame 43/100  P1 24-18  Equity: +0.310 ppgGame 44/100  P1 25-18  Equity: +0.372 ppgGame 45/100  P1 25-19  Equity: +0.318 ppgGame 46/100  P1 26-19  Equity: +0.333 ppgGame 47/100  P1 26-20  Equity: +0.283 ppgGame 48/100  P1 26-21  Equity: +0.213 ppgGame 49/100  P1 27-21  Equity: +0.250 ppgGame 50/100  P1 27-22  Equity: +0.224 ppgGame 51/100  P1 28-22  Equity: +0.260 ppgGame 52/100  P1 29-22  Equity: +0.294 ppgGame 53/100  P1 29-23  Equity: +0.250 ppgGame 54/100  P1 30-23  Equity: +0.302 ppgGame 55/100  P1 31-23  Equity: +0.333 ppgGame 56/100  P1 32-23  Equity: +0.345 ppgGame 57/100  P1 32-24  Equity: +0.286 ppgGame 58/100  P1 32-25  Equity: +0.246 ppgGame 59/100  P1 32-26  Equity: +0.224 ppgGame 60/100  P1 33-26  Equity: +0.237 ppgGame 61/100  P1 33-27  Equity: +0.200 ppgGame 62/100  P1 33-28  Equity: +0.180 ppgGame 63/100  P1 34-28  Equity: +0.210 ppgGame 64/100  P1 35-28  Equity: +0.238 ppgGame 65/100  P1 36-28  Equity: +0.250 ppgGame 66/100  P1 37-28  Equity: +0.277 ppgGame 67/100  P1 37-29  Equity: +0.242 ppgGame 68/100  P1 37-30  Equity: +0.224 ppgGame 69/100  P1 38-30  Equity: +0.250 ppgGame 70/100  P1 39-30  Equity: +0.261 ppgGame 71/100  P1 40-30  Equity: +0.286 ppgGame 72/100  P1 41-30  Equity: +0.296 ppgGame 73/100  P1 42-30  Equity: +0.319 ppgGame 74/100  P1 43-30  Equity: +0.329 ppgGame 75/100  P1 43-31  Equity: +0.311 ppgGame 76/100  P1 43-32  Equity: +0.280 ppgGame 77/100  P1 44-32  Equity: +0.303 ppgGame 78/100  P1 45-32  Equity: +0.338 ppgGame 79/100  P1 46-32  Equity: +0.346 ppgGame 80/100  P1 47-32  Equity: +0.367 ppgGame 81/100  P1 48-32  Equity: +0.375 ppgGame 82/100  P1 48-33  Equity: +0.358 ppgGame 83/100  P1 48-34  Equity: +0.329 ppgGame 84/100  P1 48-35  Equity: +0.301 ppgGame 85/100  P1 48-36  Equity: +0.286 ppgGame 86/100  P1 48-37  Equity: +0.271 ppgGame 87/100  P1 48-38  Equity: +0.256 ppgGame 88/100  P1 48-39  Equity: +0.241 ppgGame 89/100  P1 48-40  Equity: +0.227 ppgGame 90/100  P1 49-40  Equity: +0.247 ppgGame 91/100  P1 50-40  Equity: +0.267 ppgGame 92/100  P1 50-41  Equity: +0.253 ppgGame 93/100  P1 51-41  Equity: +0.272 ppgGame 94/100  P1 52-41  Equity: +0.280 ppgGame 95/100  P1 53-41  Equity: +0.298 ppgGame 96/100  P1 53-42  Equity: +0.284 ppgGame 97/100  P1 54-42  Equity: +0.292 ppgGame 98/100  P1 55-42  Equity: +0.299 ppgGame 99/100  P1 55-43  Equity: +0.276 ppgGame 100/100  P1 56-43  Equity: +0.283 ppg
+P1 wins: 57/100 (57.0%), Equity: +0.290 ppg, P1 gammons/bg: 31/4, P2 gammons/bg: 18/3, Avg length: 96 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_03/logs/eval_log.jsonl
+===== ROUND 03 DONE (next=experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt) 2026-06-28_21:46:38 =====
+===== ROUND 04 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt, ply=2) 2026-06-28_21:46:38 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,910 (nondbl=2,143 dbl_vo=767 dbl_pol=0) el=32.1min rate=91/min
+  games=50 emitted=5,579 (nondbl=4,122 dbl_vo=1,457 dbl_pol=0) el=52.5min rate=106/min
+  games=75 emitted=8,117 (nondbl=6,063 dbl_vo=2,054 dbl_pol=0) el=77.1min rate=105/min
+  games=100 emitted=10,508 (nondbl=7,806 dbl_vo=2,702 dbl_pol=0) el=100.4min rate=105/min
+  games=125 emitted=13,040 (nondbl=9,671 dbl_vo=3,369 dbl_pol=0) el=124.3min rate=105/min
+  games=150 emitted=15,496 (nondbl=11,485 dbl_vo=4,011 dbl_pol=0) el=145.5min rate=106/min
+  games=175 emitted=18,038 (nondbl=13,342 dbl_vo=4,696 dbl_pol=0) el=197.2min rate=91/min
+  games=200 emitted=20,943 (nondbl=15,486 dbl_vo=5,457 dbl_pol=0) el=264.0min rate=79/min
+  games=225 emitted=23,314 (nondbl=17,241 dbl_vo=6,073 dbl_pol=0) el=308.7min rate=76/min
+  games=250 emitted=26,015 (nondbl=19,237 dbl_vo=6,778 dbl_pol=0) el=359.9min rate=72/min
+  games=275 emitted=28,358 (nondbl=20,978 dbl_vo=7,380 dbl_pol=0) el=407.0min rate=70/min
+  games=300 emitted=30,889 (nondbl=22,831 dbl_vo=8,058 dbl_pol=0) el=459.1min rate=67/min
+  games=325 emitted=33,538 (nondbl=24,796 dbl_vo=8,742 dbl_pol=0) el=492.2min rate=68/min
+  games=350 emitted=36,010 (nondbl=26,640 dbl_vo=9,370 dbl_pol=0) el=516.0min rate=70/min
+  games=375 emitted=38,742 (nondbl=28,658 dbl_vo=10,084 dbl_pol=0) el=553.9min rate=70/min
+  games=400 emitted=41,078 (nondbl=30,396 dbl_vo=10,682 dbl_pol=0) el=576.4min rate=71/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz
+  examples: 43,377  (games=423)
+  non-doubles policy=32,051  doubles value-only=11,326  doubles policy=0
+  value mean=0.033 std=0.341 min=-1.000 max=1.000
+  mean prob mass on best move: 0.380 (policy_temperature=0.02)
+  total 601.8 min
+===== ROUND 04 MERGE 2026-06-29_07:48:27 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_01.npz: 47,672 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz: 37,553 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz: 42,190 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz: 43,377 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_04.npz: 335,215 examples (K=6)
+===== ROUND 04 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt) 2026-06-29_07:48:34 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_03/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_04.npz
+  observations: (335215, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.304
+Split: 318,455 train / 16,760 val (soft policy targets)
+Baseline val: policy_CE=1.9105  value_MSE=0.0075  top1_acc=57.9%
+Epoch   1/4: train pol=1.5618 val=0.0072 | val pol=2.0098 val=0.0069 top1=53.3% | 3111.4s
+Epoch   2/4: train pol=1.5053 val=0.0071 | val pol=2.0680 val=0.0069 top1=50.1% | 3057.4s
+Epoch   3/4: train pol=1.4760 val=0.0071 | val pol=2.1194 val=0.0069 top1=48.5% | 3103.9s
+Epoch   4/4: train pol=1.4476 val=0.0070 | val pol=2.1545 val=0.0071 top1=47.3% | 3048.7s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt
+  final val: pol=2.1545 val=0.0071 top1=47.3%
+  total 205.4 min
+===== ROUND 04 EVAL 2026-06-29_11:14:32 =====
+----- arena: round_04 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +3.000 ppgGame 3/100  P1 2-0  Equity: +2.500 ppgGame 4/100  P1 2-1  Equity: +1.333 ppgGame 5/100  P1 2-2  Equity: +0.750 ppgGame 6/100  P1 3-2  Equity: +0.800 ppgGame 7/100  P1 3-3  Equity: +0.500 ppgGame 8/100  P1 4-3  Equity: +0.857 ppgGame 9/100  P1 4-4  Equity: +0.625 ppgGame 10/100  P1 5-4  Equity: +0.667 ppgGame 11/100  P1 5-5  Equity: +0.500 ppgGame 12/100  P1 5-6  Equity: +0.273 ppgGame 13/100  P1 6-6  Equity: +0.417 ppgGame 14/100  P1 7-6  Equity: +0.538 ppgGame 15/100  P1 8-6  Equity: +0.643 ppgGame 16/100  P1 9-6  Equity: +0.800 ppgGame 17/100  P1 9-7  Equity: +0.688 ppgGame 18/100  P1 10-7  Equity: +0.706 ppgGame 19/100  P1 10-8  Equity: +0.556 ppgGame 20/100  P1 11-8  Equity: +0.632 ppgGame 21/100  P1 12-8  Equity: +0.700 ppgGame 22/100  P1 13-8  Equity: +0.810 ppgGame 23/100  P1 13-9  Equity: +0.727 ppgGame 24/100  P1 14-9  Equity: +0.783 ppgGame 25/100  P1 15-9  Equity: +0.833 ppgGame 26/100  P1 15-10  Equity: +0.760 ppgGame 27/100  P1 16-10  Equity: +0.808 ppgGame 28/100  P1 17-10  Equity: +0.815 ppgGame 29/100  P1 18-10  Equity: +0.821 ppgGame 30/100  P1 18-11  Equity: +0.724 ppgGame 31/100  P1 18-12  Equity: +0.667 ppgGame 32/100  P1 18-13  Equity: +0.581 ppgGame 33/100  P1 19-13  Equity: +0.625 ppgGame 34/100  P1 19-14  Equity: +0.545 ppgGame 35/100  P1 20-14  Equity: +0.559 ppgGame 36/100  P1 20-15  Equity: +0.514 ppgGame 37/100  P1 21-15  Equity: +0.528 ppgGame 38/100  P1 22-15  Equity: +0.541 ppgGame 39/100  P1 23-15  Equity: +0.579 ppgGame 40/100  P1 23-16  Equity: +0.538 ppgGame 41/100  P1 24-16  Equity: +0.575 ppgGame 42/100  P1 24-17  Equity: +0.512 ppgGame 43/100  P1 24-18  Equity: +0.476 ppgGame 44/100  P1 24-19  Equity: +0.442 ppgGame 45/100  P1 24-20  Equity: +0.386 ppgGame 46/100  P1 24-21  Equity: +0.356 ppgGame 47/100  P1 24-22  Equity: +0.326 ppgGame 48/100  P1 24-23  Equity: +0.298 ppgGame 49/100  P1 24-24  Equity: +0.250 ppgGame 50/100  P1 25-24  Equity: +0.306 ppgGame 51/100  P1 25-25  Equity: +0.280 ppgGame 52/100  P1 26-25  Equity: +0.314 ppgGame 53/100  P1 26-26  Equity: +0.288 ppgGame 54/100  P1 26-27  Equity: +0.245 ppgGame 55/100  P1 27-27  Equity: +0.278 ppgGame 56/100  P1 28-27  Equity: +0.309 ppgGame 57/100  P1 28-28  Equity: +0.286 ppgGame 58/100  P1 28-29  Equity: +0.246 ppgGame 59/100  P1 29-29  Equity: +0.276 ppgGame 60/100  P1 30-29  Equity: +0.288 ppgGame 61/100  P1 31-29  Equity: +0.317 ppgGame 62/100  P1 32-29  Equity: +0.344 ppgGame 63/100  P1 33-29  Equity: +0.355 ppgGame 64/100  P1 33-30  Equity: +0.317 ppgGame 65/100  P1 33-31  Equity: +0.281 ppgGame 66/100  P1 33-32  Equity: +0.262 ppgGame 67/100  P1 34-32  Equity: +0.273 ppgGame 68/100  P1 35-32  Equity: +0.299 ppgGame 69/100  P1 35-33  Equity: +0.279 ppgGame 70/100  P1 35-34  Equity: +0.232 ppgGame 71/100  P1 36-34  Equity: +0.243 ppgGame 72/100  P1 37-34  Equity: +0.268 ppgGame 73/100  P1 37-35  Equity: +0.236 ppgGame 74/100  P1 37-36  Equity: +0.219 ppgGame 75/100  P1 37-37  Equity: +0.189 ppgGame 76/100  P1 38-37  Equity: +0.200 ppgGame 77/100  P1 38-38  Equity: +0.171 ppgGame 78/100  P1 38-39  Equity: +0.156 ppgGame 79/100  P1 39-39  Equity: +0.179 ppgGame 80/100  P1 40-39  Equity: +0.203 ppgGame 81/100  P1 41-39  Equity: +0.225 ppgGame 82/100  P1 42-39  Equity: +0.235 ppgGame 83/100  P1 43-39  Equity: +0.244 ppgGame 84/100  P1 44-39  Equity: +0.265 ppgGame 85/100  P1 44-40  Equity: +0.238 ppgGame 86/100  P1 45-40  Equity: +0.259 ppgGame 87/100  P1 46-40  Equity: +0.267 ppgGame 88/100  P1 47-40  Equity: +0.287 ppgGame 89/100  P1 47-41  Equity: +0.261 ppgGame 90/100  P1 48-41  Equity: +0.270 ppgGame 91/100  P1 48-42  Equity: +0.256 ppgGame 92/100  P1 49-42  Equity: +0.275 ppgGame 93/100  P1 50-42  Equity: +0.293 ppgGame 94/100  P1 50-43  Equity: +0.280 ppgGame 95/100  P1 51-43  Equity: +0.298 ppgGame 96/100  P1 52-43  Equity: +0.305 ppgGame 97/100  P1 53-43  Equity: +0.323 ppgGame 98/100  P1 54-43  Equity: +0.330 ppgGame 99/100  P1 55-43  Equity: +0.357 ppgGame 100/100  P1 56-43  Equity: +0.364 ppg
+P1 wins: 57/100 (57.0%), Equity: +0.370 ppg, P1 gammons/bg: 30/6, P2 gammons/bg: 17/1, Avg length: 92 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_04/logs/eval_log.jsonl
+----- arena: round_04 vs iter_0447 (internal bar) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/exp005-6x128-800sims/checkpoints/iter_0447.pt (6x128)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +3.000 ppgGame 3/100  P1 1-1  Equity: +1.000 ppgGame 4/100  P1 2-1  Equity: +1.667 ppgGame 5/100  P1 3-1  Equity: +1.750 ppgGame 6/100  P1 4-1  Equity: +2.000 ppgGame 7/100  P1 5-1  Equity: +2.000 ppgGame 8/100  P1 6-1  Equity: +1.857 ppgGame 9/100  P1 7-1  Equity: +1.875 ppgGame 10/100  P1 8-1  Equity: +1.889 ppgGame 11/100  P1 9-1  Equity: +2.000 ppgGame 12/100  P1 10-1  Equity: +2.000 ppgGame 13/100  P1 11-1  Equity: +2.000 ppgGame 14/100  P1 12-1  Equity: +2.077 ppgGame 15/100  P1 13-1  Equity: +2.071 ppgGame 16/100  P1 13-2  Equity: +1.867 ppgGame 17/100  P1 14-2  Equity: +1.938 ppgGame 18/100  P1 15-2  Equity: +1.941 ppgGame 19/100  P1 16-2  Equity: +2.000 ppgGame 20/100  P1 17-2  Equity: +2.053 ppgGame 21/100  P1 18-2  Equity: +2.050 ppgGame 22/100  P1 19-2  Equity: +2.048 ppgGame 23/100  P1 20-2  Equity: +2.045 ppgGame 24/100  P1 21-2  Equity: +2.087 ppgGame 25/100  P1 22-2  Equity: +2.083 ppgGame 26/100  P1 23-2  Equity: +2.080 ppgGame 27/100  P1 24-2  Equity: +2.077 ppgGame 28/100  P1 25-2  Equity: +2.111 ppgGame 29/100  P1 26-2  Equity: +2.143 ppgGame 30/100  P1 27-2  Equity: +2.103 ppgGame 31/100  P1 28-2  Equity: +2.100 ppgGame 32/100  P1 29-2  Equity: +2.129 ppgGame 33/100  P1 30-2  Equity: +2.125 ppgGame 34/100  P1 31-2  Equity: +2.152 ppgGame 35/100  P1 32-2  Equity: +2.147 ppgGame 36/100  P1 33-2  Equity: +2.143 ppgGame 37/100  P1 34-2  Equity: +2.111 ppgGame 38/100  P1 35-2  Equity: +2.108 ppgGame 39/100  P1 36-2  Equity: +2.105 ppgGame 40/100  P1 37-2  Equity: +2.103 ppgGame 41/100  P1 38-2  Equity: +2.075 ppgGame 42/100  P1 39-2  Equity: +2.098 ppgGame 43/100  P1 40-2  Equity: +2.119 ppgGame 44/100  P1 40-3  Equity: +2.023 ppgGame 45/100  P1 40-4  Equity: +1.955 ppgGame 46/100  P1 41-4  Equity: +1.978 ppgGame 47/100  P1 42-4  Equity: +2.000 ppgGame 48/100  P1 42-5  Equity: +1.936 ppgGame 49/100  P1 43-5  Equity: +1.938 ppgGame 50/100  P1 44-5  Equity: +1.959 ppgGame 51/100  P1 45-5  Equity: +1.980 ppgGame 52/100  P1 46-5  Equity: +1.980 ppgGame 53/100  P1 47-5  Equity: +1.981 ppgGame 54/100  P1 48-5  Equity: +1.981 ppgGame 55/100  P1 49-5  Equity: +2.000 ppgGame 56/100  P1 50-5  Equity: +2.018 ppgGame 57/100  P1 51-5  Equity: +2.000 ppgGame 58/100  P1 52-5  Equity: +1.982 ppgGame 59/100  P1 53-5  Equity: +1.983 ppgGame 60/100  P1 54-5  Equity: +1.966 ppgGame 61/100  P1 55-5  Equity: +1.967 ppgGame 62/100  P1 56-5  Equity: +1.951 ppgGame 63/100  P1 57-5  Equity: +1.952 ppgGame 64/100  P1 58-5  Equity: +1.952 ppgGame 65/100  P1 59-5  Equity: +1.969 ppgGame 66/100  P1 60-5  Equity: +1.954 ppgGame 67/100  P1 61-5  Equity: +1.939 ppgGame 68/100  P1 62-5  Equity: +1.940 ppgGame 69/100  P1 63-5  Equity: +1.941 ppgGame 70/100  P1 64-5  Equity: +1.942 ppgGame 71/100  P1 65-5  Equity: +1.957 ppgGame 72/100  P1 66-5  Equity: +1.972 ppgGame 73/100  P1 67-5  Equity: +1.972 ppgGame 74/100  P1 68-5  Equity: +1.973 ppgGame 75/100  P1 69-5  Equity: +1.959 ppgGame 76/100  P1 70-5  Equity: +1.960 ppgGame 77/100  P1 71-5  Equity: +1.974 ppgGame 78/100  P1 72-5  Equity: +1.974 ppgGame 79/100  P1 73-5  Equity: +1.974 ppgGame 80/100  P1 74-5  Equity: +1.975 ppgGame 81/100  P1 75-5  Equity: +1.988 ppgGame 82/100  P1 76-5  Equity: +1.988 ppgGame 83/100  P1 77-5  Equity: +2.000 ppgGame 84/100  P1 78-5  Equity: +2.012 ppgGame 85/100  P1 79-5  Equity: +2.024 ppgGame 86/100  P1 80-5  Equity: +2.035 ppgGame 87/100  P1 81-5  Equity: +2.035 ppgGame 88/100  P1 82-5  Equity: +2.046 ppgGame 89/100  P1 83-5  Equity: +2.045 ppgGame 90/100  P1 84-5  Equity: +2.056 ppgGame 91/100  P1 85-5  Equity: +2.044 ppgGame 92/100  P1 86-5  Equity: +2.044 ppgGame 93/100  P1 87-5  Equity: +2.054 ppgGame 94/100  P1 88-5  Equity: +2.043 ppgGame 95/100  P1 89-5  Equity: +2.053 ppgGame 96/100  P1 90-5  Equity: +2.053 ppgGame 97/100  P1 91-5  Equity: +2.062 ppgGame 98/100  P1 92-5  Equity: +2.062 ppgGame 99/100  P1 93-5  Equity: +2.061 ppgGame 100/100  P1 94-5  Equity: +2.071 ppg
+P1 wins: 95/100 (95.0%), Equity: +2.070 ppg, P1 gammons/bg: 46/36, P2 gammons/bg: 1/0, Avg length: 76 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_04/logs/eval_log.jsonl
+----- gnubg: round_04 vs world/2-ply (external M6) -----
+Raccoon: experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt (10x256)
+GNUBG: level=world
+Playing 100 games, 50 MCTS simulations per Raccoon move...
+Game 1/100  Raccoon 0-0  Equity: +0.000 ppgGame 2/100  Raccoon 0-1  Equity: -1.000 ppgGame 3/100  Raccoon 0-2  Equity: -1.500 ppgGame 4/100  Raccoon 0-3  Equity: -1.333 ppgGame 5/100  Raccoon 0-4  Equity: -1.250 ppgGame 6/100  Raccoon 0-5  Equity: -1.400 ppgGame 7/100  Raccoon 0-6  Equity: -1.500 ppgGame 8/100  Raccoon 0-7  Equity: -1.714 ppgGame 9/100  Raccoon 0-8  Equity: -1.750 ppgGame 10/100  Raccoon 0-9  Equity: -1.667 ppgGame 11/100  Raccoon 0-10  Equity: -1.800 ppgGame 12/100  Raccoon 0-11  Equity: -1.818 ppgGame 13/100  Raccoon 0-12  Equity: -1.833 ppgGame 14/100  Raccoon 0-13  Equity: -1.846 ppgGame 15/100  Raccoon 0-14  Equity: -1.857 ppgGame 16/100  Raccoon 0-15  Equity: -1.867 ppgGame 17/100  Raccoon 0-16  Equity: -1.875 ppgGame 18/100  Raccoon 0-17  Equity: -1.882 ppgGame 19/100  Raccoon 0-18  Equity: -1.833 ppgGame 20/100  Raccoon 1-18  Equity: -1.684 ppgGame 21/100  Raccoon 1-19  Equity: -1.700 ppgGame 22/100  Raccoon 1-20  Equity: -1.714 ppgGame 23/100  Raccoon 1-21  Equity: -1.773 ppgGame 24/100  Raccoon 1-22  Equity: -1.739 ppgGame 25/100  Raccoon 1-23  Equity: -1.750 ppgGame 26/100  Raccoon 1-24  Equity: -1.760 ppgGame 27/100  Raccoon 1-25  Equity: -1.731 ppgGame 28/100  Raccoon 1-26  Equity: -1.704 ppgGame 29/100  Raccoon 1-27  Equity: -1.679 ppgGame 30/100  Raccoon 1-28  Equity: -1.690 ppgGame 31/100  Raccoon 1-29  Equity: -1.667 ppgGame 32/100  Raccoon 1-30  Equity: -1.677 ppgGame 33/100  Raccoon 1-31  Equity: -1.688 ppgGame 34/100  Raccoon 1-32  Equity: -1.667 ppgGame 35/100  Raccoon 2-32  Equity: -1.588 ppgGame 36/100  Raccoon 3-32  Equity: -1.514 ppgGame 37/100  Raccoon 3-33  Equity: -1.500 ppgGame 38/100  Raccoon 3-34  Equity: -1.541 ppgGame 39/100  Raccoon 3-35  Equity: -1.553 ppgGame 40/100  Raccoon 3-36  Equity: -1.564 ppgGame 41/100  Raccoon 3-37  Equity: -1.575 ppgGame 42/100  Raccoon 3-38  Equity: -1.585 ppgGame 43/100  Raccoon 3-39  Equity: -1.571 ppgGame 44/100  Raccoon 3-40  Equity: -1.558 ppgGame 45/100  Raccoon 3-41  Equity: -1.568 ppgGame 46/100  Raccoon 3-42  Equity: -1.578 ppgGame 47/100  Raccoon 3-43  Equity: -1.587 ppgGame 48/100  Raccoon 3-44  Equity: -1.596 ppgGame 49/100  Raccoon 3-45  Equity: -1.625 ppgGame 50/100  Raccoon 3-46  Equity: -1.633 ppgGame 51/100  Raccoon 3-47  Equity: -1.640 ppgGame 52/100  Raccoon 4-47  Equity: -1.569 ppgGame 53/100  Raccoon 4-48  Equity: -1.596 ppgGame 54/100  Raccoon 4-49  Equity: -1.585 ppgGame 55/100  Raccoon 4-50  Equity: -1.574 ppgGame 56/100  Raccoon 4-51  Equity: -1.582 ppgGame 57/100  Raccoon 4-52  Equity: -1.589 ppgGame 58/100  Raccoon 4-53  Equity: -1.579 ppgGame 59/100  Raccoon 5-53  Equity: -1.534 ppgGame 60/100  Raccoon 5-54  Equity: -1.559 ppgGame 61/100  Raccoon 5-55  Equity: -1.567 ppgGame 62/100  Raccoon 5-56  Equity: -1.557 ppgGame 63/100  Raccoon 6-56  Equity: -1.516 ppgGame 64/100  Raccoon 6-57  Equity: -1.524 ppgGame 65/100  Raccoon 6-58  Equity: -1.531 ppgGame 66/100  Raccoon 6-59  Equity: -1.523 ppgGame 67/100  Raccoon 6-60  Equity: -1.530 ppgGame 68/100  Raccoon 6-61  Equity: -1.522 ppgGame 69/100  Raccoon 6-62  Equity: -1.529 ppgGame 70/100  Raccoon 6-63  Equity: -1.536 ppgGame 71/100  Raccoon 6-64  Equity: -1.543 ppgGame 72/100  Raccoon 6-65  Equity: -1.549 ppgGame 73/100  Raccoon 6-66  Equity: -1.569 ppgGame 74/100  Raccoon 6-67  Equity: -1.575 ppgGame 75/100  Raccoon 6-68  Equity: -1.595 ppgGame 76/100  Raccoon 6-69  Equity: -1.600 ppgGame 77/100  Raccoon 6-70  Equity: -1.605 ppgGame 78/100  Raccoon 6-71  Equity: -1.597 ppgGame 79/100  Raccoon 6-72  Equity: -1.615 ppgGame 80/100  Raccoon 6-73  Equity: -1.633 ppgGame 81/100  Raccoon 6-74  Equity: -1.637 ppgGame 82/100  Raccoon 6-75  Equity: -1.630 ppgGame 83/100  Raccoon 7-75  Equity: -1.598 ppgGame 84/100  Raccoon 7-76  Equity: -1.590 ppgGame 85/100  Raccoon 7-77  Equity: -1.595 ppgGame 86/100  Raccoon 7-78  Equity: -1.600 ppgGame 87/100  Raccoon 7-79  Equity: -1.605 ppgGame 88/100  Raccoon 7-80  Equity: -1.609 ppgGame 89/100  Raccoon 7-81  Equity: -1.602 ppgGame 90/100  Raccoon 7-82  Equity: -1.607 ppgGame 91/100  Raccoon 7-83  Equity: -1.611 ppgGame 92/100  Raccoon 7-84  Equity: -1.615 ppgGame 93/100  Raccoon 7-85  Equity: -1.620 ppgGame 94/100  Raccoon 7-86  Equity: -1.624 ppgGame 95/100  Raccoon 7-87  Equity: -1.617 ppgGame 96/100  Raccoon 7-88  Equity: -1.621 ppgGame 97/100  Raccoon 7-89  Equity: -1.635 ppgGame 98/100  Raccoon 7-90  Equity: -1.639 ppgGame 99/100  Raccoon 7-91  Equity: -1.643 ppgGame 100/100  Raccoon 7-92  Equity: -1.646 ppg
+Raccoon vs GNUBG (100 games)
+  Wins: 7-93 (7.0% +/- 5.0%)
+  Equity: Raccoon -165.0, GNUBG +165.0
+  Equity/game: -1.650
+  Raccoon gammons/bg: 1/0, GNUBG gammons/bg: 56/12
+Summary appended to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_04/logs/gnubg_eval_log.jsonl
+===== ROUND 04 DONE (next=experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt) 2026-06-29_14:07:06 =====
+===== ROUND 05 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt, ply=2) 2026-06-29_14:07:06 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,730 (nondbl=1,960 dbl_vo=770 dbl_pol=0) el=52.7min rate=52/min
+  games=50 emitted=5,341 (nondbl=3,942 dbl_vo=1,399 dbl_pol=0) el=109.6min rate=49/min
+  games=75 emitted=7,906 (nondbl=5,833 dbl_vo=2,073 dbl_pol=0) el=146.5min rate=54/min
+  games=100 emitted=10,429 (nondbl=7,741 dbl_vo=2,688 dbl_pol=0) el=177.3min rate=59/min
+  games=125 emitted=12,724 (nondbl=9,432 dbl_vo=3,292 dbl_pol=0) el=202.2min rate=63/min
+  games=150 emitted=15,372 (nondbl=11,412 dbl_vo=3,960 dbl_pol=0) el=249.5min rate=62/min
+  games=175 emitted=17,999 (nondbl=13,381 dbl_vo=4,618 dbl_pol=0) el=278.4min rate=65/min
+  games=200 emitted=20,394 (nondbl=15,121 dbl_vo=5,273 dbl_pol=0) el=307.2min rate=66/min
+  games=225 emitted=22,726 (nondbl=16,881 dbl_vo=5,845 dbl_pol=0) el=343.3min rate=66/min
+  games=250 emitted=25,396 (nondbl=18,817 dbl_vo=6,579 dbl_pol=0) el=380.3min rate=67/min
+  games=275 emitted=28,009 (nondbl=20,793 dbl_vo=7,216 dbl_pol=0) el=421.0min rate=67/min
+  games=300 emitted=30,810 (nondbl=22,838 dbl_vo=7,972 dbl_pol=0) el=550.1min rate=56/min
+  games=325 emitted=33,305 (nondbl=24,665 dbl_vo=8,640 dbl_pol=0) el=573.2min rate=58/min
+  games=350 emitted=35,861 (nondbl=26,598 dbl_vo=9,263 dbl_pol=0) el=595.0min rate=60/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz
+  examples: 36,175  (games=352)
+  non-doubles policy=26,833  doubles value-only=9,342  doubles policy=0
+  value mean=0.033 std=0.339 min=-1.000 max=1.000
+  mean prob mass on best move: 0.380 (policy_temperature=0.02)
+  total 600.1 min
+===== ROUND 05 MERGE 2026-06-30_00:07:13 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_02.npz: 37,553 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz: 42,190 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz: 43,377 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz: 36,175 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_05.npz: 323,718 examples (K=6)
+===== ROUND 05 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt) 2026-06-30_00:07:19 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_04/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_05.npz
+  observations: (323718, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.304
+Split: 307,533 train / 16,185 val (soft policy targets)
+Baseline val: policy_CE=1.9043  value_MSE=0.0071  top1_acc=56.1%
+Epoch   1/4: train pol=1.5286 val=0.0070 | val pol=1.9922 val=0.0069 top1=53.5% | 2946.7s
+Epoch   2/4: train pol=1.4718 val=0.0069 | val pol=2.0462 val=0.0070 top1=50.5% | 2882.8s
+Epoch   3/4: train pol=1.4382 val=0.0069 | val pol=2.1074 val=0.0070 top1=49.2% | 2900.5s
+Epoch   4/4: train pol=1.4118 val=0.0068 | val pol=2.1424 val=0.0069 top1=47.5% | 2908.1s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt
+  final val: pol=2.1424 val=0.0069 top1=47.5%
+  total 194.0 min
+===== ROUND 05 EVAL 2026-06-30_03:21:53 =====
+----- arena: round_05 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -2.000 ppgGame 3/100  P1 1-1  Equity: +0.000 ppgGame 4/100  P1 1-2  Equity: -0.333 ppgGame 5/100  P1 2-2  Equity: +0.250 ppgGame 6/100  P1 2-3  Equity: -0.200 ppgGame 7/100  P1 3-3  Equity: +0.333 ppgGame 8/100  P1 4-3  Equity: +0.429 ppgGame 9/100  P1 4-4  Equity: +0.000 ppgGame 10/100  P1 5-4  Equity: +0.222 ppgGame 11/100  P1 6-4  Equity: +0.500 ppgGame 12/100  P1 7-4  Equity: +0.545 ppgGame 13/100  P1 8-4  Equity: +0.667 ppgGame 14/100  P1 8-5  Equity: +0.462 ppgGame 15/100  P1 8-6  Equity: +0.357 ppgGame 16/100  P1 8-7  Equity: +0.267 ppgGame 17/100  P1 9-7  Equity: +0.375 ppgGame 18/100  P1 9-8  Equity: +0.294 ppgGame 19/100  P1 10-8  Equity: +0.389 ppgGame 20/100  P1 11-8  Equity: +0.474 ppgGame 21/100  P1 12-8  Equity: +0.500 ppgGame 22/100  P1 13-8  Equity: +0.571 ppgGame 23/100  P1 14-8  Equity: +0.591 ppgGame 24/100  P1 15-8  Equity: +0.609 ppgGame 25/100  P1 15-9  Equity: +0.542 ppgGame 26/100  P1 16-9  Equity: +0.600 ppgGame 27/100  P1 16-10  Equity: +0.500 ppgGame 28/100  P1 17-10  Equity: +0.556 ppgGame 29/100  P1 18-10  Equity: +0.571 ppgGame 30/100  P1 19-10  Equity: +0.586 ppgGame 31/100  P1 20-10  Equity: +0.600 ppgGame 32/100  P1 20-11  Equity: +0.516 ppgGame 33/100  P1 21-11  Equity: +0.531 ppgGame 34/100  P1 22-11  Equity: +0.545 ppgGame 35/100  P1 23-11  Equity: +0.588 ppgGame 36/100  P1 23-12  Equity: +0.514 ppgGame 37/100  P1 24-12  Equity: +0.528 ppgGame 38/100  P1 25-12  Equity: +0.568 ppgGame 39/100  P1 26-12  Equity: +0.579 ppgGame 40/100  P1 26-13  Equity: +0.538 ppgGame 41/100  P1 27-13  Equity: +0.575 ppgGame 42/100  P1 27-14  Equity: +0.512 ppgGame 43/100  P1 27-15  Equity: +0.476 ppgGame 44/100  P1 28-15  Equity: +0.512 ppgGame 45/100  P1 28-16  Equity: +0.477 ppgGame 46/100  P1 29-16  Equity: +0.489 ppgGame 47/100  P1 29-17  Equity: +0.435 ppgGame 48/100  P1 30-17  Equity: +0.468 ppgGame 49/100  P1 30-18  Equity: +0.438 ppgGame 50/100  P1 30-19  Equity: +0.388 ppgGame 51/100  P1 30-20  Equity: +0.360 ppgGame 52/100  P1 30-21  Equity: +0.314 ppgGame 53/100  P1 31-21  Equity: +0.327 ppgGame 54/100  P1 31-22  Equity: +0.283 ppgGame 55/100  P1 31-23  Equity: +0.259 ppgGame 56/100  P1 31-24  Equity: +0.200 ppgGame 57/100  P1 32-24  Equity: +0.214 ppgGame 58/100  P1 33-24  Equity: +0.263 ppgGame 59/100  P1 33-25  Equity: +0.224 ppgGame 60/100  P1 34-25  Equity: +0.237 ppgGame 61/100  P1 35-25  Equity: +0.250 ppgGame 62/100  P1 35-26  Equity: +0.213 ppgGame 63/100  P1 35-27  Equity: +0.194 ppgGame 64/100  P1 36-27  Equity: +0.222 ppgGame 65/100  P1 37-27  Equity: +0.234 ppgGame 66/100  P1 37-28  Equity: +0.215 ppgGame 67/100  P1 38-28  Equity: +0.242 ppgGame 68/100  P1 38-29  Equity: +0.209 ppgGame 69/100  P1 39-29  Equity: +0.250 ppgGame 70/100  P1 39-30  Equity: +0.232 ppgGame 71/100  P1 40-30  Equity: +0.257 ppgGame 72/100  P1 40-31  Equity: +0.239 ppgGame 73/100  P1 41-31  Equity: +0.264 ppgGame 74/100  P1 41-32  Equity: +0.233 ppgGame 75/100  P1 41-33  Equity: +0.216 ppgGame 76/100  P1 42-33  Equity: +0.240 ppgGame 77/100  P1 43-33  Equity: +0.250 ppgGame 78/100  P1 43-34  Equity: +0.221 ppgGame 79/100  P1 44-34  Equity: +0.256 ppgGame 80/100  P1 45-34  Equity: +0.266 ppgGame 81/100  P1 46-34  Equity: +0.275 ppgGame 82/100  P1 47-34  Equity: +0.284 ppgGame 83/100  P1 47-35  Equity: +0.268 ppgGame 84/100  P1 48-35  Equity: +0.289 ppgGame 85/100  P1 49-35  Equity: +0.310 ppgGame 86/100  P1 50-35  Equity: +0.341 ppgGame 87/100  P1 50-36  Equity: +0.326 ppgGame 88/100  P1 50-37  Equity: +0.299 ppgGame 89/100  P1 50-38  Equity: +0.273 ppgGame 90/100  P1 51-38  Equity: +0.292 ppgGame 91/100  P1 51-39  Equity: +0.278 ppgGame 92/100  P1 51-40  Equity: +0.264 ppgGame 93/100  P1 51-41  Equity: +0.250 ppgGame 94/100  P1 51-42  Equity: +0.226 ppgGame 95/100  P1 52-42  Equity: +0.245 ppgGame 96/100  P1 53-42  Equity: +0.253 ppgGame 97/100  P1 53-43  Equity: +0.229 ppgGame 98/100  P1 53-44  Equity: +0.206 ppgGame 99/100  P1 54-44  Equity: +0.224 ppgGame 100/100  P1 55-44  Equity: +0.242 ppg
+P1 wins: 55/100 (55.0%), Equity: +0.220 ppg, P1 gammons/bg: 26/6, P2 gammons/bg: 22/2, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_05/logs/eval_log.jsonl
+===== ROUND 05 DONE (next=experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt) 2026-06-30_04:35:42 =====
+===== ROUND 06 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt, ply=2) 2026-06-30_04:35:42 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,379 (nondbl=1,735 dbl_vo=644 dbl_pol=0) el=28.5min rate=83/min
+  games=50 emitted=5,167 (nondbl=3,811 dbl_vo=1,356 dbl_pol=0) el=87.9min rate=59/min
+  games=75 emitted=7,957 (nondbl=5,830 dbl_vo=2,127 dbl_pol=0) el=118.4min rate=67/min
+  games=100 emitted=10,583 (nondbl=7,758 dbl_vo=2,825 dbl_pol=0) el=138.2min rate=77/min
+  games=125 emitted=13,185 (nondbl=9,614 dbl_vo=3,571 dbl_pol=0) el=159.0min rate=83/min
+  games=150 emitted=15,757 (nondbl=11,538 dbl_vo=4,219 dbl_pol=0) el=182.7min rate=86/min
+  games=175 emitted=17,985 (nondbl=13,163 dbl_vo=4,822 dbl_pol=0) el=200.8min rate=90/min
+  games=200 emitted=20,144 (nondbl=14,773 dbl_vo=5,371 dbl_pol=0) el=217.5min rate=93/min
+  games=225 emitted=22,749 (nondbl=16,741 dbl_vo=6,008 dbl_pol=0) el=248.1min rate=92/min
+  games=250 emitted=25,211 (nondbl=18,508 dbl_vo=6,703 dbl_pol=0) el=281.3min rate=90/min
+  games=275 emitted=27,492 (nondbl=20,168 dbl_vo=7,324 dbl_pol=0) el=300.3min rate=92/min
+  games=300 emitted=30,106 (nondbl=22,122 dbl_vo=7,984 dbl_pol=0) el=319.1min rate=94/min
+  games=325 emitted=32,380 (nondbl=23,792 dbl_vo=8,588 dbl_pol=0) el=348.4min rate=93/min
+  games=350 emitted=35,040 (nondbl=25,770 dbl_vo=9,270 dbl_pol=0) el=376.2min rate=93/min
+  games=375 emitted=37,422 (nondbl=27,484 dbl_vo=9,938 dbl_pol=0) el=399.5min rate=94/min
+  games=400 emitted=40,126 (nondbl=29,461 dbl_vo=10,665 dbl_pol=0) el=423.8min rate=95/min
+  games=425 emitted=42,910 (nondbl=31,608 dbl_vo=11,302 dbl_pol=0) el=455.6min rate=94/min
+  games=450 emitted=45,503 (nondbl=33,535 dbl_vo=11,968 dbl_pol=0) el=486.8min rate=93/min
+  games=475 emitted=47,973 (nondbl=35,364 dbl_vo=12,609 dbl_pol=0) el=507.3min rate=95/min
+  games=500 emitted=50,494 (nondbl=37,245 dbl_vo=13,249 dbl_pol=0) el=546.1min rate=92/min
+  games=525 emitted=52,805 (nondbl=38,953 dbl_vo=13,852 dbl_pol=0) el=566.5min rate=93/min
+  games=550 emitted=55,309 (nondbl=40,820 dbl_vo=14,489 dbl_pol=0) el=593.1min rate=93/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz
+  examples: 55,879  (games=557)
+  non-doubles policy=41,229  doubles value-only=14,650  doubles policy=0
+  value mean=0.033 std=0.343 min=-1.000 max=1.000
+  mean prob mass on best move: 0.380 (policy_temperature=0.02)
+  total 600.0 min
+===== ROUND 06 MERGE 2026-06-30_14:35:45 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_03.npz: 42,190 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz: 43,377 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz: 36,175 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz: 55,879 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_06.npz: 342,044 examples (K=6)
+===== ROUND 06 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt) 2026-06-30_14:35:52 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_05/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_06.npz
+  observations: (342044, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.307
+Split: 324,942 train / 17,102 val (soft policy targets)
+Baseline val: policy_CE=1.9291  value_MSE=0.0068  top1_acc=57.3%
+Epoch   1/4: train pol=1.5412 val=0.0070 | val pol=2.0261 val=0.0067 top1=53.1% | 3175.0s
+Epoch   2/4: train pol=1.4769 val=0.0069 | val pol=2.0687 val=0.0069 top1=50.7% | 3157.9s
+Epoch   3/4: train pol=1.4419 val=0.0069 | val pol=2.1521 val=0.0068 top1=48.7% | 3164.4s
+Epoch   4/4: train pol=1.4151 val=0.0069 | val pol=2.1762 val=0.0069 top1=47.8% | 3112.8s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt
+  final val: pol=2.1762 val=0.0069 top1=47.8%
+  total 210.2 min
+===== ROUND 06 EVAL 2026-06-30_18:06:40 =====
+----- arena: round_06 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -2.000 ppgGame 3/100  P1 1-1  Equity: -0.500 ppgGame 4/100  P1 1-2  Equity: -0.667 ppgGame 5/100  P1 1-3  Equity: -1.000 ppgGame 6/100  P1 2-3  Equity: -0.400 ppgGame 7/100  P1 3-3  Equity: -0.167 ppgGame 8/100  P1 3-4  Equity: -0.429 ppgGame 9/100  P1 4-4  Equity: -0.125 ppgGame 10/100  P1 5-4  Equity: +0.111 ppgGame 11/100  P1 5-5  Equity: +0.000 ppgGame 12/100  P1 5-6  Equity: -0.091 ppgGame 13/100  P1 6-6  Equity: +0.000 ppgGame 14/100  P1 7-6  Equity: +0.154 ppgGame 15/100  P1 7-7  Equity: +0.000 ppgGame 16/100  P1 8-7  Equity: +0.067 ppgGame 17/100  P1 8-8  Equity: +0.000 ppgGame 18/100  P1 9-8  Equity: +0.059 ppgGame 19/100  P1 9-9  Equity: +0.000 ppgGame 20/100  P1 9-10  Equity: -0.053 ppgGame 21/100  P1 10-10  Equity: +0.050 ppgGame 22/100  P1 10-11  Equity: +0.000 ppgGame 23/100  P1 10-12  Equity: -0.136 ppgGame 24/100  P1 11-12  Equity: -0.087 ppgGame 25/100  P1 12-12  Equity: -0.042 ppgGame 26/100  P1 13-12  Equity: +0.040 ppgGame 27/100  P1 14-12  Equity: +0.077 ppgGame 28/100  P1 14-13  Equity: +0.037 ppgGame 29/100  P1 14-14  Equity: +0.000 ppgGame 30/100  P1 15-14  Equity: +0.069 ppgGame 31/100  P1 15-15  Equity: +0.000 ppgGame 32/100  P1 15-16  Equity: -0.032 ppgGame 33/100  P1 16-16  Equity: +0.000 ppgGame 34/100  P1 17-16  Equity: +0.030 ppgGame 35/100  P1 17-17  Equity: -0.029 ppgGame 36/100  P1 18-17  Equity: +0.000 ppgGame 37/100  P1 19-17  Equity: +0.056 ppgGame 38/100  P1 20-17  Equity: +0.108 ppgGame 39/100  P1 21-17  Equity: +0.132 ppgGame 40/100  P1 21-18  Equity: +0.077 ppgGame 41/100  P1 22-18  Equity: +0.100 ppgGame 42/100  P1 22-19  Equity: +0.049 ppgGame 43/100  P1 22-20  Equity: +0.024 ppgGame 44/100  P1 22-21  Equity: +0.000 ppgGame 45/100  P1 23-21  Equity: +0.045 ppgGame 46/100  P1 23-22  Equity: +0.022 ppgGame 47/100  P1 23-23  Equity: +0.000 ppgGame 48/100  P1 23-24  Equity: -0.021 ppgGame 49/100  P1 24-24  Equity: +0.021 ppgGame 50/100  P1 25-24  Equity: +0.061 ppgGame 51/100  P1 25-25  Equity: +0.020 ppgGame 52/100  P1 26-25  Equity: +0.039 ppgGame 53/100  P1 27-25  Equity: +0.058 ppgGame 54/100  P1 28-25  Equity: +0.094 ppgGame 55/100  P1 29-25  Equity: +0.111 ppgGame 56/100  P1 30-25  Equity: +0.127 ppgGame 57/100  P1 31-25  Equity: +0.161 ppgGame 58/100  P1 31-26  Equity: +0.123 ppgGame 59/100  P1 32-26  Equity: +0.138 ppgGame 60/100  P1 32-27  Equity: +0.085 ppgGame 61/100  P1 32-28  Equity: +0.067 ppgGame 62/100  P1 33-28  Equity: +0.082 ppgGame 63/100  P1 33-29  Equity: +0.032 ppgGame 64/100  P1 33-30  Equity: +0.016 ppgGame 65/100  P1 33-31  Equity: -0.016 ppgGame 66/100  P1 33-32  Equity: -0.031 ppgGame 67/100  P1 34-32  Equity: +0.000 ppgGame 68/100  P1 34-33  Equity: -0.030 ppgGame 69/100  P1 34-34  Equity: -0.044 ppgGame 70/100  P1 35-34  Equity: -0.014 ppgGame 71/100  P1 35-35  Equity: -0.029 ppgGame 72/100  P1 35-36  Equity: -0.056 ppgGame 73/100  P1 36-36  Equity: -0.042 ppgGame 74/100  P1 37-36  Equity: -0.014 ppgGame 75/100  P1 38-36  Equity: +0.027 ppgGame 76/100  P1 39-36  Equity: +0.040 ppgGame 77/100  P1 40-36  Equity: +0.066 ppgGame 78/100  P1 40-37  Equity: +0.026 ppgGame 79/100  P1 40-38  Equity: +0.000 ppgGame 80/100  P1 41-38  Equity: +0.025 ppgGame 81/100  P1 42-38  Equity: +0.037 ppgGame 82/100  P1 43-38  Equity: +0.062 ppgGame 83/100  P1 43-39  Equity: +0.037 ppgGame 84/100  P1 43-40  Equity: +0.012 ppgGame 85/100  P1 43-41  Equity: +0.000 ppgGame 86/100  P1 44-41  Equity: +0.024 ppgGame 87/100  P1 45-41  Equity: +0.035 ppgGame 88/100  P1 46-41  Equity: +0.057 ppgGame 89/100  P1 47-41  Equity: +0.080 ppgGame 90/100  P1 48-41  Equity: +0.090 ppgGame 91/100  P1 49-41  Equity: +0.100 ppgGame 92/100  P1 50-41  Equity: +0.110 ppgGame 93/100  P1 50-42  Equity: +0.087 ppgGame 94/100  P1 51-42  Equity: +0.108 ppgGame 95/100  P1 51-43  Equity: +0.096 ppgGame 96/100  P1 51-44  Equity: +0.074 ppgGame 97/100  P1 51-45  Equity: +0.062 ppgGame 98/100  P1 52-45  Equity: +0.093 ppgGame 99/100  P1 52-46  Equity: +0.082 ppgGame 100/100  P1 53-46  Equity: +0.101 ppg
+P1 wins: 54/100 (54.0%), Equity: +0.110 ppg, P1 gammons/bg: 25/2, P2 gammons/bg: 18/4, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_06/logs/eval_log.jsonl
+===== ROUND 06 DONE (next=experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt) 2026-06-30_19:19:26 =====
+===== ROUND 07 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt, ply=2) 2026-06-30_19:19:26 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,234 (nondbl=1,656 dbl_vo=578 dbl_pol=0) el=20.5min rate=109/min
+  games=50 emitted=4,676 (nondbl=3,453 dbl_vo=1,223 dbl_pol=0) el=53.0min rate=88/min
+  games=75 emitted=7,380 (nondbl=5,443 dbl_vo=1,937 dbl_pol=0) el=110.4min rate=67/min
+  games=100 emitted=9,883 (nondbl=7,325 dbl_vo=2,558 dbl_pol=0) el=152.7min rate=65/min
+  games=125 emitted=12,742 (nondbl=9,369 dbl_vo=3,373 dbl_pol=0) el=273.7min rate=47/min
+  games=150 emitted=15,505 (nondbl=11,405 dbl_vo=4,100 dbl_pol=0) el=315.5min rate=49/min
+  games=175 emitted=18,271 (nondbl=13,467 dbl_vo=4,804 dbl_pol=0) el=348.7min rate=52/min
+  games=200 emitted=21,219 (nondbl=15,618 dbl_vo=5,601 dbl_pol=0) el=423.5min rate=50/min
+  games=225 emitted=23,927 (nondbl=17,611 dbl_vo=6,316 dbl_pol=0) el=456.3min rate=52/min
+  games=250 emitted=26,465 (nondbl=19,480 dbl_vo=6,985 dbl_pol=0) el=495.4min rate=53/min
+  games=275 emitted=29,165 (nondbl=21,486 dbl_vo=7,679 dbl_pol=0) el=574.8min rate=51/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz
+  examples: 30,449  (games=287)
+  non-doubles policy=22,425  doubles value-only=8,024  doubles policy=0
+  value mean=0.034 std=0.328 min=-1.000 max=1.000
+  mean prob mass on best move: 0.380 (policy_temperature=0.02)
+  total 606.3 min
+===== ROUND 07 MERGE 2026-07-01_05:25:43 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_04.npz: 43,377 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz: 36,175 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz: 55,879 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz: 30,449 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_07.npz: 330,303 examples (K=6)
+===== ROUND 07 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt) 2026-07-01_05:25:49 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_06/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_07.npz
+  observations: (330303, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.306
+Split: 313,788 train / 16,515 val (soft policy targets)
+Baseline val: policy_CE=1.8794  value_MSE=0.0070  top1_acc=58.0%
+Epoch   1/4: train pol=1.4890 val=0.0070 | val pol=1.9837 val=0.0073 top1=53.5% | 2990.1s
+Epoch   2/4: train pol=1.4286 val=0.0069 | val pol=2.0384 val=0.0069 top1=52.0% | 2965.8s
+Epoch   3/4: train pol=1.4012 val=0.0069 | val pol=2.0877 val=0.0070 top1=49.8% | 2951.3s
+Epoch   4/4: train pol=1.3784 val=0.0068 | val pol=2.1295 val=0.0072 top1=48.0% | 2994.4s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt
+  final val: pol=2.1295 val=0.0072 top1=48.0%
+  total 198.4 min
+===== ROUND 07 EVAL 2026-07-01_08:44:47 =====
+----- arena: round_07 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -2.000 ppgGame 3/100  P1 1-1  Equity: -0.500 ppgGame 4/100  P1 2-1  Equity: +0.333 ppgGame 5/100  P1 3-1  Equity: +0.750 ppgGame 6/100  P1 4-1  Equity: +1.000 ppgGame 7/100  P1 5-1  Equity: +1.167 ppgGame 8/100  P1 5-2  Equity: +0.714 ppgGame 9/100  P1 5-3  Equity: +0.500 ppgGame 10/100  P1 6-3  Equity: +0.667 ppgGame 11/100  P1 7-3  Equity: +0.800 ppgGame 12/100  P1 7-4  Equity: +0.636 ppgGame 13/100  P1 8-4  Equity: +0.750 ppgGame 14/100  P1 8-5  Equity: +0.615 ppgGame 15/100  P1 8-6  Equity: +0.429 ppgGame 16/100  P1 8-7  Equity: +0.267 ppgGame 17/100  P1 8-8  Equity: +0.188 ppgGame 18/100  P1 9-8  Equity: +0.353 ppgGame 19/100  P1 10-8  Equity: +0.444 ppgGame 20/100  P1 11-8  Equity: +0.474 ppgGame 21/100  P1 11-9  Equity: +0.400 ppgGame 22/100  P1 11-10  Equity: +0.286 ppgGame 23/100  P1 12-10  Equity: +0.318 ppgGame 24/100  P1 12-11  Equity: +0.261 ppgGame 25/100  P1 12-12  Equity: +0.167 ppgGame 26/100  P1 13-12  Equity: +0.280 ppgGame 27/100  P1 14-12  Equity: +0.308 ppgGame 28/100  P1 14-13  Equity: +0.259 ppgGame 29/100  P1 15-13  Equity: +0.357 ppgGame 30/100  P1 15-14  Equity: +0.310 ppgGame 31/100  P1 15-15  Equity: +0.233 ppgGame 32/100  P1 15-16  Equity: +0.194 ppgGame 33/100  P1 16-16  Equity: +0.250 ppgGame 34/100  P1 17-16  Equity: +0.273 ppgGame 35/100  P1 17-17  Equity: +0.235 ppgGame 36/100  P1 18-17  Equity: +0.286 ppgGame 37/100  P1 19-17  Equity: +0.306 ppgGame 38/100  P1 20-17  Equity: +0.324 ppgGame 39/100  P1 21-17  Equity: +0.368 ppgGame 40/100  P1 22-17  Equity: +0.436 ppgGame 41/100  P1 22-18  Equity: +0.400 ppgGame 42/100  P1 23-18  Equity: +0.439 ppgGame 43/100  P1 24-18  Equity: +0.500 ppgGame 44/100  P1 25-18  Equity: +0.535 ppgGame 45/100  P1 26-18  Equity: +0.545 ppgGame 46/100  P1 27-18  Equity: +0.578 ppgGame 47/100  P1 27-19  Equity: +0.522 ppgGame 48/100  P1 28-19  Equity: +0.553 ppgGame 49/100  P1 29-19  Equity: +0.583 ppgGame 50/100  P1 29-20  Equity: +0.551 ppgGame 51/100  P1 30-20  Equity: +0.560 ppgGame 52/100  P1 30-21  Equity: +0.510 ppgGame 53/100  P1 31-21  Equity: +0.519 ppgGame 54/100  P1 32-21  Equity: +0.528 ppgGame 55/100  P1 33-21  Equity: +0.537 ppgGame 56/100  P1 33-22  Equity: +0.509 ppgGame 57/100  P1 33-23  Equity: +0.482 ppgGame 58/100  P1 33-24  Equity: +0.439 ppgGame 59/100  P1 33-25  Equity: +0.414 ppgGame 60/100  P1 34-25  Equity: +0.424 ppgGame 61/100  P1 34-26  Equity: +0.400 ppgGame 62/100  P1 34-27  Equity: +0.377 ppgGame 63/100  P1 35-27  Equity: +0.387 ppgGame 64/100  P1 35-28  Equity: +0.365 ppgGame 65/100  P1 36-28  Equity: +0.406 ppgGame 66/100  P1 37-28  Equity: +0.415 ppgGame 67/100  P1 37-29  Equity: +0.394 ppgGame 68/100  P1 38-29  Equity: +0.403 ppgGame 69/100  P1 39-29  Equity: +0.426 ppgGame 70/100  P1 40-29  Equity: +0.464 ppgGame 71/100  P1 41-29  Equity: +0.486 ppgGame 72/100  P1 42-29  Equity: +0.507 ppgGame 73/100  P1 43-29  Equity: +0.514 ppgGame 74/100  P1 43-30  Equity: +0.493 ppgGame 75/100  P1 43-31  Equity: +0.459 ppgGame 76/100  P1 43-32  Equity: +0.427 ppgGame 77/100  P1 43-33  Equity: +0.408 ppgGame 78/100  P1 43-34  Equity: +0.377 ppgGame 79/100  P1 44-34  Equity: +0.397 ppgGame 80/100  P1 45-34  Equity: +0.405 ppgGame 81/100  P1 45-35  Equity: +0.375 ppgGame 82/100  P1 45-36  Equity: +0.346 ppgGame 83/100  P1 45-37  Equity: +0.329 ppgGame 84/100  P1 46-37  Equity: +0.349 ppgGame 85/100  P1 46-38  Equity: +0.333 ppgGame 86/100  P1 47-38  Equity: +0.353 ppgGame 87/100  P1 47-39  Equity: +0.326 ppgGame 88/100  P1 47-40  Equity: +0.299 ppgGame 89/100  P1 48-40  Equity: +0.318 ppgGame 90/100  P1 49-40  Equity: +0.337 ppgGame 91/100  P1 50-40  Equity: +0.356 ppgGame 92/100  P1 51-40  Equity: +0.363 ppgGame 93/100  P1 52-40  Equity: +0.380 ppgGame 94/100  P1 52-41  Equity: +0.355 ppgGame 95/100  P1 52-42  Equity: +0.330 ppgGame 96/100  P1 53-42  Equity: +0.358 ppgGame 97/100  P1 54-42  Equity: +0.375 ppgGame 98/100  P1 54-43  Equity: +0.361 ppgGame 99/100  P1 55-43  Equity: +0.367 ppgGame 100/100  P1 55-44  Equity: +0.354 ppg
+P1 wins: 56/100 (56.0%), Equity: +0.360 ppg, P1 gammons/bg: 27/8, P2 gammons/bg: 19/0, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_07/logs/eval_log.jsonl
+===== ROUND 07 DONE (next=experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt) 2026-07-01_09:57:35 =====
+===== ROUND 08 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt, ply=2) 2026-07-01_09:57:35 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,803 (nondbl=2,035 dbl_vo=768 dbl_pol=0) el=28.3min rate=99/min
+  games=50 emitted=5,355 (nondbl=3,917 dbl_vo=1,438 dbl_pol=0) el=56.8min rate=94/min
+  games=75 emitted=7,803 (nondbl=5,727 dbl_vo=2,076 dbl_pol=0) el=99.0min rate=79/min
+  games=100 emitted=10,232 (nondbl=7,452 dbl_vo=2,780 dbl_pol=0) el=131.5min rate=78/min
+  games=125 emitted=12,363 (nondbl=9,041 dbl_vo=3,322 dbl_pol=0) el=147.8min rate=84/min
+  games=150 emitted=14,390 (nondbl=10,546 dbl_vo=3,844 dbl_pol=0) el=184.5min rate=78/min
+  games=175 emitted=16,907 (nondbl=12,440 dbl_vo=4,467 dbl_pol=0) el=228.3min rate=74/min
+  games=200 emitted=19,287 (nondbl=14,183 dbl_vo=5,104 dbl_pol=0) el=250.1min rate=77/min
+  games=225 emitted=21,823 (nondbl=16,038 dbl_vo=5,785 dbl_pol=0) el=271.3min rate=80/min
+  games=250 emitted=24,161 (nondbl=17,765 dbl_vo=6,396 dbl_pol=0) el=303.7min rate=80/min
+  games=275 emitted=26,856 (nondbl=19,742 dbl_vo=7,114 dbl_pol=0) el=330.3min rate=81/min
+  games=300 emitted=29,696 (nondbl=21,863 dbl_vo=7,833 dbl_pol=0) el=373.1min rate=80/min
+  games=325 emitted=31,913 (nondbl=23,480 dbl_vo=8,433 dbl_pol=0) el=419.4min rate=76/min
+  games=350 emitted=34,471 (nondbl=25,366 dbl_vo=9,105 dbl_pol=0) el=440.7min rate=78/min
+  games=375 emitted=36,847 (nondbl=27,108 dbl_vo=9,739 dbl_pol=0) el=470.4min rate=78/min
+  games=400 emitted=39,257 (nondbl=28,906 dbl_vo=10,351 dbl_pol=0) el=493.0min rate=80/min
+  games=425 emitted=41,782 (nondbl=30,764 dbl_vo=11,018 dbl_pol=0) el=512.2min rate=82/min
+  games=450 emitted=44,296 (nondbl=32,615 dbl_vo=11,681 dbl_pol=0) el=540.0min rate=82/min
+  games=475 emitted=47,070 (nondbl=34,677 dbl_vo=12,393 dbl_pol=0) el=568.3min rate=83/min
+  games=500 emitted=49,405 (nondbl=36,369 dbl_vo=13,036 dbl_pol=0) el=598.3min rate=83/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz
+  examples: 49,610  (games=504)
+  non-doubles policy=36,522  doubles value-only=13,088  doubles policy=0
+  value mean=0.033 std=0.338 min=-1.000 max=1.000
+  mean prob mass on best move: 0.378 (policy_temperature=0.02)
+  total 600.0 min
+===== ROUND 08 MERGE 2026-07-01_19:57:38 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_05.npz: 36,175 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz: 55,879 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz: 30,449 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz: 49,610 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_08.npz: 336,536 examples (K=6)
+===== ROUND 08 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt) 2026-07-01_19:57:45 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_07/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_08.npz
+  observations: (336536, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.306
+Split: 319,710 train / 16,826 val (soft policy targets)
+Baseline val: policy_CE=1.9166  value_MSE=0.0068  top1_acc=56.2%
+Epoch   1/4: train pol=1.5028 val=0.0070 | val pol=1.9995 val=0.0066 top1=53.1% | 3073.5s
+Epoch   2/4: train pol=1.4337 val=0.0069 | val pol=2.0739 val=0.0067 top1=50.6% | 3025.2s
+Epoch   3/4: train pol=1.4024 val=0.0069 | val pol=2.1156 val=0.0067 top1=48.5% | 3023.1s
+Epoch   4/4: train pol=1.3755 val=0.0068 | val pol=2.1737 val=0.0068 top1=47.4% | 3022.8s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt
+  final val: pol=2.1737 val=0.0068 top1=47.4%
+  total 202.4 min
+===== ROUND 08 EVAL 2026-07-01_23:20:46 =====
+----- arena: round_08 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +1.000 ppgGame 3/100  P1 1-1  Equity: -0.500 ppgGame 4/100  P1 1-2  Equity: -0.667 ppgGame 5/100  P1 2-2  Equity: +0.000 ppgGame 6/100  P1 2-3  Equity: -0.200 ppgGame 7/100  P1 2-4  Equity: -0.500 ppgGame 8/100  P1 2-5  Equity: -0.714 ppgGame 9/100  P1 3-5  Equity: -0.375 ppgGame 10/100  P1 4-5  Equity: -0.111 ppgGame 11/100  P1 4-6  Equity: -0.200 ppgGame 12/100  P1 4-7  Equity: -0.364 ppgGame 13/100  P1 5-7  Equity: -0.250 ppgGame 14/100  P1 6-7  Equity: -0.154 ppgGame 15/100  P1 6-8  Equity: -0.286 ppgGame 16/100  P1 7-8  Equity: -0.200 ppgGame 17/100  P1 8-8  Equity: +0.000 ppgGame 18/100  P1 9-8  Equity: +0.118 ppgGame 19/100  P1 10-8  Equity: +0.222 ppgGame 20/100  P1 11-8  Equity: +0.316 ppgGame 21/100  P1 11-9  Equity: +0.250 ppgGame 22/100  P1 11-10  Equity: +0.143 ppgGame 23/100  P1 11-11  Equity: +0.045 ppgGame 24/100  P1 12-11  Equity: +0.130 ppgGame 25/100  P1 12-12  Equity: +0.000 ppgGame 26/100  P1 13-12  Equity: +0.040 ppgGame 27/100  P1 13-13  Equity: -0.077 ppgGame 28/100  P1 14-13  Equity: -0.037 ppgGame 29/100  P1 15-13  Equity: +0.071 ppgGame 30/100  P1 15-14  Equity: +0.000 ppgGame 31/100  P1 16-14  Equity: +0.033 ppgGame 32/100  P1 16-15  Equity: +0.000 ppgGame 33/100  P1 17-15  Equity: +0.062 ppgGame 34/100  P1 17-16  Equity: +0.000 ppgGame 35/100  P1 18-16  Equity: +0.059 ppgGame 36/100  P1 19-16  Equity: +0.086 ppgGame 37/100  P1 19-17  Equity: +0.056 ppgGame 38/100  P1 20-17  Equity: +0.081 ppgGame 39/100  P1 21-17  Equity: +0.105 ppgGame 40/100  P1 21-18  Equity: +0.026 ppgGame 41/100  P1 21-19  Equity: -0.050 ppgGame 42/100  P1 22-19  Equity: -0.024 ppgGame 43/100  P1 23-19  Equity: +0.000 ppgGame 44/100  P1 24-19  Equity: +0.023 ppgGame 45/100  P1 24-20  Equity: -0.045 ppgGame 46/100  P1 25-20  Equity: -0.022 ppgGame 47/100  P1 26-20  Equity: +0.022 ppgGame 48/100  P1 27-20  Equity: +0.064 ppgGame 49/100  P1 27-21  Equity: +0.021 ppgGame 50/100  P1 28-21  Equity: +0.041 ppgGame 51/100  P1 28-22  Equity: +0.020 ppgGame 52/100  P1 28-23  Equity: +0.000 ppgGame 53/100  P1 29-23  Equity: +0.058 ppgGame 54/100  P1 30-23  Equity: +0.094 ppgGame 55/100  P1 31-23  Equity: +0.111 ppgGame 56/100  P1 31-24  Equity: +0.091 ppgGame 57/100  P1 31-25  Equity: +0.071 ppgGame 58/100  P1 32-25  Equity: +0.105 ppgGame 59/100  P1 33-25  Equity: +0.138 ppgGame 60/100  P1 34-25  Equity: +0.186 ppgGame 61/100  P1 34-26  Equity: +0.167 ppgGame 62/100  P1 34-27  Equity: +0.148 ppgGame 63/100  P1 35-27  Equity: +0.177 ppgGame 64/100  P1 35-28  Equity: +0.159 ppgGame 65/100  P1 35-29  Equity: +0.109 ppgGame 66/100  P1 36-29  Equity: +0.123 ppgGame 67/100  P1 36-30  Equity: +0.106 ppgGame 68/100  P1 37-30  Equity: +0.149 ppgGame 69/100  P1 37-31  Equity: +0.132 ppgGame 70/100  P1 37-32  Equity: +0.116 ppgGame 71/100  P1 38-32  Equity: +0.129 ppgGame 72/100  P1 38-33  Equity: +0.099 ppgGame 73/100  P1 39-33  Equity: +0.139 ppgGame 74/100  P1 39-34  Equity: +0.123 ppgGame 75/100  P1 40-34  Equity: +0.135 ppgGame 76/100  P1 41-34  Equity: +0.147 ppgGame 77/100  P1 42-34  Equity: +0.171 ppgGame 78/100  P1 43-34  Equity: +0.208 ppgGame 79/100  P1 44-34  Equity: +0.218 ppgGame 80/100  P1 44-35  Equity: +0.203 ppgGame 81/100  P1 44-36  Equity: +0.188 ppgGame 82/100  P1 45-36  Equity: +0.210 ppgGame 83/100  P1 46-36  Equity: +0.220 ppgGame 84/100  P1 47-36  Equity: +0.241 ppgGame 85/100  P1 47-37  Equity: +0.214 ppgGame 86/100  P1 48-37  Equity: +0.224 ppgGame 87/100  P1 49-37  Equity: +0.233 ppgGame 88/100  P1 50-37  Equity: +0.241 ppgGame 89/100  P1 51-37  Equity: +0.250 ppgGame 90/100  P1 51-38  Equity: +0.225 ppgGame 91/100  P1 51-39  Equity: +0.200 ppgGame 92/100  P1 51-40  Equity: +0.176 ppgGame 93/100  P1 52-40  Equity: +0.185 ppgGame 94/100  P1 53-40  Equity: +0.194 ppgGame 95/100  P1 54-40  Equity: +0.202 ppgGame 96/100  P1 54-41  Equity: +0.179 ppgGame 97/100  P1 54-42  Equity: +0.156 ppgGame 98/100  P1 54-43  Equity: +0.124 ppgGame 99/100  P1 54-44  Equity: +0.102 ppgGame 100/100  P1 54-45  Equity: +0.091 ppg
+P1 wins: 55/100 (55.0%), Equity: +0.110 ppg, P1 gammons/bg: 19/7, P2 gammons/bg: 18/7, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_08/logs/eval_log.jsonl
+----- arena: round_08 vs iter_0447 (internal bar) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/exp005-6x128-800sims/checkpoints/iter_0447.pt (6x128)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 2-0  Equity: +2.500 ppgGame 4/100  P1 3-0  Equity: +2.333 ppgGame 5/100  P1 4-0  Equity: +2.250 ppgGame 6/100  P1 5-0  Equity: +2.400 ppgGame 7/100  P1 6-0  Equity: +2.333 ppgGame 8/100  P1 7-0  Equity: +2.286 ppgGame 9/100  P1 8-0  Equity: +2.250 ppgGame 10/100  P1 9-0  Equity: +2.333 ppgGame 11/100  P1 10-0  Equity: +2.300 ppgGame 12/100  P1 11-0  Equity: +2.182 ppgGame 13/100  P1 12-0  Equity: +2.083 ppgGame 14/100  P1 13-0  Equity: +2.154 ppgGame 15/100  P1 14-0  Equity: +2.071 ppgGame 16/100  P1 15-0  Equity: +2.133 ppgGame 17/100  P1 16-0  Equity: +2.188 ppgGame 18/100  P1 16-1  Equity: +2.000 ppgGame 19/100  P1 17-1  Equity: +2.000 ppgGame 20/100  P1 18-1  Equity: +2.000 ppgGame 21/100  P1 19-1  Equity: +2.000 ppgGame 22/100  P1 20-1  Equity: +1.952 ppgGame 23/100  P1 21-1  Equity: +1.955 ppgGame 24/100  P1 22-1  Equity: +2.000 ppgGame 25/100  P1 23-1  Equity: +2.042 ppgGame 26/100  P1 24-1  Equity: +2.080 ppgGame 27/100  P1 25-1  Equity: +2.115 ppgGame 28/100  P1 26-1  Equity: +2.148 ppgGame 29/100  P1 27-1  Equity: +2.179 ppgGame 30/100  P1 28-1  Equity: +2.207 ppgGame 31/100  P1 29-1  Equity: +2.200 ppgGame 32/100  P1 30-1  Equity: +2.226 ppgGame 33/100  P1 31-1  Equity: +2.250 ppgGame 34/100  P1 32-1  Equity: +2.273 ppgGame 35/100  P1 33-1  Equity: +2.294 ppgGame 36/100  P1 34-1  Equity: +2.314 ppgGame 37/100  P1 35-1  Equity: +2.333 ppgGame 38/100  P1 36-1  Equity: +2.297 ppgGame 39/100  P1 37-1  Equity: +2.316 ppgGame 40/100  P1 38-1  Equity: +2.333 ppgGame 41/100  P1 39-1  Equity: +2.325 ppgGame 42/100  P1 40-1  Equity: +2.317 ppgGame 43/100  P1 41-1  Equity: +2.310 ppgGame 44/100  P1 42-1  Equity: +2.302 ppgGame 45/100  P1 43-1  Equity: +2.318 ppgGame 46/100  P1 44-1  Equity: +2.333 ppgGame 47/100  P1 45-1  Equity: +2.326 ppgGame 48/100  P1 46-1  Equity: +2.340 ppgGame 49/100  P1 47-1  Equity: +2.333 ppgGame 50/100  P1 48-1  Equity: +2.327 ppgGame 51/100  P1 49-1  Equity: +2.340 ppgGame 52/100  P1 50-1  Equity: +2.353 ppgGame 53/100  P1 51-1  Equity: +2.346 ppgGame 54/100  P1 52-1  Equity: +2.358 ppgGame 55/100  P1 53-1  Equity: +2.352 ppgGame 56/100  P1 54-1  Equity: +2.364 ppgGame 57/100  P1 55-1  Equity: +2.357 ppgGame 58/100  P1 56-1  Equity: +2.351 ppgGame 59/100  P1 57-1  Equity: +2.345 ppgGame 60/100  P1 58-1  Equity: +2.322 ppgGame 61/100  P1 59-1  Equity: +2.317 ppgGame 62/100  P1 60-1  Equity: +2.311 ppgGame 63/100  P1 61-1  Equity: +2.306 ppgGame 64/100  P1 62-1  Equity: +2.317 ppgGame 65/100  P1 63-1  Equity: +2.328 ppgGame 66/100  P1 64-1  Equity: +2.338 ppgGame 67/100  P1 65-1  Equity: +2.333 ppgGame 68/100  P1 66-1  Equity: +2.343 ppgGame 69/100  P1 67-1  Equity: +2.338 ppgGame 70/100  P1 68-1  Equity: +2.333 ppgGame 71/100  P1 69-1  Equity: +2.343 ppgGame 72/100  P1 70-1  Equity: +2.352 ppgGame 73/100  P1 71-1  Equity: +2.347 ppgGame 74/100  P1 72-1  Equity: +2.342 ppgGame 75/100  P1 72-2  Equity: +2.297 ppgGame 76/100  P1 73-2  Equity: +2.307 ppgGame 77/100  P1 74-2  Equity: +2.316 ppgGame 78/100  P1 75-2  Equity: +2.299 ppgGame 79/100  P1 76-2  Equity: +2.308 ppgGame 80/100  P1 77-2  Equity: +2.316 ppgGame 81/100  P1 78-2  Equity: +2.312 ppgGame 82/100  P1 79-2  Equity: +2.321 ppgGame 83/100  P1 80-2  Equity: +2.317 ppgGame 84/100  P1 81-2  Equity: +2.325 ppgGame 85/100  P1 82-2  Equity: +2.321 ppgGame 86/100  P1 83-2  Equity: +2.329 ppgGame 87/100  P1 84-2  Equity: +2.326 ppgGame 88/100  P1 85-2  Equity: +2.322 ppgGame 89/100  P1 86-2  Equity: +2.307 ppgGame 90/100  P1 87-2  Equity: +2.315 ppgGame 91/100  P1 88-2  Equity: +2.311 ppgGame 92/100  P1 89-2  Equity: +2.319 ppgGame 93/100  P1 89-3  Equity: +2.272 ppgGame 94/100  P1 90-3  Equity: +2.280 ppgGame 95/100  P1 90-4  Equity: +2.245 ppgGame 96/100  P1 91-4  Equity: +2.253 ppgGame 97/100  P1 92-4  Equity: +2.240 ppgGame 98/100  P1 93-4  Equity: +2.247 ppgGame 99/100  P1 94-4  Equity: +2.255 ppgGame 100/100  P1 95-4  Equity: +2.253 ppg
+P1 wins: 96/100 (96.0%), Equity: +2.240 ppg, P1 gammons/bg: 39/47, P2 gammons/bg: 1/0, Avg length: 79 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_08/logs/eval_log.jsonl
+----- gnubg: round_08 vs world/2-ply (external M6) -----
+Raccoon: experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt (10x256)
+GNUBG: level=world
+Playing 100 games, 50 MCTS simulations per Raccoon move...
+Game 1/100  Raccoon 0-0  Equity: +0.000 ppgGame 2/100  Raccoon 0-1  Equity: -2.000 ppgGame 3/100  Raccoon 0-2  Equity: -2.500 ppgGame 4/100  Raccoon 0-3  Equity: -2.333 ppgGame 5/100  Raccoon 0-4  Equity: -2.000 ppgGame 6/100  Raccoon 1-4  Equity: -1.200 ppgGame 7/100  Raccoon 1-5  Equity: -1.500 ppgGame 8/100  Raccoon 1-6  Equity: -1.429 ppgGame 9/100  Raccoon 1-7  Equity: -1.375 ppgGame 10/100  Raccoon 2-7  Equity: -1.111 ppgGame 11/100  Raccoon 2-8  Equity: -1.100 ppgGame 12/100  Raccoon 2-9  Equity: -1.091 ppgGame 13/100  Raccoon 2-10  Equity: -1.167 ppgGame 14/100  Raccoon 2-11  Equity: -1.154 ppgGame 15/100  Raccoon 2-12  Equity: -1.214 ppgGame 16/100  Raccoon 2-13  Equity: -1.333 ppgGame 17/100  Raccoon 2-14  Equity: -1.312 ppgGame 18/100  Raccoon 2-15  Equity: -1.294 ppgGame 19/100  Raccoon 2-16  Equity: -1.278 ppgGame 20/100  Raccoon 2-17  Equity: -1.316 ppgGame 21/100  Raccoon 2-18  Equity: -1.350 ppgGame 22/100  Raccoon 2-19  Equity: -1.429 ppgGame 23/100  Raccoon 3-19  Equity: -1.273 ppgGame 24/100  Raccoon 3-20  Equity: -1.261 ppgGame 25/100  Raccoon 3-21  Equity: -1.292 ppgGame 26/100  Raccoon 4-21  Equity: -1.200 ppgGame 27/100  Raccoon 4-22  Equity: -1.192 ppgGame 28/100  Raccoon 5-22  Equity: -1.111 ppgGame 29/100  Raccoon 5-23  Equity: -1.143 ppgGame 30/100  Raccoon 5-24  Equity: -1.138 ppgGame 31/100  Raccoon 5-25  Equity: -1.133 ppgGame 32/100  Raccoon 5-26  Equity: -1.161 ppgGame 33/100  Raccoon 5-27  Equity: -1.219 ppgGame 34/100  Raccoon 5-28  Equity: -1.242 ppgGame 35/100  Raccoon 5-29  Equity: -1.265 ppgGame 36/100  Raccoon 5-30  Equity: -1.257 ppgGame 37/100  Raccoon 5-31  Equity: -1.250 ppgGame 38/100  Raccoon 5-32  Equity: -1.243 ppgGame 39/100  Raccoon 6-32  Equity: -1.184 ppgGame 40/100  Raccoon 6-33  Equity: -1.205 ppgGame 41/100  Raccoon 6-34  Equity: -1.225 ppgGame 42/100  Raccoon 6-35  Equity: -1.268 ppgGame 43/100  Raccoon 6-36  Equity: -1.262 ppgGame 44/100  Raccoon 6-37  Equity: -1.256 ppgGame 45/100  Raccoon 6-38  Equity: -1.273 ppgGame 46/100  Raccoon 6-39  Equity: -1.289 ppgGame 47/100  Raccoon 6-40  Equity: -1.283 ppgGame 48/100  Raccoon 6-41  Equity: -1.298 ppgGame 49/100  Raccoon 6-42  Equity: -1.312 ppgGame 50/100  Raccoon 6-43  Equity: -1.306 ppgGame 51/100  Raccoon 6-44  Equity: -1.320 ppgGame 52/100  Raccoon 6-45  Equity: -1.333 ppgGame 53/100  Raccoon 6-46  Equity: -1.327 ppgGame 54/100  Raccoon 6-47  Equity: -1.340 ppgGame 55/100  Raccoon 6-48  Equity: -1.370 ppgGame 56/100  Raccoon 6-49  Equity: -1.364 ppgGame 57/100  Raccoon 6-50  Equity: -1.375 ppgGame 58/100  Raccoon 6-51  Equity: -1.386 ppgGame 59/100  Raccoon 7-51  Equity: -1.345 ppgGame 60/100  Raccoon 7-52  Equity: -1.339 ppgGame 61/100  Raccoon 7-53  Equity: -1.333 ppgGame 62/100  Raccoon 7-54  Equity: -1.344 ppgGame 63/100  Raccoon 7-55  Equity: -1.371 ppgGame 64/100  Raccoon 7-56  Equity: -1.365 ppgGame 65/100  Raccoon 7-57  Equity: -1.375 ppgGame 66/100  Raccoon 7-58  Equity: -1.369 ppgGame 67/100  Raccoon 7-59  Equity: -1.379 ppgGame 68/100  Raccoon 7-60  Equity: -1.373 ppgGame 69/100  Raccoon 7-61  Equity: -1.368 ppgGame 70/100  Raccoon 7-62  Equity: -1.377 ppgGame 71/100  Raccoon 8-62  Equity: -1.343 ppgGame 72/100  Raccoon 8-63  Equity: -1.338 ppgGame 73/100  Raccoon 8-64  Equity: -1.361 ppgGame 74/100  Raccoon 8-65  Equity: -1.370 ppgGame 75/100  Raccoon 8-66  Equity: -1.378 ppgGame 76/100  Raccoon 8-67  Equity: -1.387 ppgGame 77/100  Raccoon 8-68  Equity: -1.382 ppgGame 78/100  Raccoon 8-69  Equity: -1.403 ppgGame 79/100  Raccoon 8-70  Equity: -1.397 ppgGame 80/100  Raccoon 8-71  Equity: -1.405 ppgGame 81/100  Raccoon 8-72  Equity: -1.400 ppgGame 82/100  Raccoon 8-73  Equity: -1.407 ppgGame 83/100  Raccoon 8-74  Equity: -1.415 ppgGame 84/100  Raccoon 8-75  Equity: -1.410 ppgGame 85/100  Raccoon 8-76  Equity: -1.405 ppgGame 86/100  Raccoon 8-77  Equity: -1.400 ppgGame 87/100  Raccoon 8-78  Equity: -1.407 ppgGame 88/100  Raccoon 8-79  Equity: -1.402 ppgGame 89/100  Raccoon 8-80  Equity: -1.409 ppgGame 90/100  Raccoon 8-81  Equity: -1.416 ppgGame 91/100  Raccoon 9-81  Equity: -1.389 ppgGame 92/100  Raccoon 9-82  Equity: -1.396 ppgGame 93/100  Raccoon 9-83  Equity: -1.402 ppgGame 94/100  Raccoon 9-84  Equity: -1.398 ppgGame 95/100  Raccoon 9-85  Equity: -1.404 ppgGame 96/100  Raccoon 9-86  Equity: -1.421 ppgGame 97/100  Raccoon 9-87  Equity: -1.417 ppgGame 98/100  Raccoon 9-88  Equity: -1.412 ppgGame 99/100  Raccoon 9-89  Equity: -1.418 ppgGame 100/100  Raccoon 9-90  Equity: -1.414 ppg
+Raccoon vs GNUBG (100 games)
+  Wins: 9-91 (9.0% +/- 5.6%)
+  Equity: Raccoon -142.0, GNUBG +142.0
+  Equity/game: -1.420
+  Raccoon gammons/bg: 2/0, GNUBG gammons/bg: 40/11
+Summary appended to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_08/logs/gnubg_eval_log.jsonl
+===== ROUND 08 DONE (next=experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt) 2026-07-02_02:29:37 =====
+===== ROUND 09 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt, ply=2) 2026-07-02_02:29:37 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,506 (nondbl=1,870 dbl_vo=636 dbl_pol=0) el=33.0min rate=76/min
+  games=50 emitted=4,837 (nondbl=3,581 dbl_vo=1,256 dbl_pol=0) el=64.8min rate=75/min
+  games=75 emitted=7,530 (nondbl=5,538 dbl_vo=1,992 dbl_pol=0) el=93.3min rate=81/min
+  games=100 emitted=9,944 (nondbl=7,263 dbl_vo=2,681 dbl_pol=0) el=121.3min rate=82/min
+  games=125 emitted=12,368 (nondbl=9,064 dbl_vo=3,304 dbl_pol=0) el=149.8min rate=83/min
+  games=150 emitted=14,732 (nondbl=10,809 dbl_vo=3,923 dbl_pol=0) el=197.7min rate=75/min
+  games=175 emitted=17,468 (nondbl=12,880 dbl_vo=4,588 dbl_pol=0) el=236.4min rate=74/min
+  games=200 emitted=19,973 (nondbl=14,729 dbl_vo=5,244 dbl_pol=0) el=280.4min rate=71/min
+  games=225 emitted=22,345 (nondbl=16,499 dbl_vo=5,846 dbl_pol=0) el=314.8min rate=71/min
+  games=250 emitted=24,972 (nondbl=18,442 dbl_vo=6,530 dbl_pol=0) el=341.6min rate=73/min
+  games=275 emitted=27,711 (nondbl=20,446 dbl_vo=7,265 dbl_pol=0) el=382.0min rate=73/min
+  games=300 emitted=29,987 (nondbl=22,108 dbl_vo=7,879 dbl_pol=0) el=405.1min rate=74/min
+  games=325 emitted=32,410 (nondbl=23,911 dbl_vo=8,499 dbl_pol=0) el=423.9min rate=76/min
+  games=350 emitted=34,980 (nondbl=25,790 dbl_vo=9,190 dbl_pol=0) el=446.6min rate=78/min
+  games=375 emitted=37,394 (nondbl=27,585 dbl_vo=9,809 dbl_pol=0) el=468.6min rate=80/min
+  games=400 emitted=39,778 (nondbl=29,352 dbl_vo=10,426 dbl_pol=0) el=502.3min rate=79/min
+  games=425 emitted=42,178 (nondbl=31,103 dbl_vo=11,075 dbl_pol=0) el=539.8min rate=78/min
+  games=450 emitted=44,571 (nondbl=32,861 dbl_vo=11,710 dbl_pol=0) el=568.6min rate=78/min
+  games=475 emitted=47,065 (nondbl=34,670 dbl_vo=12,395 dbl_pol=0) el=594.9min rate=79/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz
+  examples: 47,352  (games=478)
+  non-doubles policy=34,881  doubles value-only=12,471  doubles policy=0
+  value mean=0.032 std=0.345 min=-1.000 max=1.000
+  mean prob mass on best move: 0.374 (policy_temperature=0.02)
+  total 600.1 min
+===== ROUND 09 MERGE 2026-07-02_12:29:42 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_06.npz: 55,879 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz: 30,449 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz: 49,610 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz: 47,352 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_09.npz: 347,713 examples (K=6)
+===== ROUND 09 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt) 2026-07-02_12:29:49 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_08/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_09.npz
+  observations: (347713, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.308
+Split: 330,328 train / 17,385 val (soft policy targets)
+Baseline val: policy_CE=1.9005  value_MSE=0.0069  top1_acc=57.2%
+Epoch   1/4: train pol=1.4964 val=0.0070 | val pol=1.9692 val=0.0068 top1=53.6% | 3151.0s
+Epoch   2/4: train pol=1.4313 val=0.0069 | val pol=2.0462 val=0.0070 top1=51.5% | 3153.1s
+Epoch   3/4: train pol=1.3995 val=0.0069 | val pol=2.1021 val=0.0071 top1=49.7% | 3134.7s
+Epoch   4/4: train pol=1.3745 val=0.0069 | val pol=2.1449 val=0.0073 top1=48.4% | 3130.3s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt
+  final val: pol=2.1449 val=0.0073 top1=48.4%
+  total 209.5 min
+===== ROUND 09 EVAL 2026-07-02_15:59:57 =====
+----- arena: round_09 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +1.000 ppgGame 3/100  P1 1-1  Equity: +0.000 ppgGame 4/100  P1 2-1  Equity: +0.667 ppgGame 5/100  P1 3-1  Equity: +1.250 ppgGame 6/100  P1 4-1  Equity: +1.200 ppgGame 7/100  P1 4-2  Equity: +0.833 ppgGame 8/100  P1 4-3  Equity: +0.286 ppgGame 9/100  P1 5-3  Equity: +0.500 ppgGame 10/100  P1 6-3  Equity: +0.667 ppgGame 11/100  P1 6-4  Equity: +0.300 ppgGame 12/100  P1 6-5  Equity: +0.091 ppgGame 13/100  P1 6-6  Equity: +0.000 ppgGame 14/100  P1 6-7  Equity: -0.077 ppgGame 15/100  P1 7-7  Equity: +0.071 ppgGame 16/100  P1 7-8  Equity: +0.000 ppgGame 17/100  P1 7-9  Equity: -0.125 ppgGame 18/100  P1 8-9  Equity: -0.059 ppgGame 19/100  P1 8-10  Equity: -0.167 ppgGame 20/100  P1 9-10  Equity: -0.053 ppgGame 21/100  P1 10-10  Equity: +0.050 ppgGame 22/100  P1 11-10  Equity: +0.095 ppgGame 23/100  P1 12-10  Equity: +0.136 ppgGame 24/100  P1 12-11  Equity: +0.087 ppgGame 25/100  P1 13-11  Equity: +0.167 ppgGame 26/100  P1 13-12  Equity: +0.080 ppgGame 27/100  P1 13-13  Equity: +0.000 ppgGame 28/100  P1 14-13  Equity: +0.111 ppgGame 29/100  P1 15-13  Equity: +0.143 ppgGame 30/100  P1 16-13  Equity: +0.172 ppgGame 31/100  P1 16-14  Equity: +0.100 ppgGame 32/100  P1 17-14  Equity: +0.129 ppgGame 33/100  P1 18-14  Equity: +0.188 ppgGame 34/100  P1 19-14  Equity: +0.242 ppgGame 35/100  P1 19-15  Equity: +0.176 ppgGame 36/100  P1 19-16  Equity: +0.143 ppgGame 37/100  P1 20-16  Equity: +0.222 ppgGame 38/100  P1 20-17  Equity: +0.189 ppgGame 39/100  P1 20-18  Equity: +0.158 ppgGame 40/100  P1 21-18  Equity: +0.231 ppgGame 41/100  P1 21-19  Equity: +0.200 ppgGame 42/100  P1 21-20  Equity: +0.171 ppgGame 43/100  P1 22-20  Equity: +0.190 ppgGame 44/100  P1 22-21  Equity: +0.140 ppgGame 45/100  P1 22-22  Equity: +0.114 ppgGame 46/100  P1 23-22  Equity: +0.156 ppgGame 47/100  P1 24-22  Equity: +0.174 ppgGame 48/100  P1 24-23  Equity: +0.128 ppgGame 49/100  P1 24-24  Equity: +0.104 ppgGame 50/100  P1 25-24  Equity: +0.143 ppgGame 51/100  P1 26-24  Equity: +0.160 ppgGame 52/100  P1 27-24  Equity: +0.196 ppgGame 53/100  P1 27-25  Equity: +0.173 ppgGame 54/100  P1 28-25  Equity: +0.208 ppgGame 55/100  P1 29-25  Equity: +0.241 ppgGame 56/100  P1 29-26  Equity: +0.218 ppgGame 57/100  P1 30-26  Equity: +0.250 ppgGame 58/100  P1 30-27  Equity: +0.228 ppgGame 59/100  P1 31-27  Equity: +0.259 ppgGame 60/100  P1 32-27  Equity: +0.288 ppgGame 61/100  P1 32-28  Equity: +0.250 ppgGame 62/100  P1 32-29  Equity: +0.230 ppgGame 63/100  P1 33-29  Equity: +0.258 ppgGame 64/100  P1 33-30  Equity: +0.222 ppgGame 65/100  P1 34-30  Equity: +0.250 ppgGame 66/100  P1 34-31  Equity: +0.215 ppgGame 67/100  P1 35-31  Equity: +0.258 ppgGame 68/100  P1 36-31  Equity: +0.284 ppgGame 69/100  P1 36-32  Equity: +0.250 ppgGame 70/100  P1 37-32  Equity: +0.261 ppgGame 71/100  P1 38-32  Equity: +0.271 ppgGame 72/100  P1 39-32  Equity: +0.282 ppgGame 73/100  P1 40-32  Equity: +0.292 ppgGame 74/100  P1 41-32  Equity: +0.315 ppgGame 75/100  P1 42-32  Equity: +0.351 ppgGame 76/100  P1 43-32  Equity: +0.373 ppgGame 77/100  P1 43-33  Equity: +0.355 ppgGame 78/100  P1 43-34  Equity: +0.338 ppgGame 79/100  P1 44-34  Equity: +0.346 ppgGame 80/100  P1 45-34  Equity: +0.380 ppgGame 81/100  P1 45-35  Equity: +0.350 ppgGame 82/100  P1 46-35  Equity: +0.358 ppgGame 83/100  P1 46-36  Equity: +0.341 ppgGame 84/100  P1 47-36  Equity: +0.349 ppgGame 85/100  P1 47-37  Equity: +0.321 ppgGame 86/100  P1 48-37  Equity: +0.329 ppgGame 87/100  P1 49-37  Equity: +0.337 ppgGame 88/100  P1 50-37  Equity: +0.356 ppgGame 89/100  P1 50-38  Equity: +0.341 ppgGame 90/100  P1 51-38  Equity: +0.360 ppgGame 91/100  P1 51-39  Equity: +0.322 ppgGame 92/100  P1 51-40  Equity: +0.308 ppgGame 93/100  P1 52-40  Equity: +0.315 ppgGame 94/100  P1 53-40  Equity: +0.323 ppgGame 95/100  P1 54-40  Equity: +0.351 ppgGame 96/100  P1 55-40  Equity: +0.358 ppgGame 97/100  P1 56-40  Equity: +0.375 ppgGame 98/100  P1 57-40  Equity: +0.392 ppgGame 99/100  P1 57-41  Equity: +0.378 ppgGame 100/100  P1 58-41  Equity: +0.384 ppg
+P1 wins: 59/100 (59.0%), Equity: +0.400 ppg, P1 gammons/bg: 27/8, P2 gammons/bg: 15/3, Avg length: 83 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_09/logs/eval_log.jsonl
+===== ROUND 09 DONE (next=experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt) 2026-07-02_17:06:59 =====
+===== ROUND 10 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt, ply=2) 2026-07-02_17:06:59 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,525 (nondbl=1,885 dbl_vo=640 dbl_pol=0) el=19.7min rate=128/min
+  games=50 emitted=4,853 (nondbl=3,643 dbl_vo=1,210 dbl_pol=0) el=46.0min rate=105/min
+  games=75 emitted=7,354 (nondbl=5,466 dbl_vo=1,888 dbl_pol=0) el=85.6min rate=86/min
+  games=100 emitted=9,490 (nondbl=7,034 dbl_vo=2,456 dbl_pol=0) el=108.0min rate=88/min
+  games=125 emitted=11,541 (nondbl=8,580 dbl_vo=2,961 dbl_pol=0) el=134.9min rate=86/min
+  games=150 emitted=14,031 (nondbl=10,359 dbl_vo=3,672 dbl_pol=0) el=166.2min rate=84/min
+  games=175 emitted=16,308 (nondbl=12,110 dbl_vo=4,198 dbl_pol=0) el=194.4min rate=84/min
+  games=200 emitted=18,550 (nondbl=13,721 dbl_vo=4,829 dbl_pol=0) el=216.2min rate=86/min
+  games=225 emitted=20,754 (nondbl=15,301 dbl_vo=5,453 dbl_pol=0) el=253.7min rate=82/min
+  games=250 emitted=23,249 (nondbl=17,176 dbl_vo=6,073 dbl_pol=0) el=283.6min rate=82/min
+  games=275 emitted=25,621 (nondbl=18,928 dbl_vo=6,693 dbl_pol=0) el=304.3min rate=84/min
+  games=300 emitted=28,149 (nondbl=20,787 dbl_vo=7,362 dbl_pol=0) el=353.6min rate=80/min
+  games=325 emitted=30,697 (nondbl=22,653 dbl_vo=8,044 dbl_pol=0) el=408.5min rate=75/min
+  games=350 emitted=33,196 (nondbl=24,520 dbl_vo=8,676 dbl_pol=0) el=432.9min rate=77/min
+  games=375 emitted=35,458 (nondbl=26,208 dbl_vo=9,250 dbl_pol=0) el=448.3min rate=79/min
+  games=400 emitted=37,735 (nondbl=27,879 dbl_vo=9,856 dbl_pol=0) el=484.8min rate=78/min
+  games=425 emitted=40,099 (nondbl=29,665 dbl_vo=10,434 dbl_pol=0) el=508.2min rate=79/min
+  games=450 emitted=42,464 (nondbl=31,372 dbl_vo=11,092 dbl_pol=0) el=537.5min rate=79/min
+  games=475 emitted=44,994 (nondbl=33,228 dbl_vo=11,766 dbl_pol=0) el=584.1min rate=77/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz
+  examples: 46,487  (games=493)
+  non-doubles policy=34,330  doubles value-only=12,157  doubles policy=0
+  value mean=0.033 std=0.341 min=-1.000 max=1.000
+  mean prob mass on best move: 0.377 (policy_temperature=0.02)
+  total 600.2 min
+===== ROUND 10 MERGE 2026-07-03_03:07:12 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_07.npz: 30,449 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz: 49,610 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz: 47,352 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz: 46,487 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_10.npz: 338,321 examples (K=6)
+===== ROUND 10 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt) 2026-07-03_03:07:19 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_09/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_10.npz
+  observations: (338321, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.036 std=0.307
+Split: 321,405 train / 16,916 val (soft policy targets)
+Baseline val: policy_CE=1.8918  value_MSE=0.0068  top1_acc=57.2%
+Epoch   1/4: train pol=1.4930 val=0.0069 | val pol=1.9821 val=0.0065 top1=53.3% | 2997.1s
+Epoch   2/4: train pol=1.4245 val=0.0068 | val pol=2.0349 val=0.0065 top1=51.7% | 2969.6s
+Epoch   3/4: train pol=1.3885 val=0.0068 | val pol=2.0861 val=0.0067 top1=50.1% | 2963.2s
+Epoch   4/4: train pol=1.3644 val=0.0068 | val pol=2.1439 val=0.0065 top1=47.8% | 2956.8s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt
+  final val: pol=2.1439 val=0.0065 top1=47.8%
+  total 198.1 min
+===== ROUND 10 EVAL 2026-07-03_06:26:03 =====
+----- arena: round_10 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 1-1  Equity: +0.500 ppgGame 4/100  P1 2-1  Equity: +0.667 ppgGame 5/100  P1 3-1  Equity: +1.000 ppgGame 6/100  P1 4-1  Equity: +1.000 ppgGame 7/100  P1 4-2  Equity: +0.333 ppgGame 8/100  P1 4-3  Equity: +0.143 ppgGame 9/100  P1 4-4  Equity: +0.000 ppgGame 10/100  P1 5-4  Equity: +0.222 ppgGame 11/100  P1 6-4  Equity: +0.400 ppgGame 12/100  P1 6-5  Equity: +0.273 ppgGame 13/100  P1 6-6  Equity: +0.167 ppgGame 14/100  P1 7-6  Equity: +0.308 ppgGame 15/100  P1 7-7  Equity: +0.143 ppgGame 16/100  P1 8-7  Equity: +0.333 ppgGame 17/100  P1 9-7  Equity: +0.375 ppgGame 18/100  P1 10-7  Equity: +0.529 ppgGame 19/100  P1 11-7  Equity: +0.556 ppgGame 20/100  P1 12-7  Equity: +0.579 ppgGame 21/100  P1 13-7  Equity: +0.650 ppgGame 22/100  P1 13-8  Equity: +0.524 ppgGame 23/100  P1 13-9  Equity: +0.455 ppgGame 24/100  P1 14-9  Equity: +0.478 ppgGame 25/100  P1 14-10  Equity: +0.417 ppgGame 26/100  P1 14-11  Equity: +0.360 ppgGame 27/100  P1 14-12  Equity: +0.308 ppgGame 28/100  P1 14-13  Equity: +0.259 ppgGame 29/100  P1 15-13  Equity: +0.286 ppgGame 30/100  P1 15-14  Equity: +0.207 ppgGame 31/100  P1 16-14  Equity: +0.233 ppgGame 32/100  P1 16-15  Equity: +0.161 ppgGame 33/100  P1 16-16  Equity: +0.094 ppgGame 34/100  P1 17-16  Equity: +0.121 ppgGame 35/100  P1 17-17  Equity: +0.029 ppgGame 36/100  P1 18-17  Equity: +0.086 ppgGame 37/100  P1 18-18  Equity: +0.056 ppgGame 38/100  P1 19-18  Equity: +0.135 ppgGame 39/100  P1 20-18  Equity: +0.158 ppgGame 40/100  P1 20-19  Equity: +0.103 ppgGame 41/100  P1 20-20  Equity: +0.050 ppgGame 42/100  P1 21-20  Equity: +0.098 ppgGame 43/100  P1 22-20  Equity: +0.167 ppgGame 44/100  P1 22-21  Equity: +0.140 ppgGame 45/100  P1 23-21  Equity: +0.159 ppgGame 46/100  P1 24-21  Equity: +0.200 ppgGame 47/100  P1 25-21  Equity: +0.239 ppgGame 48/100  P1 25-22  Equity: +0.191 ppgGame 49/100  P1 26-22  Equity: +0.208 ppgGame 50/100  P1 27-22  Equity: +0.245 ppgGame 51/100  P1 28-22  Equity: +0.260 ppgGame 52/100  P1 29-22  Equity: +0.275 ppgGame 53/100  P1 29-23  Equity: +0.250 ppgGame 54/100  P1 29-24  Equity: +0.189 ppgGame 55/100  P1 29-25  Equity: +0.167 ppgGame 56/100  P1 30-25  Equity: +0.200 ppgGame 57/100  P1 30-26  Equity: +0.161 ppgGame 58/100  P1 30-27  Equity: +0.123 ppgGame 59/100  P1 31-27  Equity: +0.155 ppgGame 60/100  P1 31-28  Equity: +0.119 ppgGame 61/100  P1 31-29  Equity: +0.100 ppgGame 62/100  P1 31-30  Equity: +0.082 ppgGame 63/100  P1 32-30  Equity: +0.097 ppgGame 64/100  P1 33-30  Equity: +0.127 ppgGame 65/100  P1 33-31  Equity: +0.109 ppgGame 66/100  P1 34-31  Equity: +0.154 ppgGame 67/100  P1 35-31  Equity: +0.182 ppgGame 68/100  P1 36-31  Equity: +0.209 ppgGame 69/100  P1 36-32  Equity: +0.191 ppgGame 70/100  P1 36-33  Equity: +0.159 ppgGame 71/100  P1 36-34  Equity: +0.129 ppgGame 72/100  P1 36-35  Equity: +0.113 ppgGame 73/100  P1 37-35  Equity: +0.125 ppgGame 74/100  P1 38-35  Equity: +0.151 ppgGame 75/100  P1 39-35  Equity: +0.162 ppgGame 76/100  P1 39-36  Equity: +0.133 ppgGame 77/100  P1 40-36  Equity: +0.158 ppgGame 78/100  P1 40-37  Equity: +0.143 ppgGame 79/100  P1 41-37  Equity: +0.167 ppgGame 80/100  P1 42-37  Equity: +0.177 ppgGame 81/100  P1 43-37  Equity: +0.200 ppgGame 82/100  P1 44-37  Equity: +0.210 ppgGame 83/100  P1 45-37  Equity: +0.232 ppgGame 84/100  P1 46-37  Equity: +0.253 ppgGame 85/100  P1 47-37  Equity: +0.274 ppgGame 86/100  P1 47-38  Equity: +0.247 ppgGame 87/100  P1 47-39  Equity: +0.233 ppgGame 88/100  P1 48-39  Equity: +0.241 ppgGame 89/100  P1 49-39  Equity: +0.250 ppgGame 90/100  P1 49-40  Equity: +0.236 ppgGame 91/100  P1 49-41  Equity: +0.222 ppgGame 92/100  P1 50-41  Equity: +0.253 ppgGame 93/100  P1 51-41  Equity: +0.272 ppgGame 94/100  P1 52-41  Equity: +0.301 ppgGame 95/100  P1 52-42  Equity: +0.277 ppgGame 96/100  P1 52-43  Equity: +0.263 ppgGame 97/100  P1 53-43  Equity: +0.271 ppgGame 98/100  P1 53-44  Equity: +0.258 ppgGame 99/100  P1 54-44  Equity: +0.265 ppgGame 100/100  P1 54-45  Equity: +0.242 ppg
+P1 wins: 55/100 (55.0%), Equity: +0.260 ppg, P1 gammons/bg: 25/7, P2 gammons/bg: 17/3, Avg length: 87 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_10/logs/eval_log.jsonl
+===== ROUND 10 DONE (next=experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt) 2026-07-03_07:36:11 =====
+===== ROUND 11 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt, ply=2) 2026-07-03_07:36:11 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,317 (nondbl=1,682 dbl_vo=635 dbl_pol=0) el=16.4min rate=142/min
+  games=50 emitted=4,491 (nondbl=3,323 dbl_vo=1,168 dbl_pol=0) el=41.4min rate=109/min
+  games=75 emitted=6,896 (nondbl=5,148 dbl_vo=1,748 dbl_pol=0) el=58.7min rate=117/min
+  games=100 emitted=9,528 (nondbl=7,139 dbl_vo=2,389 dbl_pol=0) el=95.5min rate=100/min
+  games=125 emitted=11,950 (nondbl=8,893 dbl_vo=3,057 dbl_pol=0) el=116.6min rate=103/min
+  games=150 emitted=14,257 (nondbl=10,652 dbl_vo=3,605 dbl_pol=0) el=138.5min rate=103/min
+  games=175 emitted=16,602 (nondbl=12,370 dbl_vo=4,232 dbl_pol=0) el=164.9min rate=101/min
+  games=200 emitted=18,718 (nondbl=13,970 dbl_vo=4,748 dbl_pol=0) el=179.1min rate=105/min
+  games=225 emitted=21,010 (nondbl=15,658 dbl_vo=5,352 dbl_pol=0) el=216.2min rate=97/min
+  games=250 emitted=23,288 (nondbl=17,306 dbl_vo=5,982 dbl_pol=0) el=236.5min rate=98/min
+  games=275 emitted=25,746 (nondbl=19,109 dbl_vo=6,637 dbl_pol=0) el=251.7min rate=102/min
+  games=300 emitted=28,017 (nondbl=20,800 dbl_vo=7,217 dbl_pol=0) el=267.5min rate=105/min
+  games=325 emitted=30,291 (nondbl=22,464 dbl_vo=7,827 dbl_pol=0) el=293.6min rate=103/min
+  games=350 emitted=32,687 (nondbl=24,262 dbl_vo=8,425 dbl_pol=0) el=313.3min rate=104/min
+  games=375 emitted=35,247 (nondbl=26,155 dbl_vo=9,092 dbl_pol=0) el=337.3min rate=105/min
+  games=400 emitted=37,539 (nondbl=27,836 dbl_vo=9,703 dbl_pol=0) el=353.4min rate=106/min
+  games=425 emitted=39,944 (nondbl=29,628 dbl_vo=10,316 dbl_pol=0) el=372.5min rate=107/min
+  games=450 emitted=42,441 (nondbl=31,462 dbl_vo=10,979 dbl_pol=0) el=397.6min rate=107/min
+  games=475 emitted=45,051 (nondbl=33,430 dbl_vo=11,621 dbl_pol=0) el=426.4min rate=106/min
+  games=500 emitted=47,628 (nondbl=35,318 dbl_vo=12,310 dbl_pol=0) el=457.7min rate=104/min
+  games=525 emitted=50,125 (nondbl=37,168 dbl_vo=12,957 dbl_pol=0) el=482.9min rate=104/min
+  games=550 emitted=52,621 (nondbl=38,989 dbl_vo=13,632 dbl_pol=0) el=516.1min rate=102/min
+  games=575 emitted=54,963 (nondbl=40,710 dbl_vo=14,253 dbl_pol=0) el=537.3min rate=102/min
+  games=600 emitted=57,305 (nondbl=42,397 dbl_vo=14,908 dbl_pol=0) el=562.9min rate=102/min
+  games=625 emitted=59,837 (nondbl=44,229 dbl_vo=15,608 dbl_pol=0) el=584.8min rate=102/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz
+  examples: 60,000  (games=628)
+  non-doubles policy=44,345  doubles value-only=15,655  doubles policy=0
+  value mean=0.032 std=0.344 min=-1.000 max=1.000
+  mean prob mass on best move: 0.379 (policy_temperature=0.02)
+  total 588.3 min
+===== ROUND 11 MERGE 2026-07-03_17:24:32 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_08.npz: 49,610 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz: 47,352 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz: 46,487 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz: 60,000 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_11.npz: 367,872 examples (K=6)
+===== ROUND 11 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt) 2026-07-03_17:24:39 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_10/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_11.npz
+  observations: (367872, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.035 std=0.311
+Split: 349,479 train / 18,393 val (soft policy targets)
+Baseline val: policy_CE=1.8763  value_MSE=0.0068  top1_acc=57.7%
+Epoch   1/4: train pol=1.5051 val=0.0069 | val pol=1.9710 val=0.0067 top1=54.7% | 3243.6s
+Epoch   2/4: train pol=1.4413 val=0.0069 | val pol=2.0302 val=0.0069 top1=52.2% | 3242.6s
+Epoch   3/4: train pol=1.4054 val=0.0069 | val pol=2.0846 val=0.0068 top1=50.1% | 3232.0s
+Epoch   4/4: train pol=1.3802 val=0.0068 | val pol=2.1454 val=0.0071 top1=48.6% | 3221.6s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt
+  final val: pol=2.1454 val=0.0071 top1=48.6%
+  total 215.7 min
+===== ROUND 11 EVAL 2026-07-03_21:00:59 =====
+----- arena: round_11 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 1-1  Equity: -0.500 ppgGame 4/100  P1 2-1  Equity: +0.333 ppgGame 5/100  P1 2-2  Equity: -0.250 ppgGame 6/100  P1 3-2  Equity: +0.000 ppgGame 7/100  P1 3-3  Equity: -0.167 ppgGame 8/100  P1 4-3  Equity: +0.143 ppgGame 9/100  P1 4-4  Equity: -0.125 ppgGame 10/100  P1 5-4  Equity: +0.222 ppgGame 11/100  P1 6-4  Equity: +0.300 ppgGame 12/100  P1 6-5  Equity: +0.091 ppgGame 13/100  P1 6-6  Equity: -0.083 ppgGame 14/100  P1 7-6  Equity: +0.077 ppgGame 15/100  P1 8-6  Equity: +0.214 ppgGame 16/100  P1 9-6  Equity: +0.333 ppgGame 17/100  P1 10-6  Equity: +0.438 ppgGame 18/100  P1 10-7  Equity: +0.294 ppgGame 19/100  P1 10-8  Equity: +0.222 ppgGame 20/100  P1 11-8  Equity: +0.316 ppgGame 21/100  P1 12-8  Equity: +0.350 ppgGame 22/100  P1 13-8  Equity: +0.429 ppgGame 23/100  P1 13-9  Equity: +0.364 ppgGame 24/100  P1 14-9  Equity: +0.478 ppgGame 25/100  P1 14-10  Equity: +0.375 ppgGame 26/100  P1 15-10  Equity: +0.480 ppgGame 27/100  P1 15-11  Equity: +0.346 ppgGame 28/100  P1 16-11  Equity: +0.444 ppgGame 29/100  P1 16-12  Equity: +0.321 ppgGame 30/100  P1 17-12  Equity: +0.345 ppgGame 31/100  P1 18-12  Equity: +0.400 ppgGame 32/100  P1 19-12  Equity: +0.419 ppgGame 33/100  P1 19-13  Equity: +0.375 ppgGame 34/100  P1 19-14  Equity: +0.333 ppgGame 35/100  P1 20-14  Equity: +0.353 ppgGame 36/100  P1 20-15  Equity: +0.314 ppgGame 37/100  P1 21-15  Equity: +0.361 ppgGame 38/100  P1 22-15  Equity: +0.432 ppgGame 39/100  P1 22-16  Equity: +0.368 ppgGame 40/100  P1 22-17  Equity: +0.333 ppgGame 41/100  P1 22-18  Equity: +0.300 ppgGame 42/100  P1 23-18  Equity: +0.341 ppgGame 43/100  P1 24-18  Equity: +0.357 ppgGame 44/100  P1 24-19  Equity: +0.326 ppgGame 45/100  P1 24-20  Equity: +0.273 ppgGame 46/100  P1 25-20  Equity: +0.289 ppgGame 47/100  P1 26-20  Equity: +0.304 ppgGame 48/100  P1 26-21  Equity: +0.255 ppgGame 49/100  P1 26-22  Equity: +0.208 ppgGame 50/100  P1 26-23  Equity: +0.163 ppgGame 51/100  P1 26-24  Equity: +0.120 ppgGame 52/100  P1 27-24  Equity: +0.157 ppgGame 53/100  P1 27-25  Equity: +0.115 ppgGame 54/100  P1 28-25  Equity: +0.151 ppgGame 55/100  P1 28-26  Equity: +0.111 ppgGame 56/100  P1 28-27  Equity: +0.073 ppgGame 57/100  P1 28-28  Equity: +0.054 ppgGame 58/100  P1 29-28  Equity: +0.070 ppgGame 59/100  P1 29-29  Equity: +0.017 ppgGame 60/100  P1 30-29  Equity: +0.034 ppgGame 61/100  P1 30-30  Equity: +0.000 ppgGame 62/100  P1 31-30  Equity: +0.049 ppgGame 63/100  P1 31-31  Equity: +0.032 ppgGame 64/100  P1 32-31  Equity: +0.079 ppgGame 65/100  P1 33-31  Equity: +0.109 ppgGame 66/100  P1 34-31  Equity: +0.138 ppgGame 67/100  P1 35-31  Equity: +0.152 ppgGame 68/100  P1 36-31  Equity: +0.179 ppgGame 69/100  P1 37-31  Equity: +0.206 ppgGame 70/100  P1 37-32  Equity: +0.188 ppgGame 71/100  P1 38-32  Equity: +0.200 ppgGame 72/100  P1 38-33  Equity: +0.169 ppgGame 73/100  P1 39-33  Equity: +0.181 ppgGame 74/100  P1 39-34  Equity: +0.151 ppgGame 75/100  P1 40-34  Equity: +0.176 ppgGame 76/100  P1 41-34  Equity: +0.200 ppgGame 77/100  P1 41-35  Equity: +0.171 ppgGame 78/100  P1 41-36  Equity: +0.156 ppgGame 79/100  P1 41-37  Equity: +0.141 ppgGame 80/100  P1 42-37  Equity: +0.177 ppgGame 81/100  P1 43-37  Equity: +0.200 ppgGame 82/100  P1 43-38  Equity: +0.185 ppgGame 83/100  P1 44-38  Equity: +0.195 ppgGame 84/100  P1 45-38  Equity: +0.205 ppgGame 85/100  P1 46-38  Equity: +0.214 ppgGame 86/100  P1 46-39  Equity: +0.188 ppgGame 87/100  P1 46-40  Equity: +0.174 ppgGame 88/100  P1 47-40  Equity: +0.207 ppgGame 89/100  P1 47-41  Equity: +0.193 ppgGame 90/100  P1 47-42  Equity: +0.180 ppgGame 91/100  P1 47-43  Equity: +0.156 ppgGame 92/100  P1 48-43  Equity: +0.176 ppgGame 93/100  P1 49-43  Equity: +0.185 ppgGame 94/100  P1 50-43  Equity: +0.215 ppgGame 95/100  P1 51-43  Equity: +0.223 ppgGame 96/100  P1 52-43  Equity: +0.232 ppgGame 97/100  P1 53-43  Equity: +0.240 ppgGame 98/100  P1 53-44  Equity: +0.227 ppgGame 99/100  P1 54-44  Equity: +0.235 ppgGame 100/100  P1 54-45  Equity: +0.222 ppg
+P1 wins: 54/100 (54.0%), Equity: +0.200 ppg, P1 gammons/bg: 22/10, P2 gammons/bg: 22/4, Avg length: 86 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_11/logs/eval_log.jsonl
+===== ROUND 11 DONE (next=experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt) 2026-07-03_22:10:11 =====
+===== ROUND 12 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt, ply=2) 2026-07-03_22:10:11 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,811 (nondbl=2,097 dbl_vo=714 dbl_pol=0) el=51.7min rate=54/min
+  games=50 emitted=5,167 (nondbl=3,754 dbl_vo=1,413 dbl_pol=0) el=94.1min rate=55/min
+  games=75 emitted=7,670 (nondbl=5,604 dbl_vo=2,066 dbl_pol=0) el=119.4min rate=64/min
+  games=100 emitted=9,833 (nondbl=7,166 dbl_vo=2,667 dbl_pol=0) el=143.7min rate=68/min
+  games=125 emitted=12,375 (nondbl=9,026 dbl_vo=3,349 dbl_pol=0) el=167.0min rate=74/min
+  games=150 emitted=15,250 (nondbl=11,178 dbl_vo=4,072 dbl_pol=0) el=201.2min rate=76/min
+  games=175 emitted=17,872 (nondbl=13,132 dbl_vo=4,740 dbl_pol=0) el=231.4min rate=77/min
+  games=200 emitted=20,383 (nondbl=15,032 dbl_vo=5,351 dbl_pol=0) el=302.8min rate=67/min
+  games=225 emitted=23,012 (nondbl=17,045 dbl_vo=5,967 dbl_pol=0) el=329.5min rate=70/min
+  games=250 emitted=25,621 (nondbl=18,994 dbl_vo=6,627 dbl_pol=0) el=375.2min rate=68/min
+  games=275 emitted=28,267 (nondbl=20,906 dbl_vo=7,361 dbl_pol=0) el=460.3min rate=61/min
+  games=300 emitted=30,822 (nondbl=22,833 dbl_vo=7,989 dbl_pol=0) el=484.5min rate=64/min
+  games=325 emitted=33,390 (nondbl=24,732 dbl_vo=8,658 dbl_pol=0) el=523.8min rate=64/min
+  games=350 emitted=35,825 (nondbl=26,518 dbl_vo=9,307 dbl_pol=0) el=551.3min rate=65/min
+  games=375 emitted=38,523 (nondbl=28,504 dbl_vo=10,019 dbl_pol=0) el=578.1min rate=67/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz
+  examples: 40,066  (games=388)
+  non-doubles policy=29,669  doubles value-only=10,397  doubles policy=0
+  value mean=0.031 std=0.339 min=-1.000 max=1.000
+  mean prob mass on best move: 0.381 (policy_temperature=0.02)
+  total 600.0 min
+===== ROUND 12 MERGE 2026-07-04_08:10:14 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_09.npz: 47,352 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz: 46,487 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz: 60,000 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz: 40,066 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_12.npz: 358,328 examples (K=6)
+===== ROUND 12 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt) 2026-07-04_08:10:21 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_11/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_12.npz
+  observations: (358328, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.035 std=0.311
+Split: 340,412 train / 17,916 val (soft policy targets)
+Baseline val: policy_CE=1.8499  value_MSE=0.0069  top1_acc=57.4%
+Epoch   1/4: train pol=1.4780 val=0.0068 | val pol=1.9461 val=0.0069 top1=53.7% | 3130.1s
+Epoch   2/4: train pol=1.4150 val=0.0067 | val pol=1.9985 val=0.0069 top1=52.1% | 3114.8s
+Epoch   3/4: train pol=1.3847 val=0.0067 | val pol=2.0593 val=0.0069 top1=50.2% | 3126.5s
+Epoch   4/4: train pol=1.3613 val=0.0067 | val pol=2.1311 val=0.0071 top1=49.2% | 3106.9s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt
+  final val: pol=2.1311 val=0.0071 top1=49.2%
+  total 208.0 min
+===== ROUND 12 EVAL 2026-07-04_11:38:59 =====
+----- arena: round_12 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 0-1  Equity: -1.000 ppgGame 3/100  P1 1-1  Equity: +0.000 ppgGame 4/100  P1 2-1  Equity: +0.333 ppgGame 5/100  P1 3-1  Equity: +0.500 ppgGame 6/100  P1 4-1  Equity: +0.600 ppgGame 7/100  P1 5-1  Equity: +0.833 ppgGame 8/100  P1 5-2  Equity: +0.571 ppgGame 9/100  P1 6-2  Equity: +0.750 ppgGame 10/100  P1 7-2  Equity: +0.889 ppgGame 11/100  P1 8-2  Equity: +1.100 ppgGame 12/100  P1 9-2  Equity: +1.091 ppgGame 13/100  P1 10-2  Equity: +1.083 ppgGame 14/100  P1 10-3  Equity: +0.846 ppgGame 15/100  P1 11-3  Equity: +0.929 ppgGame 16/100  P1 12-3  Equity: +1.000 ppgGame 17/100  P1 12-4  Equity: +0.812 ppgGame 18/100  P1 13-4  Equity: +0.882 ppgGame 19/100  P1 13-5  Equity: +0.778 ppgGame 20/100  P1 14-5  Equity: +0.895 ppgGame 21/100  P1 15-5  Equity: +0.900 ppgGame 22/100  P1 15-6  Equity: +0.810 ppgGame 23/100  P1 16-6  Equity: +0.818 ppgGame 24/100  P1 16-7  Equity: +0.739 ppgGame 25/100  P1 17-7  Equity: +0.750 ppgGame 26/100  P1 17-8  Equity: +0.640 ppgGame 27/100  P1 18-8  Equity: +0.692 ppgGame 28/100  P1 19-8  Equity: +0.741 ppgGame 29/100  P1 19-9  Equity: +0.679 ppgGame 30/100  P1 20-9  Equity: +0.759 ppgGame 31/100  P1 21-9  Equity: +0.800 ppgGame 32/100  P1 21-10  Equity: +0.742 ppgGame 33/100  P1 22-10  Equity: +0.781 ppgGame 34/100  P1 23-10  Equity: +0.818 ppgGame 35/100  P1 23-11  Equity: +0.735 ppgGame 36/100  P1 24-11  Equity: +0.743 ppgGame 37/100  P1 24-12  Equity: +0.694 ppgGame 38/100  P1 25-12  Equity: +0.730 ppgGame 39/100  P1 26-12  Equity: +0.737 ppgGame 40/100  P1 27-12  Equity: +0.744 ppgGame 41/100  P1 28-12  Equity: +0.750 ppgGame 42/100  P1 29-12  Equity: +0.756 ppgGame 43/100  P1 30-12  Equity: +0.762 ppgGame 44/100  P1 30-13  Equity: +0.698 ppgGame 45/100  P1 31-13  Equity: +0.727 ppgGame 46/100  P1 31-14  Equity: +0.689 ppgGame 47/100  P1 31-15  Equity: +0.652 ppgGame 48/100  P1 31-16  Equity: +0.617 ppgGame 49/100  P1 31-17  Equity: +0.583 ppgGame 50/100  P1 32-17  Equity: +0.592 ppgGame 51/100  P1 32-18  Equity: +0.540 ppgGame 52/100  P1 33-18  Equity: +0.549 ppgGame 53/100  P1 34-18  Equity: +0.577 ppgGame 54/100  P1 35-18  Equity: +0.585 ppgGame 55/100  P1 36-18  Equity: +0.611 ppgGame 56/100  P1 37-18  Equity: +0.636 ppgGame 57/100  P1 38-18  Equity: +0.661 ppgGame 58/100  P1 38-19  Equity: +0.614 ppgGame 59/100  P1 38-20  Equity: +0.586 ppgGame 60/100  P1 38-21  Equity: +0.559 ppgGame 61/100  P1 39-21  Equity: +0.583 ppgGame 62/100  P1 39-22  Equity: +0.557 ppgGame 63/100  P1 40-22  Equity: +0.565 ppgGame 64/100  P1 41-22  Equity: +0.571 ppgGame 65/100  P1 42-22  Equity: +0.609 ppgGame 66/100  P1 42-23  Equity: +0.569 ppgGame 67/100  P1 43-23  Equity: +0.591 ppgGame 68/100  P1 44-23  Equity: +0.612 ppgGame 69/100  P1 44-24  Equity: +0.574 ppgGame 70/100  P1 45-24  Equity: +0.609 ppgGame 71/100  P1 46-24  Equity: +0.629 ppgGame 72/100  P1 46-25  Equity: +0.606 ppgGame 73/100  P1 46-26  Equity: +0.583 ppgGame 74/100  P1 47-26  Equity: +0.603 ppgGame 75/100  P1 48-26  Equity: +0.622 ppgGame 76/100  P1 49-26  Equity: +0.640 ppgGame 77/100  P1 50-26  Equity: +0.645 ppgGame 78/100  P1 51-26  Equity: +0.649 ppgGame 79/100  P1 51-27  Equity: +0.628 ppgGame 80/100  P1 51-28  Equity: +0.608 ppgGame 81/100  P1 52-28  Equity: +0.637 ppgGame 82/100  P1 52-29  Equity: +0.605 ppgGame 83/100  P1 53-29  Equity: +0.610 ppgGame 84/100  P1 53-30  Equity: +0.590 ppgGame 85/100  P1 53-31  Equity: +0.571 ppgGame 86/100  P1 53-32  Equity: +0.553 ppgGame 87/100  P1 54-32  Equity: +0.570 ppgGame 88/100  P1 55-32  Equity: +0.575 ppgGame 89/100  P1 56-32  Equity: +0.580 ppgGame 90/100  P1 57-32  Equity: +0.584 ppgGame 91/100  P1 58-32  Equity: +0.589 ppgGame 92/100  P1 58-33  Equity: +0.571 ppgGame 93/100  P1 59-33  Equity: +0.587 ppgGame 94/100  P1 60-33  Equity: +0.613 ppgGame 95/100  P1 61-33  Equity: +0.617 ppgGame 96/100  P1 62-33  Equity: +0.621 ppgGame 97/100  P1 63-33  Equity: +0.625 ppgGame 98/100  P1 64-33  Equity: +0.629 ppgGame 99/100  P1 64-34  Equity: +0.612 ppgGame 100/100  P1 64-35  Equity: +0.586 ppg
+P1 wins: 65/100 (65.0%), Equity: +0.600 ppg, P1 gammons/bg: 27/7, P2 gammons/bg: 11/0, Avg length: 93 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_12/logs/eval_log.jsonl
+----- arena: round_12 vs iter_0447 (internal bar) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/exp005-6x128-800sims/checkpoints/iter_0447.pt (6x128)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 2-0  Equity: +2.000 ppgGame 4/100  P1 3-0  Equity: +2.000 ppgGame 5/100  P1 4-0  Equity: +2.000 ppgGame 6/100  P1 5-0  Equity: +2.000 ppgGame 7/100  P1 6-0  Equity: +2.167 ppgGame 8/100  P1 7-0  Equity: +2.286 ppgGame 9/100  P1 8-0  Equity: +2.250 ppgGame 10/100  P1 9-0  Equity: +2.222 ppgGame 11/100  P1 10-0  Equity: +2.200 ppgGame 12/100  P1 11-0  Equity: +2.273 ppgGame 13/100  P1 12-0  Equity: +2.167 ppgGame 14/100  P1 13-0  Equity: +2.231 ppgGame 15/100  P1 13-1  Equity: +2.000 ppgGame 16/100  P1 14-1  Equity: +2.067 ppgGame 17/100  P1 15-1  Equity: +2.062 ppgGame 18/100  P1 16-1  Equity: +2.118 ppgGame 19/100  P1 17-1  Equity: +2.111 ppgGame 20/100  P1 18-1  Equity: +2.158 ppgGame 21/100  P1 19-1  Equity: +2.200 ppgGame 22/100  P1 20-1  Equity: +2.190 ppgGame 23/100  P1 21-1  Equity: +2.182 ppgGame 24/100  P1 22-1  Equity: +2.174 ppgGame 25/100  P1 23-1  Equity: +2.208 ppgGame 26/100  P1 24-1  Equity: +2.240 ppgGame 27/100  P1 25-1  Equity: +2.231 ppgGame 28/100  P1 26-1  Equity: +2.222 ppgGame 29/100  P1 27-1  Equity: +2.214 ppgGame 30/100  P1 28-1  Equity: +2.207 ppgGame 31/100  P1 29-1  Equity: +2.233 ppgGame 32/100  P1 29-2  Equity: +2.097 ppgGame 33/100  P1 30-2  Equity: +2.062 ppgGame 34/100  P1 31-2  Equity: +2.030 ppgGame 35/100  P1 32-2  Equity: +2.029 ppgGame 36/100  P1 33-2  Equity: +2.057 ppgGame 37/100  P1 34-2  Equity: +2.056 ppgGame 38/100  P1 35-2  Equity: +2.081 ppgGame 39/100  P1 36-2  Equity: +2.079 ppgGame 40/100  P1 37-2  Equity: +2.077 ppgGame 41/100  P1 38-2  Equity: +2.050 ppgGame 42/100  P1 39-2  Equity: +2.073 ppgGame 43/100  P1 40-2  Equity: +2.048 ppgGame 44/100  P1 41-2  Equity: +2.070 ppgGame 45/100  P1 42-2  Equity: +2.068 ppgGame 46/100  P1 43-2  Equity: +2.067 ppgGame 47/100  P1 44-2  Equity: +2.087 ppgGame 48/100  P1 45-2  Equity: +2.064 ppgGame 49/100  P1 46-2  Equity: +2.083 ppgGame 50/100  P1 47-2  Equity: +2.082 ppgGame 51/100  P1 48-2  Equity: +2.100 ppgGame 52/100  P1 49-2  Equity: +2.098 ppgGame 53/100  P1 50-2  Equity: +2.096 ppgGame 54/100  P1 51-2  Equity: +2.113 ppgGame 55/100  P1 52-2  Equity: +2.130 ppgGame 56/100  P1 53-2  Equity: +2.145 ppgGame 57/100  P1 54-2  Equity: +2.143 ppgGame 58/100  P1 55-2  Equity: +2.140 ppgGame 59/100  P1 56-2  Equity: +2.155 ppgGame 60/100  P1 57-2  Equity: +2.153 ppgGame 61/100  P1 58-2  Equity: +2.150 ppgGame 62/100  P1 59-2  Equity: +2.164 ppgGame 63/100  P1 60-2  Equity: +2.177 ppgGame 64/100  P1 61-2  Equity: +2.159 ppgGame 65/100  P1 62-2  Equity: +2.156 ppgGame 66/100  P1 63-2  Equity: +2.154 ppgGame 67/100  P1 64-2  Equity: +2.152 ppgGame 68/100  P1 65-2  Equity: +2.134 ppgGame 69/100  P1 66-2  Equity: +2.118 ppgGame 70/100  P1 67-2  Equity: +2.130 ppgGame 71/100  P1 68-2  Equity: +2.129 ppgGame 72/100  P1 69-2  Equity: +2.127 ppgGame 73/100  P1 70-2  Equity: +2.125 ppgGame 74/100  P1 71-2  Equity: +2.123 ppgGame 75/100  P1 72-2  Equity: +2.122 ppgGame 76/100  P1 73-2  Equity: +2.120 ppgGame 77/100  P1 73-3  Equity: +2.066 ppgGame 78/100  P1 74-3  Equity: +2.065 ppgGame 79/100  P1 75-3  Equity: +2.077 ppgGame 80/100  P1 76-3  Equity: +2.076 ppgGame 81/100  P1 77-3  Equity: +2.087 ppgGame 82/100  P1 78-3  Equity: +2.099 ppgGame 83/100  P1 79-3  Equity: +2.085 ppgGame 84/100  P1 80-3  Equity: +2.096 ppgGame 85/100  P1 81-3  Equity: +2.107 ppgGame 86/100  P1 82-3  Equity: +2.094 ppgGame 87/100  P1 83-3  Equity: +2.081 ppgGame 88/100  P1 84-3  Equity: +2.069 ppgGame 89/100  P1 84-4  Equity: +2.023 ppgGame 90/100  P1 85-4  Equity: +2.034 ppgGame 91/100  P1 86-4  Equity: +2.044 ppgGame 92/100  P1 87-4  Equity: +2.044 ppgGame 93/100  P1 87-5  Equity: +2.011 ppgGame 94/100  P1 88-5  Equity: +2.022 ppgGame 95/100  P1 89-5  Equity: +2.032 ppgGame 96/100  P1 90-5  Equity: +2.032 ppgGame 97/100  P1 91-5  Equity: +2.042 ppgGame 98/100  P1 92-5  Equity: +2.041 ppgGame 99/100  P1 93-5  Equity: +2.041 ppgGame 100/100  P1 94-5  Equity: +2.051 ppg
+P1 wins: 95/100 (95.0%), Equity: +2.060 ppg, P1 gammons/bg: 45/37, P2 gammons/bg: 3/0, Avg length: 79 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_12/logs/eval_log.jsonl
+----- gnubg: round_12 vs world/2-ply (external M6) -----
+Raccoon: experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt (10x256)
+GNUBG: level=world
+Playing 100 games, 50 MCTS simulations per Raccoon move...
+Game 1/100  Raccoon 0-0  Equity: +0.000 ppgGame 2/100  Raccoon 0-1  Equity: -2.000 ppgGame 3/100  Raccoon 0-2  Equity: -1.500 ppgGame 4/100  Raccoon 1-2  Equity: -0.667 ppgGame 5/100  Raccoon 1-3  Equity: -1.250 ppgGame 6/100  Raccoon 1-4  Equity: -1.600 ppgGame 7/100  Raccoon 1-5  Equity: -1.833 ppgGame 8/100  Raccoon 1-6  Equity: -1.714 ppgGame 9/100  Raccoon 1-7  Equity: -1.875 ppgGame 10/100  Raccoon 1-8  Equity: -2.000 ppgGame 11/100  Raccoon 1-9  Equity: -2.000 ppgGame 12/100  Raccoon 1-10  Equity: -1.909 ppgGame 13/100  Raccoon 1-11  Equity: -1.917 ppgGame 14/100  Raccoon 1-12  Equity: -1.846 ppgGame 15/100  Raccoon 1-13  Equity: -1.857 ppgGame 16/100  Raccoon 1-14  Equity: -1.800 ppgGame 17/100  Raccoon 1-15  Equity: -1.812 ppgGame 18/100  Raccoon 1-16  Equity: -1.765 ppgGame 19/100  Raccoon 1-17  Equity: -1.778 ppgGame 20/100  Raccoon 1-18  Equity: -1.737 ppgGame 21/100  Raccoon 1-19  Equity: -1.800 ppgGame 22/100  Raccoon 1-20  Equity: -1.810 ppgGame 23/100  Raccoon 1-21  Equity: -1.818 ppgGame 24/100  Raccoon 1-22  Equity: -1.826 ppgGame 25/100  Raccoon 1-23  Equity: -1.792 ppgGame 26/100  Raccoon 1-24  Equity: -1.800 ppgGame 27/100  Raccoon 1-25  Equity: -1.808 ppgGame 28/100  Raccoon 1-26  Equity: -1.778 ppgGame 29/100  Raccoon 1-27  Equity: -1.821 ppgGame 30/100  Raccoon 2-27  Equity: -1.724 ppgGame 31/100  Raccoon 2-28  Equity: -1.700 ppgGame 32/100  Raccoon 3-28  Equity: -1.613 ppgGame 33/100  Raccoon 4-28  Equity: -1.500 ppgGame 34/100  Raccoon 4-29  Equity: -1.515 ppgGame 35/100  Raccoon 4-30  Equity: -1.529 ppgGame 36/100  Raccoon 4-31  Equity: -1.543 ppgGame 37/100  Raccoon 4-32  Equity: -1.528 ppgGame 38/100  Raccoon 5-32  Equity: -1.459 ppgGame 39/100  Raccoon 5-33  Equity: -1.474 ppgGame 40/100  Raccoon 6-33  Equity: -1.385 ppgGame 41/100  Raccoon 7-33  Equity: -1.325 ppgGame 42/100  Raccoon 7-34  Equity: -1.317 ppgGame 43/100  Raccoon 7-35  Equity: -1.333 ppgGame 44/100  Raccoon 7-36  Equity: -1.349 ppgGame 45/100  Raccoon 7-37  Equity: -1.364 ppgGame 46/100  Raccoon 7-38  Equity: -1.378 ppgGame 47/100  Raccoon 7-39  Equity: -1.413 ppgGame 48/100  Raccoon 7-40  Equity: -1.447 ppgGame 49/100  Raccoon 7-41  Equity: -1.458 ppgGame 50/100  Raccoon 7-42  Equity: -1.490 ppgGame 51/100  Raccoon 7-43  Equity: -1.480 ppgGame 52/100  Raccoon 7-44  Equity: -1.490 ppgGame 53/100  Raccoon 7-45  Equity: -1.500 ppgGame 54/100  Raccoon 7-46  Equity: -1.491 ppgGame 55/100  Raccoon 7-47  Equity: -1.500 ppgGame 56/100  Raccoon 7-48  Equity: -1.509 ppgGame 57/100  Raccoon 7-49  Equity: -1.518 ppgGame 58/100  Raccoon 7-50  Equity: -1.509 ppgGame 59/100  Raccoon 7-51  Equity: -1.517 ppgGame 60/100  Raccoon 7-52  Equity: -1.508 ppgGame 61/100  Raccoon 7-53  Equity: -1.533 ppgGame 62/100  Raccoon 7-54  Equity: -1.541 ppgGame 63/100  Raccoon 7-55  Equity: -1.548 ppgGame 64/100  Raccoon 8-55  Equity: -1.508 ppgGame 65/100  Raccoon 8-56  Equity: -1.516 ppgGame 66/100  Raccoon 8-57  Equity: -1.523 ppgGame 67/100  Raccoon 8-58  Equity: -1.515 ppgGame 68/100  Raccoon 8-59  Equity: -1.507 ppgGame 69/100  Raccoon 8-60  Equity: -1.515 ppgGame 70/100  Raccoon 8-61  Equity: -1.522 ppgGame 71/100  Raccoon 8-62  Equity: -1.514 ppgGame 72/100  Raccoon 8-63  Equity: -1.521 ppgGame 73/100  Raccoon 8-64  Equity: -1.542 ppgGame 74/100  Raccoon 8-65  Equity: -1.534 ppgGame 75/100  Raccoon 9-65  Equity: -1.500 ppgGame 76/100  Raccoon 9-66  Equity: -1.507 ppgGame 77/100  Raccoon 9-67  Equity: -1.500 ppgGame 78/100  Raccoon 9-68  Equity: -1.506 ppgGame 79/100  Raccoon 9-69  Equity: -1.513 ppgGame 80/100  Raccoon 9-70  Equity: -1.519 ppgGame 81/100  Raccoon 9-71  Equity: -1.525 ppgGame 82/100  Raccoon 9-72  Equity: -1.519 ppgGame 83/100  Raccoon 9-73  Equity: -1.512 ppgGame 84/100  Raccoon 9-74  Equity: -1.518 ppgGame 85/100  Raccoon 9-75  Equity: -1.536 ppgGame 86/100  Raccoon 9-76  Equity: -1.529 ppgGame 87/100  Raccoon 9-77  Equity: -1.523 ppgGame 88/100  Raccoon 9-78  Equity: -1.540 ppgGame 89/100  Raccoon 9-79  Equity: -1.557 ppgGame 90/100  Raccoon 9-80  Equity: -1.573 ppgGame 91/100  Raccoon 9-81  Equity: -1.578 ppgGame 92/100  Raccoon 10-81  Equity: -1.549 ppgGame 93/100  Raccoon 10-82  Equity: -1.554 ppgGame 94/100  Raccoon 10-83  Equity: -1.548 ppgGame 95/100  Raccoon 10-84  Equity: -1.543 ppgGame 96/100  Raccoon 10-85  Equity: -1.537 ppgGame 97/100  Raccoon 10-86  Equity: -1.542 ppgGame 98/100  Raccoon 10-87  Equity: -1.546 ppgGame 99/100  Raccoon 10-88  Equity: -1.541 ppgGame 100/100  Raccoon 10-89  Equity: -1.535 ppg
+Raccoon vs GNUBG (100 games)
+  Wins: 10-90 (10.0% +/- 5.9%)
+  Equity: Raccoon -155.0, GNUBG +155.0
+  Equity/game: -1.550
+  Raccoon gammons/bg: 2/0, GNUBG gammons/bg: 43/17
+Summary appended to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_12/logs/gnubg_eval_log.jsonl
+===== ROUND 12 DONE (next=experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt) 2026-07-04_14:43:18 =====
+===== ROUND 13 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt, ply=2) 2026-07-04_14:43:18 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,387 (nondbl=1,746 dbl_vo=641 dbl_pol=0) el=30.3min rate=79/min
+  games=50 emitted=5,019 (nondbl=3,664 dbl_vo=1,355 dbl_pol=0) el=70.8min rate=71/min
+  games=75 emitted=7,491 (nondbl=5,463 dbl_vo=2,028 dbl_pol=0) el=134.1min rate=56/min
+  games=100 emitted=10,163 (nondbl=7,450 dbl_vo=2,713 dbl_pol=0) el=181.1min rate=56/min
+  games=125 emitted=12,632 (nondbl=9,253 dbl_vo=3,379 dbl_pol=0) el=204.0min rate=62/min
+  games=150 emitted=15,007 (nondbl=11,011 dbl_vo=3,996 dbl_pol=0) el=230.8min rate=65/min
+  games=175 emitted=17,694 (nondbl=13,033 dbl_vo=4,661 dbl_pol=0) el=274.9min rate=64/min
+  games=200 emitted=20,311 (nondbl=14,940 dbl_vo=5,371 dbl_pol=0) el=317.0min rate=64/min
+  games=225 emitted=22,559 (nondbl=16,598 dbl_vo=5,961 dbl_pol=0) el=343.0min rate=66/min
+  games=250 emitted=25,237 (nondbl=18,630 dbl_vo=6,607 dbl_pol=0) el=370.4min rate=68/min
+  games=275 emitted=27,857 (nondbl=20,619 dbl_vo=7,238 dbl_pol=0) el=412.1min rate=68/min
+  games=300 emitted=30,751 (nondbl=22,790 dbl_vo=7,961 dbl_pol=0) el=448.4min rate=69/min
+  games=325 emitted=33,353 (nondbl=24,699 dbl_vo=8,654 dbl_pol=0) el=471.9min rate=71/min
+  games=350 emitted=35,540 (nondbl=26,311 dbl_vo=9,229 dbl_pol=0) el=503.0min rate=71/min
+  games=375 emitted=38,127 (nondbl=28,230 dbl_vo=9,897 dbl_pol=0) el=576.1min rate=66/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_13.npz
+  examples: 39,896  (games=394)
+  non-doubles policy=29,526  doubles value-only=10,370  doubles policy=0
+  value mean=0.033 std=0.346 min=-1.000 max=1.000
+  mean prob mass on best move: 0.379 (policy_temperature=0.02)
+  total 600.0 min
+===== ROUND 13 MERGE 2026-07-05_00:43:21 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_10.npz: 46,487 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz: 60,000 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz: 40,066 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_13.npz: 39,896 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_13.npz: 350,872 examples (K=6)
+===== ROUND 13 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt) 2026-07-05_00:43:28 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_12/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_13.npz
+  observations: (350872, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.035 std=0.310
+Split: 333,329 train / 17,543 val (soft policy targets)
+Baseline val: policy_CE=1.8812  value_MSE=0.0067  top1_acc=57.5%
+Epoch   1/4: train pol=1.4642 val=0.0069 | val pol=1.9519 val=0.0069 top1=54.5% | 3041.3s
+Epoch   2/4: train pol=1.3997 val=0.0068 | val pol=2.0203 val=0.0066 top1=51.4% | 3038.4s
+Epoch   3/4: train pol=1.3713 val=0.0068 | val pol=2.0766 val=0.0071 top1=50.6% | 3031.9s
+Epoch   4/4: train pol=1.3478 val=0.0068 | val pol=2.1399 val=0.0067 top1=48.0% | 3062.4s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt
+  final val: pol=2.1399 val=0.0067 top1=48.0%
+  total 202.9 min
+===== ROUND 13 EVAL 2026-07-05_04:07:01 =====
+----- arena: round_13 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 2-0  Equity: +2.000 ppgGame 4/100  P1 2-1  Equity: +1.000 ppgGame 5/100  P1 3-1  Equity: +1.250 ppgGame 6/100  P1 3-2  Equity: +0.800 ppgGame 7/100  P1 4-2  Equity: +1.000 ppgGame 8/100  P1 4-3  Equity: +0.714 ppgGame 9/100  P1 4-4  Equity: +0.375 ppgGame 10/100  P1 4-5  Equity: +0.222 ppgGame 11/100  P1 5-5  Equity: +0.500 ppgGame 12/100  P1 6-5  Equity: +0.545 ppgGame 13/100  P1 7-5  Equity: +0.583 ppgGame 14/100  P1 8-5  Equity: +0.692 ppgGame 15/100  P1 9-5  Equity: +0.714 ppgGame 16/100  P1 10-5  Equity: +0.800 ppgGame 17/100  P1 10-6  Equity: +0.688 ppgGame 18/100  P1 10-7  Equity: +0.588 ppgGame 19/100  P1 10-8  Equity: +0.500 ppgGame 20/100  P1 11-8  Equity: +0.579 ppgGame 21/100  P1 12-8  Equity: +0.600 ppgGame 22/100  P1 12-9  Equity: +0.476 ppgGame 23/100  P1 12-10  Equity: +0.409 ppgGame 24/100  P1 13-10  Equity: +0.478 ppgGame 25/100  P1 14-10  Equity: +0.542 ppgGame 26/100  P1 15-10  Equity: +0.600 ppgGame 27/100  P1 15-11  Equity: +0.500 ppgGame 28/100  P1 16-11  Equity: +0.519 ppgGame 29/100  P1 16-12  Equity: +0.464 ppgGame 30/100  P1 17-12  Equity: +0.517 ppgGame 31/100  P1 18-12  Equity: +0.567 ppgGame 32/100  P1 18-13  Equity: +0.516 ppgGame 33/100  P1 19-13  Equity: +0.531 ppgGame 34/100  P1 20-13  Equity: +0.545 ppgGame 35/100  P1 21-13  Equity: +0.588 ppgGame 36/100  P1 21-14  Equity: +0.514 ppgGame 37/100  P1 21-15  Equity: +0.444 ppgGame 38/100  P1 22-15  Equity: +0.514 ppgGame 39/100  P1 22-16  Equity: +0.474 ppgGame 40/100  P1 23-16  Equity: +0.538 ppgGame 41/100  P1 24-16  Equity: +0.575 ppgGame 42/100  P1 24-17  Equity: +0.512 ppgGame 43/100  P1 25-17  Equity: +0.524 ppgGame 44/100  P1 25-18  Equity: +0.465 ppgGame 45/100  P1 26-18  Equity: +0.523 ppgGame 46/100  P1 26-19  Equity: +0.489 ppgGame 47/100  P1 27-19  Equity: +0.500 ppgGame 48/100  P1 27-20  Equity: +0.447 ppgGame 49/100  P1 28-20  Equity: +0.458 ppgGame 50/100  P1 28-21  Equity: +0.429 ppgGame 51/100  P1 29-21  Equity: +0.460 ppgGame 52/100  P1 30-21  Equity: +0.490 ppgGame 53/100  P1 30-22  Equity: +0.442 ppgGame 54/100  P1 31-22  Equity: +0.472 ppgGame 55/100  P1 32-22  Equity: +0.481 ppgGame 56/100  P1 32-23  Equity: +0.455 ppgGame 57/100  P1 32-24  Equity: +0.411 ppgGame 58/100  P1 32-25  Equity: +0.386 ppgGame 59/100  P1 33-25  Equity: +0.414 ppgGame 60/100  P1 34-25  Equity: +0.441 ppgGame 61/100  P1 34-26  Equity: +0.417 ppgGame 62/100  P1 34-27  Equity: +0.377 ppgGame 63/100  P1 35-27  Equity: +0.387 ppgGame 64/100  P1 36-27  Equity: +0.413 ppgGame 65/100  P1 37-27  Equity: +0.422 ppgGame 66/100  P1 38-27  Equity: +0.446 ppgGame 67/100  P1 38-28  Equity: +0.409 ppgGame 68/100  P1 38-29  Equity: +0.388 ppgGame 69/100  P1 39-29  Equity: +0.397 ppgGame 70/100  P1 40-29  Equity: +0.420 ppgGame 71/100  P1 40-30  Equity: +0.400 ppgGame 72/100  P1 41-30  Equity: +0.423 ppgGame 73/100  P1 41-31  Equity: +0.375 ppgGame 74/100  P1 41-32  Equity: +0.342 ppgGame 75/100  P1 41-33  Equity: +0.324 ppgGame 76/100  P1 42-33  Equity: +0.333 ppgGame 77/100  P1 42-34  Equity: +0.316 ppgGame 78/100  P1 42-35  Equity: +0.286 ppgGame 79/100  P1 43-35  Equity: +0.308 ppgGame 80/100  P1 44-35  Equity: +0.316 ppgGame 81/100  P1 45-35  Equity: +0.338 ppgGame 82/100  P1 46-35  Equity: +0.346 ppgGame 83/100  P1 47-35  Equity: +0.354 ppgGame 84/100  P1 47-36  Equity: +0.325 ppgGame 85/100  P1 48-36  Equity: +0.345 ppgGame 86/100  P1 49-36  Equity: +0.365 ppgGame 87/100  P1 50-36  Equity: +0.372 ppgGame 88/100  P1 50-37  Equity: +0.356 ppgGame 89/100  P1 51-37  Equity: +0.375 ppgGame 90/100  P1 51-38  Equity: +0.360 ppgGame 91/100  P1 52-38  Equity: +0.378 ppgGame 92/100  P1 53-38  Equity: +0.407 ppgGame 93/100  P1 54-38  Equity: +0.424 ppgGame 94/100  P1 54-39  Equity: +0.409 ppgGame 95/100  P1 55-39  Equity: +0.426 ppgGame 96/100  P1 56-39  Equity: +0.432 ppgGame 97/100  P1 57-39  Equity: +0.448 ppgGame 98/100  P1 58-39  Equity: +0.464 ppgGame 99/100  P1 58-40  Equity: +0.449 ppgGame 100/100  P1 59-40  Equity: +0.475 ppg
+P1 wins: 60/100 (60.0%), Equity: +0.480 ppg, P1 gammons/bg: 33/6, P2 gammons/bg: 15/1, Avg length: 91 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_13/logs/eval_log.jsonl
+===== ROUND 13 DONE (next=experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt) 2026-07-05_05:21:05 =====
+===== ROUND 14 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt, ply=2) 2026-07-05_05:21:05 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,417 (nondbl=1,771 dbl_vo=646 dbl_pol=0) el=46.4min rate=52/min
+  games=50 emitted=4,679 (nondbl=3,452 dbl_vo=1,227 dbl_pol=0) el=75.7min rate=62/min
+  games=75 emitted=7,103 (nondbl=5,250 dbl_vo=1,853 dbl_pol=0) el=115.6min rate=61/min
+  games=100 emitted=9,438 (nondbl=7,008 dbl_vo=2,430 dbl_pol=0) el=133.9min rate=70/min
+  games=125 emitted=12,071 (nondbl=8,980 dbl_vo=3,091 dbl_pol=0) el=162.7min rate=74/min
+  games=150 emitted=14,155 (nondbl=10,516 dbl_vo=3,639 dbl_pol=0) el=179.0min rate=79/min
+  games=175 emitted=16,742 (nondbl=12,448 dbl_vo=4,294 dbl_pol=0) el=208.3min rate=80/min
+  games=200 emitted=19,398 (nondbl=14,381 dbl_vo=5,017 dbl_pol=0) el=231.9min rate=84/min
+  games=225 emitted=22,085 (nondbl=16,338 dbl_vo=5,747 dbl_pol=0) el=292.3min rate=76/min
+  games=250 emitted=24,450 (nondbl=18,085 dbl_vo=6,365 dbl_pol=0) el=321.3min rate=76/min
+  games=275 emitted=27,053 (nondbl=19,995 dbl_vo=7,058 dbl_pol=0) el=352.5min rate=77/min
+  games=300 emitted=29,516 (nondbl=21,837 dbl_vo=7,679 dbl_pol=0) el=374.7min rate=79/min
+  games=325 emitted=32,085 (nondbl=23,742 dbl_vo=8,343 dbl_pol=0) el=397.4min rate=81/min
+  games=350 emitted=34,738 (nondbl=25,716 dbl_vo=9,022 dbl_pol=0) el=461.3min rate=75/min
+  games=375 emitted=37,356 (nondbl=27,656 dbl_vo=9,700 dbl_pol=0) el=489.5min rate=76/min
+  games=400 emitted=39,667 (nondbl=29,334 dbl_vo=10,333 dbl_pol=0) el=513.7min rate=77/min
+  games=425 emitted=42,262 (nondbl=31,214 dbl_vo=11,048 dbl_pol=0) el=536.5min rate=79/min
+  games=450 emitted=44,762 (nondbl=33,058 dbl_vo=11,704 dbl_pol=0) el=570.3min rate=78/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_14.npz
+  examples: 46,509  (games=469)
+  non-doubles policy=34,364  doubles value-only=12,145  doubles policy=0
+  value mean=0.032 std=0.337 min=-1.000 max=1.000
+  mean prob mass on best move: 0.377 (policy_temperature=0.02)
+  total 600.1 min
+===== ROUND 14 MERGE 2026-07-05_15:21:11 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_11.npz: 60,000 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz: 40,066 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_13.npz: 39,896 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_14.npz: 46,509 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_14.npz: 350,894 examples (K=6)
+===== ROUND 14 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt) 2026-07-05_15:21:18 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_13/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_14.npz
+  observations: (350894, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.035 std=0.309
+Split: 333,350 train / 17,544 val (soft policy targets)
+Baseline val: policy_CE=1.8737  value_MSE=0.0066  top1_acc=56.4%
+Epoch   1/4: train pol=1.4681 val=0.0068 | val pol=1.9501 val=0.0066 top1=53.3% | 3068.9s
+Epoch   2/4: train pol=1.4002 val=0.0067 | val pol=2.0217 val=0.0064 top1=51.6% | 3076.8s
+Epoch   3/4: train pol=1.3690 val=0.0067 | val pol=2.0791 val=0.0068 top1=49.8% | 3069.6s
+Epoch   4/4: train pol=1.3443 val=0.0067 | val pol=2.1232 val=0.0067 top1=48.2% | 3043.5s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt
+  final val: pol=2.1232 val=0.0067 top1=48.2%
+  total 204.3 min
+===== ROUND 14 EVAL 2026-07-05_18:46:15 =====
+----- arena: round_14 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +1.000 ppgGame 3/100  P1 2-0  Equity: +1.000 ppgGame 4/100  P1 3-0  Equity: +1.333 ppgGame 5/100  P1 4-0  Equity: +1.500 ppgGame 6/100  P1 5-0  Equity: +1.800 ppgGame 7/100  P1 5-1  Equity: +1.000 ppgGame 8/100  P1 5-2  Equity: +0.571 ppgGame 9/100  P1 6-2  Equity: +0.750 ppgGame 10/100  P1 7-2  Equity: +0.889 ppgGame 11/100  P1 8-2  Equity: +1.000 ppgGame 12/100  P1 8-3  Equity: +0.818 ppgGame 13/100  P1 9-3  Equity: +0.917 ppgGame 14/100  P1 9-4  Equity: +0.692 ppgGame 15/100  P1 10-4  Equity: +0.786 ppgGame 16/100  P1 10-5  Equity: +0.600 ppgGame 17/100  P1 11-5  Equity: +0.625 ppgGame 18/100  P1 11-6  Equity: +0.529 ppgGame 19/100  P1 11-7  Equity: +0.389 ppgGame 20/100  P1 12-7  Equity: +0.474 ppgGame 21/100  P1 12-8  Equity: +0.350 ppgGame 22/100  P1 12-9  Equity: +0.286 ppgGame 23/100  P1 13-9  Equity: +0.364 ppgGame 24/100  P1 14-9  Equity: +0.435 ppgGame 25/100  P1 14-10  Equity: +0.333 ppgGame 26/100  P1 15-10  Equity: +0.440 ppgGame 27/100  P1 16-10  Equity: +0.500 ppgGame 28/100  P1 16-11  Equity: +0.370 ppgGame 29/100  P1 17-11  Equity: +0.393 ppgGame 30/100  P1 17-12  Equity: +0.345 ppgGame 31/100  P1 18-12  Equity: +0.400 ppgGame 32/100  P1 18-13  Equity: +0.355 ppgGame 33/100  P1 19-13  Equity: +0.406 ppgGame 34/100  P1 20-13  Equity: +0.455 ppgGame 35/100  P1 20-14  Equity: +0.382 ppgGame 36/100  P1 21-14  Equity: +0.400 ppgGame 37/100  P1 21-15  Equity: +0.333 ppgGame 38/100  P1 22-15  Equity: +0.378 ppgGame 39/100  P1 23-15  Equity: +0.421 ppgGame 40/100  P1 23-16  Equity: +0.333 ppgGame 41/100  P1 24-16  Equity: +0.375 ppgGame 42/100  P1 24-17  Equity: +0.317 ppgGame 43/100  P1 25-17  Equity: +0.357 ppgGame 44/100  P1 25-18  Equity: +0.302 ppgGame 45/100  P1 25-19  Equity: +0.273 ppgGame 46/100  P1 25-20  Equity: +0.222 ppgGame 47/100  P1 25-21  Equity: +0.152 ppgGame 48/100  P1 25-22  Equity: +0.128 ppgGame 49/100  P1 26-22  Equity: +0.167 ppgGame 50/100  P1 26-23  Equity: +0.143 ppgGame 51/100  P1 26-24  Equity: +0.080 ppgGame 52/100  P1 27-24  Equity: +0.098 ppgGame 53/100  P1 27-25  Equity: +0.077 ppgGame 54/100  P1 28-25  Equity: +0.094 ppgGame 55/100  P1 29-25  Equity: +0.130 ppgGame 56/100  P1 30-25  Equity: +0.164 ppgGame 57/100  P1 30-26  Equity: +0.125 ppgGame 58/100  P1 31-26  Equity: +0.158 ppgGame 59/100  P1 32-26  Equity: +0.172 ppgGame 60/100  P1 33-26  Equity: +0.186 ppgGame 61/100  P1 34-26  Equity: +0.200 ppgGame 62/100  P1 35-26  Equity: +0.230 ppgGame 63/100  P1 35-27  Equity: +0.194 ppgGame 64/100  P1 36-27  Equity: +0.206 ppgGame 65/100  P1 37-27  Equity: +0.219 ppgGame 66/100  P1 38-27  Equity: +0.262 ppgGame 67/100  P1 38-28  Equity: +0.227 ppgGame 68/100  P1 39-28  Equity: +0.239 ppgGame 69/100  P1 40-28  Equity: +0.279 ppgGame 70/100  P1 40-29  Equity: +0.232 ppgGame 71/100  P1 41-29  Equity: +0.243 ppgGame 72/100  P1 42-29  Equity: +0.268 ppgGame 73/100  P1 42-30  Equity: +0.250 ppgGame 74/100  P1 42-31  Equity: +0.219 ppgGame 75/100  P1 43-31  Equity: +0.243 ppgGame 76/100  P1 43-32  Equity: +0.213 ppgGame 77/100  P1 44-32  Equity: +0.237 ppgGame 78/100  P1 45-32  Equity: +0.247 ppgGame 79/100  P1 45-33  Equity: +0.218 ppgGame 80/100  P1 46-33  Equity: +0.241 ppgGame 81/100  P1 46-34  Equity: +0.212 ppgGame 82/100  P1 46-35  Equity: +0.185 ppgGame 83/100  P1 47-35  Equity: +0.207 ppgGame 84/100  P1 47-36  Equity: +0.193 ppgGame 85/100  P1 48-36  Equity: +0.214 ppgGame 86/100  P1 49-36  Equity: +0.224 ppgGame 87/100  P1 50-36  Equity: +0.244 ppgGame 88/100  P1 50-37  Equity: +0.218 ppgGame 89/100  P1 51-37  Equity: +0.239 ppgGame 90/100  P1 52-37  Equity: +0.258 ppgGame 91/100  P1 53-37  Equity: +0.267 ppgGame 92/100  P1 54-37  Equity: +0.286 ppgGame 93/100  P1 54-38  Equity: +0.272 ppgGame 94/100  P1 54-39  Equity: +0.247 ppgGame 95/100  P1 55-39  Equity: +0.255 ppgGame 96/100  P1 56-39  Equity: +0.263 ppgGame 97/100  P1 57-39  Equity: +0.281 ppgGame 98/100  P1 57-40  Equity: +0.268 ppgGame 99/100  P1 57-41  Equity: +0.255 ppgGame 100/100  P1 57-42  Equity: +0.242 ppg
+P1 wins: 57/100 (57.0%), Equity: +0.230 ppg, P1 gammons/bg: 34/4, P2 gammons/bg: 21/6, Avg length: 97 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_14/logs/eval_log.jsonl
+===== ROUND 14 DONE (next=experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt) 2026-07-05_20:04:36 =====
+===== ROUND 15 SYNTH (net=experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt, ply=2) 2026-07-05_20:04:36 =====
+Rollout net: experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=17
+  games=25 emitted=2,485 (nondbl=1,856 dbl_vo=629 dbl_pol=0) el=24.2min rate=102/min
+  games=50 emitted=5,269 (nondbl=3,906 dbl_vo=1,363 dbl_pol=0) el=60.4min rate=87/min
+  games=75 emitted=7,772 (nondbl=5,766 dbl_vo=2,006 dbl_pol=0) el=83.6min rate=93/min
+  games=100 emitted=10,299 (nondbl=7,643 dbl_vo=2,656 dbl_pol=0) el=108.3min rate=95/min
+  games=125 emitted=13,045 (nondbl=9,659 dbl_vo=3,386 dbl_pol=0) el=152.5min rate=86/min
+  games=150 emitted=15,383 (nondbl=11,362 dbl_vo=4,021 dbl_pol=0) el=171.1min rate=90/min
+  games=175 emitted=17,688 (nondbl=13,035 dbl_vo=4,653 dbl_pol=0) el=197.3min rate=90/min
+  games=200 emitted=20,356 (nondbl=15,028 dbl_vo=5,328 dbl_pol=0) el=227.2min rate=90/min
+  games=225 emitted=23,077 (nondbl=17,054 dbl_vo=6,023 dbl_pol=0) el=249.5min rate=92/min
+  games=250 emitted=25,841 (nondbl=19,129 dbl_vo=6,712 dbl_pol=0) el=286.0min rate=90/min
+  games=275 emitted=28,151 (nondbl=20,826 dbl_vo=7,325 dbl_pol=0) el=308.1min rate=91/min
+  games=300 emitted=30,446 (nondbl=22,576 dbl_vo=7,870 dbl_pol=0) el=329.2min rate=92/min
+  games=325 emitted=32,868 (nondbl=24,389 dbl_vo=8,479 dbl_pol=0) el=354.9min rate=93/min
+  games=350 emitted=35,430 (nondbl=26,306 dbl_vo=9,124 dbl_pol=0) el=382.5min rate=93/min
+  games=375 emitted=37,920 (nondbl=28,166 dbl_vo=9,754 dbl_pol=0) el=404.6min rate=94/min
+  games=400 emitted=40,273 (nondbl=29,921 dbl_vo=10,352 dbl_pol=0) el=426.2min rate=94/min
+  games=425 emitted=42,843 (nondbl=31,789 dbl_vo=11,054 dbl_pol=0) el=456.9min rate=94/min
+  games=450 emitted=45,303 (nondbl=33,606 dbl_vo=11,697 dbl_pol=0) el=480.4min rate=94/min
+  games=475 emitted=47,821 (nondbl=35,450 dbl_vo=12,371 dbl_pol=0) el=519.0min rate=92/min
+  games=500 emitted=50,500 (nondbl=37,470 dbl_vo=13,030 dbl_pol=0) el=554.3min rate=91/min
+  games=525 emitted=52,926 (nondbl=39,254 dbl_vo=13,672 dbl_pol=0) el=570.1min rate=93/min
+  games=550 emitted=55,598 (nondbl=41,195 dbl_vo=14,403 dbl_pol=0) el=594.8min rate=93/min
+
+Wrote experiments/exp008-ondist-10x256-2ply/caches/ondist_round_15.npz
+  examples: 56,324  (games=557)
+  non-doubles policy=41,718  doubles value-only=14,606  doubles policy=0
+  value mean=0.031 std=0.340 min=-1.000 max=1.000
+  mean prob mass on best move: 0.378 (policy_temperature=0.02)
+  total 600.2 min
+===== ROUND 15 MERGE 2026-07-06_06:04:47 =====
+  data/bglab/gnubg4ply_cache_dbl.npz: 164,423 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_12.npz: 40,066 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_13.npz: 39,896 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_14.npz: 46,509 examples
+  experiments/exp008-ondist-10x256-2ply/caches/ondist_round_15.npz: 56,324 examples
+Wrote experiments/exp008-ondist-10x256-2ply/caches/combined_round_15.npz: 347,218 examples (K=6)
+===== ROUND 15 TRAIN (warm from experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt) 2026-07-06_06:04:54 =====
+Device: cpu
+Loading base checkpoint experiments/exp008-ondist-10x256-2ply/round_14/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp008-ondist-10x256-2ply/caches/combined_round_15.npz
+  observations: (347218, 17, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.035 std=0.308
+Split: 329,858 train / 17,360 val (soft policy targets)
+Baseline val: policy_CE=1.8957  value_MSE=0.0067  top1_acc=56.2%
+Epoch   1/4: train pol=1.4880 val=0.0067 | val pol=1.9634 val=0.0067 top1=53.5% | 3018.1s
+Epoch   2/4: train pol=1.4107 val=0.0067 | val pol=2.0321 val=0.0067 top1=51.2% | 3009.2s
+Epoch   3/4: train pol=1.3761 val=0.0067 | val pol=2.0862 val=0.0065 top1=49.3% | 3017.8s
+Epoch   4/4: train pol=1.3496 val=0.0066 | val pol=2.1420 val=0.0068 top1=48.0% | 2986.1s
+
+Saved experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt
+  final val: pol=2.1420 val=0.0068 top1=48.0%
+  total 200.5 min
+===== ROUND 15 EVAL 2026-07-06_09:26:03 =====
+----- arena: round_15 vs v5 SEED (climb-or-regress; exp007 test) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt (10x256)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 1-1  Equity: -0.500 ppgGame 4/100  P1 2-1  Equity: +0.667 ppgGame 5/100  P1 3-1  Equity: +1.250 ppgGame 6/100  P1 4-1  Equity: +1.400 ppgGame 7/100  P1 5-1  Equity: +1.333 ppgGame 8/100  P1 5-2  Equity: +1.000 ppgGame 9/100  P1 6-2  Equity: +1.000 ppgGame 10/100  P1 7-2  Equity: +1.222 ppgGame 11/100  P1 8-2  Equity: +1.300 ppgGame 12/100  P1 8-3  Equity: +1.000 ppgGame 13/100  P1 8-4  Equity: +0.833 ppgGame 14/100  P1 9-4  Equity: +0.846 ppgGame 15/100  P1 10-4  Equity: +0.857 ppgGame 16/100  P1 10-5  Equity: +0.667 ppgGame 17/100  P1 11-5  Equity: +0.688 ppgGame 18/100  P1 12-5  Equity: +0.765 ppgGame 19/100  P1 13-5  Equity: +0.833 ppgGame 20/100  P1 14-5  Equity: +0.842 ppgGame 21/100  P1 14-6  Equity: +0.750 ppgGame 22/100  P1 14-7  Equity: +0.571 ppgGame 23/100  P1 14-8  Equity: +0.500 ppgGame 24/100  P1 14-9  Equity: +0.435 ppgGame 25/100  P1 15-9  Equity: +0.458 ppgGame 26/100  P1 16-9  Equity: +0.520 ppgGame 27/100  P1 17-9  Equity: +0.538 ppgGame 28/100  P1 18-9  Equity: +0.556 ppgGame 29/100  P1 18-10  Equity: +0.500 ppgGame 30/100  P1 19-10  Equity: +0.517 ppgGame 31/100  P1 20-10  Equity: +0.567 ppgGame 32/100  P1 21-10  Equity: +0.581 ppgGame 33/100  P1 21-11  Equity: +0.531 ppgGame 34/100  P1 22-11  Equity: +0.576 ppgGame 35/100  P1 22-12  Equity: +0.471 ppgGame 36/100  P1 22-13  Equity: +0.400 ppgGame 37/100  P1 23-13  Equity: +0.444 ppgGame 38/100  P1 24-13  Equity: +0.514 ppgGame 39/100  P1 25-13  Equity: +0.526 ppgGame 40/100  P1 26-13  Equity: +0.538 ppgGame 41/100  P1 26-14  Equity: +0.500 ppgGame 42/100  P1 27-14  Equity: +0.537 ppgGame 43/100  P1 27-15  Equity: +0.476 ppgGame 44/100  P1 28-15  Equity: +0.512 ppgGame 45/100  P1 29-15  Equity: +0.545 ppgGame 46/100  P1 29-16  Equity: +0.511 ppgGame 47/100  P1 29-17  Equity: +0.478 ppgGame 48/100  P1 30-17  Equity: +0.489 ppgGame 49/100  P1 31-17  Equity: +0.521 ppgGame 50/100  P1 32-17  Equity: +0.551 ppgGame 51/100  P1 32-18  Equity: +0.500 ppgGame 52/100  P1 33-18  Equity: +0.529 ppgGame 53/100  P1 33-19  Equity: +0.462 ppgGame 54/100  P1 34-19  Equity: +0.472 ppgGame 55/100  P1 34-20  Equity: +0.444 ppgGame 56/100  P1 34-21  Equity: +0.418 ppgGame 57/100  P1 34-22  Equity: +0.393 ppgGame 58/100  P1 34-23  Equity: +0.351 ppgGame 59/100  P1 35-23  Equity: +0.379 ppgGame 60/100  P1 36-23  Equity: +0.424 ppgGame 61/100  P1 37-23  Equity: +0.433 ppgGame 62/100  P1 38-23  Equity: +0.459 ppgGame 63/100  P1 39-23  Equity: +0.468 ppgGame 64/100  P1 39-24  Equity: +0.429 ppgGame 65/100  P1 40-24  Equity: +0.453 ppgGame 66/100  P1 41-24  Equity: +0.492 ppgGame 67/100  P1 42-24  Equity: +0.530 ppgGame 68/100  P1 43-24  Equity: +0.552 ppgGame 69/100  P1 44-24  Equity: +0.559 ppgGame 70/100  P1 45-24  Equity: +0.580 ppgGame 71/100  P1 45-25  Equity: +0.557 ppgGame 72/100  P1 46-25  Equity: +0.563 ppgGame 73/100  P1 47-25  Equity: +0.569 ppgGame 74/100  P1 47-26  Equity: +0.548 ppgGame 75/100  P1 47-27  Equity: +0.500 ppgGame 76/100  P1 47-28  Equity: +0.467 ppgGame 77/100  P1 47-29  Equity: +0.421 ppgGame 78/100  P1 48-29  Equity: +0.429 ppgGame 79/100  P1 49-29  Equity: +0.449 ppgGame 80/100  P1 49-30  Equity: +0.418 ppgGame 81/100  P1 50-30  Equity: +0.438 ppgGame 82/100  P1 50-31  Equity: +0.420 ppgGame 83/100  P1 51-31  Equity: +0.439 ppgGame 84/100  P1 52-31  Equity: +0.458 ppgGame 85/100  P1 53-31  Equity: +0.464 ppgGame 86/100  P1 54-31  Equity: +0.494 ppgGame 87/100  P1 54-32  Equity: +0.477 ppgGame 88/100  P1 55-32  Equity: +0.494 ppgGame 89/100  P1 55-33  Equity: +0.477 ppgGame 90/100  P1 55-34  Equity: +0.461 ppgGame 91/100  P1 56-34  Equity: +0.467 ppgGame 92/100  P1 56-35  Equity: +0.440 ppgGame 93/100  P1 56-36  Equity: +0.413 ppgGame 94/100  P1 57-36  Equity: +0.430 ppgGame 95/100  P1 58-36  Equity: +0.436 ppgGame 96/100  P1 59-36  Equity: +0.442 ppgGame 97/100  P1 60-36  Equity: +0.469 ppgGame 98/100  P1 60-37  Equity: +0.443 ppgGame 99/100  P1 61-37  Equity: +0.459 ppgGame 100/100  P1 62-37  Equity: +0.465 ppg
+P1 wins: 63/100 (63.0%), Equity: +0.480 ppg, P1 gammons/bg: 28/9, P2 gammons/bg: 12/6, Avg length: 90 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_15/logs/eval_log.jsonl
+----- arena: round_15 vs iter_0447 (internal bar) -----
+Player 1: experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/exp005-6x128-800sims/checkpoints/iter_0447.pt (6x128)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +2.000 ppgGame 3/100  P1 2-0  Equity: +2.000 ppgGame 4/100  P1 3-0  Equity: +2.000 ppgGame 5/100  P1 4-0  Equity: +2.000 ppgGame 6/100  P1 5-0  Equity: +2.000 ppgGame 7/100  P1 6-0  Equity: +2.000 ppgGame 8/100  P1 7-0  Equity: +2.000 ppgGame 9/100  P1 8-0  Equity: +2.000 ppgGame 10/100  P1 9-0  Equity: +2.000 ppgGame 11/100  P1 10-0  Equity: +1.900 ppgGame 12/100  P1 11-0  Equity: +2.000 ppgGame 13/100  P1 12-0  Equity: +2.000 ppgGame 14/100  P1 13-0  Equity: +2.077 ppgGame 15/100  P1 14-0  Equity: +2.071 ppgGame 16/100  P1 15-0  Equity: +2.067 ppgGame 17/100  P1 16-0  Equity: +2.062 ppgGame 18/100  P1 17-0  Equity: +2.000 ppgGame 19/100  P1 18-0  Equity: +2.056 ppgGame 20/100  P1 19-0  Equity: +2.053 ppgGame 21/100  P1 20-0  Equity: +2.100 ppgGame 22/100  P1 21-0  Equity: +2.095 ppgGame 23/100  P1 22-0  Equity: +2.136 ppgGame 24/100  P1 23-0  Equity: +2.087 ppgGame 25/100  P1 24-0  Equity: +2.042 ppgGame 26/100  P1 25-0  Equity: +2.040 ppgGame 27/100  P1 26-0  Equity: +2.038 ppgGame 28/100  P1 27-0  Equity: +2.037 ppgGame 29/100  P1 28-0  Equity: +2.071 ppgGame 30/100  P1 29-0  Equity: +2.069 ppgGame 31/100  P1 30-0  Equity: +2.067 ppgGame 32/100  P1 31-0  Equity: +2.065 ppgGame 33/100  P1 32-0  Equity: +2.031 ppgGame 34/100  P1 33-0  Equity: +2.000 ppgGame 35/100  P1 34-0  Equity: +2.029 ppgGame 36/100  P1 35-0  Equity: +2.057 ppgGame 37/100  P1 36-0  Equity: +2.083 ppgGame 38/100  P1 37-0  Equity: +2.081 ppgGame 39/100  P1 38-0  Equity: +2.079 ppgGame 40/100  P1 39-0  Equity: +2.077 ppgGame 41/100  P1 40-0  Equity: +2.075 ppgGame 42/100  P1 41-0  Equity: +2.073 ppgGame 43/100  P1 42-0  Equity: +2.071 ppgGame 44/100  P1 43-0  Equity: +2.093 ppgGame 45/100  P1 44-0  Equity: +2.114 ppgGame 46/100  P1 45-0  Equity: +2.133 ppgGame 47/100  P1 46-0  Equity: +2.152 ppgGame 48/100  P1 47-0  Equity: +2.149 ppgGame 49/100  P1 48-0  Equity: +2.167 ppgGame 50/100  P1 49-0  Equity: +2.163 ppgGame 51/100  P1 50-0  Equity: +2.160 ppgGame 52/100  P1 51-0  Equity: +2.176 ppgGame 53/100  P1 52-0  Equity: +2.173 ppgGame 54/100  P1 53-0  Equity: +2.170 ppgGame 55/100  P1 54-0  Equity: +2.185 ppgGame 56/100  P1 55-0  Equity: +2.200 ppgGame 57/100  P1 56-0  Equity: +2.196 ppgGame 58/100  P1 57-0  Equity: +2.211 ppgGame 59/100  P1 58-0  Equity: +2.224 ppgGame 60/100  P1 59-0  Equity: +2.203 ppgGame 61/100  P1 60-0  Equity: +2.200 ppgGame 62/100  P1 61-0  Equity: +2.213 ppgGame 63/100  P1 62-0  Equity: +2.210 ppgGame 64/100  P1 63-0  Equity: +2.222 ppgGame 65/100  P1 64-0  Equity: +2.234 ppgGame 66/100  P1 65-0  Equity: +2.246 ppgGame 67/100  P1 66-0  Equity: +2.242 ppgGame 68/100  P1 67-0  Equity: +2.254 ppgGame 69/100  P1 68-0  Equity: +2.265 ppgGame 70/100  P1 69-0  Equity: +2.275 ppgGame 71/100  P1 69-1  Equity: +2.229 ppgGame 72/100  P1 70-1  Equity: +2.239 ppgGame 73/100  P1 71-1  Equity: +2.250 ppgGame 74/100  P1 72-1  Equity: +2.260 ppgGame 75/100  P1 73-1  Equity: +2.257 ppgGame 76/100  P1 74-1  Equity: +2.267 ppgGame 77/100  P1 75-1  Equity: +2.263 ppgGame 78/100  P1 76-1  Equity: +2.273 ppgGame 79/100  P1 77-1  Equity: +2.256 ppgGame 80/100  P1 78-1  Equity: +2.266 ppgGame 81/100  P1 79-1  Equity: +2.263 ppgGame 82/100  P1 80-1  Equity: +2.259 ppgGame 83/100  P1 81-1  Equity: +2.268 ppgGame 84/100  P1 82-1  Equity: +2.265 ppgGame 85/100  P1 83-1  Equity: +2.262 ppgGame 86/100  P1 84-1  Equity: +2.259 ppgGame 87/100  P1 85-1  Equity: +2.256 ppgGame 88/100  P1 86-1  Equity: +2.264 ppgGame 89/100  P1 87-1  Equity: +2.261 ppgGame 90/100  P1 88-1  Equity: +2.270 ppgGame 91/100  P1 89-1  Equity: +2.256 ppgGame 92/100  P1 90-1  Equity: +2.242 ppgGame 93/100  P1 91-1  Equity: +2.250 ppgGame 94/100  P1 92-1  Equity: +2.237 ppgGame 95/100  P1 93-1  Equity: +2.245 ppgGame 96/100  P1 94-1  Equity: +2.253 ppgGame 97/100  P1 95-1  Equity: +2.250 ppgGame 98/100  P1 95-2  Equity: +2.216 ppgGame 99/100  P1 96-2  Equity: +2.224 ppgGame 100/100  P1 97-2  Equity: +2.232 ppg
+P1 wins: 98/100 (98.0%), Equity: +2.230 ppg, P1 gammons/bg: 47/40, P2 gammons/bg: 0/0, Avg length: 74 moves
+Result logged to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_15/logs/eval_log.jsonl
+----- gnubg: round_15 vs world/2-ply (external M6) -----
+Raccoon: experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt (10x256)
+GNUBG: level=world
+Playing 100 games, 50 MCTS simulations per Raccoon move...
+Game 1/100  Raccoon 0-0  Equity: +0.000 ppgGame 2/100  Raccoon 1-0  Equity: +1.000 ppgGame 3/100  Raccoon 2-0  Equity: +1.000 ppgGame 4/100  Raccoon 2-1  Equity: +0.333 ppgGame 5/100  Raccoon 3-1  Equity: +0.500 ppgGame 6/100  Raccoon 3-2  Equity: +0.200 ppgGame 7/100  Raccoon 3-3  Equity: -0.333 ppgGame 8/100  Raccoon 3-4  Equity: -0.429 ppgGame 9/100  Raccoon 3-5  Equity: -0.500 ppgGame 10/100  Raccoon 3-6  Equity: -0.556 ppgGame 11/100  Raccoon 3-7  Equity: -0.700 ppgGame 12/100  Raccoon 3-8  Equity: -0.818 ppgGame 13/100  Raccoon 3-9  Equity: -0.833 ppgGame 14/100  Raccoon 3-10  Equity: -1.000 ppgGame 15/100  Raccoon 3-11  Equity: -1.071 ppgGame 16/100  Raccoon 3-12  Equity: -1.067 ppgGame 17/100  Raccoon 3-13  Equity: -1.125 ppgGame 18/100  Raccoon 3-14  Equity: -1.176 ppgGame 19/100  Raccoon 3-15  Equity: -1.222 ppgGame 20/100  Raccoon 3-16  Equity: -1.263 ppgGame 21/100  Raccoon 3-17  Equity: -1.250 ppgGame 22/100  Raccoon 3-18  Equity: -1.238 ppgGame 23/100  Raccoon 3-19  Equity: -1.227 ppgGame 24/100  Raccoon 3-20  Equity: -1.261 ppgGame 25/100  Raccoon 3-21  Equity: -1.250 ppgGame 26/100  Raccoon 3-22  Equity: -1.240 ppgGame 27/100  Raccoon 3-23  Equity: -1.231 ppgGame 28/100  Raccoon 3-24  Equity: -1.259 ppgGame 29/100  Raccoon 3-25  Equity: -1.250 ppgGame 30/100  Raccoon 4-25  Equity: -1.172 ppgGame 31/100  Raccoon 4-26  Equity: -1.233 ppgGame 32/100  Raccoon 4-27  Equity: -1.226 ppgGame 33/100  Raccoon 4-28  Equity: -1.281 ppgGame 34/100  Raccoon 4-29  Equity: -1.303 ppgGame 35/100  Raccoon 4-30  Equity: -1.294 ppgGame 36/100  Raccoon 4-31  Equity: -1.286 ppgGame 37/100  Raccoon 4-32  Equity: -1.278 ppgGame 38/100  Raccoon 5-32  Equity: -1.189 ppgGame 39/100  Raccoon 5-33  Equity: -1.237 ppgGame 40/100  Raccoon 5-34  Equity: -1.231 ppgGame 41/100  Raccoon 5-35  Equity: -1.250 ppgGame 42/100  Raccoon 6-35  Equity: -1.195 ppgGame 43/100  Raccoon 6-36  Equity: -1.214 ppgGame 44/100  Raccoon 6-37  Equity: -1.209 ppgGame 45/100  Raccoon 6-38  Equity: -1.205 ppgGame 46/100  Raccoon 6-39  Equity: -1.200 ppgGame 47/100  Raccoon 7-39  Equity: -1.152 ppgGame 48/100  Raccoon 7-40  Equity: -1.170 ppgGame 49/100  Raccoon 8-40  Equity: -1.125 ppgGame 50/100  Raccoon 8-41  Equity: -1.143 ppgGame 51/100  Raccoon 8-42  Equity: -1.160 ppgGame 52/100  Raccoon 8-43  Equity: -1.196 ppgGame 53/100  Raccoon 8-44  Equity: -1.212 ppgGame 54/100  Raccoon 9-44  Equity: -1.170 ppgGame 55/100  Raccoon 10-44  Equity: -1.111 ppgGame 56/100  Raccoon 10-45  Equity: -1.145 ppgGame 57/100  Raccoon 10-46  Equity: -1.143 ppgGame 58/100  Raccoon 10-47  Equity: -1.140 ppgGame 59/100  Raccoon 10-48  Equity: -1.155 ppgGame 60/100  Raccoon 11-48  Equity: -1.119 ppgGame 61/100  Raccoon 11-49  Equity: -1.133 ppgGame 62/100  Raccoon 11-50  Equity: -1.131 ppgGame 63/100  Raccoon 11-51  Equity: -1.145 ppgGame 64/100  Raccoon 12-51  Equity: -1.111 ppgGame 65/100  Raccoon 12-52  Equity: -1.125 ppgGame 66/100  Raccoon 12-53  Equity: -1.123 ppgGame 67/100  Raccoon 12-54  Equity: -1.121 ppgGame 68/100  Raccoon 12-55  Equity: -1.149 ppgGame 69/100  Raccoon 13-55  Equity: -1.118 ppgGame 70/100  Raccoon 13-56  Equity: -1.130 ppgGame 71/100  Raccoon 13-57  Equity: -1.157 ppgGame 72/100  Raccoon 13-58  Equity: -1.155 ppgGame 73/100  Raccoon 13-59  Equity: -1.167 ppgGame 74/100  Raccoon 13-60  Equity: -1.178 ppgGame 75/100  Raccoon 13-61  Equity: -1.189 ppgGame 76/100  Raccoon 13-62  Equity: -1.200 ppgGame 77/100  Raccoon 13-63  Equity: -1.197 ppgGame 78/100  Raccoon 13-64  Equity: -1.195 ppgGame 79/100  Raccoon 13-65  Equity: -1.205 ppgGame 80/100  Raccoon 13-66  Equity: -1.203 ppgGame 81/100  Raccoon 13-67  Equity: -1.212 ppgGame 82/100  Raccoon 14-67  Equity: -1.185 ppgGame 83/100  Raccoon 15-67  Equity: -1.159 ppgGame 84/100  Raccoon 15-68  Equity: -1.169 ppgGame 85/100  Raccoon 15-69  Equity: -1.167 ppgGame 86/100  Raccoon 15-70  Equity: -1.176 ppgGame 87/100  Raccoon 15-71  Equity: -1.186 ppgGame 88/100  Raccoon 15-72  Equity: -1.195 ppgGame 89/100  Raccoon 15-73  Equity: -1.193 ppgGame 90/100  Raccoon 15-74  Equity: -1.191 ppgGame 91/100  Raccoon 16-74  Equity: -1.167 ppgGame 92/100  Raccoon 16-75  Equity: -1.165 ppgGame 93/100  Raccoon 17-75  Equity: -1.120 ppgGame 94/100  Raccoon 17-76  Equity: -1.118 ppgGame 95/100  Raccoon 17-77  Equity: -1.138 ppgGame 96/100  Raccoon 17-78  Equity: -1.147 ppgGame 97/100  Raccoon 17-79  Equity: -1.156 ppgGame 98/100  Raccoon 17-80  Equity: -1.155 ppgGame 99/100  Raccoon 17-81  Equity: -1.163 ppgGame 100/100  Raccoon 17-82  Equity: -1.182 ppg
+Raccoon vs GNUBG (100 games)
+  Wins: 17-83 (17.0% +/- 7.4%)
+  Equity: Raccoon -119.0, GNUBG +119.0
+  Equity/game: -1.190
+  Raccoon gammons/bg: 2/1, GNUBG gammons/bg: 35/11
+Summary appended to /home/lasse/python-projects/raccoon/experiments/exp008-ondist-10x256-2ply/round_15/logs/gnubg_eval_log.jsonl
+===== ROUND 15 DONE (next=experiments/exp008-ondist-10x256-2ply/round_15/checkpoints/pretrained_v2.pt) 2026-07-06_12:20:44 =====
+===== EXP008 COMPLETE 2026-07-06_12:20:44 =====
