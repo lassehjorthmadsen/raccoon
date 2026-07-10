@@ -237,7 +237,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="experiment-overview" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-overview">Experiment Overview</h2>
 <p>This analysis covers all Raccoon training experiments, comparing their progress, efficiency, and performance. Each experiment tests a different training configuration to understand what drives learning in AlphaZero-style self-play.</p>
-<div id="f8c420da" class="cell" data-execution_count="2">
+<div id="da00f0f0" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>| Experiment                     | Network       |   MCTS Sims |   Games/Iter |   Iterations |   Total Games | Status   |
 |:-------------------------------|:--------------|------------:|-------------:|-------------:|--------------:|:---------|
@@ -267,7 +267,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-curves-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-curves-comparison">Loss Curves Comparison</h2>
 <p>Comparing loss trajectories across experiments reveals how different training configurations affect learning dynamics.</p>
-<div id="ae18711d" class="cell page-columns page-full" data-execution_count="3">
+<div id="7ee4d92f" class="cell page-columns page-full" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">False</span>)</span>
@@ -404,7 +404,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss-trend-detail-policy-and-value-separately" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="loss-trend-detail-policy-and-value-separately">Loss Trend Detail: Policy and Value Separately</h2>
 <p>Policy and value loss are doing different things; reading them together via <code>total_loss</code> obscures the signal. We fit a linear trend on each over a “late phase” (after the first 20% of each run), so the early warmup doesn’t dominate the slope.</p>
-<div id="6eee3fab" class="cell page-columns page-full" data-execution_count="4">
+<div id="6b164766" class="cell page-columns page-full" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numpy.polynomial.polynomial <span class="im">import</span> polyfit</span>
@@ -484,7 +484,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed) — Value Loss (MSE): 0.0246 → 0.
 <section id="game-dynamics-is-play-quality-improving" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="game-dynamics-is-play-quality-improving">Game Dynamics: Is Play Quality Improving?</h2>
 <p>The clearest diagnostic for whether training is making progress isn’t loss — it’s whether the distribution of game outcomes is shifting. In strong-vs-strong backgammon, gammon rates sit around 15–20% and backgammons around 1%. If our self-play gammon rate is falling toward those numbers, play is improving. If it’s flat, play is stuck.</p>
-<div id="c5a17f5c" class="cell page-columns page-full" data-execution_count="5">
+<div id="f8f32b06" class="cell page-columns page-full" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">9</span>))</span>
@@ -581,7 +581,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed) — Value Loss (MSE): 0.0246 → 0.
 <section id="player-0-equity-bias" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="player-0-equity-bias">Player-0 Equity Bias</h2>
 <p>OpenSpiel’s opening roll randomly assigns which player moves first (verified 50/50). Under symmetric self-play, the average game outcome from player 0’s perspective should be approximately zero.</p>
-<div id="58345ddc" class="cell page-columns page-full" data-execution_count="6">
+<div id="2b606a18" class="cell page-columns page-full" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
@@ -637,7 +637,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed): avg outcome = -0.058  SE≈0.090  
 <section id="training-efficiency-comparison" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="training-efficiency-comparison">Training Efficiency Comparison</h2>
 <p>How does more compute per iteration (8x MCTS sims, 5x games) affect training time?</p>
-<div id="f531c0b6" class="cell page-columns page-full" data-execution_count="7">
+<div id="ad723764" class="cell page-columns page-full" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">8</span>))</span>
@@ -706,7 +706,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed): avg outcome = -0.058  SE≈0.090  
 </div>
 </div>
 </div>
-<div id="5afa36ea" class="cell" data-execution_count="8">
+<div id="0436c556" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print efficiency stats for each experiment</span></span>
@@ -804,7 +804,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed):
 <section id="benchmark-results" class="level2">
 <h2 class="anchored" data-anchor-id="benchmark-results">Benchmark Results</h2>
 <p>Evaluation results from each experiment (when available):</p>
-<div id="b645543b" class="cell" data-execution_count="9">
+<div id="5f8785e0" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ============================================================
@@ -967,7 +967,7 @@ exp007 (800 sims, 8 games, 10×256, v5 seed)
 <p><strong>Seed</strong>: <code>pretrain-gnubg-v5-10x256-dbl/checkpoints/pretrained_v2.pt</code> — a 10×256 net distilled from GNUBG 4-ply analysis over 20 epochs. Standalone: 93-7 vs iter_0447 (+1.98 ppg), 8-92 vs GNUBG 2-ply (−1.59 ppg). The policy head learned GNUBG’s move preferences; the value head was calibrated to GNUBG money equities (continuous expectations, mean ~0.04, std ~0.27). See <a href="./pretraining_analysis.html">Pretraining Analysis</a> for the seed backstory.</p>
 <p><strong>Config</strong>: 800 sims, 8 games/iter, 50 iters, lr 5×10⁻⁴, bootstrap α=0.5, Dirichlet 0.3/eps 0.25, 25k buffer, 4 workers (iMac CPU). No LR decay. Total wall time ~5.5 days (~90 min/iter early, ~270 min/iter late as MCTS steered into more compute-heavy positions).</p>
 <p><strong>The verdict: the regression trap closed completely.</strong></p>
-<div id="9af3fdc2" class="cell" data-execution_count="10">
+<div id="47495f8d" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-stdout">
 <pre><code>| Opponent                    | Result   | Win%   |   Equity | Δ vs seed   |   n |
 |:----------------------------|:---------|:-------|---------:|:------------|----:|
@@ -1095,6 +1095,14 @@ exp007 (800 sims, 8 games, 10×256, v5 seed)
 <li><p><del><strong>Scale sims (400–800).</strong></del> <strong>Done</strong> (exp005, partially). 800 sims produced the fastest policy improvement and clearest BG rate decline of any experiment in the useful phase (iters 1–109). Arena result (iter_0109 vs iter_0040: <strong>+0.380 ppg, p≈0.035</strong>) confirms genuine strength gain. <strong>The lever works — but the run was confounded by a hardware restart + premature LR decay.</strong> The watchdog-driven extension to iter 447 (290 iters at lr=1e-5) produced no further strength gain (iter_0447 vs iter_0109: +0.050 ppg, n.s.) — but did not weaken the network either, so iter_0447 and iter_0109 are interchangeable as seed checkpoints. A clean re-run of exp005 without the LR schedule remains the priority. Recommended: resume from exp005 iter_0109 (or fresh start) with 800 sims, no LR decay, no value bootstrap (or retain bootstrap — the question is sims, not targets).</p></li>
 <li><p><del><strong>Test whether more iterations alone break the plateau.</strong></del> <strong>Done</strong> (exp006). Yes — but slowly. +0.270 ppg per 2000 iterations is far too slow to reach GNUBG-competitive strength. Pure iteration count is not the path.</p></li>
 <li><p><del><strong>Algorithmic pivot: supervised pretraining + self-play fine-tune.</strong></del> <strong>Done</strong> (exp007, 2026-06-14; exp008/Stage 7, 2026-07-06). exp007: pure self-play from v5 regresses completely (−1.74 ppg vs seed). The fix — on-distribution DAgger (exp008) — is documented in <a href="./pretraining_analysis.html">Pretraining Analysis § Stage 7</a> and produced the project’s best result: <strong>−1.19 ppg / 17% wins vs GNUBG 2-ply.</strong></p></li>
+<li><p><strong>Post-DAgger direction: TD(λ) self-play from the strong seed (exp010 front-runner, noted 2026-07-10).</strong> DAgger (exp008/exp009) converges to its teacher and can never pass it; GNUBG 2-ply is its ceiling by construction. Of the ways past that ceiling, TD-Gammon/GNUBG-style TD self-play looks strongest on cost and evidence:</p>
+<ul>
+<li><strong>Cheap where AlphaZero is expensive.</strong> TD move selection is 1-ply: ~20 value evals per decision (one per legal move) vs 100–800 for MCTS self-play, no tree overhead, and the candidate positions batch naturally on GPU. The dice provide exploration for free — no Dirichlet noise, no temperature schedule. A TD-Gammon-scale diet (~1M self-play games) is plausibly a couple of GPU-weeks on the current T4 with the current 10×256 net. The recipe the core conclusion above calls too expensive is <em>MCTS</em> self-play; TD never was.</li>
+<li><strong>No teacher ceiling, warm start.</strong> Initialise the value head from the consolidation seed (already distilled from GNUBG) and let TD refine beyond it. The policy head can be regenerated afterwards from the improved value function via the existing 1-ply V-lookahead distillation (<code>synthesize_policy_dataset.py</code>).</li>
+<li><strong>Avoids exp007’s failure mode.</strong> The regression trap was driven by noisy MCTS policy targets and discrete-outcome value drift; TD’s value-only bootstrap toward the <em>next position’s equity estimate</em> has neither feedback loop. Still gate checkpoints on arena evals and keep LR conservative.</li>
+<li><strong>Design notes.</strong> Consider multi-component value outputs (win/gammon/bg probabilities combined into money equity, as TD-Gammon and GNUBG do) instead of the scalar head — gammon rates are a large share of the remaining gap. Capacity is not the lever: the historical record (GNUBG, wildbg) improved via inputs and target quality, not bigger nets.</li>
+<li><strong>Why not the alternatives:</strong> deeper-ply distillation costs ~53× per label (3-ply vs 2-ply, exp009 Phase A ply pricing) for a teacher we intend to outgrow; a TPU-scale AlphaZero rerun needs batched-inference re-engineering and remains unproven for backgammon, where shallow search on small nets has been world-class for 20 years.</li>
+</ul></li>
 <li><p><strong>Infrastructure.</strong> Future experiments should be added to the <code>EXPERIMENTS</code> dict; download logs from GCS and re-render.</p></li>
 </ol>
 </section>
