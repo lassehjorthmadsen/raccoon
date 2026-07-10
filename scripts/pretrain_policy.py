@@ -242,6 +242,12 @@ def main() -> None:
     parser.add_argument("--val-split", type=float, default=0.05)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--checkpoint-every", type=int, default=5)
+    parser.add_argument("--select-best", action="store_true",
+                        help="Ship the epoch with the lowest val combined loss "
+                             "as pretrained_v2.pt instead of the last epoch "
+                             "(the untrained baseline counts as a candidate). "
+                             "exp008 rounds overfit past epoch 1, so the last "
+                             "epoch is usually the worst one.")
     parser.add_argument("--notes", type=str, default="")
     args = parser.parse_args()
 
@@ -320,6 +326,7 @@ def main() -> None:
             "n_train": len(obs_train),
             "n_val": len(obs_val),
             "seed": args.seed,
+            "select_best": args.select_best,
         },
         "cache_meta": cache_meta,
         "system": {
@@ -341,6 +348,19 @@ def main() -> None:
     )
     print(f"Baseline val: policy_CE={p0:.4f}  value_MSE={v0:.4f}  "
           f"top1_acc={acc0*100:.1f}%", flush=True)
+
+    def _combined(p: float, v: float) -> float:
+        return p + args.value_weight * v
+
+    # --select-best: the baseline is candidate epoch 0, so a round that only
+    # overfits ships its input unchanged instead of a degraded net.
+    best = {
+        "epoch": 0, "loss": _combined(p0, v0),
+        "val_policy_loss": p0, "val_value_loss": v0, "val_top1_acc": acc0,
+        "state": ({k: v.detach().cpu().clone()
+                   for k, v in network.state_dict().items()}
+                  if args.select_best else None),
+    }
 
     t_start = time.time()
     for epoch in range(1, args.epochs + 1):
@@ -370,6 +390,15 @@ def main() -> None:
         with open(log_path, "a") as f:
             f.write(json.dumps(row) + "\n")
 
+        if args.select_best and _combined(val_p, val_v) < best["loss"]:
+            best = {
+                "epoch": epoch, "loss": _combined(val_p, val_v),
+                "val_policy_loss": val_p, "val_value_loss": val_v,
+                "val_top1_acc": val_acc,
+                "state": {k: v.detach().cpu().clone()
+                          for k, v in network.state_dict().items()},
+            }
+
         print(
             f"Epoch {epoch:3d}/{args.epochs}: "
             f"train pol={train_p:.4f} val={train_v:.4f} | "
@@ -395,6 +424,15 @@ def main() -> None:
             )
 
     total_time = time.time() - t_start
+    selected_epoch = args.epochs
+    if args.select_best:
+        selected_epoch = best["epoch"]
+        val_p, val_v, val_acc = (best["val_policy_loss"],
+                                 best["val_value_loss"], best["val_top1_acc"])
+        if selected_epoch < args.epochs:
+            network.load_state_dict(best["state"])
+        print(f"Selected epoch {selected_epoch} "
+              f"(lowest val combined loss {best['loss']:.4f})", flush=True)
     final_path = checkpoint_dir / "pretrained_v2.pt"
     save_pretrained(
         final_path,
@@ -404,6 +442,7 @@ def main() -> None:
             "base_checkpoint": args.base_checkpoint,
             "cache": args.cache,
             "epochs": args.epochs,
+            "selected_epoch": selected_epoch,
             "final_val_policy_loss": val_p,
             "final_val_value_loss": val_v,
             "final_val_top1_acc": val_acc,

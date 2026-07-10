@@ -268,6 +268,52 @@ def encode_batch(
     )
 
 
+def decode_base_planes(obs: np.ndarray) -> BoardView:
+    """Invert the base planes of an encoded observation back to a ``BoardView``.
+
+    The 17 base channels are lossless: exact checker counts live in the
+    overflow plane (``(count-3)/2``), bar/off/dice in the broadcast planes.
+    ``obs`` may be a base-only ``(17, 2, 12)`` tensor or a full
+    ``(26, 2, 12)`` one — the handcrafted channels are ignored either way
+    (they are derived quantities). This is what lets stored 17-channel caches
+    be re-encoded to the full Fix-N encoder without re-labeling.
+    """
+    n_base = len(FEATURE_GROUPS["base"])
+    if obs.ndim != 3 or obs.shape[0] < n_base or obs.shape[1:] != (2, 12):
+        raise ValueError(f"expected (>= {n_base}, 2, 12) observation, got {obs.shape}")
+
+    def _counts(ch_offset: int) -> np.ndarray:
+        points = np.zeros(24, dtype=np.int64)
+        for pt_idx in range(24):
+            if pt_idx >= 12:
+                row, col = 0, pt_idx - 12  # points 13-24
+            else:
+                row, col = 1, 11 - pt_idx   # points 12-1
+            overflow = obs[ch_offset + 3, row, col]
+            if overflow > 0:
+                points[pt_idx] = 3 + int(round(float(overflow) * 2.0))
+            else:
+                points[pt_idx] = (
+                    int(obs[ch_offset, row, col] >= 0.5)
+                    + int(obs[ch_offset + 1, row, col] >= 0.5)
+                    + int(obs[ch_offset + 2, row, col] >= 0.5)
+                )
+        return points
+
+    d1 = int(round(float(obs[13, 0, 0]) * 6.0))
+    d2 = int(round(float(obs[14, 0, 0]) * 6.0))
+    return BoardView(
+        my_points=_counts(0),
+        opp_points=_counts(4),
+        my_bar=int(round(float(obs[9, 0, 0]) * 15.0)),
+        opp_bar=int(round(float(obs[10, 0, 0]) * 15.0)),
+        my_off=int(round(float(obs[11, 0, 0]) * 15.0)),
+        opp_off=int(round(float(obs[12, 0, 0]) * 15.0)),
+        dice=(d1, d2) if d1 > 0 else None,
+        mid_doubles=bool(obs[16, 0, 0] >= 0.5),
+    )
+
+
 def dump_tensor(board_view: BoardView, *, precision: int = 3) -> str:
     """Render the encoder output for a position as a human-readable string.
 
