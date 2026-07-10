@@ -753,7 +753,34 @@ Seven experiments have now been run. The core conclusion: **pure self-play from 
 
 8. ~~**Algorithmic pivot: supervised pretraining + self-play fine-tune.**~~ **Done** (exp007, 2026-06-14; exp008/Stage 7, 2026-07-06). exp007: pure self-play from v5 regresses completely (−1.74 ppg vs seed). The fix — on-distribution DAgger (exp008) — is documented in [Pretraining Analysis § Stage 7](pretraining_analysis.qmd) and produced the project's best result: **−1.19 ppg / 17% wins vs GNUBG 2-ply.**
 
-9. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
+9. **Post-DAgger direction: TD(λ) self-play from the strong seed (exp010 front-runner, noted 2026-07-10).**
+   DAgger (exp008/exp009) converges to its teacher and can never pass it; GNUBG 2-ply is its
+   ceiling by construction. Of the ways past that ceiling, TD-Gammon/GNUBG-style TD self-play
+   looks strongest on cost and evidence:
+   - **Cheap where AlphaZero is expensive.** TD move selection is 1-ply: ~20 value evals per
+     decision (one per legal move) vs 100–800 for MCTS self-play, no tree overhead, and the
+     candidate positions batch naturally on GPU. The dice provide exploration for free — no
+     Dirichlet noise, no temperature schedule. A TD-Gammon-scale diet (~1M self-play games) is
+     plausibly a couple of GPU-weeks on the current T4 with the current 10×256 net. The recipe
+     the core conclusion above calls too expensive is *MCTS* self-play; TD never was.
+   - **No teacher ceiling, warm start.** Initialise the value head from the consolidation seed
+     (already distilled from GNUBG) and let TD refine beyond it. The policy head can be
+     regenerated afterwards from the improved value function via the existing 1-ply V-lookahead
+     distillation (`synthesize_policy_dataset.py`).
+   - **Avoids exp007's failure mode.** The regression trap was driven by noisy MCTS policy
+     targets and discrete-outcome value drift; TD's value-only bootstrap toward the *next
+     position's equity estimate* has neither feedback loop. Still gate checkpoints on arena
+     evals and keep LR conservative.
+   - **Design notes.** Consider multi-component value outputs (win/gammon/bg probabilities
+     combined into money equity, as TD-Gammon and GNUBG do) instead of the scalar head — gammon
+     rates are a large share of the remaining gap. Capacity is not the lever: the historical
+     record (GNUBG, wildbg) improved via inputs and target quality, not bigger nets.
+   - **Why not the alternatives:** deeper-ply distillation costs ~53× per label (3-ply vs
+     2-ply, exp009 Phase A ply pricing) for a teacher we intend to outgrow; a TPU-scale
+     AlphaZero rerun needs batched-inference re-engineering and remains unproven for
+     backgammon, where shallow search on small nets has been world-class for 20 years.
+
+10. **Infrastructure.** Future experiments should be added to the `EXPERIMENTS` dict; download logs from GCS and re-render.
 
 ### Open Questions
 
