@@ -32,7 +32,8 @@ python3 scripts/train.py --experiment-name my-run --iterations 100 \
 | [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
 | [MCTS Explained](mcts_explained.md) | Concepts: simulations, PUCT selection, temperature, Dirichlet noise |
 | [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |
-| [Training Analysis](training_analysis.qmd) | Loss curves, equity progression, GNUBG benchmark results across experiments |
+| [Self-Play Analysis](training_analysis.qmd) | The self-play track (exp000–exp007): what pure AlphaZero self-play achieved, and why it plateaued |
+| [Supervised & Expert-Iteration Analysis](pretraining_analysis.qmd) | The supervised track: distilling GNUBG (v1–v5), on-distribution DAgger, consolidation — the current best results |
 | [GCP Guide](gcp_guide.md) | Running training on Google Cloud GPU VMs |
 
 ## Tech Stack

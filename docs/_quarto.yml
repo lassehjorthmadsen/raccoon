@@ -28,9 +28,9 @@ website:
         menu:
           - text: "Parameters"
             file: training_parameters.md
-          - text: "Analysis"
+          - text: "Self-Play Analysis"
             file: training_analysis.qmd
-          - text: "Pretraining"
+          - text: "Supervised & Expert Iteration"
             file: pretraining_analysis.qmd
       - text: "Developer"
         file: gcp_guide.md
