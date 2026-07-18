@@ -2,6 +2,8 @@
 
 A backgammon AI engine that uses AlphaZero-style reinforcement learning to (maybe someday) outperform GNUBG at money game play. The name "Raccoon" is a nod to the doubling cube term in backgammon.
 
+**[Project documentation and write-ups](https://lassehjorthmadsen.github.io/raccoon/)** — architecture notes, training analysis, and API reference.
+
 ## Why?
 
 GNUBG, the strongest open-source backgammon engine, uses TD reinforcement learning with value-only neural networks and shallow search — a design from the 1990s (TD-Gammon era). Modern AlphaZero-style training (policy+value network with Monte Carlo Tree Search) has beaten world-class engines in chess, shogi, and Go. This project applies that approach to backgammon, with the vain hope of eventually surpassing GNUBG in money game play. (First step is cubeless money game without Jacoby, so gammons and backgammons count). 
