@@ -87,6 +87,57 @@ def lambda_returns(
     return g
 
 
+def gnubg_arena(
+    net, device, games: int, gnubg_ply: int = 0, seed: int = 0,
+    max_moves: int = 2000,
+) -> dict:
+    """Play ``net`` (1-ply value) vs GNUBG (``pick_move`` at ``gnubg_ply``).
+
+    This is the loop's real eval: GNUBG at a fixed ply is an external reference
+    the net never trains against, so — unlike a vs-seed arena — it can't be gamed
+    by self-play overfitting (the exp007 trap). 0-ply GNUBG is ~0.007 ppg weaker
+    than 2-ply but ~100x faster, so it's the default. Returns
+    ``{"games", "net_wins", "equity_per_game"}``, equity in points/game from the
+    net's POV. Seats alternated; seeds the global numpy RNG (dice).
+
+    ``gnubg_nn`` is imported lazily so the pure TD helpers above stay importable
+    without it (e.g. in CI).
+    """
+    from raccoon.eval.gnubg_adapter import pick_move
+
+    np.random.seed(seed)
+    wrapper = GameWrapper()
+    total = 0.0
+    wins = 0
+    completed = 0
+    for g in range(games):
+        net_is_p0 = (g % 2 == 0)
+        state = wrapper.new_game()
+        state = _advance_through_chance(state)
+        moves = 0
+        while not state.is_terminal() and moves < max_moves:
+            me = state.current_player()
+            if (me == 0) == net_is_p0:
+                action, _ = select_move(state._state, net, device, temperature=0.0)
+            else:
+                action = pick_move(state, gnubg_ply)
+            state.apply_action(action)
+            state = _advance_through_chance(state)
+            moves += 1
+        if not state.is_terminal():
+            continue
+        pts_p0 = state.returns()[0]
+        net_pts = pts_p0 if net_is_p0 else -pts_p0
+        total += net_pts
+        wins += int(net_pts > 0)
+        completed += 1
+    return {
+        "games": completed,
+        "net_wins": wins,
+        "equity_per_game": total / completed if completed else 0.0,
+    }
+
+
 def oneply_arena(
     net_a, net_b, device, games: int, seed: int = 0, max_moves: int = 2000,
 ) -> dict:

@@ -29,7 +29,7 @@ import torch.nn.functional as F
 import pipeline_budget  # noqa: E402  (_plateaued reused for the plateau stop)
 
 from raccoon.model.network import RaccoonNet, load_model
-from raccoon.train.td_selfplay import lambda_returns, oneply_arena, play_td_game
+from raccoon.train.td_selfplay import gnubg_arena, lambda_returns, play_td_game
 
 
 def save_ckpt(net: RaccoonNet, path: Path) -> None:
@@ -122,6 +122,9 @@ def main() -> None:
     p.add_argument("--workers", type=int, default=1)
     p.add_argument("--eval-every", type=int, default=2)
     p.add_argument("--eval-games", type=int, default=100)
+    p.add_argument("--gnubg-ply", type=int, default=0,
+                   help="GNUBG ply for the fixed-reference eval (0 = fast, "
+                        "~0.007 ppg weaker than 2-ply).")
     p.add_argument("--patience", type=int, default=0,
                    help="Stop after N evals with no vs-seed improvement (0=off).")
     p.add_argument("--min-delta", type=float, default=0.02)
@@ -142,8 +145,6 @@ def main() -> None:
     print(f"Device: {device}  seed={args.seed}", flush=True)
 
     net = load_model(args.seed).to(device)
-    seed_net = load_model(args.seed).to(device)
-    seed_net.eval()
     optimizer = torch.optim.Adam(net.parameters(), lr=args.lr, weight_decay=0.0)
 
     exp_dir = Path("experiments") / args.experiment_name
@@ -197,10 +198,11 @@ def main() -> None:
 
         if batch % args.eval_every == 0 or batch == args.batches:
             net.eval()
-            res = oneply_arena(net, seed_net, device, args.eval_games, seed=batch)
+            res = gnubg_arena(net, device, args.eval_games,
+                              gnubg_ply=args.gnubg_ply, seed=batch)
             eq = res["equity_per_game"]
             eval_equities.append(eq)
-            rec["eval_vs_seed_ppg"] = round(eq, 4)
+            rec[f"eval_vs_gnubg{args.gnubg_ply}ply_ppg"] = round(eq, 4)
             rec["eval_games"] = res["games"]
             if eq > best_equity:
                 best_equity = eq
@@ -208,9 +210,10 @@ def main() -> None:
                 rec["new_best"] = True
 
         log(rec)
+        ev = rec.get(f"eval_vs_gnubg{args.gnubg_ply}ply_ppg")
         print(f"batch {batch}/{args.batches}: games={len(games)} "
               f"dec={n_decisions} vmse={rec['train_value_mse']} "
-              f"{'vs_seed=' + str(rec.get('eval_vs_seed_ppg')) if 'eval_vs_seed_ppg' in rec else ''} "
+              f"{('vs_gnubg=' + str(ev)) if ev is not None else ''} "
               f"best={best_equity:+.3f} wall={rec['wall_hours']}h", flush=True)
 
         if args.max_wall_hours > 0 and wall / 3600 > args.max_wall_hours:
@@ -222,8 +225,9 @@ def main() -> None:
                   f"evals (best {best_equity:+.3f})", flush=True)
             break
 
-    print(f"\n===== TD DONE ===== best vs-seed = {best_equity:+.4f} ppg "
-          f"({len(eval_equities)} evals)  -> {ckpt_dir/'best.pt'}", flush=True)
+    print(f"\n===== TD DONE ===== best vs-GNUBG-{args.gnubg_ply}ply = "
+          f"{best_equity:+.4f} ppg ({len(eval_equities)} evals)  -> "
+          f"{ckpt_dir/'best.pt'}", flush=True)
 
 
 if __name__ == "__main__":
