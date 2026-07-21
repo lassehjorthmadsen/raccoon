@@ -7,7 +7,7 @@ from raccoon.env.game_wrapper import GameWrapper
 from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import _advance_through_chance
 from raccoon.train.lookahead import child_values, select_move
-from raccoon.train.td_selfplay import lambda_returns, oneply_arena, play_td_game
+from raccoon.train.td_selfplay import lambda_returns, net_arena, play_td_game
 
 CPU = torch.device("cpu")
 
@@ -66,7 +66,7 @@ def test_lambda_returns_bounded():
         assert all(-1.0 <= x <= 1.0 for x in g)
 
 
-# --- 1-ply selection (integration, small net) ---------------------------------
+# --- 0-ply selection (integration, small net) ---------------------------------
 
 def test_select_move_greedy_picks_argmax_child():
     net = _small_net()
@@ -99,9 +99,9 @@ def test_play_td_game_wellformed():
     assert all(-1.0 <= x <= 1.0 for x in g)
 
 
-def test_oneply_arena_runs():
+def test_net_arena_runs():
     net = _small_net()
-    res = oneply_arena(net, net, CPU, games=2, seed=1)
+    res = net_arena(net, net, CPU, games=2, seed=1)
     assert res["games"] == 2
     assert 0 <= res["net_a_wins"] <= 2
     assert -3.0 <= res["equity_per_game"] <= 3.0

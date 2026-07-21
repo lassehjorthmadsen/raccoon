@@ -1,4 +1,4 @@
-"""Build the policy-pretraining dataset by 1-ply V-lookahead on bglab matches.
+"""Build the policy-pretraining dataset by 0-ply V-lookahead on bglab matches.
 
 For each decision state reached while replaying a match, we:
 
@@ -16,7 +16,7 @@ For each decision state reached while replaying a match, we:
      wildbg-calibrated predictions while the trunk learns the dice
      channels for the first time).
 
-The 1-ply lookahead itself lives in ``raccoon/train/lookahead.py`` (shared with
+The 0-ply lookahead itself lives in ``raccoon/train/lookahead.py`` (shared with
 TD self-play); this script just replays matches and drives ``process_decision``.
 
 Output: ``data/bglab/policy_cache.npz`` with three arrays:
@@ -55,7 +55,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--pretrained", type=str, required=True,
-        help="Checkpoint whose V head drives the 1-ply lookahead.",
+        help="Checkpoint whose V head drives the 0-ply lookahead.",
     )
     parser.add_argument(
         "--out", type=str, default="data/bglab/policy_cache.npz",

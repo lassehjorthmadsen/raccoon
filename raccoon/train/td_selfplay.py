@@ -2,7 +2,7 @@
 
 The seed net's scalar value head is money-equity/3 in [-1, 1] from the to-move
 player's POV (see ``raccoon/train/lookahead.py``). This module plays self-play
-games choosing moves by 1-ply value lookahead (dice supply exploration,
+games choosing moves by 0-ply value lookahead (dice supply exploration,
 TD-Gammon style) and computes forward-view TD(λ) value targets so the value head
 can be regressed toward them.
 
@@ -13,7 +13,7 @@ Three pieces, all pure/testable; the training loop lives in ``scripts/train_td.p
 - ``lambda_returns`` — forward-view λ-returns with per-step sign handling so the
                        alternation between opponents (and the same-player
                        consecutive decisions of a doubles turn) are both correct.
-- ``oneply_arena``   — net-vs-net match, both playing 1-ply greedy, for eval that
+- ``net_arena``   — net-vs-net match, both playing 0-ply greedy, for eval that
                        is apples-to-apples with how TD actually plays.
 """
 from __future__ import annotations
@@ -91,7 +91,7 @@ def gnubg_arena(
     net, device, games: int, gnubg_ply: int = 0, seed: int = 0,
     max_moves: int = 2000,
 ) -> dict:
-    """Play ``net`` (1-ply value) vs GNUBG (``pick_move`` at ``gnubg_ply``).
+    """Play ``net`` (0-ply value) vs GNUBG (``pick_move`` at ``gnubg_ply``).
 
     This is the loop's real eval: GNUBG at a fixed ply is an external reference
     the net never trains against, so — unlike a vs-seed arena — it can't be gamed
@@ -138,10 +138,10 @@ def gnubg_arena(
     }
 
 
-def oneply_arena(
+def net_arena(
     net_a, net_b, device, games: int, seed: int = 0, max_moves: int = 2000,
 ) -> dict:
-    """Play ``games`` net-vs-net games, both sides 1-ply greedy, seats alternated.
+    """Play ``games`` net-vs-net games, both sides 0-ply greedy, seats alternated.
 
     Returns ``{"games", "net_a_wins", "equity_per_game"}`` with equity in points
     per game from net_a's POV (+ = net_a ahead). Seat alternation removes

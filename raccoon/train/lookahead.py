@@ -1,10 +1,16 @@
-"""1-ply value lookahead over backgammon positions.
+"""0-ply value lookahead over backgammon positions.
 
 The value head is trained on **pre-roll** board positions (dice cleared) and
 represents equity from the to-move player's POV in [-1, 1] (money-equity / 3:
-win = ±1/3, gammon = ±2/3, backgammon = ±1). Given a decision state, a 1-ply
+win = ±1/3, gammon = ±2/3, backgammon = ±1). Given a decision state, a 0-ply
 lookahead enumerates the legal moves, evaluates V on each resulting pre-roll
 child (negating when the child is the opponent's to move), and ranks them.
+
+"0-ply" here is GNUBG's convention: static value evaluation of the candidate
+moves, with no further search (0 additional plies of lookahead). It matches
+GNUBG's own 0-ply move selection, so a net playing this way is directly
+comparable to `gnubg` at ply 0. (TD-Gammon's papers call the same operation
+"1-ply"; we use GNUBG's numbering throughout since GNUBG is the benchmark.)
 
 These helpers were originally private to ``scripts/synthesize_policy_dataset.py``
 (DAgger policy distillation). They are shared here so TD(λ) self-play
@@ -125,7 +131,7 @@ def eval_values_batch(
 def child_values(
     state: pyspiel.BackgammonState, network, device: torch.device,
 ) -> tuple[list[int], np.ndarray, float]:
-    """1-ply lookahead at one decision.
+    """0-ply lookahead at one decision.
 
     Returns ``(legal_actions, child_values, v_state)`` where ``child_values[i]``
     is the equity of ``legal_actions[i]`` from the to-move player's POV (V on the
@@ -171,7 +177,7 @@ def process_decision(
 
     Returns ``(obs_state, argmax_action, V(state))`` where ``obs_state`` is the
     encoding of the state AS-IS (dice + mid-doubles flag intact — the policy head
-    trains on that), the action is the 1-ply argmax, and the value target is V on
+    trains on that), the action is the 0-ply argmax, and the value target is V on
     the pre-roll state. ``max_actions_per_batch`` is accepted for backwards
     compatibility and unused (all children batch in one pass).
     """
@@ -185,7 +191,7 @@ def select_move(
     state: pyspiel.BackgammonState, network, device,
     temperature: float = 0.0, rng: np.random.Generator | None = None,
 ) -> tuple[int, float]:
-    """Choose a move by 1-ply value lookahead. Returns ``(action, V(state))``.
+    """Choose a move by 0-ply value lookahead. Returns ``(action, V(state))``.
 
     ``temperature == 0`` picks the argmax child (greedy, TD-Gammon style — the
     dice supply exploration). ``temperature > 0`` samples from a softmax over the

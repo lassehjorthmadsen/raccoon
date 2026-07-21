@@ -5,7 +5,7 @@ policy cache built by ``scripts/synthesize_policy_dataset.py``. Trains
 both heads with combined cross-entropy + MSE loss:
 
   - ``policy_target`` = one-hot at ``argmax_a V(child(s, a))`` (synthesised
-    via 1-ply lookahead with the loaded V head).
+    via 0-ply lookahead with the loaded V head).
   - ``value_target`` = V(s) as evaluated by the loaded V head at dataset
     build time (knowledge distillation — anchors the value head to its
     wildbg-calibrated predictions while the shared trunk learns to use

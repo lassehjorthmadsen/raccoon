@@ -129,7 +129,7 @@ R15_BASELINE = parse_gnubg_txt("pretrain-consol/logs/gnubg_round15_chunk*.log")
 
 CHECKPOINTS = [
     ("v1 (value-only)", "pretrain-wildbg-v1/logs", ()),
-    ("v2 (1-ply self-teacher)", "pretrain-wildbg-v2/logs", ()),
+    ("v2 (0-ply self-teacher)", "pretrain-wildbg-v2/logs", ()),
     ("v2b (iter_0447 teacher)", "pretrain-wildbg-v2b/logs", ()),
     ("v3 (GNUBG 4-ply teacher)", "pretrain-gnubg-v3/logs", ()),
     ("v4 (10×256)", "pretrain-gnubg-v4-10x256/logs", ()),
@@ -234,7 +234,7 @@ The fit succeeds (val MSE ≈ 0.002 on a [−1, 1] target). The player does not:
 
 ## v2 — synthesised policy distillation {#v2}
 
-**Motivation.** wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 1-ply lookahead with v1's value head, one-hotting the best child as the policy target (~238k decisions).
+**Motivation.** wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG's convention (TD-Gammon calls it 1-ply) — with v1's value head, one-hotting the best child as the policy target (~238k decisions).
 
 **Setup.** Fine-tune both heads from v1 (`pretrain-wildbg-v2`): policy cross-entropy plus value distillation against the teacher's own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).
 
@@ -246,18 +246,18 @@ df2 = load_pretrain_log("pretrain-wildbg-v2")
 fig, ax = plt.subplots(figsize=(6.5, 3))
 ax.plot(df2["epoch"], df2["val_top1_acc"] * 100, "D-", color="#2ca02c", ms=3)
 ax.set_xlabel("Epoch"); ax.set_ylabel("Val top-1 agreement (%)")
-ax.set_title("v2: policy head learns the 1-ply teacher (plateau ~38%)")
+ax.set_title("v2: policy head learns the 0-ply teacher (plateau ~38%)")
 ax.set_ylim(0, 50); ax.grid(True, alpha=0.3)
 plt.tight_layout(); plt.show()
 ```
 
 A large improvement — vs iter_0447 it went from v1's 3% wins to 22% (+0.79 ppg) — but still a clear loss (22-78, −1.24), and still 0-100 vs GNUBG (−2.59).
 
-**Interpretation.** The mechanism works: synthesised policy labels produce a usable prior, confirming v1's diagnosis. But the teacher — a 1-ply argmax under a GNUBG-weak value head — is itself weak, and the student cannot exceed it.
+**Interpretation.** The mechanism works: synthesised policy labels produce a usable prior, confirming v1's diagnosis. But the teacher — a 0-ply argmax under a GNUBG-weak value head — is itself weak, and the student cannot exceed it.
 
 ## v2b — a stronger teacher {#v2b}
 
-**Motivation.** If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005's iter_0447 — for the 1-ply lookahead. Same matches, same pipeline, better labels.
+**Motivation.** If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005's iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.
 
 **Setup.** As v2, with iter_0447 as both the lookahead value function and the value-distillation target (`pretrain-wildbg-v2b`).
 
@@ -605,7 +605,7 @@ Three readings:
 ## What we've learned
 
 1. **A calibrated value head is not a player** — with a random policy prior, MCTS never searches the moves the value head would reward ([v1](#v1)).
-2. **Policy labels can be synthesised** by 1-ply lookahead over a position corpus; the policy prior is load-bearing ([v2](#v2)).
+2. **Policy labels can be synthesised** by 0-ply lookahead over a position corpus; the policy prior is load-bearing ([v2](#v2)).
 3. **You cannot distill past your teacher, and teacher quality is the whole game** — swapping the teacher moved the student from −1.24 to parity with iter_0447 with no other change; distillation also *compresses* (≈290 GPU-hours of self-play into ~21 CPU-hours) ([v2b](#v2b)).
 4. **A world-class teacher breaks the internal ceiling**: GNUBG 4-ply labels produced the first checkpoint to beat iter_0447 and the first to take games off GNUBG ([v3](#v3)).
 5. **Capacity, eval-time search, and value-label coverage all fail to move the external gap** — three levers tested in isolation, ~−1.6 ppg regardless; the missing ingredient is on-distribution *policy* data ([v4](#v4), [v5](#v5)).

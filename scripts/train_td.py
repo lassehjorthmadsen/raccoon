@@ -1,12 +1,16 @@
 """exp010 — TD(λ) self-play training loop (value-only, warm-started).
 
-Each batch: generate 1-ply-greedy self-play games with the current net, compute
+Each batch: generate 0-ply-greedy self-play games with the current net, compute
 forward-view TD(λ) value targets, regress the value head toward them (policy head
-left untouched), then every few batches play a 1-ply arena vs the frozen seed and
-keep the best checkpoint. Because training is value-only, evaluation uses 1-ply
-value play (not MCTS, whose priors would come from the stale policy) — see
-docs/plan. Designed to run locally on the iMac (CPU); set --workers for parallel
-game generation.
+left untouched), then every few batches eval the net vs GNUBG at 0-ply — a fixed
+external reference — and keep the best checkpoint. Scoring vs the *training seed*
+is misleading (a self-play net can beat its own seed while getting no stronger),
+so the reference must be external. Evaluation is 0-ply value play, not MCTS,
+matching how the value-only net actually plays. Designed to run locally on the
+iMac (CPU); set --workers for parallel game generation.
+
+"0-ply" = static value eval of each candidate move (GNUBG's convention; TD-Gammon
+calls it 1-ply). See raccoon/train/lookahead.py.
 
     python scripts/train_td.py --experiment-name exp010-td-pilot \\
         --seed experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt \\
@@ -126,7 +130,7 @@ def main() -> None:
                    help="GNUBG ply for the fixed-reference eval (0 = fast, "
                         "~0.007 ppg weaker than 2-ply).")
     p.add_argument("--patience", type=int, default=0,
-                   help="Stop after N evals with no vs-seed improvement (0=off).")
+                   help="Stop after N evals with no improvement vs GNUBG (0=off).")
     p.add_argument("--min-delta", type=float, default=0.02)
     p.add_argument("--max-wall-hours", type=float, default=0.0)
     p.add_argument("--smoke", action="store_true")
