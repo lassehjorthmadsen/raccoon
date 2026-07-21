@@ -299,7 +299,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> First end-to-end run: does the full pipeline hold up — the 26-channel encoder, GPU training, spot-VM preemption recovery — and what does baseline learning look like at minimal settings?</p>
 <p><strong>Setup.</strong> 25 sims, 10 games/iter, 100k replay buffer, 499 iterations on the T4.</p>
 <p><strong>Results.</strong></p>
-<div id="de693a3c" class="cell" data-execution_count="3">
+<div id="d3fe32c4" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0498 vs iter_0290  (n=50 @100 sims): 24-26, +0.060 ppg
 gnubg  iter_0498 vs GNUBG 2-ply  (n=10 @200 sims): 0-10, -2.500 ppg</code></pre>
@@ -313,7 +313,7 @@ gnubg  iter_0498 vs GNUBG 2-ply  (n=10 @200 sims): 0-10, -2.500 ppg</code></pre>
 <p><strong>Motivation.</strong> Does 8× the MCTS simulations and 5× the games per iteration translate into faster learning?</p>
 <p><strong>Setup.</strong> 200 sims, 50 games/iter, 500k buffer, fresh start, 283 iterations. ~27× slower per iteration than exp000 (~37.5 vs ~1.4 min).</p>
 <p><strong>Results.</strong></p>
-<div id="96c052c4" class="cell" data-execution_count="4">
+<div id="2fc0fcf8" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0112 vs iter_0498  (n=50 @100 sims): 32-18, +0.440 ppg
 arena  iter_0282 vs iter_0260  (n=50 @100 sims): 27-23, +0.120 ppg
@@ -329,7 +329,7 @@ gnubg  iter_0282 vs GNUBG 2-ply  (n=50 @100 sims): 0-50, -2.320 ppg</code></pre>
 <p><strong>Motivation.</strong> exp001’s 500k buffer holds ~100 iterations of positions, so the network fits a mix of old (weaker) and new play. Does a 50k buffer — cycling in ~10 iterations, always training on fresh data — fix the rising value loss and the plateau?</p>
 <p><strong>Setup.</strong> exp001’s config with <code>--replay-size 50000</code>, fresh start, 148 iterations.</p>
 <p><strong>Results.</strong></p>
-<div id="5234216b" class="cell" data-execution_count="5">
+<div id="41274520" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0147 vs iter_0125  (n=50 @100 sims): 26-24, +0.300 ppg
 arena  iter_0147 vs iter_0282  (n=50 @100 sims): 20-30, -0.440 ppg
@@ -344,7 +344,7 @@ gnubg  iter_0147 vs GNUBG 2-ply  (n=50 @100 sims): 0-50, -2.300 ppg</code></pre>
 <p><strong>Motivation.</strong> Standard AlphaZero adds Dirichlet noise at the MCTS root to keep exploration alive. Was exploration collapse causing the plateau?</p>
 <p><strong>Setup.</strong> 100 sims, 25 games/iter, 25k buffer, Dirichlet α=0.3 / ε=0.25, resumed from a trained checkpoint at iter 148; abandoned at iter 284. First experiment to log MCTS visit entropy.</p>
 <p><strong>Results.</strong></p>
-<div id="95dd6e7b" class="cell" data-execution_count="6">
+<div id="33d8b8da" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0220 vs iter_0150  (n=100 @50 sims): 40-60, -0.430 ppg
 arena  iter_0280 vs iter_0150  (n=100 @50 sims): 48-52, -0.130 ppg</code></pre>
@@ -358,7 +358,7 @@ arena  iter_0280 vs iter_0150  (n=100 @50 sims): 48-52, -0.130 ppg</code></pre>
 <p><strong>Motivation.</strong> Self-play value labels are discrete terminal outcomes (±1/3, ±2/3, ±1) — noisy and extreme. Does blending in the smoother MCTS root Q (<code>--value-bootstrap-alpha 0.5</code>) fix the value head, and does an LR schedule reduce late oscillation?</p>
 <p><strong>Setup.</strong> 100 sims, 25 games/iter, 25k buffer, Dirichlet noise, bootstrap α=0.5, LR ×0.1 at iter 200; fresh start, 264 iterations on CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="754e5e23" class="cell" data-execution_count="7">
+<div id="cdf1714d" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0180 vs iter_0100  (n=50 @100 sims): 26-24, +0.020 ppg
 arena  iter_0260 vs iter_0200  (n=50 @100 sims): 27-23, +0.120 ppg
@@ -373,7 +373,7 @@ arena  iter_0260 vs iter_0200  (n=50 @100 sims): 21-29, -0.320 ppg</code></pre>
 <p><strong>Motivation.</strong> If self-play target quality is the bottleneck, deeper search at training time should produce qualitatively better MCTS policy targets. Scale simulations 8× over exp004 and keep everything else.</p>
 <p><strong>Setup.</strong> 800 sims, 25 games/iter, 25k buffer, Dirichlet, bootstrap α=0.5, on the T4 (~79 min/iter). The run splits into three phases: a clean phase (iters 1–109), a destabilized phase after a hardware restart (110–173), and a long watchdog-driven extension (173–447). Total ~459 GPU-hours over May 4–28.</p>
 <p><strong>Results.</strong></p>
-<div id="af4d770b" class="cell" data-execution_count="8">
+<div id="59136940" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0109 vs iter_0040  (n=100 @100 sims): 58-42, +0.380 ppg
 arena  iter_0447 vs iter_0109  (n=100 @100 sims): 52-48, +0.050 ppg
@@ -390,7 +390,7 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 <p><strong>Motivation.</strong> A clean falsification test: does sheer iteration count eventually break the plateau, with everything else held fixed?</p>
 <p><strong>Setup.</strong> Resumed exp000’s final checkpoint with identical hyperparameters (25 sims, no noise, no bootstrap, no schedule) for 2000 further iterations (499 → 2498), on the iMac CPU (~4.1 min/iter).</p>
 <p><strong>Results.</strong></p>
-<div id="d53d30c7" class="cell" data-execution_count="9">
+<div id="9fc677f5" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_2498 vs iter_0498  (n=200 @100 sims): 116-84, +0.270 ppg</code></pre>
 </div>
@@ -443,7 +443,7 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 </section>
 <section id="cross-experiment-trends" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="cross-experiment-trends">Cross-experiment trends</h2>
-<div id="274c60b2" class="cell page-columns page-full" data-execution_count="11">
+<div id="151edd0f" class="cell page-columns page-full" data-execution_count="11">
 <div class="cell-output cell-output-display page-columns page-full">
 <div class="page-columns page-full">
 <figure class="figure page-columns page-full">
@@ -452,7 +452,7 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 </div>
 </div>
 </div>
-<div id="cbd31c0e" class="cell page-columns page-full" data-execution_count="12">
+<div id="cd2148fe" class="cell page-columns page-full" data-execution_count="12">
 <div class="cell-output cell-output-display page-columns page-full">
 <div class="page-columns page-full">
 <figure class="figure page-columns page-full">
@@ -480,8 +480,8 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 </section>
 <section id="what-happened-next" class="level2">
 <h2 class="anchored" data-anchor-id="what-happened-next">What happened next</h2>
-<p>The pivot this track motivated is documented in the <a href="./pretraining_analysis.html">supervised &amp; expert-iteration track</a>: distill GNUBG analysis into the network (stages v1–v5), then keep the GNUBG oracle in the loop on the learner’s own positions (exp008 DAgger, the Phase A consolidation, and exp009, in progress). That track broke the −1.6 ppg wall and holds the current best result (~−0.93 ppg vs GNUBG 2-ply).</p>
-<p>Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG 2-ply is <strong>TD(λ) self-play from the consolidated seed (exp010, planned)</strong>: TD-Gammon-style 1-ply value learning is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position’s own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway.</p>
+<p>The pivot this track motivated is documented in the <a href="./pretraining_analysis.html">supervised &amp; expert-iteration track</a>: distill GNUBG analysis into the network (stages v1–v5), then keep the GNUBG oracle in the loop on the learner’s own positions (exp008 DAgger, the Phase A consolidation, and exp009, a 25-round scale-up). That track broke the −1.6 ppg wall and holds the current best result (~−0.37 ppg vs GNUBG 2-ply, exp009 round 6), though it plateaued ~0.4 ppg short of parity against its fixed 2-ply teacher.</p>
+<p>Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG 2-ply is <strong>TD(λ) self-play from the consolidated seed (exp010, launched 2026-07-21)</strong>: TD-Gammon-style 1-ply value learning is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position’s own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway.</p>
 
 
 </section>

@@ -164,7 +164,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#feature-ablation" id="toc-feature-ablation" class="nav-link" data-scroll-target="#feature-ablation">Encoder feature ablation — do handcrafted inputs earn their place?</a></li>
   <li><a href="#exp008" id="toc-exp008" class="nav-link" data-scroll-target="#exp008">exp008 — on-distribution DAgger</a></li>
   <li><a href="#consolidation" id="toc-consolidation" class="nav-link" data-scroll-target="#consolidation">Phase A consolidation — retrain from scratch on everything</a></li>
-  <li><a href="#exp009" id="toc-exp009" class="nav-link" data-scroll-target="#exp009">exp009 — scaled DAgger (in progress)</a></li>
+  <li><a href="#exp009" id="toc-exp009" class="nav-link" data-scroll-target="#exp009">exp009 — scaled DAgger</a></li>
   <li><a href="#what-weve-learned" id="toc-what-weve-learned" class="nav-link" data-scroll-target="#what-weve-learned">What we’ve learned</a></li>
   <li><a href="#open-questions" id="toc-open-questions" class="nav-link" data-scroll-target="#open-questions">Open questions</a></li>
   </ul>
@@ -194,24 +194,24 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>This page documents the <strong>supervised &amp; expert-iteration track</strong> — everything after the <a href="./training_analysis.html">self-play track</a> concluded that pure AlphaZero self-play plateaus hopelessly far from GNUBG at this project’s compute scale. The idea: instead of bootstrapping a network from noise, <strong>seed it from existing backgammon knowledge</strong> — first by regressing on labeled positions (stages v1–v5), then by keeping the GNUBG oracle in the training loop on the learner’s own positions (exp008, consolidation, exp009).</p>
-<p>The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher’s strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project’s first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is <em>on-distribution policy</em> data, which live GNUBG labeling of the learner’s own positions supplies (exp008); and retraining from scratch on all accumulated labels consolidates those gains into the current best (~−0.93 ppg). Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.</p>
+<p>The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher’s strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project’s first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is <em>on-distribution policy</em> data, which live GNUBG labeling of the learner’s own positions supplies (exp008); retraining from scratch on all accumulated labels consolidates those gains (~−0.93 ppg); and scaling the loop (exp009) reaches the current best, <strong>~−0.37 ppg</strong>, before plateauing ~0.4 ppg short of parity. Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Current best (2026-07-10)
+<span class="screen-reader-only">Note</span>Current best (2026-07-21)
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Retraining a 10×256 net from scratch on all ~844k accumulated GNUBG labels (<a href="#consolidation">Phase A consolidation</a>) reaches <strong>−0.93 ppg (48-152, n=200)</strong> vs GNUBG 2-ply with the 17-channel encoder, and −0.96 with the 26-channel encoder — a ~+0.4 ppg jump over the previous best (<a href="#exp008">exp008</a> round_15, whose fair n=200 benchmark is −1.38). <a href="#exp009">exp009</a>, a scaled-up DAgger run seeded from the 26ch arm, is in progress.</p>
+<p><a href="#exp009">exp009</a>, a 25-round DAgger run seeded from the consolidation 26ch arm, reaches <strong>−0.37 ppg (83-117, n=200)</strong> vs GNUBG 2-ply at its round-6 peak — the project best, ~60% of the remaining gap to money parity closed, and a 99-1 rout of the old self-play champion iter_0447. The run then oscillated on a plateau: its three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE of one another, so the deliverable checkpoint is not yet settled. The prior best was the <a href="#consolidation">Phase A consolidation</a> retrain (−0.93/−0.96 ppg for the 17ch/26ch encoders), itself a ~+0.4 ppg jump over <a href="#exp008">exp008</a> round_15 (fair n=200 benchmark −1.38).</p>
 </div>
 </div>
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
-<p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint:</p>
-<div id="c35f81e8" class="cell" data-execution_count="2">
+<p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
+<div id="7cf5a686" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -460,6 +460,33 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">-0.96</td>
 <td style="text-align: left;">200</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">consol 26ch seed</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">74-26</td>
+<td style="text-align: left;">74%</td>
+<td style="text-align: left;">+0.81</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">pretrained_v2</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">2-2</td>
+<td style="text-align: left;">50%</td>
+<td style="text-align: left;">+0.00</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">GNUBG 2-ply</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">83-117</td>
+<td style="text-align: left;">42%</td>
+<td style="text-align: left;">-0.37</td>
+<td style="text-align: left;">200</td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -498,7 +525,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="eddaa6f0" class="cell" data-execution_count="4">
+<div id="a016415f" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -518,7 +545,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 1-ply lookahead with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="72272b70" class="cell" data-execution_count="5">
+<div id="04af6c2f" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -535,7 +562,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 1-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="50111049" class="cell" data-execution_count="6">
+<div id="e9a9eadf" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -552,7 +579,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="eb4409c8" class="cell" data-execution_count="7">
+<div id="599bba13" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -569,7 +596,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="661ac9ca" class="cell" data-execution_count="8">
+<div id="f9cbbe67" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -604,7 +631,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="47ffd698" class="cell" data-execution_count="9">
+<div id="6de11fae" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -614,7 +641,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="334cb650" class="cell" data-execution_count="10">
+<div id="22d59c63" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -764,13 +791,13 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <p><strong>Results.</strong></p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 35%">
-<col style="width: 27%">
+<col style="width: 39%">
+<col style="width: 19%">
+<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 8%">
 <col style="width: 7%">
-<col style="width: 9%">
-<col style="width: 7%">
-<col style="width: 6%">
-<col style="width: 4%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -784,42 +811,6 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;">exp008 round_15</td>
-<td style="text-align: left;">v5 seed</td>
-<td style="text-align: left;">50</td>
-<td style="text-align: left;">63-37</td>
-<td style="text-align: left;">63%</td>
-<td style="text-align: left;">+0.48</td>
-<td style="text-align: left;">100</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">exp008 round_15</td>
-<td style="text-align: left;">iter_0447 (self-play best)</td>
-<td style="text-align: left;">50</td>
-<td style="text-align: left;">98-2</td>
-<td style="text-align: left;">98%</td>
-<td style="text-align: left;">+2.23</td>
-<td style="text-align: left;">100</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">exp008 round_15</td>
-<td style="text-align: left;">GNUBG 2-ply</td>
-<td style="text-align: left;">50</td>
-<td style="text-align: left;">43-257</td>
-<td style="text-align: left;">14%</td>
-<td style="text-align: left;">-1.31</td>
-<td style="text-align: left;">300</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">exp008 round_15</td>
-<td style="text-align: left;">GNUBG 2-ply</td>
-<td style="text-align: left;">100</td>
-<td style="text-align: left;">8-92</td>
-<td style="text-align: left;">8%</td>
-<td style="text-align: left;">-1.48</td>
-<td style="text-align: left;">100</td>
-</tr>
 <tr class="odd">
 <td style="text-align: left;">consol 17ch</td>
 <td style="text-align: left;">v5 seed</td>
@@ -875,6 +866,33 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <td style="text-align: left;">200</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">consol 26ch seed</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">74-26</td>
+<td style="text-align: left;">74%</td>
+<td style="text-align: left;">+0.81</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">pretrained_v2</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">2-2</td>
+<td style="text-align: left;">50%</td>
+<td style="text-align: left;">+0.00</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">exp009 round_06 (best)</td>
+<td style="text-align: left;">GNUBG 2-ply</td>
+<td style="text-align: left;">50</td>
+<td style="text-align: left;">83-117</td>
+<td style="text-align: left;">42%</td>
+<td style="text-align: left;">-0.37</td>
+<td style="text-align: left;">200</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">exp008 round_15 (fair re-benchmark)</td>
 <td style="text-align: left;">GNUBG 2-ply</td>
 <td style="text-align: left;">50</td>
@@ -926,8 +944,190 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <p><strong>Interpretation.</strong> Three conclusions. <strong>Consolidated retraining beats incremental fine-tuning by ~+0.4 ppg</strong> on the identical label pool — the DAgger loop’s warm fine-tunes had accumulated real sub-optimality (recency-window mixes, per-round overfitting). <strong>Measure at n≥200</strong>: the −1.19 → −1.38 correction is a standing reminder that 100-game GNUBG evals carry ±0.5 ppg. And <strong>the handcrafted features wash out at scale</strong> — at 844k labels the 26ch arm has no edge over 17ch (consistent with the ablation’s small-data framing); the 26ch arm was nonetheless adopted as the exp009 seed for encoder consistency going forward (it also beat the incumbent by more head-to-head, +0.74 vs +0.45, though that difference is itself within noise).</p>
 </section>
 <section id="exp009" class="level2">
-<h2 class="anchored" data-anchor-id="exp009">exp009 — scaled DAgger (in progress)</h2>
-<p>The next loop is running: exp009 restarts DAgger from the consolidation 26ch arm with four upgrades from the exp008 post-mortem — <strong>parallel label synthesis</strong> (N worker processes shard each round; exp008’s 10 h synth cap drops to &lt;1 h on a 16-vCPU VM), <strong>doubles policy labels</strong> (the half-move labels were computed and discarded in exp008; the error profile priced that leak at ~0.85 ppg/game), <strong>best-val-epoch checkpoint selection</strong> (every exp008 round overfit past epoch 1), and a <strong>2× round budget</strong> (120k labels/round). 25 rounds planned, GNUBG 2-ply teacher, launched 2026-07-10 on the GCP VM. Results will be added here when the run completes.</p>
+<h2 class="anchored" data-anchor-id="exp009">exp009 — scaled DAgger</h2>
+<p><strong>Motivation.</strong> exp008 showed on-distribution DAgger works but returns only ~0.4–0.5 ppg over 15 slow rounds, and the <a href="#consolidation">consolidation</a> showed the accumulated labels held more than the incremental fine-tunes had extracted. exp009 restarts the loop from the consolidation 26ch arm to push the gains further and stress-test the method at scale, with four upgrades from the exp008 post-mortem.</p>
+<p><strong>Setup.</strong> (<code>experiments/pipeline_exp009.sh</code>, 2026-07-10 → 07-21, GCP T4 VM.) 25 DAgger rounds warm-started from the consolidation 26ch seed, GNUBG 2-ply teacher, 50 eval sims. The upgrades: <strong>parallel label synthesis</strong> (14 worker processes shard each round — the ~10 h synth cap drops to ~4 h even at a 2× larger budget), <strong>doubles policy labels</strong> (the half-move labels <code>candidate_equities</code> already computes were discarded in exp008; the error profile priced that leak at ~0.85 ppg/game — now ~26% of each round’s labels carry policy targets, none discarded), <strong>best-val-epoch selection</strong> (every exp008 round overfit past epoch 1), and a <strong>2× round budget</strong> (120k labels/round). GNUBG benchmarked every 2nd round (n=100), milestone n=200 at rounds 6/18/25.</p>
+<p><strong>Results.</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">round</th>
+<th style="text-align: left;">vs seed (arena)</th>
+<th style="text-align: left;">vs GNUBG 2-ply</th>
+<th style="text-align: left;">n (GNUBG)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">62-38 +0.49</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">51-49 +0.14</td>
+<td style="text-align: left;">28-72 -0.69</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">64-36 +0.51</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">70-30 +0.60</td>
+<td style="text-align: left;">30-70 -0.62</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">63-37 +0.48</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">76-28 +0.78</td>
+<td style="text-align: left;">83-117 -0.37</td>
+<td style="text-align: left;">200</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">7</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">71-29 +0.78</td>
+<td style="text-align: left;">36-64 -0.52</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">9</td>
+<td style="text-align: left;">72-28 +0.72</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">70-30 +0.59</td>
+<td style="text-align: left;">33-67 -0.65</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">57-43 +0.24</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">12</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">13</td>
+<td style="text-align: left;">67-33 +0.52</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">14</td>
+<td style="text-align: left;">63-37 +0.49</td>
+<td style="text-align: left;">25-75 -0.81</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">15</td>
+<td style="text-align: left;">67-33 +0.51</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">16</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">17</td>
+<td style="text-align: left;">64-36 +0.44</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">18</td>
+<td style="text-align: left;">70-30 +0.61</td>
+<td style="text-align: left;">70-130 -0.50</td>
+<td style="text-align: left;">200</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">19</td>
+<td style="text-align: left;">67-33 +0.55</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">20</td>
+<td style="text-align: left;">64-36 +0.45</td>
+<td style="text-align: left;">31-69 -0.66</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">21</td>
+<td style="text-align: left;">66-34 +0.51</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">22</td>
+<td style="text-align: left;">70-30 +0.70</td>
+<td style="text-align: left;">36-64 -0.51</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">23</td>
+<td style="text-align: left;">71-29 +0.59</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">24</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">25</td>
+<td style="text-align: left;">162-38 +1.49</td>
+<td style="text-align: left;">70-130 -0.48</td>
+<td style="text-align: left;">200</td>
+</tr>
+</tbody>
+</table>
+<p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
+<div id="d5a8d962" class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="pretraining_analysis_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Three readings:</p>
+<ol type="1">
+<li><strong>A large early gain, then a plateau.</strong> The gap to GNUBG halves in six rounds — −0.96 (seed) → <strong>−0.37 (round 6, n=200)</strong>, 41% wins — the project best, ~60% of the remaining gap to parity closed. But no later round beats it: rounds 8–25 oscillate in a −0.5 to −0.8 band, and the other two n=200 milestones (round 18 −0.50, round 25 −0.48) sit within ~1 SE of round 6. The doubles-policy fix plus the bigger budget bought the early jump; the loop then stopped compounding.</li>
+<li><strong>The head-to-head keeps climbing even as the external gap doesn’t.</strong> Against the frozen seed the arena rises to +0.5–0.9 ppg by the late rounds — the net keeps beating its own history at 50 sims while its standing against GNUBG bounces. “Beats its predecessor” and “closes the external gap” are different claims.</li>
+<li><strong>iter_0447 is buried 99-1 (+2.41 ppg)</strong> by the final round — the strongest self-play checkpoint now loses essentially every game.</li>
+</ol>
+<p><em>Ops aside.</em> The run spanned 11 days on a preemptible VM in a capacity-crunched zone — ~9 preemptions, all auto-recovered by a local watchdog, plus a spot-price spike that put the Phase A+B bill at ~kr.880 (~$128), 2–4× the estimate, most of it spent on the post-round-6 plateau. That motivated per-round cost projection + clean round-boundary budget/plateau stopping (<code>scripts/pipeline_budget.py</code>) for future runs.</p>
+<p><strong>Interpretation.</strong> Scaling the loop confirmed the method and set a new best, but exposed its shape: DAgger with a warm-started, <em>ungated</em> loop makes its biggest correction early (here, the doubles-policy fix), then oscillates around a plateau rather than converging monotonically — nothing gates a round on <em>improving</em>, so the checkpoint advances even through regressions and the best (round 6) is a peak the run wandered away from. Two lessons carry forward: <strong>gate on eval</strong> (keep-best, not last) and the consolidation’s <strong>measure at n≥200</strong> (the n=100 rounds are individually too noisy to rank). The plateau ~0.4 ppg short of parity, teacher fixed at 2-ply, is the teacher-ceiling signal that motivates <a href="./training_analysis.html#what-happened-next">exp010</a>’s TD self-play.</p>
 </section>
 <section id="what-weve-learned" class="level2">
 <h2 class="anchored" data-anchor-id="what-weve-learned">What we’ve learned</h2>
@@ -941,14 +1141,15 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>Input scaling is load-bearing</strong> — unnormalised handcrafted channels were an invisible regression; normalise in the encoder, not with an input BatchNorm (<a href="#feature-ablation">ablation</a>).</li>
 <li><strong>On-distribution DAgger works where self-play fails</strong>: learner-generated states + oracle labels for both targets improved on the strongest seed and broke the −1.6 wall (<a href="#exp008">exp008</a>).</li>
 <li><strong>Consolidated retraining beats incremental fine-tuning</strong> (~+0.4 ppg on the same labels), n=100 GNUBG evals mislead (−1.19 vs −1.38), and the handcrafted features wash out at 844k labels (<a href="#consolidation">consolidation</a>).</li>
+<li><strong>Scaling DAgger sets a new best but plateaus</strong> — the loop’s biggest gain lands early (the doubles-policy fix), then an ungated, warm-started loop <em>oscillates</em> around a plateau instead of converging; the fix is eval-gated keep-best, and the ~0.4-ppg-short-of-parity plateau under a fixed 2-ply teacher is the ceiling that motivates TD self-play (<a href="#exp009">exp009</a>).</li>
 <li><strong>The board-signature replay layer is reusable infrastructure</strong> — 99%+ match rate across raw and analysed corpora, behind every dataset on this page.</li>
 </ol>
 </section>
 <section id="open-questions" class="level2">
 <h2 class="anchored" data-anchor-id="open-questions">Open questions</h2>
 <ul>
-<li><strong>The teacher ceiling.</strong> DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. The leading escape is TD(λ) self-play from the consolidated seed (exp010 candidate; sketched at the end of the <a href="./training_analysis.html#what-happened-next">self-play page</a>), which has no teacher ceiling and none of exp007’s failure modes.</li>
-<li><strong>How far does exp009 get?</strong> Doubles policy (a measured ~0.85 ppg/game leak) plus 2× label volume are the two biggest known levers still in-loop. If the run plateaus well short of parity, the remaining gap is teacher-ceiling territory.</li>
+<li><strong>The teacher ceiling.</strong> DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. exp009 plateaued ~0.4 ppg short of parity, confirming this is now the binding constraint. The leading escape — <strong>TD(λ) self-play from the consolidated seed, launched as exp010</strong> (sketched at the end of the <a href="./training_analysis.html#what-happened-next">self-play page</a>) — has no teacher ceiling and none of exp007’s failure modes; whether it lifts a strong seed at all is the open question that pilot answers.</li>
+<li><strong>Ranking checkpoints on a plateau.</strong> exp009’s three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE, so which is the true best — the deliverable — needs a larger head-to-head (n≥400) or a tie-break arena; the n=100 per-round evals cannot separate them.</li>
 <li><strong>Value calibration under search.</strong> “More sims hurt” has now been measured three times. A value head that search <em>strengthens</em> rather than undermines — possibly via multi-component outputs (win/gammon/bg probabilities, as TD-Gammon and GNUBG use) — is an open design question feeding exp010.</li>
 <li><strong>The cube.</strong> Everything on this page is cubeless checker play, but the M6 goal (“beat GNUBG at money game”) implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.</li>
 </ul>
