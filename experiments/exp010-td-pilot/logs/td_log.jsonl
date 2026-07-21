@@ -1,0 +1,29 @@
+{"batch": 1, "games": 150, "decisions": 47690, "train_value_mse": 0.008071, "batch_sec": 4261.4, "wall_hours": 1.184, "eval_vs_gnubg0ply_ppg": -1.0, "eval_games": 60, "new_best": true}
+{"batch": 2, "games": 150, "decisions": 11878, "train_value_mse": 0.006985, "batch_sec": 744.1, "wall_hours": 1.423, "eval_vs_gnubg0ply_ppg": -0.15, "eval_games": 60, "new_best": true}
+{"batch": 3, "games": 150, "decisions": 10690, "train_value_mse": 0.007776, "batch_sec": 671.6, "wall_hours": 1.644, "eval_vs_gnubg0ply_ppg": -0.35, "eval_games": 60}
+{"batch": 4, "games": 150, "decisions": 9642, "train_value_mse": 0.006177, "batch_sec": 632.0, "wall_hours": 1.853, "eval_vs_gnubg0ply_ppg": -0.7833, "eval_games": 60}
+{"batch": 5, "games": 150, "decisions": 9979, "train_value_mse": 0.007525, "batch_sec": 634.5, "wall_hours": 2.063, "eval_vs_gnubg0ply_ppg": -0.45, "eval_games": 60}
+{"batch": 6, "games": 150, "decisions": 10113, "train_value_mse": 0.00563, "batch_sec": 631.4, "wall_hours": 2.268, "eval_vs_gnubg0ply_ppg": -0.5333, "eval_games": 60}
+{"batch": 7, "games": 150, "decisions": 9541, "train_value_mse": 0.003098, "batch_sec": 614.0, "wall_hours": 2.468, "eval_vs_gnubg0ply_ppg": -0.0833, "eval_games": 60, "new_best": true}
+{"batch": 8, "games": 150, "decisions": 9887, "train_value_mse": 0.005664, "batch_sec": 637.5, "wall_hours": 2.68, "eval_vs_gnubg0ply_ppg": -0.8167, "eval_games": 60}
+{"batch": 9, "games": 150, "decisions": 9881, "train_value_mse": 0.006617, "batch_sec": 636.7, "wall_hours": 2.888, "eval_vs_gnubg0ply_ppg": -0.9, "eval_games": 60}
+{"batch": 10, "games": 150, "decisions": 9331, "train_value_mse": 0.005321, "batch_sec": 594.3, "wall_hours": 3.082, "eval_vs_gnubg0ply_ppg": -0.5667, "eval_games": 60}
+{"batch": 11, "games": 150, "decisions": 10031, "train_value_mse": 0.00687, "batch_sec": 641.6, "wall_hours": 3.293, "eval_vs_gnubg0ply_ppg": -0.3167, "eval_games": 60}
+{"batch": 12, "games": 150, "decisions": 9930, "train_value_mse": 0.0056, "batch_sec": 620.0, "wall_hours": 3.497, "eval_vs_gnubg0ply_ppg": -0.6833, "eval_games": 60}
+{"batch": 13, "games": 150, "decisions": 9590, "train_value_mse": 0.006296, "batch_sec": 588.8, "wall_hours": 3.69, "eval_vs_gnubg0ply_ppg": -0.2, "eval_games": 60}
+{"batch": 14, "games": 150, "decisions": 9282, "train_value_mse": 0.009812, "batch_sec": 569.1, "wall_hours": 3.878, "eval_vs_gnubg0ply_ppg": -0.45, "eval_games": 60}
+{"batch": 15, "games": 150, "decisions": 9094, "train_value_mse": 0.010289, "batch_sec": 541.4, "wall_hours": 4.059, "eval_vs_gnubg0ply_ppg": -0.3167, "eval_games": 60}
+{"batch": 16, "games": 150, "decisions": 9373, "train_value_mse": 0.009545, "batch_sec": 583.0, "wall_hours": 4.252, "eval_vs_gnubg0ply_ppg": -0.3667, "eval_games": 60}
+{"batch": 17, "games": 150, "decisions": 9217, "train_value_mse": 2.8e-05, "batch_sec": 593.8, "wall_hours": 4.448, "eval_vs_gnubg0ply_ppg": -0.4, "eval_games": 60}
+{"batch": 18, "games": 150, "decisions": 9772, "train_value_mse": 0.006455, "batch_sec": 598.4, "wall_hours": 4.644, "eval_vs_gnubg0ply_ppg": -0.3333, "eval_games": 60}
+{"batch": 19, "games": 150, "decisions": 9042, "train_value_mse": 0.004202, "batch_sec": 571.7, "wall_hours": 4.833, "eval_vs_gnubg0ply_ppg": -0.2333, "eval_games": 60}
+{"batch": 20, "games": 150, "decisions": 9309, "train_value_mse": 0.009593, "batch_sec": 568.1, "wall_hours": 5.023, "eval_vs_gnubg0ply_ppg": -0.2333, "eval_games": 60}
+{"batch": 21, "games": 150, "decisions": 9074, "train_value_mse": 0.005172, "batch_sec": 576.7, "wall_hours": 5.213, "eval_vs_gnubg0ply_ppg": -0.2833, "eval_games": 60}
+{"batch": 22, "games": 150, "decisions": 9516, "train_value_mse": 0.002676, "batch_sec": 579.3, "wall_hours": 5.404, "eval_vs_gnubg0ply_ppg": -0.5833, "eval_games": 60}
+{"batch": 23, "games": 150, "decisions": 9432, "train_value_mse": 0.00865, "batch_sec": 574.0, "wall_hours": 5.594, "eval_vs_gnubg0ply_ppg": -0.2, "eval_games": 60}
+{"batch": 24, "games": 150, "decisions": 9764, "train_value_mse": 0.007632, "batch_sec": 612.5, "wall_hours": 5.797, "eval_vs_gnubg0ply_ppg": -0.1667, "eval_games": 60}
+{"batch": 25, "games": 150, "decisions": 9309, "train_value_mse": 0.006395, "batch_sec": 586.8, "wall_hours": 5.991, "eval_vs_gnubg0ply_ppg": -0.15, "eval_games": 60}
+{"batch": 26, "games": 150, "decisions": 9594, "train_value_mse": 0.007489, "batch_sec": 602.3, "wall_hours": 6.192, "eval_vs_gnubg0ply_ppg": -0.0833, "eval_games": 60}
+{"batch": 27, "games": 150, "decisions": 8881, "train_value_mse": 0.00971, "batch_sec": 561.3, "wall_hours": 6.378, "eval_vs_gnubg0ply_ppg": -0.4167, "eval_games": 60}
+{"batch": 28, "games": 150, "decisions": 8869, "train_value_mse": 0.007028, "batch_sec": 561.5, "wall_hours": 6.566, "eval_vs_gnubg0ply_ppg": -0.4833, "eval_games": 60}
+{"batch": 29, "games": 150, "decisions": 9644, "train_value_mse": 0.00556, "batch_sec": 604.5, "wall_hours": 6.765, "eval_vs_gnubg0ply_ppg": -0.3, "eval_games": 60}
