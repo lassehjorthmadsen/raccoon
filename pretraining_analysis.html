@@ -211,7 +211,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
 <p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
-<div id="f3f04f78" class="cell" data-execution_count="2">
+<div id="b41140e3" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -525,7 +525,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="06df5540" class="cell" data-execution_count="4">
+<div id="a6557c62" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -545,7 +545,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG’s convention (TD-Gammon calls it 1-ply) — with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="2b965578" class="cell" data-execution_count="5">
+<div id="9b9f7596" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -562,7 +562,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="97d4d1de" class="cell" data-execution_count="6">
+<div id="e82ecb54" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -579,7 +579,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="a02810df" class="cell" data-execution_count="7">
+<div id="06b43705" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -596,7 +596,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="a9d6f7de" class="cell" data-execution_count="8">
+<div id="5d9da3af" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -631,7 +631,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="ae435c62" class="cell" data-execution_count="9">
+<div id="a67c27ab" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -641,7 +641,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="7618969b" class="cell" data-execution_count="10">
+<div id="d75b6001" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1111,7 +1111,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tbody>
 </table>
 <p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
-<div id="6277630c" class="cell" data-execution_count="14">
+<div id="d2758efb" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1151,7 +1151,13 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>The teacher ceiling.</strong> DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. exp009 plateaued ~0.4 ppg short of parity, confirming this is now the binding constraint. The leading escape — TD(λ) self-play from the consolidated seed — was tested in <a href="./training_analysis.html#exp010">exp010</a>: it <strong>does</strong> lift a strong seed (the first self-play method here to do so, unlike exp007), but on a pure-greedy recipe it plateaus ~0.3 ppg short of even 0-ply parity. Surpassing 0-ply is still open; candidate levers are exploration/temperature in the TD loop, a distill-to-0-ply-parity seed <em>before</em> self-play, or the value-head changes below.</li>
 <li><strong>Ranking checkpoints on a plateau.</strong> exp009’s three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE, so which is the true best — the deliverable — needs a larger head-to-head (n≥400) or a tie-break arena; the n=100 per-round evals cannot separate them.</li>
 <li><strong>Value calibration under search.</strong> “More sims hurt” has now been measured three times. A value head that search <em>strengthens</em> rather than undermines — possibly via multi-component outputs (win/gammon/bg probabilities, as TD-Gammon and GNUBG use) — is an open design question feeding exp010. It is sharpened by the ply-strength figures below: GNUBG <em>barely</em> improves from 0→2 ply (it is already near-perfect, so search hits diminishing returns) yet never worsens, whereas Raccoon — far from perfect, where search should help most — gets worse. A weak net whose own search degrades it is the clearest single indictment of the value head.</li>
-<li><strong>0-ply distillation at volume (exp011 candidate).</strong> GNUBG 0-ply is only ~0.010 ppg from perfect vs 2-ply’s ~0.003 (external estimate; the head-to-head in <em>our</em> harness is worth measuring directly), i.e.&nbsp;a near-identical teacher at ~100× the labeling speed (0.003 s vs 0.305 s/decision — see the <a href="#consolidation">consolidation</a> pricing). So 0-ply is likely the right default teacher for all future distillation, and cheap enough to generate 10–100M labels <em>locally</em> (no VM). The real experiment is not a cheaper seed — 0-ply ≈ 2-ply, and both sit ~0.37 ppg above the current plateau, so ply was never the limit — but whether a <strong>flood of 0-ply value labels calibrates the value head</strong> (the elegant end state: distill GNUBG’s cheap 0-ply <em>net</em>, then recover 2-ply-quality play from Raccoon’s <em>own</em> search, paying for no deep-ply labels at all). It answers a different plateau hypothesis than exp010: <em>volume-bound</em> (labels break it) vs <em>student-bound</em> (capacity/optimisation/architecture). <strong>Run it as a two-arm A/B, not one bundled change.</strong> GNUBG 0-ply emits win/gammon/bg probabilities for free, so a multi-component value head (à la TD-Gammon/GNUBG, and needed eventually for the cube) is the natural target — but bundling <em>volume</em> and a <em>new target definition</em> into one run confounds attribution, and makes even a null result uninformative (can’t tell which lever failed). 0-ply’s cheapness makes a second arm nearly free (the <a href="#consolidation">consolidation</a>’s 17ch-vs-26ch playbook): <strong>arm A</strong> = scalar head at high volume, warm-started from round_06 — isolates the volume effect and is the clean diagnostic; <strong>arm B</strong> = multi-component head at high volume — isolates the target-definition delta (must retrain the value head, no warm start). Do A first; reach for B only if A plateaus or the multi-component head is wanted for its own sake, in which case its result also transfers cleanly to a TD value head. Gate the whole thing on a quick GNUBG 0-ply-vs-2-ply head-to-head to confirm the headroom. <a href="./training_analysis.html#exp010">exp010</a> has now reported — TD self-play plateaus ~0.3 ppg short of 0-ply — so <em>reaching</em> 0-ply is unsolved, and this direct-distillation route (which hits parity by construction) is the natural next attempt, with self-play optionally resumed from a 0-ply-parity seed.</li>
+<li><strong>exp011 — clone GNUBG-0-ply’s value at volume (planned).</strong> Two independent methods now plateau ~0.3 ppg short of even 0-ply (exp009 DAgger, <a href="./training_analysis.html#exp010">exp010</a> TD self-play), and exp010 showed the distilled nets play 0-ply <em>badly</em> — their value isn’t accurate at the margin between sibling moves. exp011 tests whether <strong>supervised value distillation from GNUBG-0-ply, at ~10M positions, yields a value net accurate enough to play 0-ply at parity with GNUBG-0-ply</strong> — i.e.&nbsp;is the plateau <em>volume/fidelity-bound</em> (it clears) or <em>capacity-bound</em> (it also stalls). If 0-ply ≈ 2-ply (the external estimate: ~0.010 vs ~0.003 from perfect), 0-ply parity ≈ near-GNUBG, so the payoff is large. Design — local (~48 h) and value-only (the value head is the whole player: 0-ply move selection, no policy head):
+<ul>
+<li><strong>Positions from GNUBG-0-ply self-play</strong> (with a little temperature for coverage). Play <em>is</em> the label at ~0.003 s/decision → ~10M in ~8 h; the learner-generating <em>DAgger</em> variant is too slow to hit 10M in budget (~20 pos/s), and teacher-distribution suffices for cloning a value <em>function</em> (on-distribution is a policy-imitation concern; a cheap DAgger refinement can follow).</li>
+<li><strong>Confound-free two-arm A/B</strong>, same positions, both from random init (symmetric — no warm start): <strong>arm A</strong> scalar head, MSE against equity; <strong>arm B</strong> six-outcome softmax (win/gammon/bg × win/lose, from GNUBG’s cumulative <code>win,wg,wbg,lg,lbg</code>), equity derived for play. Arm B is the multi-component target GNUBG/TD-Gammon use, needed eventually for the cube, and it transfers to a TD value head. One oracle call gives both targets.</li>
+<li><strong>Eval</strong> each arm’s 0-ply play vs GNUBG-0-ply (target ~0). Reaching parity → the plateau was fidelity-bound and we have a strong 0-ply net; <em>then</em> price GNUBG-0-ply-vs-2-ply and optionally resume TD self-play from the 0-ply-parity seed (exp010 was crippled starting at −2.30). Stalling at ~−0.3 too → capacity/architecture bound.</li>
+<li>Training two 10×256 nets on ~10M positions on the iMac CPU is the tight part of the 48 h; positions vs epochs is the knob to fit.</li>
+</ul></li>
 <li><strong>The cube.</strong> Everything on this page is cubeless checker play, but the M6 goal (“beat GNUBG at money game”) implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.</li>
 </ul>
 
