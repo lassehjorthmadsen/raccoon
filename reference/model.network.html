@@ -244,7 +244,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    num_blocks<span class="op">=</span><span class="dv">6</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    feature_channels<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    input_bn<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    value_head<span class="op">=</span><span class="st">'scalar'</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>ResNet with policy and value heads for backgammon.</p>
 <section id="methods" class="level4">
 <h4 class="anchored" data-anchor-id="methods">Methods</h4>
@@ -268,6 +269,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><a href="#raccoon.model.network.RaccoonNet.predict_batch">predict_batch</a></td>
 <td>Batched inference for multiple positions.</td>
 </tr>
+<tr class="even">
+<td><a href="#raccoon.model.network.RaccoonNet.value_equity">value_equity</a></td>
+<td>Scalar equity/3 in [-1, 1] per position, for both head types.</td>
+</tr>
 </tbody>
 </table>
 <section id="raccoon.model.network.RaccoonNet.forward" class="level5">
@@ -275,7 +280,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.forward(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Forward pass.</p>
 <p>Args: x: (batch, in_channels, 2, 12)</p>
-<p>Returns: policy_logits: (batch, 1352) raw logits (not masked) value: (batch, 1) in [-1, 1]</p>
+<p>Returns: policy_logits: (batch, 1352) raw logits (not masked) value: “scalar” head -&gt; (batch, 1) tanh in [-1, 1]; “outcomes6” head -&gt; (batch, 6) raw logits (softmax applied by the caller / value_equity).</p>
 </section>
 <section id="raccoon.model.network.RaccoonNet.predict" class="level5">
 <h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.predict">predict</h5>
@@ -291,11 +296,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Args: obs_list: list of (C, 2, 12) numpy arrays (C = in_channels) legal_actions_list: list of legal action lists</p>
 <p>Returns: list of (policy_dict, value) tuples</p>
 </section>
+<section id="raccoon.model.network.RaccoonNet.value_equity" class="level5">
+<h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.value_equity">value_equity</h5>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.value_equity(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Scalar equity/3 in [-1, 1] per position, for both head types.</p>
+<p>This is what 0-ply move selection reads (see lookahead.eval_values_batch), so a scalar net and an outcomes6 net are interchangeable at play time.</p>
+</section>
 </section>
 </section>
 <section id="raccoon.model.network.ResidualBlock" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.model.network.ResidualBlock">ResidualBlock</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>model.network.ResidualBlock(channels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model.network.ResidualBlock(channels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Conv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU.</p>
 </section>
 </section>
@@ -317,7 +328,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <section id="raccoon.model.network.load_model" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.model.network.load_model">load_model</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model.network.load_model(path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.network.load_model(path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Create a RaccoonNet from a checkpoint, using its saved config.</p>
 <p>Falls back to default config for older checkpoints without config.</p>
 
