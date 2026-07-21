@@ -343,7 +343,7 @@ Three observations tie the track together:
 2. **Buffer size, exploration noise, value bootstrapping, and LR schedules were all ruled out** as the binding constraint. Each moved fitting metrics; none moved play ([exp002](#exp002), [exp003](#exp003), [exp004](#exp004)).
 3. **Search depth at training time is the one self-play lever that worked**: 800-sim MCTS produced a significant +0.38 ppg in 69 iterations ([exp005](#exp005)). Iteration count also works, but ~25× slower per iteration of progress ([exp006](#exp006)) — the combined rate math (~17k iterations to parity) rules out self-play-only scaling.
 4. **Loss curves repeatedly misled in both directions** — the decisive test is always a same-conditions arena match ([exp005](#exp005), [exp007](#exp007)).
-5. **Self-play destroys a strong supervised seed.** MCTS under a GNUBG-losing prior generates targets weaker than the seed's teacher, and discrete outcome targets decalibrate a money-equity value head; 50 iterations erased a +1.98 ppg advantage ([exp007](#exp007)). Improving on a strong seed requires keeping a stronger-than-self signal in the loop.
+5. **_MCTS_ self-play destroys a strong supervised seed.** MCTS under a GNUBG-losing prior generates targets weaker than the seed's teacher, and discrete outcome targets decalibrate a money-equity value head; 50 iterations erased a +1.98 ppg advantage ([exp007](#exp007)). Improving on a strong seed requires keeping a stronger-than-self signal in the loop — or a self-play update that does not decalibrate the value head, which is exactly what the [exp010 postscript](#exp010) finds: *TD* self-play lifts the same class of seed rather than wrecking it.
 
 ## What happened next
 
@@ -351,7 +351,9 @@ The pivot this track motivated is documented in the [supervised & expert-iterati
 
 Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG is **TD(λ) self-play from the distilled seed**: TD-Gammon-style value learning with 0-ply (static-value) move selection is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position's own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway. exp010 is the first test of it.
 
-## exp010 — TD(λ) self-play from a distilled seed {#exp010}
+## Postscript — exp010: does self-play *have* to wreck a seed? {#exp010}
+
+This section is a later coda, not part of the exp000–007 sequence: a different self-play method (TD, not MCTS) applied to a different starting point (the distilled seed the [pretraining track](pretraining_analysis.qmd) produced). It is placed here because it directly revisits Conclusion 5.
 
 **Motivation.** Conclusion 5 is that *MCTS* self-play destroys a strong seed. TD(λ) self-play should not: it regresses the value head toward the next position's own equity estimate — not discrete terminal outcomes, not MCTS-visit targets — so neither exp007 mechanism applies. TD-Gammon proved this exact recipe reaches world class in backgammon. The question is whether it lifts *our* strong seed, and how far.
 
