@@ -61,6 +61,20 @@ def evaluate_equity(board: list[list[int]], ply: int = 0) -> float:
     return win + wg + wbg - (1.0 - win) - lg - lbg
 
 
+def outcome_probs(
+    board: list[list[int]], ply: int = 0,
+) -> tuple[float, float, float, float, float]:
+    """GNUBG's cumulative outcome probabilities ``(win, wg, wbg, lg, lbg)``.
+
+    From the side-to-move's POV, at ``ply`` lookahead. Nested: win >= wg >= wbg
+    and (1 - win) >= lg >= lbg; P(lose) = 1 - win is the redundant sixth. Used to
+    build both distillation targets (scalar equity and the six-outcome
+    distribution) from one call — see scripts/gen_gnubg_selfplay.py.
+    """
+    win, wg, wbg, lg, lbg = _gnubg.probabilities(board, ply)
+    return float(win), float(wg), float(wbg), float(lg), float(lbg)
+
+
 def candidate_equities(state: GameState, ply: int = 0) -> list[tuple[int, float]]:
     """Return ``[(action, my_equity)]`` for every legal action of the side to move.
 

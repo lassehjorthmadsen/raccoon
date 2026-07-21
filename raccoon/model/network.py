@@ -38,6 +38,7 @@ class RaccoonNet(nn.Module):
         num_blocks: int = 6,
         feature_channels: list[int] | None = None,
         input_bn: bool = False,
+        value_head: str = "scalar",
     ):
         super().__init__()
         # When a channel subset is given, the input channel count is derived
@@ -45,6 +46,13 @@ class RaccoonNet(nn.Module):
         # channels (and old checkpoints without this key reconstruct as None).
         if feature_channels is not None:
             in_channels = len(feature_channels)
+        # value_head: "scalar" -> tanh money-equity/3 in [-1, 1] (default; every
+        # existing checkpoint reconstructs unchanged). "outcomes6" -> six logits
+        # for the mutually-exclusive win/gammon/bg x win/lose outcomes (softmax);
+        # equity is derived via value_equity(). See raccoon/train/lookahead.py.
+        if value_head not in ("scalar", "outcomes6"):
+            raise ValueError(f"value_head must be scalar|outcomes6, got {value_head}")
+        self.value_head = value_head
         self.config = {
             "channels": channels,
             "num_blocks": num_blocks,
@@ -54,6 +62,7 @@ class RaccoonNet(nn.Module):
             "num_actions": num_actions,
             "feature_channels": feature_channels,
             "input_bn": input_bn,
+            "value_head": value_head,
         }
         self.feature_channels = feature_channels
         self.board_h = board_h
@@ -82,11 +91,15 @@ class RaccoonNet(nn.Module):
         self.policy_bn = nn.BatchNorm2d(2)
         self.policy_fc = nn.Linear(2 * board_h * board_w, num_actions)
 
-        # Value head
+        # Value head (1 scalar output, or 6 outcome logits)
         self.value_conv = nn.Conv2d(channels, 1, 1)
         self.value_bn = nn.BatchNorm2d(1)
         self.value_fc1 = nn.Linear(1 * board_h * board_w, 256)
-        self.value_fc2 = nn.Linear(256, 1)
+        self.value_fc2 = nn.Linear(256, 6 if value_head == "outcomes6" else 1)
+
+    # Outcome points for the six mutually-exclusive outcomes, in the target
+    # order [win_single, win_gammon, win_bg, lose_single, lose_gammon, lose_bg].
+    _OUTCOME_POINTS = (1.0, 2.0, 3.0, -1.0, -2.0, -3.0)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward pass.
@@ -96,7 +109,9 @@ class RaccoonNet(nn.Module):
 
         Returns:
             policy_logits: (batch, 1352) raw logits (not masked)
-            value: (batch, 1) in [-1, 1]
+            value: "scalar" head -> (batch, 1) tanh in [-1, 1];
+                   "outcomes6" head -> (batch, 6) raw logits (softmax applied by
+                   the caller / value_equity).
         """
         # Shared trunk
         if self.input_norm is not None:
@@ -113,9 +128,33 @@ class RaccoonNet(nn.Module):
         v = F.relu(self.value_bn(self.value_conv(out)))
         v = v.view(v.size(0), -1)
         v = F.relu(self.value_fc1(v))
-        value = torch.tanh(self.value_fc2(v))
+        v = self.value_fc2(v)
+        value = v if self.value_head == "outcomes6" else torch.tanh(v)
 
         return policy_logits, value
+
+    def _equity_from_value_out(self, value_out: torch.Tensor) -> torch.Tensor:
+        """Map a raw value-head output to equity/3 in [-1, 1], shape (batch,).
+
+        For "scalar" this is the tanh output itself; for "outcomes6" it is the
+        softmax distribution dotted with the outcome points (±1/±2/±3), then /3
+        to match the scalar head's money-equity/3 convention.
+        """
+        if self.value_head == "outcomes6":
+            probs = F.softmax(value_out, dim=-1)
+            w = torch.tensor(self._OUTCOME_POINTS, device=probs.device,
+                             dtype=probs.dtype)
+            return (probs * w).sum(dim=-1) / 3.0
+        return value_out.squeeze(-1)
+
+    def value_equity(self, x: torch.Tensor) -> torch.Tensor:
+        """Scalar equity/3 in [-1, 1] per position, for both head types.
+
+        This is what 0-ply move selection reads (see lookahead.eval_values_batch),
+        so a scalar net and an outcomes6 net are interchangeable at play time.
+        """
+        _, value_out = self.forward(x)
+        return self._equity_from_value_out(value_out)
 
     @property
     def device(self) -> torch.device:
@@ -137,7 +176,8 @@ class RaccoonNet(nn.Module):
         """
         self.eval()
         x = torch.from_numpy(obs).unsqueeze(0).float().to(self.device)
-        logits, value = self.forward(x)
+        logits, value_out = self.forward(x)
+        value = float(self._equity_from_value_out(value_out).item())
 
         # Mask illegal actions and apply softmax
         logits = logits.squeeze(0).cpu()
@@ -146,7 +186,7 @@ class RaccoonNet(nn.Module):
         probs = F.softmax(logits + mask, dim=0).numpy()
 
         policy = {a: float(probs[a]) for a in legal_actions}
-        return policy, float(value.item())
+        return policy, value
 
     @torch.no_grad()
     def predict_batch(
@@ -164,9 +204,9 @@ class RaccoonNet(nn.Module):
         self.eval()
         obs_np = np.stack(obs_list)
         x = torch.from_numpy(obs_np).float().to(self.device)
-        logits_batch, values_batch = self.forward(x)
+        logits_batch, value_out = self.forward(x)
         logits_batch = logits_batch.cpu()
-        values_batch = values_batch.cpu()
+        values_batch = self._equity_from_value_out(value_out).cpu()
 
         results = []
         for i, legal_actions in enumerate(legal_actions_list):

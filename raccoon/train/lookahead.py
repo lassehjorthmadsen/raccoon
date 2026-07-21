@@ -120,12 +120,15 @@ def terminal_value(
 def eval_values_batch(
     network, observations: np.ndarray, device: torch.device,
 ) -> np.ndarray:
-    """Batched value forward pass — returns shape (N,) in [-1, 1]."""
+    """Batched value forward pass — returns equity/3 in [-1, 1], shape (N,).
+
+    Uses ``network.value_equity`` so a scalar-head net and a six-outcome net are
+    interchangeable here (the latter derives equity from its softmax).
+    """
     if len(observations) == 0:
         return np.array([], dtype=np.float32)
     x = torch.from_numpy(observations).float().to(device, non_blocking=True)
-    _, value = network(x)
-    return value.squeeze(-1).cpu().numpy()
+    return network.value_equity(x).cpu().numpy()
 
 
 def child_values(
