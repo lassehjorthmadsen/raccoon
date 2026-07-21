@@ -211,7 +211,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
 <p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
-<div id="fc451b52" class="cell" data-execution_count="2">
+<div id="f3f04f78" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -263,7 +263,7 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">200</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">v2 (1-ply self-teacher)</td>
+<td style="text-align: left;">v2 (0-ply self-teacher)</td>
 <td style="text-align: left;">iter_0447 (self-play best)</td>
 <td style="text-align: left;">100</td>
 <td style="text-align: left;">22-78</td>
@@ -272,7 +272,7 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">100</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">v2 (1-ply self-teacher)</td>
+<td style="text-align: left;">v2 (0-ply self-teacher)</td>
 <td style="text-align: left;">GNUBG 2-ply</td>
 <td style="text-align: left;">100</td>
 <td style="text-align: left;">0-100</td>
@@ -525,7 +525,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="19d47f25" class="cell" data-execution_count="4">
+<div id="06df5540" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -542,10 +542,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="v2" class="level2">
 <h2 class="anchored" data-anchor-id="v2">v2 — synthesised policy distillation</h2>
-<p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 1-ply lookahead with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
+<p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG’s convention (TD-Gammon calls it 1-ply) — with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="f1ffc338" class="cell" data-execution_count="5">
+<div id="2b965578" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -555,14 +555,14 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <p>A large improvement — vs iter_0447 it went from v1’s 3% wins to 22% (+0.79 ppg) — but still a clear loss (22-78, −1.24), and still 0-100 vs GNUBG (−2.59).</p>
-<p><strong>Interpretation.</strong> The mechanism works: synthesised policy labels produce a usable prior, confirming v1’s diagnosis. But the teacher — a 1-ply argmax under a GNUBG-weak value head — is itself weak, and the student cannot exceed it.</p>
+<p><strong>Interpretation.</strong> The mechanism works: synthesised policy labels produce a usable prior, confirming v1’s diagnosis. But the teacher — a 0-ply argmax under a GNUBG-weak value head — is itself weak, and the student cannot exceed it.</p>
 </section>
 <section id="v2b" class="level2">
 <h2 class="anchored" data-anchor-id="v2b">v2b — a stronger teacher</h2>
-<p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 1-ply lookahead. Same matches, same pipeline, better labels.</p>
+<p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="8444cbb4" class="cell" data-execution_count="6">
+<div id="97d4d1de" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -579,7 +579,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="c9102d24" class="cell" data-execution_count="7">
+<div id="a02810df" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -596,7 +596,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="7120555e" class="cell" data-execution_count="8">
+<div id="a9d6f7de" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -631,7 +631,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="c143ce3b" class="cell" data-execution_count="9">
+<div id="ae435c62" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -641,7 +641,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="e05daed9" class="cell" data-execution_count="10">
+<div id="7618969b" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1111,7 +1111,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tbody>
 </table>
 <p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
-<div id="84dbe9d2" class="cell" data-execution_count="14">
+<div id="6277630c" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1133,7 +1133,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <h2 class="anchored" data-anchor-id="what-weve-learned">What we’ve learned</h2>
 <ol type="1">
 <li><strong>A calibrated value head is not a player</strong> — with a random policy prior, MCTS never searches the moves the value head would reward (<a href="#v1">v1</a>).</li>
-<li><strong>Policy labels can be synthesised</strong> by 1-ply lookahead over a position corpus; the policy prior is load-bearing (<a href="#v2">v2</a>).</li>
+<li><strong>Policy labels can be synthesised</strong> by 0-ply lookahead over a position corpus; the policy prior is load-bearing (<a href="#v2">v2</a>).</li>
 <li><strong>You cannot distill past your teacher, and teacher quality is the whole game</strong> — swapping the teacher moved the student from −1.24 to parity with iter_0447 with no other change; distillation also <em>compresses</em> (≈290 GPU-hours of self-play into ~21 CPU-hours) (<a href="#v2b">v2b</a>).</li>
 <li><strong>A world-class teacher breaks the internal ceiling</strong>: GNUBG 4-ply labels produced the first checkpoint to beat iter_0447 and the first to take games off GNUBG (<a href="#v3">v3</a>).</li>
 <li><strong>Capacity, eval-time search, and value-label coverage all fail to move the external gap</strong> — three levers tested in isolation, ~−1.6 ppg regardless; the missing ingredient is on-distribution <em>policy</em> data (<a href="#v4">v4</a>, <a href="#v5">v5</a>).</li>
