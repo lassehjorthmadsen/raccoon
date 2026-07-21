@@ -7,12 +7,12 @@ jupyter: python3
 
 This page documents the **supervised & expert-iteration track** — everything after the [self-play track](training_analysis.qmd) concluded that pure AlphaZero self-play plateaus hopelessly far from GNUBG at this project's compute scale. The idea: instead of bootstrapping a network from noise, **seed it from existing backgammon knowledge** — first by regressing on labeled positions (stages v1–v5), then by keeping the GNUBG oracle in the training loop on the learner's own positions (exp008, consolidation, exp009).
 
-The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher's strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project's first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is *on-distribution policy* data, which live GNUBG labeling of the learner's own positions supplies (exp008); and retraining from scratch on all accumulated labels consolidates those gains into the current best (~−0.93 ppg). Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.
+The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher's strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project's first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is *on-distribution policy* data, which live GNUBG labeling of the learner's own positions supplies (exp008); retraining from scratch on all accumulated labels consolidates those gains (~−0.93 ppg); and scaling the loop (exp009) reaches the current best, **~−0.37 ppg**, before plateauing ~0.4 ppg short of parity. Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.
 
 ::: {.callout-note}
-## Current best (2026-07-10)
+## Current best (2026-07-21)
 
-Retraining a 10×256 net from scratch on all ~844k accumulated GNUBG labels ([Phase A consolidation](#consolidation)) reaches **−0.93 ppg (48-152, n=200)** vs GNUBG 2-ply with the 17-channel encoder, and −0.96 with the 26-channel encoder — a ~+0.4 ppg jump over the previous best ([exp008](#exp008) round_15, whose fair n=200 benchmark is −1.38). [exp009](#exp009), a scaled-up DAgger run seeded from the 26ch arm, is in progress.
+[exp009](#exp009), a 25-round DAgger run seeded from the consolidation 26ch arm, reaches **−0.37 ppg (83-117, n=200)** vs GNUBG 2-ply at its round-6 peak — the project best, ~60% of the remaining gap to money parity closed, and a 99-1 rout of the old self-play champion iter_0447. The run then oscillated on a plateau: its three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE of one another, so the deliverable checkpoint is not yet settled. The prior best was the [Phase A consolidation](#consolidation) retrain (−0.93/−0.96 ppg for the 17ch/26ch encoders), itself a ~+0.4 ppg jump over [exp008](#exp008) round_15 (fair n=200 benchmark −1.38).
 :::
 
 ```{python}
@@ -62,6 +62,7 @@ OPP_LABELS = [
     ("iter_0447", "iter_0447 (self-play best)"),
     ("pretrain-gnubg-v5", "v5 seed"),
     ("round_15", "exp008 round_15"),
+    ("pretrain-consol/26ch", "consol 26ch seed"),
 ]
 
 
@@ -138,12 +139,13 @@ CHECKPOINTS = [
        R15_BASELINE[3]),)),
     ("consol 17ch", "pretrain-consol/17ch/logs", ()),
     ("consol 26ch", "pretrain-consol/26ch/logs", ()),
+    ("exp009 round_06 (best)", "exp009-ondist-dagger/round_06/logs", ()),
 ]
 ```
 
 ## Summary: the strength ladder
 
-The one metric that matters is standalone strength against GNUBG 2-ply (`gnubg-nn` at `level=world` — full-width 2-ply, "World class"; see the [self-play page](training_analysis.qmd#how-to-read-the-results) for eval conventions). Each bar is one experiment's final checkpoint:
+The one metric that matters is standalone strength against GNUBG 2-ply (`gnubg-nn` at `level=world` — full-width 2-ply, "World class"; see the [self-play page](training_analysis.qmd#how-to-read-the-results) for eval conventions). Each bar is one experiment's final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):
 
 ```{python}
 #| echo: false
@@ -160,7 +162,8 @@ for label, logs, sims, extra in LADDER:
     v, n = gnubg_bar(logs, sims, extra)
     labels.append(f"{label}\n@{sims} sims, n={n}")
     vals.append(v)
-    colors.append("#1f77b4" if "consol" in label else "#a6c3dd")
+    colors.append("#1f77b4" if ("consol" in label or "exp009" in label)
+                  else "#a6c3dd")
 
 fig, ax = plt.subplots(figsize=(9, 4.6))
 bars = ax.barh(labels, vals, color=colors)
@@ -519,9 +522,85 @@ The run also priced deeper teachers for future rounds (`scripts/bench_gnubg_ply.
 
 **Interpretation.** Three conclusions. **Consolidated retraining beats incremental fine-tuning by ~+0.4 ppg** on the identical label pool — the DAgger loop's warm fine-tunes had accumulated real sub-optimality (recency-window mixes, per-round overfitting). **Measure at n≥200**: the −1.19 → −1.38 correction is a standing reminder that 100-game GNUBG evals carry ±0.5 ppg. And **the handcrafted features wash out at scale** — at 844k labels the 26ch arm has no edge over 17ch (consistent with the ablation's small-data framing); the 26ch arm was nonetheless adopted as the exp009 seed for encoder consistency going forward (it also beat the incumbent by more head-to-head, +0.74 vs +0.45, though that difference is itself within noise).
 
-## exp009 — scaled DAgger (in progress) {#exp009}
+## exp009 — scaled DAgger {#exp009}
 
-The next loop is running: exp009 restarts DAgger from the consolidation 26ch arm with four upgrades from the exp008 post-mortem — **parallel label synthesis** (N worker processes shard each round; exp008's 10 h synth cap drops to <1 h on a 16-vCPU VM), **doubles policy labels** (the half-move labels were computed and discarded in exp008; the error profile priced that leak at ~0.85 ppg/game), **best-val-epoch checkpoint selection** (every exp008 round overfit past epoch 1), and a **2× round budget** (120k labels/round). 25 rounds planned, GNUBG 2-ply teacher, launched 2026-07-10 on the GCP VM. Results will be added here when the run completes.
+**Motivation.** exp008 showed on-distribution DAgger works but returns only ~0.4–0.5 ppg over 15 slow rounds, and the [consolidation](#consolidation) showed the accumulated labels held more than the incremental fine-tunes had extracted. exp009 restarts the loop from the consolidation 26ch arm to push the gains further and stress-test the method at scale, with four upgrades from the exp008 post-mortem.
+
+**Setup.** (`experiments/pipeline_exp009.sh`, 2026-07-10 → 07-21, GCP T4 VM.) 25 DAgger rounds warm-started from the consolidation 26ch seed, GNUBG 2-ply teacher, 50 eval sims. The upgrades: **parallel label synthesis** (14 worker processes shard each round — the ~10 h synth cap drops to ~4 h even at a 2× larger budget), **doubles policy labels** (the half-move labels `candidate_equities` already computes were discarded in exp008; the error profile priced that leak at ~0.85 ppg/game — now ~26% of each round's labels carry policy targets, none discarded), **best-val-epoch selection** (every exp008 round overfit past epoch 1), and a **2× round budget** (120k labels/round). GNUBG benchmarked every 2nd round (n=100), milestone n=200 at rounds 6/18/25.
+
+**Results.**
+
+```{python}
+#| echo: false
+#| output: asis
+base = EXP_ROOT / "exp009-ondist-dagger"
+exp009_traj = []
+exp009_gnubg = []  # (round, ppg, n) for the plot
+for rdir in sorted(base.glob("round_*")):
+    rnd = int(rdir.name.split("_")[1])
+    aw = al = gn = 0
+    apts = gpts = 0.0
+    an = gw = gl = 0
+    for e in load_jsonl(rdir / "logs/eval_log.jsonl"):
+        aw += e["p1_wins"]; al += e["p2_wins"]
+        apts += e["equity"] * e["num_games"]; an += e["num_games"]
+    for g in load_jsonl(rdir / "logs/gnubg_eval_log.jsonl"):
+        gw += g["raccoon_wins"]; gl += g["gnubg_wins"]
+        gpts += g["equity_per_game"] * g["num_games"]; gn += g["num_games"]
+    exp009_traj.append({
+        "round": rnd,
+        "vs seed (arena)": f"{aw}-{al}  {fmt_ppg(apts / an)}" if an else "",
+        "vs GNUBG 2-ply": f"{gw}-{gl}  {fmt_ppg(gpts / gn)}" if gn else "",
+        "n (GNUBG)": gn or "",
+    })
+    if gn:
+        exp009_gnubg.append((rnd, gpts / gn, gn))
+print(pd.DataFrame(exp009_traj).to_markdown(index=False, disable_numparse=True))
+print("\n(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every "
+      "2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank "
+      "cells are evals skipped when a VM preemption resumed past a completed round.)")
+```
+
+```{python}
+#| echo: false
+seed_ppg, _ = gnubg_bar("pretrain-consol/26ch/logs", 50)
+r15_fair = R15_BASELINE[2] / R15_BASELINE[3]
+rs = [r for r, _, _ in exp009_gnubg]
+ps = [p for _, p, _ in exp009_gnubg]
+sizes = [80 if n >= 200 else 40 for _, _, n in exp009_gnubg]
+best_i = int(np.argmax(ps))
+
+fig, ax = plt.subplots(figsize=(8.5, 4.4))
+ax.plot(rs, ps, "-", color="#1f77b4", lw=1.5, zorder=1)
+ax.scatter(rs, ps, s=sizes, color="#1f77b4", zorder=2,
+           label="exp009 (n=200 = large marker)")
+ax.axhline(0, color="k", lw=1.2)
+ax.axhline(seed_ppg, ls="--", color="#2ca02c", lw=1.2,
+           label=f"consolidation 26ch seed ({fmt_ppg(seed_ppg)})")
+ax.axhline(r15_fair, ls=":", color="#888", lw=1.2,
+           label=f"exp008 round_15 fair ({fmt_ppg(r15_fair)})")
+ax.annotate(f"round 6 peak\n{fmt_ppg(ps[best_i])}", (rs[best_i], ps[best_i]),
+            textcoords="offset points", xytext=(6, 12), fontsize=8,
+            color="#1f77b4")
+ax.set_xlabel("DAgger round")
+ax.set_ylabel("Equity/game vs GNUBG 2-ply")
+ax.set_title("exp009: a large early gain, then an oscillating plateau")
+ax.set_ylim(-1.5, 0.15)
+ax.legend(loc="lower right", fontsize=8)
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+Three readings:
+
+1. **A large early gain, then a plateau.** The gap to GNUBG halves in six rounds — −0.96 (seed) → **−0.37 (round 6, n=200)**, 41% wins — the project best, ~60% of the remaining gap to parity closed. But no later round beats it: rounds 8–25 oscillate in a −0.5 to −0.8 band, and the other two n=200 milestones (round 18 −0.50, round 25 −0.48) sit within ~1 SE of round 6. The doubles-policy fix plus the bigger budget bought the early jump; the loop then stopped compounding.
+2. **The head-to-head keeps climbing even as the external gap doesn't.** Against the frozen seed the arena rises to +0.5–0.9 ppg by the late rounds — the net keeps beating its own history at 50 sims while its standing against GNUBG bounces. "Beats its predecessor" and "closes the external gap" are different claims.
+3. **iter_0447 is buried 99-1 (+2.41 ppg)** by the final round — the strongest self-play checkpoint now loses essentially every game.
+
+*Ops aside.* The run spanned 11 days on a preemptible VM in a capacity-crunched zone — ~9 preemptions, all auto-recovered by a local watchdog, plus a spot-price spike that put the Phase A+B bill at ~kr.880 (~\$128), 2–4× the estimate, most of it spent on the post-round-6 plateau. That motivated per-round cost projection + clean round-boundary budget/plateau stopping (`scripts/pipeline_budget.py`) for future runs.
+
+**Interpretation.** Scaling the loop confirmed the method and set a new best, but exposed its shape: DAgger with a warm-started, *ungated* loop makes its biggest correction early (here, the doubles-policy fix), then oscillates around a plateau rather than converging monotonically — nothing gates a round on *improving*, so the checkpoint advances even through regressions and the best (round 6) is a peak the run wandered away from. Two lessons carry forward: **gate on eval** (keep-best, not last) and the consolidation's **measure at n≥200** (the n=100 rounds are individually too noisy to rank). The plateau ~0.4 ppg short of parity, teacher fixed at 2-ply, is the teacher-ceiling signal that motivates [exp010](training_analysis.qmd#what-happened-next)'s TD self-play.
 
 ## What we've learned
 
@@ -534,11 +613,12 @@ The next loop is running: exp009 restarts DAgger from the consolidation 26ch arm
 7. **Input scaling is load-bearing** — unnormalised handcrafted channels were an invisible regression; normalise in the encoder, not with an input BatchNorm ([ablation](#feature-ablation)).
 8. **On-distribution DAgger works where self-play fails**: learner-generated states + oracle labels for both targets improved on the strongest seed and broke the −1.6 wall ([exp008](#exp008)).
 9. **Consolidated retraining beats incremental fine-tuning** (~+0.4 ppg on the same labels), n=100 GNUBG evals mislead (−1.19 vs −1.38), and the handcrafted features wash out at 844k labels ([consolidation](#consolidation)).
-10. **The board-signature replay layer is reusable infrastructure** — 99%+ match rate across raw and analysed corpora, behind every dataset on this page.
+10. **Scaling DAgger sets a new best but plateaus** — the loop's biggest gain lands early (the doubles-policy fix), then an ungated, warm-started loop *oscillates* around a plateau instead of converging; the fix is eval-gated keep-best, and the ~0.4-ppg-short-of-parity plateau under a fixed 2-ply teacher is the ceiling that motivates TD self-play ([exp009](#exp009)).
+11. **The board-signature replay layer is reusable infrastructure** — 99%+ match rate across raw and analysed corpora, behind every dataset on this page.
 
 ## Open questions
 
-- **The teacher ceiling.** DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. The leading escape is TD(λ) self-play from the consolidated seed (exp010 candidate; sketched at the end of the [self-play page](training_analysis.qmd#what-happened-next)), which has no teacher ceiling and none of exp007's failure modes.
-- **How far does exp009 get?** Doubles policy (a measured ~0.85 ppg/game leak) plus 2× label volume are the two biggest known levers still in-loop. If the run plateaus well short of parity, the remaining gap is teacher-ceiling territory.
+- **The teacher ceiling.** DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. exp009 plateaued ~0.4 ppg short of parity, confirming this is now the binding constraint. The leading escape — **TD(λ) self-play from the consolidated seed, launched as exp010** (sketched at the end of the [self-play page](training_analysis.qmd#what-happened-next)) — has no teacher ceiling and none of exp007's failure modes; whether it lifts a strong seed at all is the open question that pilot answers.
+- **Ranking checkpoints on a plateau.** exp009's three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE, so which is the true best — the deliverable — needs a larger head-to-head (n≥400) or a tie-break arena; the n=100 per-round evals cannot separate them.
 - **Value calibration under search.** "More sims hurt" has now been measured three times. A value head that search *strengthens* rather than undermines — possibly via multi-component outputs (win/gammon/bg probabilities, as TD-Gammon and GNUBG use) — is an open design question feeding exp010.
 - **The cube.** Everything on this page is cubeless checker play, but the M6 goal ("beat GNUBG at money game") implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.
