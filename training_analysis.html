@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-c98d9d0b3b0a085d3ddf71e6e91476d8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-a547dd1b4798262c927e2e52fa668cb1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -163,10 +163,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#exp005" id="toc-exp005" class="nav-link" data-scroll-target="#exp005">exp005 — 800-simulation search</a></li>
   <li><a href="#exp006" id="toc-exp006" class="nav-link" data-scroll-target="#exp006">exp006 — 2000 more iterations</a></li>
   <li><a href="#exp007" id="toc-exp007" class="nav-link" data-scroll-target="#exp007">exp007 — self-play from the v5 supervised seed</a></li>
+  <li><a href="#exp010" id="toc-exp010" class="nav-link" data-scroll-target="#exp010">exp010 — TD self-play from a strong seed</a></li>
   <li><a href="#cross-experiment-trends" id="toc-cross-experiment-trends" class="nav-link" data-scroll-target="#cross-experiment-trends">Cross-experiment trends</a></li>
   <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
   <li><a href="#what-happened-next" id="toc-what-happened-next" class="nav-link" data-scroll-target="#what-happened-next">What happened next</a></li>
-  <li><a href="#exp010" id="toc-exp010" class="nav-link" data-scroll-target="#exp010">Postscript — exp010: does self-play <em>have</em> to wreck a seed?</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -176,7 +176,7 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Raccoon Self-Play Analysis</h1>
-<p class="subtitle lead">The self-play track: AlphaZero from scratch, exp000–exp007</p>
+<p class="subtitle lead">The self-play track: AlphaZero from scratch (exp000–006), then self-play from a strong seed (exp007, exp010)</p>
 </div>
 
 
@@ -193,8 +193,8 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This page documents the <strong>self-play track</strong>: eight experiments (exp000–exp007) testing whether AlphaZero-style self-play — a ResNet policy-value network trained on its own MCTS games — can reach GNUBG-competitive backgammon at this project’s compute scale (a single T4 GPU or a desktop CPU).</p>
-<p><strong>The track’s conclusion, up front: it cannot.</strong> Every self-play checkpoint loses 97–100% of its games against GNUBG 2-ply, at −2.2 to −2.5 points per game. Two levers produced statistically significant improvement — 800-simulation search (exp005) and sheer iteration count (exp006) — but at a rate that would need on the order of 17,000 iterations to close the gap. The bottleneck is the <em>quality</em> of the self-play training signal, not the amount of training. That conclusion motivated the pivot to supervised distillation from GNUBG, documented in the <a href="./pretraining_analysis.html">supervised &amp; expert-iteration track</a>, which produced every subsequent strength gain. The final experiment here (exp007) connects the two tracks: pure self-play from a strong supervised seed <em>destroys</em> the seed rather than improving it.</p>
+<p>This page documents the <strong>self-play track</strong>: nine experiments (exp000–exp007, plus the later exp010) testing whether self-play — a ResNet policy-value network trained on its own games — can reach GNUBG-competitive backgammon at this project’s compute scale (a single T4 GPU or a desktop CPU). The first eight use AlphaZero-style MCTS self-play; exp010, run much later, swaps in TD(λ) value learning.</p>
+<p><strong>The track’s conclusion, up front: it cannot.</strong> Every self-play checkpoint loses 97–100% of its games against GNUBG 2-ply, at −2.2 to −2.5 points per game. Two levers produced statistically significant improvement — 800-simulation search (exp005) and sheer iteration count (exp006) — but at a rate that would need on the order of 17,000 iterations to close the gap. The bottleneck is the <em>quality</em> of the self-play training signal, not the amount of training. That conclusion motivated the pivot to supervised distillation from GNUBG, documented in the <a href="./pretraining_analysis.html">supervised &amp; expert-iteration track</a>, which produced every subsequent strength gain. Two experiments here connect the tracks by running self-play <em>from a strong distilled seed</em>: exp007 (MCTS) <em>destroys</em> the seed, while the later exp010 (TD) is the first self-play method in the project to <em>lift</em> one.</p>
 <p>Each experiment below gets one section: motivation, setup, results, interpretation. Results are computed from the experiment logs at render time.</p>
 <section id="how-to-read-the-results" class="level2">
 <h2 class="anchored" data-anchor-id="how-to-read-the-results">How to read the results</h2>
@@ -300,7 +300,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> First end-to-end run: does the full pipeline hold up — the 26-channel encoder, GPU training, spot-VM preemption recovery — and what does baseline learning look like at minimal settings?</p>
 <p><strong>Setup.</strong> 25 sims, 10 games/iter, 100k replay buffer, 499 iterations on the T4.</p>
 <p><strong>Results.</strong></p>
-<div id="9466e65f" class="cell" data-execution_count="3">
+<div id="a08c4055" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0498 vs iter_0290  (n=50 @100 sims): 24-26, +0.060 ppg
 gnubg  iter_0498 vs GNUBG 2-ply  (n=10 @200 sims): 0-10, -2.500 ppg</code></pre>
@@ -314,7 +314,7 @@ gnubg  iter_0498 vs GNUBG 2-ply  (n=10 @200 sims): 0-10, -2.500 ppg</code></pre>
 <p><strong>Motivation.</strong> Does 8× the MCTS simulations and 5× the games per iteration translate into faster learning?</p>
 <p><strong>Setup.</strong> 200 sims, 50 games/iter, 500k buffer, fresh start, 283 iterations. ~27× slower per iteration than exp000 (~37.5 vs ~1.4 min).</p>
 <p><strong>Results.</strong></p>
-<div id="2729879c" class="cell" data-execution_count="4">
+<div id="ccbc0bc7" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0112 vs iter_0498  (n=50 @100 sims): 32-18, +0.440 ppg
 arena  iter_0282 vs iter_0260  (n=50 @100 sims): 27-23, +0.120 ppg
@@ -330,7 +330,7 @@ gnubg  iter_0282 vs GNUBG 2-ply  (n=50 @100 sims): 0-50, -2.320 ppg</code></pre>
 <p><strong>Motivation.</strong> exp001’s 500k buffer holds ~100 iterations of positions, so the network fits a mix of old (weaker) and new play. Does a 50k buffer — cycling in ~10 iterations, always training on fresh data — fix the rising value loss and the plateau?</p>
 <p><strong>Setup.</strong> exp001’s config with <code>--replay-size 50000</code>, fresh start, 148 iterations.</p>
 <p><strong>Results.</strong></p>
-<div id="bc9291d3" class="cell" data-execution_count="5">
+<div id="99990a47" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0147 vs iter_0125  (n=50 @100 sims): 26-24, +0.300 ppg
 arena  iter_0147 vs iter_0282  (n=50 @100 sims): 20-30, -0.440 ppg
@@ -345,7 +345,7 @@ gnubg  iter_0147 vs GNUBG 2-ply  (n=50 @100 sims): 0-50, -2.300 ppg</code></pre>
 <p><strong>Motivation.</strong> Standard AlphaZero adds Dirichlet noise at the MCTS root to keep exploration alive. Was exploration collapse causing the plateau?</p>
 <p><strong>Setup.</strong> 100 sims, 25 games/iter, 25k buffer, Dirichlet α=0.3 / ε=0.25, resumed from a trained checkpoint at iter 148; abandoned at iter 284. First experiment to log MCTS visit entropy.</p>
 <p><strong>Results.</strong></p>
-<div id="469bfded" class="cell" data-execution_count="6">
+<div id="07c6dca7" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0220 vs iter_0150  (n=100 @50 sims): 40-60, -0.430 ppg
 arena  iter_0280 vs iter_0150  (n=100 @50 sims): 48-52, -0.130 ppg</code></pre>
@@ -359,7 +359,7 @@ arena  iter_0280 vs iter_0150  (n=100 @50 sims): 48-52, -0.130 ppg</code></pre>
 <p><strong>Motivation.</strong> Self-play value labels are discrete terminal outcomes (±1/3, ±2/3, ±1) — noisy and extreme. Does blending in the smoother MCTS root Q (<code>--value-bootstrap-alpha 0.5</code>) fix the value head, and does an LR schedule reduce late oscillation?</p>
 <p><strong>Setup.</strong> 100 sims, 25 games/iter, 25k buffer, Dirichlet noise, bootstrap α=0.5, LR ×0.1 at iter 200; fresh start, 264 iterations on CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="8a343fca" class="cell" data-execution_count="7">
+<div id="72d6548b" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0180 vs iter_0100  (n=50 @100 sims): 26-24, +0.020 ppg
 arena  iter_0260 vs iter_0200  (n=50 @100 sims): 27-23, +0.120 ppg
@@ -374,7 +374,7 @@ arena  iter_0260 vs iter_0200  (n=50 @100 sims): 21-29, -0.320 ppg</code></pre>
 <p><strong>Motivation.</strong> If self-play target quality is the bottleneck, deeper search at training time should produce qualitatively better MCTS policy targets. Scale simulations 8× over exp004 and keep everything else.</p>
 <p><strong>Setup.</strong> 800 sims, 25 games/iter, 25k buffer, Dirichlet, bootstrap α=0.5, on the T4 (~79 min/iter). The run splits into three phases: a clean phase (iters 1–109), a destabilized phase after a hardware restart (110–173), and a long watchdog-driven extension (173–447). Total ~459 GPU-hours over May 4–28.</p>
 <p><strong>Results.</strong></p>
-<div id="ed90a5bd" class="cell" data-execution_count="8">
+<div id="e4740949" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_0109 vs iter_0040  (n=100 @100 sims): 58-42, +0.380 ppg
 arena  iter_0447 vs iter_0109  (n=100 @100 sims): 52-48, +0.050 ppg
@@ -391,7 +391,7 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 <p><strong>Motivation.</strong> A clean falsification test: does sheer iteration count eventually break the plateau, with everything else held fixed?</p>
 <p><strong>Setup.</strong> Resumed exp000’s final checkpoint with identical hyperparameters (25 sims, no noise, no bootstrap, no schedule) for 2000 further iterations (499 → 2498), on the iMac CPU (~4.1 min/iter).</p>
 <p><strong>Results.</strong></p>
-<div id="08ef7c0e" class="cell" data-execution_count="9">
+<div id="b62cd2ec" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>arena  iter_2498 vs iter_0498  (n=200 @100 sims): 116-84, +0.270 ppg</code></pre>
 </div>
@@ -442,22 +442,45 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 </ol>
 <p>One thing did <em>not</em> regress: the architecture. Even after full erosion of the supervised signal, the 10×256 net sat at parity with iter_0447 rather than below it. The training signal, not capacity, was the problem — and the fix (keep the expert in the loop, on the learner’s own positions) became <a href="./pretraining_analysis.html#exp008">exp008 in the supervised track</a>.</p>
 </section>
-<section id="cross-experiment-trends" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="cross-experiment-trends">Cross-experiment trends</h2>
-<div id="e2d0fa12" class="cell page-columns page-full" data-execution_count="11">
-<div class="cell-output cell-output-display page-columns page-full">
-<div class="page-columns page-full">
-<figure class="figure page-columns page-full">
-<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img column-page-right"></p>
+<section id="exp010" class="level2">
+<h2 class="anchored" data-anchor-id="exp010">exp010 — TD self-play from a strong seed</h2>
+<p>The direct continuation of exp007 — the same question, <em>does self-play improve a strong seed?</em>, with a different update rule. Chronologically this is the project’s most recent self-play run, executed long after the rest of this track once the <a href="./pretraining_analysis.html">supervised track</a> had produced strong distilled seeds; it sits here because it answers exp007 head-on. Where exp007’s <em>MCTS</em> self-play destroyed its seed, exp010’s <em>TD</em> self-play lifts one.</p>
+<p><strong>Motivation.</strong> exp007 (above) showed <em>MCTS</em> self-play destroys a strong seed, via two mechanisms — targets weaker than the seed’s teacher, and discrete-outcome decalibration of a money-equity value head. TD(λ) self-play should suffer neither: it regresses the value head toward the next position’s own equity estimate — not discrete terminal outcomes, not MCTS-visit targets. TD-Gammon proved this exact recipe reaches world class in backgammon. The question is whether it lifts <em>our</em> strong seed, and how far.</p>
+<p><strong>Setup.</strong> Warm-start from <a href="./pretraining_analysis.html#exp009">exp009</a> round_06 (10×256, 26-channel — the project’s best distilled net). Play 0-ply-greedy self-play — moves chosen by static value evaluation of each candidate, “0-ply” in GNUBG’s convention (TD-Gammon calls it 1-ply); the dice supply exploration — compute forward-view TD(λ) targets (λ=0.7), and regress the <strong>value head only</strong> (policy head frozen). Local on the iMac CPU, ~150 games/batch across 3 workers, conservative lr 10⁻⁴, keep-best by the fixed external reference below (<code>scripts/train_td.py</code>, <code>raccoon/train/td_selfplay.py</code>).</p>
+<p><strong>The eval trap, and the fix.</strong> The first cut scored each batch against the <em>frozen seed</em> and read +1.9 ppg after one batch — implausible, and the loss-isn’t-strength trap in a new guise: a self-play net can beat its own seed while getting no stronger absolutely. Diagnostics confirmed the metric was hollow — the arena was not buggy (seed vs itself ≈ 0) and the win was not seed-specific (the net beat an <em>independent</em> exp009 checkpoint, round_25, equally, +1.95) — but the exp009 nets simply <strong>play 0-ply badly</strong>: their value heads were trained for MCTS, so “who is better at 0-ply greedy” is not “who is stronger.” Switching the reference to <strong>GNUBG at 0-ply</strong> — a fixed opponent the net never trains against, ~0.007 ppg weaker than 2-ply but ~100× cheaper and local via <code>gnubg_nn</code> — makes the number honest.</p>
+<p><strong>Results.</strong></p>
+<div id="9e8338dc" class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="training_analysis_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<div id="8ed54dc3" class="cell page-columns page-full" data-execution_count="12">
+<p>Two facts, against the honest metric:</p>
+<ol type="1">
+<li><strong>TD self-play <em>works</em> — it improves the seed, where MCTS self-play destroyed it.</strong> The seed plays 0-ply at −2.30 ppg vs GNUBG-0-ply; TD hauls it to ~−0.3 (best-of-batch −0.08) in the first few hundred games. This is the first self-play result on the project to <em>lift</em> a strong seed rather than wreck it — the value-only bootstrap from a money-calibrated head is the difference from exp007.</li>
+<li><strong>But it plateaus fast, ~0.3 ppg short of 0-ply.</strong> The gain is banked by batch 2; batches 2–29 oscillate around −0.3 (n=60 eval, SE ~0.23) with no sustained climb. A few hundred games saturate the 0-ply value quality; more do not compound — a plateau after <em>hundreds</em> of games, not thousands, points to a recipe/capacity limit, not a data-volume one.</li>
+</ol>
+<p><strong>Interpretation.</strong> TD(λ) self-play is validated as a direction — the first method here to lift a strong seed via self-play — but on this recipe it stops ~0.3 short of even 0-ply parity, far from surpassing it. Reaching then surpassing 0-ply likely needs one of: a less greedy recipe (the run was pure argmax; temperature/exploration is untested), a stronger 0-ply starting point (distill <em>to</em> 0-ply parity first, then TD from there — the seed’s −2.30 start capped the ceiling; the <a href="./pretraining_analysis.html#exp011">exp011 distillation</a> since produced exactly such a seed), or a better-shaped value head. The eval-metric episode also drives the loss-isn’t-strength lesson home: <strong>a self-play loop must be scored against a fixed external reference, never its own seed.</strong></p>
+</section>
+<section id="cross-experiment-trends" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="cross-experiment-trends">Cross-experiment trends</h2>
+<div id="d4d0f31c" class="cell page-columns page-full" data-execution_count="12">
 <div class="cell-output cell-output-display page-columns page-full">
 <div class="page-columns page-full">
 <figure class="figure page-columns page-full">
 <p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img column-page-right"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="08b36851" class="cell page-columns page-full" data-execution_count="13">
+<div class="cell-output cell-output-display page-columns page-full">
+<div class="page-columns page-full">
+<figure class="figure page-columns page-full">
+<p class="page-columns page-full"><img src="training_analysis_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img column-page-right"></p>
 </figure>
 </div>
 </div>
@@ -476,36 +499,14 @@ gnubg  iter_0109 vs GNUBG 2-ply  (n=100 @100 sims): 0-100, -2.520 ppg</code></pr
 <li><strong>Buffer size, exploration noise, value bootstrapping, and LR schedules were all ruled out</strong> as the binding constraint. Each moved fitting metrics; none moved play (<a href="#exp002">exp002</a>, <a href="#exp003">exp003</a>, <a href="#exp004">exp004</a>).</li>
 <li><strong>Search depth at training time is the one self-play lever that worked</strong>: 800-sim MCTS produced a significant +0.38 ppg in 69 iterations (<a href="#exp005">exp005</a>). Iteration count also works, but ~25× slower per iteration of progress (<a href="#exp006">exp006</a>) — the combined rate math (~17k iterations to parity) rules out self-play-only scaling.</li>
 <li><strong>Loss curves repeatedly misled in both directions</strong> — the decisive test is always a same-conditions arena match (<a href="#exp005">exp005</a>, <a href="#exp007">exp007</a>).</li>
-<li><strong><em>MCTS</em> self-play destroys a strong supervised seed.</strong> MCTS under a GNUBG-losing prior generates targets weaker than the seed’s teacher, and discrete outcome targets decalibrate a money-equity value head; 50 iterations erased a +1.98 ppg advantage (<a href="#exp007">exp007</a>). Improving on a strong seed requires keeping a stronger-than-self signal in the loop — or a self-play update that does not decalibrate the value head, which is exactly what the <a href="#exp010">exp010 postscript</a> finds: <em>TD</em> self-play lifts the same class of seed rather than wrecking it.</li>
+<li><strong>Self-play from a strong seed: the update rule decides.</strong> <em>MCTS</em> self-play destroys it — under a GNUBG-losing prior it generates targets weaker than the seed’s teacher, and discrete outcome targets decalibrate a money-equity value head; 50 iterations erased a +1.98 ppg advantage (<a href="#exp007">exp007</a>). <em>TD</em> self-play lifts it — value-only bootstrapping toward the next position’s own equity avoids both failure modes, making it the first self-play method here to <em>improve</em> a strong seed (−2.30 → ~−0.3 vs GNUBG-0-ply), though it plateaus short of parity (<a href="#exp010">exp010</a>). Improving on a strong seed needs either a stronger-than-self signal in the loop or a value-preserving update — not raw MCTS self-play.</li>
 </ol>
 </section>
 <section id="what-happened-next" class="level2">
 <h2 class="anchored" data-anchor-id="what-happened-next">What happened next</h2>
 <p>The pivot this track motivated is documented in the <a href="./pretraining_analysis.html">supervised &amp; expert-iteration track</a>: distill GNUBG analysis into the network (stages v1–v5), then keep the GNUBG oracle in the loop on the learner’s own positions (exp008 DAgger, the Phase A consolidation, and exp009, a 25-round scale-up). That track broke the −1.6 ppg wall and holds the current best result (~−0.37 ppg vs GNUBG 2-ply, exp009 round 6), though it plateaued ~0.4 ppg short of parity against its fixed 2-ply teacher.</p>
-<p>Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG is <strong>TD(λ) self-play from the distilled seed</strong>: TD-Gammon-style value learning with 0-ply (static-value) move selection is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position’s own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway. exp010 is the first test of it.</p>
-</section>
-<section id="exp010" class="level2">
-<h2 class="anchored" data-anchor-id="exp010">Postscript — exp010: does self-play <em>have</em> to wreck a seed?</h2>
-<p>This section is a later coda, not part of the exp000–007 sequence: a different self-play method (TD, not MCTS) applied to a different starting point (the distilled seed the <a href="./pretraining_analysis.html">pretraining track</a> produced). It is placed here because it directly revisits Conclusion 5.</p>
-<p><strong>Motivation.</strong> Conclusion 5 is that <em>MCTS</em> self-play destroys a strong seed. TD(λ) self-play should not: it regresses the value head toward the next position’s own equity estimate — not discrete terminal outcomes, not MCTS-visit targets — so neither exp007 mechanism applies. TD-Gammon proved this exact recipe reaches world class in backgammon. The question is whether it lifts <em>our</em> strong seed, and how far.</p>
-<p><strong>Setup.</strong> Warm-start from <a href="./pretraining_analysis.html#exp009">exp009</a> round_06 (10×256, 26-channel — the project’s best distilled net). Play 0-ply-greedy self-play — moves chosen by static value evaluation of each candidate, “0-ply” in GNUBG’s convention (TD-Gammon calls it 1-ply); the dice supply exploration — compute forward-view TD(λ) targets (λ=0.7), and regress the <strong>value head only</strong> (policy head frozen). Local on the iMac CPU, ~150 games/batch across 3 workers, conservative lr 10⁻⁴, keep-best by the fixed external reference below (<code>scripts/train_td.py</code>, <code>raccoon/train/td_selfplay.py</code>).</p>
-<p><strong>The eval trap, and the fix.</strong> The first cut scored each batch against the <em>frozen seed</em> and read +1.9 ppg after one batch — implausible, and exactly conclusion 4 restated: a self-play net can beat its own seed while getting no stronger absolutely. Diagnostics confirmed the metric was hollow — the arena was not buggy (seed vs itself ≈ 0) and the win was not seed-specific (the net beat an <em>independent</em> exp009 checkpoint, round_25, equally, +1.95) — but the exp009 nets simply <strong>play 0-ply badly</strong>: their value heads were trained for MCTS, so “who is better at 0-ply greedy” is not “who is stronger.” Switching the reference to <strong>GNUBG at 0-ply</strong> — a fixed opponent the net never trains against, ~0.007 ppg weaker than 2-ply but ~100× cheaper and local via <code>gnubg_nn</code> — makes the number honest.</p>
-<p><strong>Results.</strong></p>
-<div id="d8b68914" class="cell" data-execution_count="13">
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="training_analysis_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Two facts, against the honest metric:</p>
-<ol type="1">
-<li><strong>TD self-play <em>works</em> — it improves the seed, where MCTS self-play destroyed it.</strong> The seed plays 0-ply at −2.30 ppg vs GNUBG-0-ply; TD hauls it to ~−0.3 (best-of-batch −0.08) in the first few hundred games. This is the first self-play result on the project to <em>lift</em> a strong seed rather than wreck it — the value-only bootstrap from a money-calibrated head is the difference from exp007.</li>
-<li><strong>But it plateaus fast, ~0.3 ppg short of 0-ply.</strong> The gain is banked by batch 2; batches 2–29 oscillate around −0.3 (n=60 eval, SE ~0.23) with no sustained climb. A few hundred games saturate the 0-ply value quality; more do not compound — a plateau after <em>hundreds</em> of games, not thousands, points to a recipe/capacity limit, not a data-volume one.</li>
-</ol>
-<p><strong>Interpretation.</strong> TD(λ) self-play is validated as a direction — the first method here to lift a strong seed via self-play — but on this recipe it stops ~0.3 short of even 0-ply parity, far from surpassing it. Reaching then surpassing 0-ply likely needs one of: a less greedy recipe (the run was pure argmax; temperature/exploration is untested), a stronger 0-ply starting point (distill <em>to</em> 0-ply parity first, then TD from there — the seed’s −2.30 start capped the ceiling), or the value-head changes tracked in the <a href="./pretraining_analysis.html#open-questions">pretraining track’s open questions</a>. The eval-metric episode also re-confirms conclusion 4 with force: <strong>a self-play loop must be scored against a fixed external reference, never its own seed.</strong></p>
+<p>Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG is <strong>TD(λ) self-play from the distilled seed</strong>: TD-Gammon-style value learning with 0-ply (static-value) move selection is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position’s own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway — the direction <a href="#exp010">exp010</a> tested above.</p>
+<p><em>(For the current frontier beyond exp010 — TD self-play from a genuine 0-ply-parity seed, and the fair-beat bar it must clear — see the <a href="./pretraining_analysis.html#open-questions">supervised track’s open questions</a>.)</em></p>
 
 
 </section>
