@@ -147,6 +147,11 @@ def main() -> None:
                 break
         if stop:
             break
+        # completed a full epoch — save a distinct per-epoch checkpoint so the
+        # real best can be picked offline at low noise (exp011b selects at n>=1000,
+        # not the noisy n=40 inline eval). Truncated final epochs are left to latest.pt.
+        save_ckpt(net, ckpt_dir / f"ep{epoch}.pt")
+        print(f"  saved epoch checkpoint -> {ckpt_dir / f'ep{epoch}.pt'}", flush=True)
 
     save_ckpt(net, ckpt_dir / "latest.pt")
     print(f"\n===== ARM DONE ({args.value_head}) best vs GNUBG-{args.gnubg_ply}ply "
