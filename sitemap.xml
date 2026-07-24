@@ -2,82 +2,82 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/training_parameters.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/gcp_guide.html</loc>
-    <lastmod>2026-07-24T09:26:43.780Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.439Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/2ply_label_generation.html</loc>
-    <lastmod>2026-07-24T09:26:43.775Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.434Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.self_play.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.coach.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/protocol.rgp.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/index.html</loc>
-    <lastmod>2026-07-24T09:28:06.416Z</lastmod>
+    <lastmod>2026-07-24T09:32:19.995Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/eval.arena.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.encoder.html</loc>
-    <lastmod>2026-07-24T09:28:06.474Z</lastmod>
+    <lastmod>2026-07-24T09:32:20.062Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/pretraining_analysis.html</loc>
-    <lastmod>2026-07-24T09:26:43.781Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/index.html</loc>
-    <lastmod>2026-07-24T09:26:43.780Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.439Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.actions.html</loc>
-    <lastmod>2026-07-24T09:26:43.781Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.game_wrapper.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/eval.gnubg_harness.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/model.network.html</loc>
-    <lastmod>2026-07-24T09:28:06.501Z</lastmod>
+    <lastmod>2026-07-24T09:32:20.091Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/search.mcts.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.replay_buffer.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/training_analysis.html</loc>
-    <lastmod>2026-07-24T09:26:43.782Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/architecture.html</loc>
-    <lastmod>2026-07-24T09:26:43.780Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.439Z</lastmod>
   </url>
   <url>
     <loc>https://lassehjorthmadsen.github.io/raccoon/mcts_explained.html</loc>
-    <lastmod>2026-07-24T09:26:43.781Z</lastmod>
+    <lastmod>2026-07-24T09:30:53.440Z</lastmod>
   </url>
 </urlset>
