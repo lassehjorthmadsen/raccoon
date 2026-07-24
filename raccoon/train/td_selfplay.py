@@ -177,3 +177,84 @@ def net_arena(
         "net_a_wins": a_wins,
         "equity_per_game": total / completed if completed else 0.0,
     }
+
+
+def gnubg_arena_scored(
+    net, device, games: int, ref_ply: int = 0, seed: int = 0,
+    max_moves: int = 2000, top_k: int = 0,
+) -> dict:
+    """Net (0-ply value) vs GNUBG, with per-decision **error-rate** scoring.
+
+    Like :func:`gnubg_arena` (raw ppg from net-vs-GNUBG games) but ALSO scores every
+    *net* decision against GNUBG at ``ref_ply``: ``error = V_best - V_played`` where
+    both come from ``candidate_equities`` (GNUBG's cubeless equity of each legal move,
+    from the net's POV). This is the standard backgammon "error rate" — an **exact,
+    low-variance** measure of how much equity the net's move choices concede to GNUBG,
+    with none of the control-variate bias a naive luck-adjustment carries (a 0-ply
+    control variate isn't self-consistent with its own 1-ply lookahead).
+
+    GNUBG is called on the net's moves too (via ``candidate_equities``), so this is
+    ~2x the GNUBG cost of :func:`gnubg_arena` — use it offline, not in the inner loop.
+    The opponent plays at ``ref_ply`` as well, so raw ppg and the error rate are both
+    measured against the same GNUBG reference (opponent error is then structurally 0).
+
+    Returns per-game net points AND per-game net error (for tight CIs on both), the
+    total net decisions, and — if ``top_k`` — the highest-error ``(obs, error)`` pairs
+    (the DAgger set). ``obs`` is the net-POV pre-roll encoding at that decision.
+    """
+    from raccoon.eval.gnubg_adapter import pick_move, candidate_equities
+
+    np.random.seed(seed)
+    wrapper = GameWrapper()
+    game_pts: list[float] = []
+    game_err: list[float] = []
+    wins = 0
+    decisions = 0
+    top: list[tuple[np.ndarray, float]] = []
+    for g in range(games):
+        net_is_p0 = (g % 2 == 0)
+        state = wrapper.new_game()
+        state = _advance_through_chance(state)
+        moves = 0
+        err_this_game = 0.0
+        while not state.is_terminal() and moves < max_moves:
+            me = state.current_player()
+            if (me == 0) == net_is_p0:
+                # net's decision — score it vs GNUBG (same actions the net ranks)
+                eq_by_action = {a: e for a, e in candidate_equities(state, ref_ply)}
+                v_best = max(eq_by_action.values())
+                action, _ = select_move(state._state, net, device, temperature=0.0)
+                err = v_best - eq_by_action.get(action, v_best)
+                if err < 0.0:
+                    err = 0.0  # net's move can't beat GNUBG's max; guard rounding
+                err_this_game += err
+                decisions += 1
+                if top_k:
+                    top.append((encode_pre_roll(state._state, me), float(err)))
+            else:
+                action = pick_move(state, ref_ply)
+            state.apply_action(action)
+            state = _advance_through_chance(state)
+            moves += 1
+        if not state.is_terminal():
+            continue
+        pts_p0 = state.returns()[0]
+        net_pts = pts_p0 if net_is_p0 else -pts_p0
+        game_pts.append(net_pts)
+        game_err.append(err_this_game)
+        wins += int(net_pts > 0)
+
+    if top_k and len(top) > top_k:
+        top.sort(key=lambda t: t[1], reverse=True)
+        top = top[:top_k]
+    completed = len(game_pts)
+    return {
+        "games": completed,
+        "net_wins": wins,
+        "equity_per_game": (sum(game_pts) / completed) if completed else 0.0,
+        "game_pts": np.array(game_pts, dtype=np.float64),
+        "game_err": np.array(game_err, dtype=np.float64),
+        "decisions": decisions,
+        "err_total": float(sum(game_err)),
+        "top_error": top,
+    }

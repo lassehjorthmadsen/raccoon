@@ -126,6 +126,9 @@ def main() -> None:
     p.add_argument("--workers", type=int, default=1)
     p.add_argument("--eval-every", type=int, default=2)
     p.add_argument("--eval-games", type=int, default=100)
+    p.add_argument("--checkpoint-every", type=int, default=0,
+                   help="Save batch_{N}.pt every N batches (0=off) — a checkpoint "
+                        "series for offline luck-adjusted fine-eval (exp013).")
     p.add_argument("--gnubg-ply", type=int, default=0,
                    help="GNUBG ply for the fixed-reference eval (0 = fast, "
                         "~0.007 ppg weaker than 2-ply).")
@@ -193,6 +196,8 @@ def main() -> None:
         train_loss = train_value(net, optimizer, X_arr, Y_arr, device,
                                  args.train_epochs, args.batch_size)
         save_ckpt(net, ckpt_dir / "latest.pt")
+        if args.checkpoint_every > 0 and batch % args.checkpoint_every == 0:
+            save_ckpt(net, ckpt_dir / f"batch_{batch:04d}.pt")
 
         wall = time.time() - t0
         rec = {"batch": batch, "games": len(games), "decisions": n_decisions,

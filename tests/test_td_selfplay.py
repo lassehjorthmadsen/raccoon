@@ -7,7 +7,9 @@ from raccoon.env.game_wrapper import GameWrapper
 from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import _advance_through_chance
 from raccoon.train.lookahead import child_values, select_move
-from raccoon.train.td_selfplay import lambda_returns, net_arena, play_td_game
+from raccoon.train.td_selfplay import (
+    gnubg_arena_scored, lambda_returns, net_arena, play_td_game,
+)
 
 CPU = torch.device("cpu")
 
@@ -105,3 +107,21 @@ def test_net_arena_runs():
     assert res["games"] == 2
     assert 0 <= res["net_a_wins"] <= 2
     assert -3.0 <= res["equity_per_game"] <= 3.0
+
+
+def test_gnubg_arena_scored_error_rate():
+    pytest.importorskip("gnubg_nn")
+    net = _small_net()  # random weak net → concedes real equity to GNUBG
+    res = gnubg_arena_scored(net, CPU, games=2, ref_ply=0, seed=1, top_k=5)
+    assert res["games"] >= 1
+    assert res["decisions"] > 0
+    assert res["err_total"] >= 0.0
+    # A random net makes real errors vs GNUBG → nonzero rate. Also proves the
+    # action lookup between select_move and candidate_equities matches: a broken
+    # lookup would fall through to err=0 everywhere, failing this assert.
+    assert res["err_total"] / res["decisions"] > 0.01
+    assert res["game_pts"].shape == res["game_err"].shape
+    assert res["game_err"].min() >= 0.0
+    assert 0 < len(res["top_error"]) <= 5
+    assert all(e >= 0 for _, e in res["top_error"])
+    assert res["top_error"][0][0].shape == (26, 2, 12)
