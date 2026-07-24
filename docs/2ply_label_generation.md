@@ -52,13 +52,23 @@ scalar), so capture `outcomes6` at 2-ply — the fine-tune will use the 6-outcom
 
 Only start the full generation once the smoke shard validates.
 
-## Downstream use (so the volume target is right)
+## Downstream use and how many labels
 
 The labels feed a **warm-start fine-tune**: resume from the exp011b winner
 (`experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt`, in GCS) and fine-tune toward the
-2-ply targets. That needs **far fewer labels than the 8M-from-random exp011b run** — on the
-order of a few million is plausibly enough. So ~3 days at ~1.3 s/position on a many-core box
-(≈3M positions) should suffice; you do **not** need to match 8M.
+2-ply targets.
+
+**How many labels are needed is genuinely unknown a priori — do not treat any fixed count as
+"enough."** Two competing effects: warm-starting from an already-good net argues for *fewer*
+than exp011b's 8M (the fine-tune only learns the *difference* from 0-ply); but that difference
+(2-ply over 0-ply) is a *small, sparse* signal concentrated on tactical positions, which can
+need *volume* to extract cleanly. So:
+
+- **Generate incrementally** (shardable, reusable) and let evaluation decide: fine-tune and eval
+  as the label count grows; stop when the 2-ply-vs-0-ply gain **plateaus**.
+- ~3 days at ~1.3 s/position on a 16-core box yields **~3M positions** — treat that as a
+  reasonable **first batch** to see whether the fine-tune moves the 2-ply number, **not** a
+  proven-sufficient target. If it's still improving at 3M, keep generating.
 
 ## Report back
 
