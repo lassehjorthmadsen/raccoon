@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-a547dd1b4798262c927e2e52fa668cb1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-c98d9d0b3b0a085d3ddf71e6e91476d8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -159,7 +159,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#pre-flight-do-this-before-generating-at-volume" id="toc-pre-flight-do-this-before-generating-at-volume" class="nav-link" data-scroll-target="#pre-flight-do-this-before-generating-at-volume">Pre-flight (do this before generating at volume)</a></li>
   <li><a href="#output-format-identical-to-the-0-ply-cache-only-the-label-ply-differs" id="toc-output-format-identical-to-the-0-ply-cache-only-the-label-ply-differs" class="nav-link" data-scroll-target="#output-format-identical-to-the-0-ply-cache-only-the-label-ply-differs">Output format — identical to the 0-ply cache, only the label ply differs</a></li>
   <li><a href="#smoke-test-mandatory-before-the-3-day-run" id="toc-smoke-test-mandatory-before-the-3-day-run" class="nav-link" data-scroll-target="#smoke-test-mandatory-before-the-3-day-run">Smoke-test (mandatory before the 3-day run)</a></li>
-  <li><a href="#downstream-use-so-the-volume-target-is-right" id="toc-downstream-use-so-the-volume-target-is-right" class="nav-link" data-scroll-target="#downstream-use-so-the-volume-target-is-right">Downstream use (so the volume target is right)</a></li>
+  <li><a href="#downstream-use-and-how-many-labels" id="toc-downstream-use-and-how-many-labels" class="nav-link" data-scroll-target="#downstream-use-and-how-many-labels">Downstream use and how many labels</a></li>
   <li><a href="#report-back" id="toc-report-back" class="nav-link" data-scroll-target="#report-back">Report back</a></li>
   </ul></li>
   </ul>
@@ -237,9 +237,14 @@ ul.task-list li input[type="checkbox"] {
 </ol>
 <p>Only start the full generation once the smoke shard validates.</p>
 </section>
-<section id="downstream-use-so-the-volume-target-is-right" class="level2">
-<h2 class="anchored" data-anchor-id="downstream-use-so-the-volume-target-is-right">Downstream use (so the volume target is right)</h2>
-<p>The labels feed a <strong>warm-start fine-tune</strong>: resume from the exp011b winner (<code>experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt</code>, in GCS) and fine-tune toward the 2-ply targets. That needs <strong>far fewer labels than the 8M-from-random exp011b run</strong> — on the order of a few million is plausibly enough. So ~3 days at ~1.3 s/position on a many-core box (≈3M positions) should suffice; you do <strong>not</strong> need to match 8M.</p>
+<section id="downstream-use-and-how-many-labels" class="level2">
+<h2 class="anchored" data-anchor-id="downstream-use-and-how-many-labels">Downstream use and how many labels</h2>
+<p>The labels feed a <strong>warm-start fine-tune</strong>: resume from the exp011b winner (<code>experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt</code>, in GCS) and fine-tune toward the 2-ply targets.</p>
+<p><strong>How many labels are needed is genuinely unknown a priori — do not treat any fixed count as “enough.”</strong> Two competing effects: warm-starting from an already-good net argues for <em>fewer</em> than exp011b’s 8M (the fine-tune only learns the <em>difference</em> from 0-ply); but that difference (2-ply over 0-ply) is a <em>small, sparse</em> signal concentrated on tactical positions, which can need <em>volume</em> to extract cleanly. So:</p>
+<ul>
+<li><strong>Generate incrementally</strong> (shardable, reusable) and let evaluation decide: fine-tune and eval as the label count grows; stop when the 2-ply-vs-0-ply gain <strong>plateaus</strong>.</li>
+<li>~3 days at ~1.3 s/position on a 16-core box yields <strong>~3M positions</strong> — treat that as a reasonable <strong>first batch</strong> to see whether the fine-tune moves the 2-ply number, <strong>not</strong> a proven-sufficient target. If it’s still improving at 3M, keep generating.</li>
+</ul>
 </section>
 <section id="report-back" class="level2">
 <h2 class="anchored" data-anchor-id="report-back">Report back</h2>
