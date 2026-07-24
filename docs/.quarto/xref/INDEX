@@ -55,5 +55,14 @@
   },
   "pretraining_analysis.qmd": {
     "pretraining_analysis.html": "51e68378"
+  },
+  "2ply_label_generation.md": {
+    "2ply_label_generation.html": "9dd1438d"
+  },
+  "galaxy_data_request.md": {
+    "galaxy_data_request.html": "0111bac4"
+  },
+  "gcp_credits_private.md": {
+    "gcp_credits_private.html": "fa9b6505"
   }
 }
