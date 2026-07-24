@@ -58,17 +58,22 @@ The labels feed a **warm-start fine-tune**: resume from the exp011b winner
 (`experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt`, in GCS) and fine-tune toward the
 2-ply targets.
 
-**How many labels are needed is genuinely unknown a priori — do not treat any fixed count as
-"enough."** Two competing effects: warm-starting from an already-good net argues for *fewer*
-than exp011b's 8M (the fine-tune only learns the *difference* from 0-ply); but that difference
-(2-ply over 0-ply) is a *small, sparse* signal concentrated on tactical positions, which can
-need *volume* to extract cleanly. So:
+**This labeling job is a pure producer — there is no model or eval in it, so there is nothing
+to "plateau" on here.** Just generate to your time/compute budget and sync as you go:
 
-- **Generate incrementally** (shardable, reusable) and let evaluation decide: fine-tune and eval
-  as the label count grows; stop when the 2-ply-vs-0-ply gain **plateaus**.
-- ~3 days at ~1.3 s/position on a 16-core box yields **~3M positions** — treat that as a
-  reasonable **first batch** to see whether the fine-tune moves the 2-ply number, **not** a
-  proven-sufficient target. If it's still improving at 3M, keep generating.
+- **Generate to budget.** ~3 days at ~1.3 s/position on a 16-core box yields **~3M positions**.
+- **Shard and sync to GCS incrementally** (not just at the end) so batches can be used early and
+  nothing is lost if the box restarts.
+- Do **not** try to judge whether it's "enough" during generation — you have no signal for that.
+  Maximize output within the budget.
+
+**Whether ~3M is enough is decided separately, on the training side, *after* the labels exist:**
+we fine-tune the net on increasing subsets (e.g. 1M / 2M / 3M) and eval each vs GNUBG-2-ply; if
+that scaling curve is still climbing at 3M we'll ask for a **second batch**, if it's flat 3M was
+enough. So treat ~3M as a reasonable **first batch**, not a proven-sufficient target — and expect
+a possible "please generate more" once we've run the scaling test. (Required volume is genuinely
+unknown a priori: warm-starting argues for *fewer* than exp011b's 8M, but the small, sparse 2-ply-
+over-0-ply signal can need *volume* to extract cleanly — hence measuring rather than guessing.)
 
 ## Report back
 
