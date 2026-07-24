@@ -166,6 +166,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#consolidation" id="toc-consolidation" class="nav-link" data-scroll-target="#consolidation">Phase A consolidation — retrain from scratch on everything</a></li>
   <li><a href="#exp009" id="toc-exp009" class="nav-link" data-scroll-target="#exp009">exp009 — scaled DAgger</a></li>
   <li><a href="#exp011" id="toc-exp011" class="nav-link" data-scroll-target="#exp011">exp011 — clone GNUBG-0-ply’s value at volume</a></li>
+  <li><a href="#exp011b" id="toc-exp011b" class="nav-link" data-scroll-target="#exp011b">exp012 · exp011b · exp012b — the parity claim, benchmarked and completed</a></li>
   <li><a href="#what-weve-learned" id="toc-what-weve-learned" class="nav-link" data-scroll-target="#what-weve-learned">What we’ve learned</a></li>
   <li><a href="#open-questions" id="toc-open-questions" class="nav-link" data-scroll-target="#open-questions">Open questions</a></li>
   </ul>
@@ -195,24 +196,24 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>This page documents the <strong>supervised &amp; expert-iteration track</strong> — everything after the <a href="./training_analysis.html">self-play track</a> concluded that pure AlphaZero self-play plateaus hopelessly far from GNUBG at this project’s compute scale. The idea: instead of bootstrapping a network from noise, <strong>seed it from existing backgammon knowledge</strong> — first by regressing on labeled positions (stages v1–v5), then by keeping the GNUBG oracle in the training loop on the learner’s own positions (exp008, consolidation, exp009).</p>
-<p>The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher’s strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project’s first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is <em>on-distribution policy</em> data, which live GNUBG labeling of the learner’s own positions supplies (exp008); retraining from scratch on all accumulated labels consolidates those gains (~−0.93 ppg); and scaling the loop (exp009) reaches the current best, <strong>~−0.37 ppg</strong>, before plateauing ~0.4 ppg short of parity. Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.</p>
+<p>The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher’s strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project’s first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is <em>on-distribution policy</em> data, which live GNUBG labeling of the learner’s own positions supplies (exp008); retraining from scratch on all accumulated labels consolidates those gains (~−0.93 ppg); and scaling the loop (exp009) reaches <strong>~−0.37 ppg</strong> before plateauing ~0.4 ppg short of parity — until <strong>0-ply value distillation</strong> (exp011/exp011b) breaks that wall, reaching <strong>−0.05 vs 0-ply</strong> and <strong>−0.06 vs 2-ply</strong>, the current best. Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Current best (2026-07-23)
+<span class="screen-reader-only">Note</span>Current best (2026-07-24)
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><a href="#exp011">exp011</a> broke the plateau that had held across DAgger and TD self-play: a 10×256 net distilled on ~8M <strong>GNUBG-0-ply</strong> labels <strong>plays 0-ply at parity with GNUBG-0-ply</strong> (+0.015 ppg, 209-191, n=400) — establishing the ~−0.3 wall was <em>volume-bound</em>, not a capacity limit of the architecture. That is a different, weaker yardstick than the <strong>2-ply</strong> benchmark the rest of this page reports: measured against 2-ply, the best remains <a href="#exp009">exp009</a> round_06 at <strong>−0.37 ppg</strong> (n=200), the tail of the DAgger track (−0.93/−0.96 <a href="#consolidation">consolidation</a> → −0.37). exp011’s 2-ply standing, and whether its calibrated value head now <em>benefits</em> from search, are not yet measured — the open questions its parity result hands forward.</p>
+<p><a href="#exp011b">exp011b</a> is the best net on this page. Distilling ~8M <strong>GNUBG-0-ply</strong> labels onto a 10×256 net (exp011), then finishing the training epochs a 15 h wall had cut short (exp011b), reaches <strong>−0.053 ppg vs GNUBG-0-ply</strong> (n=6000) and <strong>−0.064 vs GNUBG-2-ply</strong> (n=1000) — far past the DAgger track’s best (<a href="#exp009">exp009</a> round_06, −0.37 vs 2-ply). This broke the ~−0.3 wall that held across DAgger and TD self-play: the plateau was <em>volume-bound</em>, not a capacity limit of the architecture. <strong>Correction to earlier claims:</strong> exp011’s “parity, +0.015 ppg” rested on n=400 (CI ±0.18) and did <strong>not</strong> survive an n=6000 benchmark (<a href="#exp011b">exp012</a>: −0.087) — the completed net is <strong>near</strong> 0-ply parity, ~0.05 short, not at it. Closing that residual (on-policy DAgger) and going <em>past</em> the 0-ply teacher (TD self-play, <a href="./training_analysis.html#exp013">exp013</a>; 2-ply distillation) are the live levers.</p>
 </div>
 </div>
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
 <p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
-<div id="cddf8bbd" class="cell" data-execution_count="2">
+<div id="81a14abd" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -526,7 +527,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="8e887c87" class="cell" data-execution_count="4">
+<div id="6fe81dc2" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -546,7 +547,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG’s convention (TD-Gammon calls it 1-ply) — with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="39d9a345" class="cell" data-execution_count="5">
+<div id="db53e5f0" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -563,7 +564,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="13795368" class="cell" data-execution_count="6">
+<div id="a0064c8e" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -580,7 +581,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="fdd49443" class="cell" data-execution_count="7">
+<div id="26a0b811" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -597,7 +598,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="1a2c8441" class="cell" data-execution_count="8">
+<div id="608a9294" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -632,7 +633,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="e29e994b" class="cell" data-execution_count="9">
+<div id="d31d2fc6" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -642,7 +643,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="8e73a502" class="cell" data-execution_count="10">
+<div id="bad53d73" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1112,7 +1113,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tbody>
 </table>
 <p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
-<div id="9cf148d5" class="cell" data-execution_count="14">
+<div id="c8339165" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1179,10 +1180,71 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </table>
 <p><strong>Interpretation.</strong> Two findings.</p>
 <ol type="1">
-<li><strong>The plateau was volume/fidelity-bound, not capacity-bound.</strong> Arm A reached <strong>parity with GNUBG-0-ply</strong> — +0.015 ppg is statistically indistinguishable from zero — decisively clearing the ~−0.3 wall that held across both exp009 and exp010. The 10×256 architecture could always represent GNUBG’s value function; it simply needed enough clean labels, which self-play and DAgger never supplied. Volume was the missing ingredient, and 0-ply — a near-free teacher — supplies it in bulk.</li>
+<li><strong>The plateau was volume/fidelity-bound, not capacity-bound.</strong> Arm A decisively cleared the ~−0.3 wall that held across both exp009 and exp010 — the 10×256 architecture could always represent GNUBG’s value function; it simply needed enough clean labels, which self-play and DAgger never supplied. Volume was the missing ingredient, and 0-ply — a near-free teacher — supplies it in bulk. <em>(Caveat that came home: the n=400 result read +0.015 ppg — “parity” — but n=400, CI ±0.18, is far too coarse to bank. A later n=6000 benchmark put arm A at <strong>−0.087</strong>, and the completed run <a href="#exp011b">exp011b</a> at <strong>−0.053</strong>. The wall-clearing holds; parity does not — the net lands <strong>~0.05 short</strong>.)</em></li>
 <li><strong>The scalar target matched or beat the multi-component one, here.</strong> Arm A led arm B by ~0.20 ppg (≈1.1× the CI — weakly significant). Hold this loosely: <code>best.pt</code> was selected on noisy n=40 in-loop evals and each arm ran only ~1 epoch, so it is not a clean A/B — “scalar was at least as good” is fair; “multi-component is worse” is not established, and the six-outcome head is still wanted for the cube.</li>
 </ol>
-<p>The honest boundary: this is <strong>parity with 0-ply, not past it</strong> — and pure 0-ply distillation <em>cannot</em> go past it, because <a href="#v2b">you cannot distill past your teacher</a>. exp011 was a diagnostic (can the 10×256 architecture represent GNUBG’s value? — yes), and having answered that, more 0-ply labels are spent: the net is already on the teacher’s ceiling, so extra data only lands there more precisely, never above. Going beyond 0-ply needs a signal <em>stronger</em> than 0-ply, and the cheapest is already in hand: arm A now plays 0-ply at GNUBG-0-ply level, so giving its calibrated value head its <strong>own deeper search</strong> (MCTS / 2-ply) should approach 2-ply strength for <em>no new labels</em> — the sharpest form yet of the “does search finally help?” question (<a href="#v5">v5</a>), where every prior, miscalibrated net was hurt by search instead. That, not more labels, is the next lever.</p>
+<p>The honest boundary: this is <strong>near parity with 0-ply, not past it</strong> (the corrected number is −0.053 — see <a href="#exp011b">exp011b</a>) — and pure 0-ply distillation <em>cannot</em> go past it anyway, because <a href="#v2b">you cannot distill past your teacher</a>. exp011 was a diagnostic (can the 10×256 architecture represent GNUBG’s value? — near enough, yes). Going beyond 0-ply needs a signal <em>stronger</em> than 0-ply; the roadmap that follows from the corrected picture — closing the ~0.05 residual, then TD self-play and 2-ply distillation to break the teacher ceiling — is in the <a href="#open-questions">Open questions</a>.</p>
+</section>
+<section id="exp011b" class="level2">
+<h2 class="anchored" data-anchor-id="exp011b">exp012 · exp011b · exp012b — the parity claim, benchmarked and completed</h2>
+<p>exp011’s headline — “arm A reaches parity, +0.015 ppg” — rested on <strong>n=400</strong> (CI ±0.18). Three follow-ups tested and repaired it: a large-<em>n</em> benchmark (<strong>exp012</strong>) priced the real number, a completed re-run (<strong>exp011b</strong>) finished the epochs exp011’s wall had cut short, and a benchmark of that winner (<strong>exp012b</strong>) fixed its 0- and 2-ply standing.</p>
+<p><strong>exp012 — “parity” was n=400 noise.</strong> Re-evaluating exp011 arm A’s <code>best.pt</code> at <strong>n=6000</strong> (<code>scripts/eval_gnubg0.py</code>, CI ±0.046) gave <strong>−0.087 ppg</strong> vs GNUBG-0-ply — not +0.015. The estimate had drifted ~0.10 ppg because n=400 (±0.18) cannot separate differences of ±0.1; the honest reading is <em>near</em> 0-ply, ~0.09 short. A first n=500 vs GNUBG-<strong>2-ply</strong> put the searchless gap at <strong>−0.124</strong> (CI ±0.16) — only ~0.04 worse than the 0-ply gap, i.e.&nbsp;2-ply search buys GNUBG little against this net. Lesson: parity claims need n≥6000.</p>
+<p><strong>exp011b — finishing the epochs.</strong> exp011’s arms each hit a 15 h iMac-CPU wall <strong>mid-first-epoch</strong> (~14 of 54 planned shard-passes), so “reached parity” also described an <em>undertrained</em> net. exp011b re-ran both arms from random init to the <strong>full 3 epochs on a T4</strong> (<code>scripts/train_distill.py</code>, saving per-epoch <code>ep{N}.pt</code> checkpoints), then selected offline at n=1000 rather than the noisy n=40 in-loop eval. The epoch sweep was <strong>monotonic</strong> — finishing the epochs helped:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>n=1000 vs 0-ply</th>
+<th>ep1</th>
+<th>ep2</th>
+<th>ep3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>scalar</td>
+<td>−0.094</td>
+<td>−0.077</td>
+<td>−0.010</td>
+</tr>
+<tr class="even">
+<td>outcomes6</td>
+<td>−0.098</td>
+<td>−0.004</td>
+<td><strong>+0.001</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Winner: <strong>outcomes6/ep3</strong>. But that “+0.001” is itself a selection artifact — picking the max of six noisy n=1000 evals biases it upward (winner’s curse), and the <strong>n=6000 confirm</strong> put the winner at <strong>−0.0527</strong> (CI ±0.046): improved from exp011’s −0.087, yet still <strong>~0.05 short of parity</strong>, not at it.</p>
+<p><strong>exp012b — the completed net, benchmarked at volume.</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>winner outcomes6/ep3</th>
+<th>vs GNUBG-0-ply</th>
+<th>vs GNUBG-2-ply</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exp011 control (arm A <code>best.pt</code>)</td>
+<td>−0.087 (n=6000)</td>
+<td>−0.124 (n=500)</td>
+</tr>
+<tr class="even">
+<td><strong>exp011b winner</strong></td>
+<td><strong>−0.053 (n=6000)</strong></td>
+<td><strong>−0.064 (n=1000)</strong></td>
+</tr>
+</tbody>
+</table>
+<p>exp011b is now the <strong>best net on this page on both references</strong>, far past exp009’s −0.37 vs 2-ply. The 2-ply gap (−0.064) is only ~0.011 worse than the 0-ply gap (−0.053): 2-ply search still buys GNUBG almost nothing against it.</p>
+<p><strong>Interpretation.</strong></p>
+<ol type="1">
+<li><strong>Distillation broke the ~−0.3 wall, but lands <em>near</em> parity, not at it.</strong> −0.053 vs 0-ply is decisively past the ~−0.3 plateau (the exp011 finding holds), but a <strong>real ~0.05 handicap</strong> remains — the n=6000 CI [−0.099, −0.007] excludes zero. Finishing the epochs helped (monotonic sweep, −0.087 → −0.053), though that ~0.03 gain is within the per-arm CIs individually; the monotonic sweep is the stronger evidence.</li>
+<li><strong>scalar and outcomes6 are tied.</strong> At ep3, −0.010 (scalar) vs +0.001 (outcomes6) — 0.011 apart, ~15× inside the difference-CI (±0.16). The six-outcome head is preferred for the <strong>cube/gammon information</strong> it carries, <em>not</em> because it distils 0-ply better (it doesn’t, measurably) — the exact mirror of exp011’s “scalar beats outcomes6,” corrected in the other direction, and the clean rematch the confounded exp011 A/B couldn’t give.</li>
+<li><strong>The measurement lesson, twice.</strong> Both exp011’s “+0.015” and exp011b’s sweep “+0.001” were noise-and-selection artifacts a tight confirm overturned. Ranking near-parity nets needs n≥6000 — or, cheaper, a variance-reduced <strong>error-rate</strong> metric (equity conceded per decision vs GNUBG, <code>scripts/eval_errorrate.py</code>), which matches that precision from far fewer games.</li>
+</ol>
+<p><strong>What’s next.</strong> The corrected picture — a real ~0.05 handicap below the 0-ply teacher — reframes the roadmap: (1) close the residual with on-policy DAgger; (2) break the teacher ceiling via <strong>TD self-play from this near-parity seed</strong> (<a href="./training_analysis.html#exp013">exp013</a> — does it climb above 0-ply, or decay to exp010’s ~−0.3 attractor?) and <strong>2-ply distillation</strong> (a warm-start fine-tune on self-generated 2-ply labels).</p>
 </section>
 <section id="what-weve-learned" class="level2">
 <h2 class="anchored" data-anchor-id="what-weve-learned">What we’ve learned</h2>
@@ -1197,7 +1259,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>On-distribution DAgger works where self-play fails</strong>: learner-generated states + oracle labels for both targets improved on the strongest seed and broke the −1.6 wall (<a href="#exp008">exp008</a>).</li>
 <li><strong>Consolidated retraining beats incremental fine-tuning</strong> (~+0.4 ppg on the same labels), n=100 GNUBG evals mislead (−1.19 vs −1.38), and the handcrafted features wash out at 844k labels (<a href="#consolidation">consolidation</a>).</li>
 <li><strong>Scaling DAgger sets a new best but plateaus</strong> — the loop’s biggest gain lands early (the doubles-policy fix), then an ungated, warm-started loop <em>oscillates</em> around a plateau instead of converging; the fix is eval-gated keep-best, and the ~0.4-ppg-short-of-parity plateau under a fixed 2-ply teacher is the ceiling that motivates TD self-play (<a href="#exp009">exp009</a>).</li>
-<li><strong>Volume, not capacity, was the plateau</strong> — ~8M clean GNUBG-0-ply value labels produced a net that plays 0-ply at parity with the teacher, clearing the ~−0.3 wall DAgger and TD self-play both stalled at; the 10×256 architecture could always represent the value function, it just needed the labels (<a href="#exp011">exp011</a>).</li>
+<li><strong>Volume, not capacity, was the plateau</strong> — ~8M clean GNUBG-0-ply value labels produced a net that plays 0-ply <strong>near</strong> parity (−0.053 vs GNUBG-0-ply at n=6000; −0.064 vs 2-ply), clearing the ~−0.3 wall DAgger and TD self-play both stalled at; the 10×256 architecture could always represent the value function, it just needed the labels — though a real ~0.05 handicap remains, so it is <em>near</em> the teacher, not at it (<a href="#exp011b">exp011b</a>). Two “parity” claims (n=400, then an n=1000 sweep) were noise/selection artifacts a tight n=6000 confirm overturned — near-parity nets need n≥6000 or a variance-reduced metric.</li>
 <li><strong>The board-signature replay layer is reusable infrastructure</strong> — 99%+ match rate across raw and analysed corpora, behind every dataset on this page.</li>
 </ol>
 </section>
@@ -1208,9 +1270,9 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>The teacher ceiling.</strong> DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. exp009 plateaued ~0.4 ppg short of parity, confirming this is now the binding constraint. The leading escape — TD(λ) self-play from the consolidated seed — was tested in <a href="./training_analysis.html#exp010">exp010</a>: it <strong>does</strong> lift a strong seed (the first self-play method here to do so, unlike exp007), but on a pure-greedy recipe it plateaus ~0.3 ppg short of even 0-ply parity. Surpassing 0-ply is still open; candidate levers are exploration/temperature in the TD loop, a distill-to-0-ply-parity seed <em>before</em> self-play, or the value-head changes below.</li>
 <li><strong>Ranking checkpoints on a plateau.</strong> exp009’s three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE, so which is the true best — the deliverable — needs a larger head-to-head (n≥400) or a tie-break arena; the n=100 per-round evals cannot separate them.</li>
 <li><strong>Value calibration under search.</strong> “More sims hurt” has now been measured three times. A value head that search <em>strengthens</em> rather than undermines — possibly via multi-component outputs (win/gammon/bg probabilities, as TD-Gammon and GNUBG use) — is an open design question feeding exp010. It is sharpened by the ply-strength figures below: GNUBG <em>barely</em> improves from 0→2 ply (it is already near-perfect, so search hits diminishing returns) yet never worsens, whereas Raccoon — far from perfect, where search should help most — gets worse. A weak net whose own search degrades it is the clearest single indictment of the value head.</li>
-<li><strong>From 0-ply parity to the 2-ply benchmark.</strong> <a href="#exp011">exp011</a> reached parity with GNUBG-0-ply, breaking the plateau — but 0-ply is a weaker reference than the 2-ply benchmark, and its 2-ply standing is unmeasured. Two things to run now that parity is in hand: (1) the deferred GNUBG-0-ply-vs-2-ply head-to-head in our own harness, to price how close near-GNUBG that actually is; (2) arm A’s <code>best.pt</code> <strong>under MCTS / 2-ply search</strong> — the value head is, for the first time, calibrated for static play, so this is the sharpest test yet of whether “more sims hurt” (below) finally flips into “more sims help.” A value head that search strengthens is the route from 0-ply parity toward 2-ply strength.</li>
-<li><strong>Beyond 0-ply needs a stronger signal, not more labels.</strong> Since pure 0-ply distillation caps at the 0-ply teacher, reaching parity <em>ends</em> the value of more 0-ply labels. Per the fair-beat principle above, the priority is a better <em>evaluator</em>, so the routes rank: <strong>(a) TD self-play from the 0-ply-parity seed — the primary next experiment.</strong> It is the only ceiling-free route, cheap and local, and it fixes exp010’s one flaw: that run was crippled by a seed playing 0-ply at −2.30, so its self-play (and its TD targets) were poor; arm A plays 0-ply at parity, so its self-play is near-GNUBG-quality. The pivotal unknown is whether exp010’s ~−0.3 plateau was the recipe’s <em>attractor</em> (TD would <em>decay</em> arm A from parity toward −0.3) or <em>seed-limited</em> (arm A climbs <em>above</em> 0-ply). <strong>(b) Stronger-teacher distillation</strong> — self-generated 2-ply labels (feasible on our own hardware, ~8 VM-hours for 10M; not a data-partnership dependency), a reliable fallback but ceilinged at GNUBG-2-ply. <strong>(c) Search on the calibrated head</strong> — the <em>finish</em>, not the lead: a genuinely superior net wins at matched search, so the net is load-bearing; search doubles as a cheap diagnostic of whether “more sims hurt” finally flipped. A volume scale-up (fleet generation + GPU training) earns its keep only under (b); a <em>deeper-than-2-ply</em> teacher (rollout / 3–4-ply analysis, e.g.&nbsp;via a Backgammon Galaxy collaboration) is the only external data that could break the 2-ply ceiling, since we can already self-make 2-ply.</li>
-<li><strong>The multi-component head, cleanly.</strong> exp011’s scalar arm matched/beat the six-outcome arm, but the A/B was confounded (noisy keep-best, ~1 epoch each). A clean rematch — equal training, eval-gated at n≥200 — would settle whether the multi-component target helps, and it is wanted regardless for the cube and for a TD value head.</li>
+<li><strong>From near-0-ply to the 2-ply benchmark</strong> <em>(partly answered).</em> <a href="#exp011b">exp011b</a> benchmarked the completed net against <strong>both</strong> references (exp012b): <strong>−0.053 vs 0-ply, −0.064 vs 2-ply</strong> (n=6000 / n=1000) — so its 2-ply standing is now measured, and the searchless 2-ply gap (~0.06) is small (2-ply search buys GNUBG little against it). Still open: arm’s <code>best.pt</code> <strong>under MCTS / 2-ply search</strong> — the value head is, for the first time, calibrated for static play, so this remains the sharpest test of whether “more sims hurt” (below) finally flips into “more sims help.” Note the fair-beat principle: search on our own head is the <em>finish</em>, not the lead — a genuinely better net must win at matched search first.</li>
+<li><strong>Beyond 0-ply needs a stronger signal, not more labels.</strong> Since pure 0-ply distillation caps at the 0-ply teacher, reaching parity <em>ends</em> the value of more 0-ply labels. Per the fair-beat principle above, the priority is a better <em>evaluator</em>, so the routes rank: <strong>(a) TD self-play from the near-parity seed — the primary next experiment (<a href="./training_analysis.html#exp013">exp013</a>).</strong> It is the only ceiling-free route, cheap and local, and it fixes exp010’s one flaw: that run was crippled by a seed playing 0-ply at −2.30, so its self-play (and its TD targets) were poor; the exp011b winner plays 0-ply near parity (−0.053), so its self-play is near-GNUBG-quality. The pivotal unknown is whether exp010’s ~−0.3 plateau was the recipe’s <em>attractor</em> (TD would <em>decay</em> the seed toward −0.3) or <em>seed-limited</em> (it climbs <em>above</em> 0-ply). <strong>(b) Stronger-teacher distillation</strong> — self-generated 2-ply labels (feasible on our own hardware, ~8 VM-hours for 10M; not a data-partnership dependency), a reliable fallback but ceilinged at GNUBG-2-ply. <strong>(c) Search on the calibrated head</strong> — the <em>finish</em>, not the lead: a genuinely superior net wins at matched search, so the net is load-bearing; search doubles as a cheap diagnostic of whether “more sims hurt” finally flipped. A volume scale-up (fleet generation + GPU training) earns its keep only under (b); a <em>deeper-than-2-ply</em> teacher (rollout / 3–4-ply analysis, e.g.&nbsp;via a Backgammon Galaxy collaboration) is the only external data that could break the 2-ply ceiling, since we can already self-make 2-ply.</li>
+<li><strong>The multi-component head, cleanly</strong> <em>(answered).</em> <a href="#exp011b">exp011b</a> is the clean rematch — both arms trained 3 full epochs from random init, selected at n=1000: scalar and outcomes6 <strong>tie</strong> (ep3 −0.010 vs +0.001, 0.011 apart, well inside the difference-CI). So the six-outcome target doesn’t distil 0-ply <em>better</em> — but it is still wanted for the cube and for a TD value head, so it stays the preferred head on capability grounds.</li>
 <li><strong>The cube.</strong> Everything on this page is cubeless checker play, but the M6 goal (“beat GNUBG at money game”) implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.</li>
 </ul>
 
