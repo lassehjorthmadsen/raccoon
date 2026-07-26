@@ -185,6 +185,12 @@ def gnubg_arena_scored(
 ) -> dict:
     """Net (0-ply value) vs GNUBG, with per-decision **error-rate** scoring.
 
+    ⚠️  The error-rate-as-ppg (−mean per-game error) is BIASED ~0.07 and was DROPPED as a
+    strength metric (2026-07-26) — the 0-ply pre-roll value isn't self-consistent with its own
+    1-ply lookahead, so the implicit luck term isn't zero-mean. Use raw ppg at high n for
+    strength; this stays as a building block for a *proper* variance-reduced rollout (self-
+    consistent 1-ply control variate). The per-decision error RATE itself is unbiased (PR-like).
+
     Like :func:`gnubg_arena` (raw ppg from net-vs-GNUBG games) but ALSO scores every
     *net* decision against GNUBG at ``ref_ply``: ``error = V_best - V_played`` where
     both come from ``candidate_equities`` (GNUBG's cubeless equity of each legal move,

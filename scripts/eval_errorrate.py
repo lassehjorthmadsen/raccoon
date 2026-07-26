@@ -1,5 +1,15 @@
 """Fine eval: raw ppg + low-variance error-rate for a checkpoint vs GNUBG.
 
+⚠️  DROPPED as a strength metric (2026-07-26). The **error-rate ppg** below is BIASED
+~0.07 (seed scalar/ep3 read −0.128 at n=1000 vs its true raw ~−0.05): the 0-ply pre-roll
+value isn't self-consistent with its own 1-ply lookahead, so the implicit luck term isn't
+zero-mean. For strength claims use **raw ppg at high n** (`scripts/eval_gnubg0.py`) instead.
+Kept only as a building block for a future *proper* variance-reduced rollout (XG/GNUBG-style,
+self-consistent 1-ply control variate → unbiased + low-variance). The raw-ppg column here is
+fine; the per-decision error rate (mppg/decision) is a valid PR-like skill number, but the
+ppg *conversion* is the biased part. Do not use for decisions.
+
+
 Runs ``gnubg_arena_scored`` across worker processes and pools per-game results,
 reporting from the SAME net-vs-GNUBG games:
 
