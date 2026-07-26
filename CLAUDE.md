@@ -84,6 +84,17 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 - Loss = cross-entropy(policy) + MSE(value) + L2 regularization (via optimizer weight_decay)
 - Training examples store a value target blended from the terminal game outcome and MCTS root Q (`--value-bootstrap-alpha` controls the mix; 1.0 = pure outcome, 0.0 = pure Q)
 
+## Experiment Conventions
+
+Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-ply-distillation arc fragmented one hypothesis across four confusingly-named experiments with mixed metrics/n's and a biased proxy — days of confusion.)
+
+- **One hypothesis per experiment**, stated up front as a single testable question (e.g. *"does TD self-play improve a net already at near-parity with GNUBG-0-ply?"*). A required benchmark is that experiment's *completion*, not a separate experiment.
+- **One primary metric, fixed before the run** — with its full protocol: opponent, ply, **n**, CI (e.g. *"cubeless-money ppg vs GNUBG-0-ply, n=6000, ±0.046"*). Report every checkpoint on it; don't switch metric or n mid-stream.
+- **The primary metric must be unbiased** (raw play results). Variance-reduced / proxy metrics are supporting-only, clearly labeled, and used only if unbiased (or the bias quantified). Near-parity comparisons need **n≥6000** (n=400 → ±0.18, too coarse); **select *and* confirm** a "best" at full n (a noisy selection inflates it — winner's curse).
+- **Every reported number carries its provenance — (checkpoint, metric, n).** No bare numbers.
+- **One experiment = one name = one write-up**, ending in a one-line conclusion: *"[hypothesis] → [answer]: [net] = [X ± CI] (metric, n)."* A re-run that completes a truncated attempt **supersedes** it (don't co-list both).
+- **Supporting metrics are welcome, just demarcated** (training loss/SSE, coarse in-loop evals, epoch curves, secondary findings) — they never drive the headline conclusion or final selection.
+
 ## Hardware
 
 - **Local dev (Windows work PC)**: Windows PC (WSL2, 16 CPU cores, no GPU). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
