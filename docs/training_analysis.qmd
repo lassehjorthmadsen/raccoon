@@ -1,13 +1,13 @@
 ---
 title: "Raccoon Self-Play Analysis"
-subtitle: "The self-play track: AlphaZero from scratch (exp000–006), then self-play from a strong seed (exp007, exp010)"
+subtitle: "The self-play track: AlphaZero from scratch (exp000–006), then self-play from a strong seed (exp007, exp010, exp013)"
 toc-depth: 2
 jupyter: python3
 ---
 
-This page documents the **self-play track**: nine experiments (exp000–exp007, plus the later exp010) testing whether self-play — a ResNet policy-value network trained on its own games — can reach GNUBG-competitive backgammon at this project's compute scale (a single T4 GPU or a desktop CPU). The first eight use AlphaZero-style MCTS self-play; exp010, run much later, swaps in TD(λ) value learning.
+This page documents the **self-play track**: ten experiments (exp000–exp007, plus the later exp010 and exp013) testing whether self-play — a ResNet policy-value network trained on its own games — can reach GNUBG-competitive backgammon at this project's compute scale (a single T4 GPU or a desktop CPU). The first eight use AlphaZero-style MCTS self-play; exp010 and exp013, run much later, swap in TD(λ) value learning.
 
-**The track's conclusion, up front: it cannot.** Every self-play checkpoint loses 97–100% of its games against GNUBG 2-ply, at −2.2 to −2.5 points per game. Two levers produced statistically significant improvement — 800-simulation search (exp005) and sheer iteration count (exp006) — but at a rate that would need on the order of 17,000 iterations to close the gap. The bottleneck is the *quality* of the self-play training signal, not the amount of training. That conclusion motivated the pivot to supervised distillation from GNUBG, documented in the [supervised & expert-iteration track](pretraining_analysis.qmd), which produced every subsequent strength gain. Two experiments here connect the tracks by running self-play *from a strong distilled seed*: exp007 (MCTS) *destroys* the seed, while the later exp010 (TD) is the first self-play method in the project to *lift* one.
+**The track's conclusion, up front: it cannot.** Every self-play checkpoint loses 97–100% of its games against GNUBG 2-ply, at −2.2 to −2.5 points per game. Two levers produced statistically significant improvement — 800-simulation search (exp005) and sheer iteration count (exp006) — but at a rate that would need on the order of 17,000 iterations to close the gap. The bottleneck is the *quality* of the self-play training signal, not the amount of training. That conclusion motivated the pivot to supervised distillation from GNUBG, documented in the [supervised & expert-iteration track](pretraining_analysis.qmd), which produced every subsequent strength gain. Three experiments here connect the tracks by running self-play *from a strong distilled seed*: exp007 (MCTS) *destroys* the seed; exp010 (TD), from a seed playing far below parity, is the first self-play method in the project to *lift* one, though it plateaus short of parity; exp013 reruns the same TD recipe from a seed already *at* near-parity and finds no detectable movement — but, as the write-up below makes explicit, not enough games to rule one out either.
 
 Each experiment below gets one section: motivation, setup, results, interpretation. Results are computed from the experiment logs at render time.
 
@@ -323,7 +323,59 @@ Two facts, against the honest metric:
 1. **TD self-play *works* — it improves the seed, where MCTS self-play destroyed it.** The seed plays 0-ply at −2.30 ppg vs GNUBG-0-ply; TD hauls it to ~−0.3 (best-of-batch −0.08) in the first few hundred games. This is the first self-play result on the project to *lift* a strong seed rather than wreck it — the value-only bootstrap from a money-calibrated head is the difference from exp007.
 2. **But it plateaus fast, ~0.3 ppg short of 0-ply.** The gain is banked by batch 2; batches 2–29 oscillate around −0.3 (n=60 eval, SE ~0.23) with no sustained climb. A few hundred games saturate the 0-ply value quality; more do not compound — a plateau after *hundreds* of games, not thousands, points to a recipe/capacity limit, not a data-volume one.
 
-**Interpretation.** TD(λ) self-play is validated as a direction — the first method here to lift a strong seed via self-play — but on this recipe it stops ~0.3 short of even 0-ply parity, far from surpassing it. Reaching then surpassing 0-ply likely needs one of: a less greedy recipe (the run was pure argmax; temperature/exploration is untested), a stronger 0-ply starting point (distill *to* 0-ply parity first, then TD from there — the seed's −2.30 start capped the ceiling; the [exp011 distillation](pretraining_analysis.qmd#exp011) since produced exactly such a seed), or a better-shaped value head. The eval-metric episode also drives the loss-isn't-strength lesson home: **a self-play loop must be scored against a fixed external reference, never its own seed.**
+**Interpretation.** TD(λ) self-play is validated as a direction — the first method here to lift a strong seed via self-play — but on this recipe it stops ~0.3 short of even 0-ply parity, far from surpassing it. Reaching then surpassing 0-ply likely needs one of: a less greedy recipe (the run was pure argmax; temperature/exploration is untested), a stronger 0-ply starting point (distill *to* 0-ply parity first, then TD from there — the seed's −2.30 start capped the ceiling; the [exp011b distillation](pretraining_analysis.qmd#exp011b) since produced exactly such a seed), or a better-shaped value head. The eval-metric episode also drives the loss-isn't-strength lesson home: **a self-play loop must be scored against a fixed external reference, never its own seed.**
+
+## exp013 — TD self-play from a near-parity seed {#exp013}
+
+**Motivation.** exp010 lifted a *weak* seed (0-ply play −2.30 ppg vs GNUBG-0-ply) to ~−0.3, then plateaued — leaving open whether ~−0.3 is the **recipe's attractor** (any net decays toward it under this TD loop) or was **seed-limited** (a stronger start climbs further, perhaps past 0-ply). The [supervised track's exp011b](pretraining_analysis.qmd#exp011b) has since produced exactly the seed needed to test this cleanly: a 0-ply-distilled net already at −0.050 ppg vs GNUBG-0-ply. **Does TD(λ) self-play improve a net that already plays near-parity with GNUBG-0-ply?**
+
+**Setup.** Warm-start from exp011b `scalar/ep3`. Identical TD(λ) loop to exp010 (λ=0.7, value-head-only regression, policy frozen), **greedy** move selection (temperature=0 — the dice alone supply exploration), lr 10⁻⁴, 500 games/batch, iMac CPU, 39 batches (~19,500 games total). **Primary metric, fixed up front:** cubeless-money ppg vs GNUBG-0-ply, **n=6000** (95% CI ±0.046), measured on three checkpoints only — seed, best coarse in-loop reading, final batch — never the noisy in-loop signal itself.
+
+**Results.**
+
+```{python}
+#| echo: false
+_rows13 = [json.loads(l) for l in
+           Path("../experiments/exp013-td-scalar/logs/td_log.jsonl").read_text().splitlines()
+           if l.strip()]
+coarse = [(r["batch"], r["eval_vs_gnubg0ply_ppg"]) for r in _rows13 if "eval_vs_gnubg0ply_ppg" in r]
+# high-n anchors: raw n=6000 vs GNUBG-0-ply, CI ±0.046 (experiments/exp013-td-scalar/logs/raw_n6000.log)
+anchors = [(0, -0.0500, "seed (scalar/ep3)"), (30, -0.0698, "batch 30 (coarse peak)"), (39, -0.0568, "batch 39 (latest)")]
+
+fig, ax = plt.subplots(figsize=(8.5, 4.2))
+cx, cy = zip(*coarse)
+ax.errorbar(cx, cy, yerr=1.8/100**0.5*1.96, fmt="o", ms=4, alpha=0.35, color="#7f7f7f",
+            ecolor="#7f7f7f", elinewidth=0.8, capsize=2, label="coarse in-loop eval (n=100 each)")
+ax_x = [a[0] for a in anchors]
+ax_y = [a[1] for a in anchors]
+ax.errorbar(ax_x, ax_y, yerr=0.046, fmt="D", ms=7, color="#17becf", ecolor="#17becf",
+            elinewidth=1.6, capsize=4, label="raw n=6000 anchors (±0.046)")
+ax.axhline(0, color="k", lw=1.2, label="GNUBG-0-ply parity")
+ax.axhline(-0.30, ls="--", color="#d62728", lw=1.0, alpha=0.6,
+           label="exp010's plateau (different, weak seed)")
+ax.set_xlabel("TD batch (500 self-play games each; batch 0 = seed)")
+ax.set_ylabel("Equity/game vs GNUBG-0-ply")
+ax.set_title("exp013: coarse signal bounces, high-n anchors stay flat near the seed")
+ax.set_ylim(-0.45, 0.25)
+ax.legend(loc="lower right", fontsize=7.5)
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+| checkpoint | ppg vs GNUBG-0-ply (n=6000, ±0.046) |
+|---|---|
+| seed (exp011b scalar/ep3) | −0.050 |
+| batch 30 (best coarse reading) | −0.070 |
+| batch 39 (latest) | −0.057 |
+
+All three are statistically tied — no pairwise gap exceeds the combined CI. *Supporting only:* the in-loop coarse eval (n=100 every 3 batches, 13 readings, 1,300 games total — too noisy on its own to support any conclusion) traced a shallow, non-significant upward trend (slope +0.0023 ppg/batch, t=0.81 on 11 df); the final high-n numbers didn't confirm it — batch 39 measured *worse* than the seed, not better.
+
+**A test too narrow for the effect it was built to detect.** The realistic best case here is small by construction: the seed already sits only 0.050 ppg from the 0-ply teacher, so "TD closes the gap entirely" is a δ≈0.05 effect, not the δ≈2 that exp010 was chasing. Comparing two independently-sampled n=6000 checkpoints has SE = 1.8·√(2/6000) ≈ 0.033; detecting a true δ=0.05 swing at 80% power needs roughly **20,300 games per checkpoint** — over 3× what was run here. At the n=6000 actually used, power to catch that best-case effect is only **~33%**, worse than a coin flip. So "no significant difference" is weak evidence, and it cuts both ways: the point estimates (−0.050 → −0.057) don't even lean positive, so there's no sign of a masked improvement — but a small true effect of either sign, up to roughly ±0.06–0.09 ppg, would not have been visible in this experiment regardless.
+
+**Conclusion.** *Does TD(λ) self-play improve a near-parity 0-ply seed?* → **No detectable effect, and the test wasn't powered to see the realistic-sized one**: seed/batch30/latest measure −0.050/−0.070/−0.057 ppg vs GNUBG-0-ply (n=6000, ±0.046 each) — flat, point estimates leaning slightly negative rather than positive. exp010's ~−0.3 plateau does **not** reappear (this run never fell below −0.07), so that plateau was seed-limited, not a universal TD attractor — but greedy TD from a strong seed is also not shown to climb. A confident answer either way would cost ~20 h more of (free) iMac compute for one high-n confirm; not run here, since the roadmap below doesn't turn on which way it falls.
+
+**What's next.** Two untested levers, not mutually exclusive: **(a) temperature>0 TD** — this run was pure greedy; both exp010 and exp011b flagged exploration as untested, and it isolates "greedy can't move a strong seed" from "TD can't move a strong seed"; **(b) 2-ply distillation** — a genuine ceiling-*raiser* (0-ply→2-ply, not bounded by the 0-ply teacher), with labels already generated and format-validated on a second machine ([2-ply label generation](2ply_label_generation.md)), running on the T4 in parallel with (a) on the free iMac.
 
 ## Cross-experiment trends
 
@@ -386,6 +438,7 @@ Three observations tie the track together:
 3. **Search depth at training time is the one self-play lever that worked**: 800-sim MCTS produced a significant +0.38 ppg in 69 iterations ([exp005](#exp005)). Iteration count also works, but ~25× slower per iteration of progress ([exp006](#exp006)) — the combined rate math (~17k iterations to parity) rules out self-play-only scaling.
 4. **Loss curves repeatedly misled in both directions** — the decisive test is always a same-conditions arena match ([exp005](#exp005), [exp007](#exp007)).
 5. **Self-play from a strong seed: the update rule decides.** *MCTS* self-play destroys it — under a GNUBG-losing prior it generates targets weaker than the seed's teacher, and discrete outcome targets decalibrate a money-equity value head; 50 iterations erased a +1.98 ppg advantage ([exp007](#exp007)). *TD* self-play lifts it — value-only bootstrapping toward the next position's own equity avoids both failure modes, making it the first self-play method here to *improve* a strong seed (−2.30 → ~−0.3 vs GNUBG-0-ply), though it plateaus short of parity ([exp010](#exp010)). Improving on a strong seed needs either a stronger-than-self signal in the loop or a value-preserving update — not raw MCTS self-play.
+6. **From a near-parity seed, greedy TD showed no detectable effect — but wasn't powered to rule one out.** exp010's ~−0.3 plateau didn't reappear when TD started near 0-ply parity instead of far below it (this run never dropped below −0.07), so that plateau was seed-limited, not a hard TD ceiling — but nor did greedy TD climb above 0-ply. The realistic best-case effect here (~0.05 ppg) was smaller than this test's detection threshold (~33% power at n=6000 per checkpoint); the point estimates lean flat-to-negative, giving no sign of a masked gain ([exp013](#exp013)).
 
 ## What happened next
 
@@ -393,4 +446,4 @@ The pivot this track motivated is documented in the [supervised & expert-iterati
 
 Beyond DAgger — which converges to its teacher by construction — the leading candidate for surpassing GNUBG is **TD(λ) self-play from the distilled seed**: TD-Gammon-style value learning with 0-ply (static-value) move selection is ~20 value evals per decision instead of 100–800 MCTS sims, has no teacher ceiling, and avoids both exp007 failure modes (no MCTS policy targets, no discrete-outcome value drift — the value head bootstraps toward the next position's own equity estimate). Deeper-ply distillation was priced out as an alternative: GNUBG 3-ply labels cost ~53× 2-ply per label for a teacher we intend to outgrow anyway — the direction [exp010](#exp010) tested above.
 
-*(For the current frontier beyond exp010 — TD self-play from a genuine 0-ply-parity seed, and the fair-beat bar it must clear — see the [supervised track's open questions](pretraining_analysis.qmd#open-questions).)*
+*(TD self-play from a genuine 0-ply-parity seed is exactly what [exp013](#exp013) tested above — no detectable movement, but the test was underpowered for the realistic effect size. See the [supervised track's open questions](pretraining_analysis.qmd#open-questions) for the fair-beat bar and what's next.)*
