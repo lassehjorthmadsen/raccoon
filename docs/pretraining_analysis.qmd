@@ -608,13 +608,14 @@ Three readings:
 
 **Setup.** GNUBG plays itself at 0-ply — greedy, since the dice already fan out coverage — and every pre-roll position is recorded with GNUBG's 0-ply outcome probabilities (`scripts/gen_gnubg_selfplay.py`); play *is* the label, so generation is net-free and cheap (~8M positions in ~7 h). **Value-only** (the value head is the whole player: 0-ply move selection, no policy head), a **confound-free two-arm A/B** from random init on the identical positions (`scripts/train_distill.py`): a **scalar** head (MSE against equity) vs a **six-outcome** softmax head (win/gammon/bg × win/lose — the multi-component target GNUBG and TD-Gammon use). Both arms trained the full **3 epochs on a T4**, keeping a per-epoch `ep{N}.pt` checkpoint and selecting the winner offline at n=1000. *(A first attempt — "exp011" — hit a 15 h iMac-CPU wall mid-first-epoch and was re-run to completion here. Artifacts: `experiments/exp011b-distill/`, benchmarked in `experiments/exp012b-benchmark/`.)*
 
-**Results.** The winning checkpoint (six-outcome head, epoch 3), benchmarked at large n:
+**Results.** Both arms (epoch 3) benchmarked against GNUBG at 0- and 2-ply:
 
-| exp011b winner (six-outcome / ep3) | vs GNUBG-0-ply | vs GNUBG-2-ply |
+| net (ep3) | vs GNUBG-0-ply (n=6000) | vs GNUBG-2-ply (n=1000) |
 |---|---|---|
-| equity/game | **−0.053 ± 0.046** (n=6000) | **−0.064 ± 0.11** (n=1000) |
+| **six-outcome** | **−0.053 ± 0.046** | −0.064 ± 0.11 |
+| **scalar** | **−0.050 ± 0.046** | −0.133 ± 0.11 |
 
-The two value heads are **statistically tied** — confirmed at n=6000: scalar/ep3 = **−0.050 ± 0.046** and six-outcome/ep3 = **−0.053 ± 0.046**, 0.003 apart. (The n=1000 selection sweep had read −0.010 vs +0.001; the six-outcome head was the marginally-selected winner, its "+0.001" winner's-curse-inflated — honest value −0.053.)
+The two value heads are **tied** — cleanly at 0-ply (−0.050 vs −0.053, well inside ±0.046). At 2-ply the n=1000 estimates are too noisy (±0.11 each) to separate them: the −0.064 vs −0.133 gap sits inside the combined CI, not a real difference. (The six-outcome head was the marginally-selected winner; its n=1000 selection "+0.001" was winner's-curse-inflated — honest 0-ply value −0.053.)
 
 **Interpretation.**
 
