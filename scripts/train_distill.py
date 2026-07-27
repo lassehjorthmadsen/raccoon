@@ -12,6 +12,14 @@ shards, keeping the best checkpoint.
 
     python scripts/train_distill.py --cache-dir experiments/exp011-distill/cache \\
         --experiment-name exp011-distill/scalar --value-head scalar --epochs 2
+
+exp014 reuses this unchanged, only swapping --cache-dir for the 2-ply cache and
+adding --holdout-frac so both arms train on the identical 6M positions and hold
+out the identical 2M for a fair R^2 comparison (scripts/eval_r2.py):
+
+    python scripts/train_distill.py --cache-dir experiments/exp011-distill/cache_2ply \\
+        --experiment-name exp014-distill/scalar_2ply --value-head scalar --epochs 3 \\
+        --holdout-frac 0.25 --split-seed 14
 """
 from __future__ import annotations
 
@@ -25,6 +33,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from raccoon.data.cache_split import held_out_mask
 from raccoon.model.network import RaccoonNet
 from raccoon.train.td_selfplay import gnubg_arena
 
@@ -73,6 +82,15 @@ def main() -> None:
     p.add_argument("--eval-games", type=int, default=40)
     p.add_argument("--gnubg-ply", type=int, default=0)
     p.add_argument("--max-wall-hours", type=float, default=0.0)
+    p.add_argument("--holdout-frac", type=float, default=0.0,
+                   help="Fraction of each shard excluded from training (exp014: "
+                        "0.25). 0 (default) trains on 100%% of the cache, matching "
+                        "exp011/exp011b behavior exactly. See raccoon.data.cache_split "
+                        "— the same (frac, seed) held out here must be passed to "
+                        "eval_r2.py so train/holdout never overlap.")
+    p.add_argument("--split-seed", type=int, default=14,
+                   help="Seed for --holdout-frac's per-shard split (ignored if "
+                        "--holdout-frac is 0).")
     p.add_argument("--smoke", action="store_true")
     args = p.parse_args()
 
@@ -102,7 +120,8 @@ def main() -> None:
             f.write(json.dumps(rec) + "\n")
 
     print(f"exp011 {args.value_head} [{device}]: {len(shards)} shards x "
-          f"{args.epochs} epochs, lr={args.lr}", flush=True)
+          f"{args.epochs} epochs, lr={args.lr} holdout_frac={args.holdout_frac} "
+          f"split_seed={args.split_seed}", flush=True)
 
     best = float("-inf")
     t0 = time.time()
@@ -115,6 +134,11 @@ def main() -> None:
         for sh in order:
             with np.load(sh) as z:
                 obs, eq, six = z["observations"], z["equity"], z["outcomes6"]
+                if args.holdout_frac > 0:
+                    mask = held_out_mask(sh.name, len(obs), args.holdout_frac,
+                                         args.split_seed)
+                    train_rows = ~mask
+                    obs, eq, six = obs[train_rows], eq[train_rows], six[train_rows]
                 loss = train_on_shard(net, opt, obs, eq, six, args.value_head,
                                       device, args.batch_size)
             shard_ctr += 1
