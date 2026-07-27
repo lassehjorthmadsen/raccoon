@@ -614,7 +614,7 @@ Three readings:
 |---|---|---|
 | equity/game | **−0.053 ± 0.046** (n=6000) | **−0.064 ± 0.11** (n=1000) |
 
-The two value heads are **statistically tied**: at the n=1000 selection sweep, scalar/ep3 = −0.010 and six-outcome/ep3 = +0.001 — 0.011 apart, deep inside the ±0.11 CI. (The six-outcome head was the marginally-selected winner; that "+0.001" was winner's-curse-inflated, and its honest value is the −0.053 confirm.)
+The two value heads are **statistically tied** — confirmed at n=6000: scalar/ep3 = **−0.050 ± 0.046** and six-outcome/ep3 = **−0.053 ± 0.046**, 0.003 apart. (The n=1000 selection sweep had read −0.010 vs +0.001; the six-outcome head was the marginally-selected winner, its "+0.001" winner's-curse-inflated — honest value −0.053.)
 
 **Interpretation.**
 
