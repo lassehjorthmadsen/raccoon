@@ -12,10 +12,23 @@ rows from either cache. Pass ``--cross-cache-dir`` to also score the checkpoint
 against the *other* label set (the exp014 2x2), and ``--sample-train N`` to also
 report an in-sample R^2 for the overfitting check.
 
+The real 10x256 net is ~10,000x more compute per sample than a tiny test net, so
+a full-precision pass (all 18 shards, ~2M held-out rows) can take well over an
+hour on CPU — fine for the one headline (ep3) comparison, wasteful to repeat for
+every epoch of a supporting curve. Use ``--max-holdout N`` to stop reading
+shards once N held-out rows are collected (skips both the disk I/O and the
+forward pass for the rest) — R^2's SE is already ~1e-3 at N=200k, plenty for a
+supporting/monotonicity check.
+
     # own-label R^2 (a 2-ply-trained checkpoint scored on 2-ply labels)
     python scripts/eval_r2.py \\
         --checkpoint experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt \\
         --cache-dir experiments/exp011-distill/cache_2ply
+
+    # fast supporting-curve pass (subsampled, for a non-headline epoch)
+    python scripts/eval_r2.py \\
+        --checkpoint experiments/exp014-distill/scalar_2ply/checkpoints/ep1.pt \\
+        --cache-dir experiments/exp011-distill/cache_2ply --max-holdout 200000
 
     # full 2x2 cell + train-sample R^2 (overfitting check)
     python scripts/eval_r2.py \\
@@ -25,6 +38,13 @@ report an in-sample R^2 for the overfitting check.
         --sample-train 200000
 """
 from __future__ import annotations
+
+import os
+
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")  # avoid CPU spin-collapse
+                                                       # under contention (must
+                                                       # be set before torch
+                                                       # spins up its OpenMP pool)
 
 import argparse
 from pathlib import Path
@@ -55,7 +75,8 @@ def r2_score(pred: np.ndarray, target: np.ndarray) -> float:
 
 
 def collect(cache_dir: str, holdout_frac: float, split_seed: int,
-            cross_cache_dir: str | None, sample_train: int, sample_seed: int):
+            cross_cache_dir: str | None, sample_train: int, sample_seed: int,
+            max_holdout: int = 0):
     """One pass over ``cache_dir``'s shards. Returns:
 
     ``ho_obs`` (held-out observations, from ``cache_dir``), ``ho_eq`` (held-out
@@ -66,6 +87,13 @@ def collect(cache_dir: str, holdout_frac: float, split_seed: int,
     Observations are read once from ``cache_dir`` and reused for the cross-cache
     score (the two caches are byte-identical in ``observations``) — avoids
     loading the 26-channel array twice.
+
+    If ``max_holdout`` > 0, stops reading further shards once that many held-out
+    rows are collected — later shards are never opened, so both the disk I/O and
+    the (expensive, on a 10x256 net) forward pass shrink proportionally. Note
+    this can also short the ``sample_train`` draw if it stops before covering
+    all shards; leave ``max_holdout`` at 0 (full precision) when combining with
+    ``--sample-train`` for a headline read.
     """
     shards = sorted(Path(cache_dir).glob("shard_*.npz"))
     if not shards:
@@ -78,13 +106,17 @@ def collect(cache_dir: str, holdout_frac: float, split_seed: int,
     ho_obs, ho_eq, ho_eq_cross = [], [], [] if cross_shards is not None else None
     tr_obs, tr_eq = [], []
     remaining_train = sample_train
+    ho_count = 0
 
     for sh in shards:
+        if max_holdout and ho_count >= max_holdout:
+            break
         with np.load(sh) as z:
             obs, eq = z["observations"], z["equity"]
         mask = held_out_mask(sh.name, len(obs), holdout_frac, split_seed)
         ho_obs.append(obs[mask])
         ho_eq.append(eq[mask])
+        ho_count += int(mask.sum())
         if cross_shards is not None:
             cross_path = cross_shards.get(sh.name)
             if cross_path is None:
@@ -135,15 +167,22 @@ def main() -> None:
                          "IDs, so a random train sample shares games with the "
                          "held-out set — this understates true overfitting.")
     ap.add_argument("--sample-seed", type=int, default=0)
+    ap.add_argument("--max-holdout", type=int, default=0,
+                    help="If >0, stop after collecting this many held-out rows "
+                         "(skips reading/forwarding the rest — see module "
+                         "docstring). 0 (default) = full held-out set, the "
+                         "precision the exp014 headline metric uses.")
     ap.add_argument("--label", default="")
     args = ap.parse_args()
 
+    torch.set_flush_denormal(True)  # iMac CPU: avoid denormal slowdown
     device = torch.device("cpu")
     net = load_model(args.checkpoint).to(device)
 
     ho_obs, ho_eq, ho_eq_cross, tr_obs, tr_eq = collect(
         args.cache_dir, args.holdout_frac, args.split_seed,
-        args.cross_cache_dir, args.sample_train, args.sample_seed)
+        args.cross_cache_dir, args.sample_train, args.sample_seed,
+        args.max_holdout)
 
     tag = f"[{args.label}] " if args.label else ""
     print(f"{tag}{args.checkpoint}", flush=True)
