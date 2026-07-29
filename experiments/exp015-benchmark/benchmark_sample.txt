@@ -1,0 +1,152 @@
+META:
+{
+  "n_games": 500,
+  "seed": 1,
+  "n_decisions": 17535,
+  "n_positions": 16889,
+  "n_checker": 14693,
+  "n_cube_decisions": 2842,
+  "n_cube_double": 2189,
+  "n_cube_take": 653,
+  "n_cube_entries": 2196,
+  "tier_counts": {
+    "3P": 7652,
+    "3T": 3260,
+    "rollout": 5977
+  },
+  "three_t_gap": 0.05,
+  "rollout_gap": 0.02,
+  "rollout_n_trials": 1296,
+  "trivial_spread": 0.001,
+  "blunder_threshold": 0.08,
+  "pr_multiplier": 500
+}
+
+FIRST 3 CHECKER DECISIONS:
+================================================================================
+
+Decision 0:
+  kind:       checker
+  board:      [0, -2, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, -5, 5, 0, 0, 0, -3, 0, -5, 0, 0, 0, 0, 2, 0]
+  dice:       [2, 5]
+  cube_value: 1
+  cube_owner: centered
+  game_plan:  anchoring
+  tier:       rollout
+  key:        d40df61a55444d01ddfbd95a42318649
+  seed/turn/player: 1/0/1
+  moves: (8 candidates, sorted best-first)
+    [0] board:        [0, -2, 0, 0, 0, 0, 5, 0, 4, 0, 0, 1, -5, 3, 0, 0, 0, -3, 0, -5, 0, 0, 0, 0, 2, 0]
+        equity:       +0.005919 (cubeful)
+        cubeless_eq:  -0.004802
+        probs:        [0.4961, 0.1484, 0.0077, 0.1459, 0.0071]
+        eval_level:   Rollout
+        std_error:    0.002457
+    [1] board:        [0, -2, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, -5, 4, 0, 0, 0, -3, 0, -5, 0, 0, 1, 0, 1, 0]
+        equity:       +0.001691 (cubeful)
+        cubeless_eq:  +0.001426
+        probs:        [0.4996, 0.1365, 0.0062, 0.1356, 0.0049]
+        eval_level:   Rollout
+        std_error:    0.002477
+    [2] board:        [0, -2, 0, 0, 1, 0, 4, 0, 4, 0, 0, 0, -5, 4, 0, 0, 0, -3, 0, -5, 0, 0, 0, 0, 2, 0]
+        equity:       -0.050907 (cubeful)
+        cubeless_eq:  -0.033729
+        probs:        [0.4863, 0.1359, 0.0058, 0.1411, 0.0069]
+        eval_level:   Rollout
+        std_error:    0.002510
+    [3] board:        [0, -2, 0, 0, 0, 0, 6, 0, 3, 0, 0, 0, -5, 4, 0, 0, 0, -3, 0, -5, 0, 0, 0, 0, 2, 0]
+        equity:       -0.079561 (cubeful)
+        cubeless_eq:  -0.063469
+        probs:        [0.4755, 0.1371, 0.0077, 0.1518, 0.0075]
+        eval_level:   2-ply
+        std_error:    0.000000
+    [4] board:        [0, -2, 0, 1, 0, 0, 5, 0, 2, 0, 0, 1, -5, 4, 0, 0, 0, -3, 0, -5, 0, 0, 0, 0, 2, 0]
+        equity:       -0.133187 (cubeful)
+        cubeless_eq:  -0.099525
+        probs:        [0.4665, 0.134, 0.0069, 0.162, 0.0115]
+        eval_level:   2-ply
+        std_error:    0.000000
+    ... (3 more candidates)
+
+
+Decision 1:
+  kind:       checker
+  board:      [0, -1, 0, -1, 0, 0, 5, 0, 3, 0, 0, 0, -4, 5, 0, 0, 0, -4, 0, -5, 0, 0, 0, 0, 2, 0]
+  dice:       [1, 3]
+  cube_value: 1
+  cube_owner: centered
+  game_plan:  attacking
+  tier:       3P
+  key:        2e06c9bff2e1c2935461bc6f57214f5c
+  seed/turn/player: 1/1/2
+  moves: (17 candidates, sorted best-first)
+    [0] board:        [0, -1, 0, -1, 0, 2, 4, 0, 2, 0, 0, 0, -4, 5, 0, 0, 0, -4, 0, -5, 0, 0, 0, 0, 2, 0]
+        equity:       +0.069329 (cubeful)
+        cubeless_eq:  +0.054554
+        probs:        [0.5183, 0.1474, 0.0058, 0.1288, 0.0065]
+        eval_level:   3-ply
+    [1] board:        [1, -1, 0, 1, 0, 0, 4, 0, 3, 0, 0, 0, -4, 5, 0, 0, 0, -4, 0, -5, 0, 0, 0, 1, 1, 0]
+        equity:       -0.150185 (cubeful)
+        cubeless_eq:  -0.116472
+        probs:        [0.4636, 0.116, 0.0048, 0.1557, 0.0088]
+        eval_level:   3-ply
+    [2] board:        [0, -1, 0, -1, 0, 0, 5, 0, 3, 0, 0, 0, -4, 5, 0, 0, 0, -4, 0, -5, 1, 0, 0, 0, 1, 0]
+        equity:       -0.168162 (cubeful)
+        cubeless_eq:  -0.121225
+        probs:        [0.4606, 0.1068, 0.0044, 0.1476, 0.0061]
+        eval_level:   1-ply
+    [3] board:        [0, -1, 0, -1, 0, 0, 5, 0, 3, 0, 0, 0, -4, 5, 0, 0, 0, -4, 0, -5, 0, 1, 0, 1, 0, 0]
+        equity:       -0.172837 (cubeful)
+        cubeless_eq:  -0.126131
+        probs:        [0.4575, 0.1079, 0.0044, 0.1475, 0.0059]
+        eval_level:   1-ply
+    [4] board:        [0, -1, 0, -1, 0, 0, 5, 0, 3, 0, 1, 0, -4, 4, 0, 0, 0, -4, 0, -5, 0, 0, 0, 1, 1, 0]
+        equity:       -0.178783 (cubeful)
+        cubeless_eq:  -0.133228
+        probs:        [0.455, 0.1159, 0.0048, 0.1561, 0.0078]
+        eval_level:   1-ply
+    ... (12 more candidates)
+
+
+Decision 2:
+  kind:       checker
+  board:      [0, -2, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, -5, 4, 0, 0, 0, -2, 0, -4, -2, 0, 1, 0, 1, 0]
+  dice:       [1, 4]
+  cube_value: 1
+  cube_owner: centered
+  game_plan:  attacking
+  tier:       rollout
+  key:        08ad2ae1bdff1f0cadd100ac6015b095
+  seed/turn/player: 1/2/1
+  moves: (17 candidates, sorted best-first)
+    [0] board:        [0, -2, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, -5, 4, 0, 0, 0, -2, 1, -4, -2, 0, 0, 1, 0, 0]
+        equity:       -0.317124 (cubeful)
+        cubeless_eq:  -0.234264
+        probs:        [0.4307, 0.1065, 0.0055, 0.2011, 0.0066]
+        eval_level:   Rollout
+        std_error:    0.002439
+    [1] board:        [0, -2, 0, 0, 0, 0, 5, 0, 5, 0, 0, 0, -5, 3, 0, 0, 0, -2, 0, -4, -2, 0, 1, 0, 1, 0]
+        equity:       -0.331699 (cubeful)
+        cubeless_eq:  -0.226856
+        probs:        [0.4238, 0.1142, 0.0057, 0.1872, 0.0072]
+        eval_level:   Rollout
+        std_error:    0.002362
+    [2] board:        [0, -2, 0, 0, 0, 0, 5, 0, 4, 1, 0, 0, -5, 3, 0, 0, 0, -2, 0, -4, -2, 0, 1, 1, 0, 0]
+        equity:       -0.338851 (cubeful)
+        cubeless_eq:  -0.228167
+        probs:        [0.4213, 0.1175, 0.006, 0.1853, 0.009]
+        eval_level:   Rollout
+        std_error:    0.002410
+    [3] board:        [0, -2, 0, 0, 0, 0, 5, 0, 4, 1, 0, 0, -5, 3, 0, 0, 0, -2, 0, -4, -2, 1, 0, 0, 1, 0]
+        equity:       -0.351795 (cubeful)
+        cubeless_eq:  -0.237731
+        probs:        [0.4177, 0.1156, 0.0059, 0.1856, 0.009]
+        eval_level:   Rollout
+        std_error:    0.002533
+    [4] board:        [0, -2, 0, 0, 0, 0, 5, 1, 3, 0, 0, 0, -5, 4, 0, 0, 0, -2, 1, -4, -2, 0, 0, 0, 1, 0]
+        equity:       -0.375791 (cubeful)
+        cubeless_eq:  -0.267537
+        probs:        [0.4161, 0.0994, 0.0045, 0.1943, 0.0094]
+        eval_level:   Rollout
+        std_error:    0.002631
+    ... (12 more candidates)
