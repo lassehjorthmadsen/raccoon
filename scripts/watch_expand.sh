@@ -14,18 +14,28 @@ VM="raccoon-gpu"
 ZONE="europe-west1-b"
 POLL_INTERVAL=300
 STOCKOUT_RETRY=120
+# Resolve gcloud: works from Git Bash (/c/...) or can be overridden via env
+if command -v gcloud &>/dev/null; then
+  GCLOUD="gcloud"
+elif [ -x "/c/Users/LMDN/google-cloud-sdk/bin/gcloud" ]; then
+  GCLOUD="/c/Users/LMDN/google-cloud-sdk/bin/gcloud"
+elif [ -x "/mnt/c/Users/LMDN/google-cloud-sdk/bin/gcloud" ]; then
+  GCLOUD="/mnt/c/Users/LMDN/google-cloud-sdk/bin/gcloud"
+else
+  echo "ERROR: gcloud not found" >&2; exit 1
+fi
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
 vm_status() {
-  gcloud compute instances describe "$VM" --zone="$ZONE" \
+  "$GCLOUD" compute instances describe "$VM" --zone="$ZONE" \
     --format="value(status)" 2>/dev/null || echo "UNKNOWN"
 }
 
 start_vm() {
   while true; do
     local out
-    if out="$(gcloud compute instances start "$VM" --zone="$ZONE" 2>&1)"; then
+    if out="$("$GCLOUD" compute instances start "$VM" --zone="$ZONE" 2>&1)"; then
       log "VM started"
       return 0
     fi
@@ -42,8 +52,8 @@ start_vm() {
 wait_for_ssh() {
   local tries=0
   while (( tries < 30 )); do
-    if gcloud compute ssh lasse@"$VM" --zone="$ZONE" --command="true" \
-         -- -o ConnectTimeout=10 -o StrictHostKeyChecking=no >/dev/null 2>&1; then
+    if "$GCLOUD" compute ssh lasse@"$VM" --zone="$ZONE" --command="true" \
+         -- -batch >/dev/null 2>&1; then
       return 0
     fi
     tries=$((tries + 1))
@@ -54,8 +64,9 @@ wait_for_ssh() {
 
 resume_expand() {
   log "Running resume_expand.sh on VM"
-  gcloud compute ssh lasse@"$VM" --zone="$ZONE" \
-    --command="bash ~/raccoon/scripts/resume_expand.sh"
+  "$GCLOUD" compute ssh lasse@"$VM" --zone="$ZONE" \
+    --command="bash ~/raccoon/scripts/resume_expand.sh" \
+    -- -batch
 }
 
 log "Watchdog started for dataset expansion"
