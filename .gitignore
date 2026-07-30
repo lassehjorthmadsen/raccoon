@@ -9,6 +9,8 @@ experiments/*
 !experiments/*/
 !experiments/*/logs/
 !experiments/*/logs/**
+!experiments/*/results/
+!experiments/*/results/**
 experiments/*/checkpoints/
 experiments/*/caches/
 experiments/smoke/
