@@ -20,7 +20,10 @@ jobs:
           python-version: "3.11"
 
       - name: Install docs dependencies
-        run: pip install quartodoc "griffe<1.0" jupyter pandas matplotlib numpy
+        # freeze: true means CI never executes notebook cells, so no
+        # jupyter/pandas/matplotlib needed. quartodoc build uses griffe's
+        # static analysis (no package import), so raccoon need not be installed.
+        run: pip install quartodoc "griffe<1.0"
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
