@@ -171,6 +171,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#exp011b" id="toc-exp011b" class="nav-link" data-scroll-target="#exp011b">exp011b — 0-ply value distillation</a></li>
   <li><a href="#exp014" id="toc-exp014" class="nav-link" data-scroll-target="#exp014">exp014 — does a 2-ply teacher fit as well as the 0-ply teacher?</a></li>
   <li><a href="#exp015" id="toc-exp015" class="nav-link" data-scroll-target="#exp015">exp015 — static PR benchmark against BGSage</a></li>
+  <li><a href="#exp016" id="toc-exp016" class="nav-link" data-scroll-target="#exp016">exp016 — revisiting old A/B pairs at BGSage power</a></li>
   <li><a href="#what-weve-learned" id="toc-what-weve-learned" class="nav-link" data-scroll-target="#what-weve-learned">What we’ve learned</a></li>
   <li><a href="#open-questions" id="toc-open-questions" class="nav-link" data-scroll-target="#open-questions">Open questions</a></li>
   </ul>
@@ -217,7 +218,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
 <p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
-<div id="494406ba" class="cell" data-execution_count="2">
+<div id="926ae60c" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -531,7 +532,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="30f6fc41" class="cell" data-execution_count="4">
+<div id="8ae2284a" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -551,7 +552,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG’s convention (TD-Gammon calls it 1-ply) — with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="ae0efb75" class="cell" data-execution_count="5">
+<div id="43d16c41" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -568,7 +569,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="ce3a3b08" class="cell" data-execution_count="6">
+<div id="df63c024" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -585,7 +586,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="6b29e22d" class="cell" data-execution_count="7">
+<div id="cffc0cdd" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -602,7 +603,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="ac34bed9" class="cell" data-execution_count="8">
+<div id="f1e45b80" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -637,7 +638,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="2fab8ffa" class="cell" data-execution_count="9">
+<div id="ee5105e1" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -647,7 +648,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="d06424ed" class="cell" data-execution_count="10">
+<div id="b4f30b5b" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -947,7 +948,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tr>
 </tbody>
 </table>
-<p><strong>Interpretation.</strong> Three conclusions. <strong>Consolidated retraining beats incremental fine-tuning by ~+0.4 ppg</strong> on the identical label pool — the DAgger loop’s warm fine-tunes had accumulated real sub-optimality (recency-window mixes, per-round overfitting). <strong>Measure at n≥200</strong>: the −1.19 → −1.38 correction is a standing reminder that 100-game GNUBG evals carry ±0.5 ppg. And <strong>the handcrafted features wash out at scale</strong> — at 844k labels the 26ch arm has no edge over 17ch (consistent with the ablation’s small-data framing); the 26ch arm was nonetheless adopted as the exp009 seed for encoder consistency going forward (it also beat the incumbent by more head-to-head, +0.74 vs +0.45, though that difference is itself within noise).</p>
+<p><strong>Interpretation.</strong> Three conclusions. <strong>Consolidated retraining beats incremental fine-tuning by ~+0.4 ppg</strong> on the identical label pool — the DAgger loop’s warm fine-tunes had accumulated real sub-optimality (recency-window mixes, per-round overfitting). <strong>Measure at n≥200</strong>: the −1.19 → −1.38 correction is a standing reminder that 100-game GNUBG evals carry ±0.5 ppg. And <strong>the handcrafted features appeared to wash out at scale</strong> — at 844k labels the 26ch arm showed no edge over 17ch on this n=200 GNUBG match (consistent with the ablation’s small-data framing); the 26ch arm was nonetheless adopted as the exp009 seed for encoder consistency going forward (it also beat the incumbent by more head-to-head, +0.74 vs +0.45, though that difference is itself within noise). <em>(Update: this n=200 read was underpowered, not a null result — <a href="#exp016">exp016</a> re-scores these same two checkpoints on the high-power BGSage benchmark and finds a clear, significant edge for the 26ch arm on both PR and rollout MSE.)</em></p>
 </section>
 <section id="exp009" class="level2">
 <h2 class="anchored" data-anchor-id="exp009">exp009 — scaled DAgger</h2>
@@ -1117,7 +1118,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tbody>
 </table>
 <p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
-<div id="69dae71b" class="cell" data-execution_count="14">
+<div id="86a56e9a" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1266,7 +1267,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <p><strong>Motivation.</strong> <a href="#exp014">exp014</a>’s held-out R² result (0.9983 vs 0.9983) shows the 2-ply-distilled net fits its teacher as well as the 0-ply-distilled net fits its own — evidence for the <em>sign</em> of a strength difference, not its size, and explicitly not a raw-play confirmation. Resolving that difference with raw ppg needs a <strong>paired</strong> comparison between the two checkpoints, and <a href="./training_analysis.html#exp013">exp013</a> already measured that kind of test at only ~33% power for a δ≈0.05 effect at n=6000 (n=24000 is marginal even at the low end). A static, per-decision benchmark against an external, high-precision reference sidesteps that noise floor entirely — the same reason human players and commercial bots (XG, GNUBG) report skill as a per-decision Performance Rating (PR) rather than raw match results. The BGSage money-game benchmark (500 Sage-3P vs Sage-3P self-play games, analysed by Sage at adaptive precision; a sibling repo, not part of this project) gives exactly that: a fixed, noise-free position set with a reference stronger than any engine under test.</p>
 <p><strong>Why PR, not raw ppg, as the primary metric.</strong> This is a deliberate exception to the “primary metric must be raw play” convention, made explicit for that reason (mirroring <a href="#exp014">exp014</a>’s R² exception). It differs from the project’s previously-dropped “error-rate ppg” proxy: that one converted a per-decision error rate into a ppg estimate using a self-referential control variate (the evaluated net’s own pre-roll value against its own 1-ply lookahead), and that self-consistency failure is what made it biased. Here the reference (Sage rollout / 3-ply-team / 3-ply) is wholly external to every engine being scored and PR is reported in its own native units — no ppg conversion is attempted. The trade-off: PR measures move-selection skill on a fixed position set, not outcomes of complete games, so it is a <strong>proxy for playing strength</strong>, not playing strength itself; it is used here precisely because it is unbiased <em>and</em> far lower-variance than raw ppg for this comparison, not as a replacement for the raw-ppg standard elsewhere on this page.</p>
 <p><strong>Setup.</strong> <code>scripts/eval_benchmark_pr.py</code> scores each engine on every checker decision in the benchmark: encode all candidate moves from the opponent’s (next-to-move) perspective, take the engine’s argmax, and score <code>error = max(0, best_cubeless_eq − chosen_cubeless_eq)</code> against Sage’s <code>cubeless_equity</code> reference (never Sage’s cubeful equity, which would penalize cubeless engines for a cube they don’t carry). PR = mean(error) × 500, GNUBG’s convention. Cube decisions are skipped (all engines here are cubeless). Four engines: GNUBG 0-ply and 2-ply (via <code>gnubg-nn</code>), and the two existing distilled checkpoints from this page — <strong>exp011b’s outcomes6/ep3</strong> (the head kept downstream per <a href="#exp011b">exp011b</a>) and <strong>exp014’s scalar_2ply/ep3</strong> (the confound-free A/B arm, <em>not</em> the still-untrained full-8M deliverable <a href="#exp014">exp014</a> flagged as its own next step — that remains open). The benchmark corpus: 500 games, 17,535 total decisions (14,693 checker + 2,842 cube); BGSage’s adaptive-precision scheme assigns each of the corpus’s 16,889 non-trivial decisions a reference tier — rollout (5,977), 3-ply-team/3T (3,260), or 3-ply/3P (7,652) — costlier tiers going to closer, more contested decisions. <em>(That corpus-wide tally covers checker + cube decisions together; the R² breakdown below reports checker-only candidate positions by tier, a different, larger denominator — see the counts in that table.)</em></p>
-<p><em>(Numbers below are transcribed from the run’s printed output, not recomputed at render time like the rest of this page — the benchmark file lives in a sibling <code>bgsage</code> repo outside this project and the run’s raw per-decision JSON wasn’t saved (<code>--output</code> was not passed), so reproducing the exact table requires re-running the script. Update, 2026-07-31: the benchmark file is now copied into <code>data/bgsage/money_benchmark/benchmark.json.gz</code> (sourced from the bgsage repo, cloned as a sibling project at <code>~/python-projects/bgsage</code> — see <code>data/README.md</code>), so <code>scripts/eval_benchmark_pr.py</code> can be re-run directly; this table itself remains the original transcribed run, not re-derived.)</em></p>
+<p><em>(Correction, 2026-07-31: the original run behind this section actually scored <code>best.pt</code> for both distilled checkpoints, not <code>ep3.pt</code> as the paragraph above always intended — <code>best.pt</code> is an artifact of <code>train_distill.py</code>‘s noisy in-loop n=40-game selector (for the outcomes6 arm it happened to freeze at essentially the <code>ep1.pt</code> state and never update), not the properly cross-validated checkpoint that <a href="#exp011b">exp011b</a> and <a href="#exp011b">exp012b</a> actually select and every other section on this page reports against. Caught while <a href="#exp016">exp016</a> was re-deriving these same checkpoints’ numbers from scratch and couldn’t reproduce this section’s PR/MSE at all; confirmed by reproducing the original numbers exactly off <code>best.pt</code> on a subsample. The numbers below are now the correct <code>ep3.pt</code> re-run, saved with <code>--output</code> this time so the raw per-decision JSON is reproducible going forward — see <code>experiments/exp015-benchmark/results/</code>.)</em></p>
 <p><strong>Results.</strong> Move selection, PR = mean(error) × 500 over all 14,693 checker decisions (lower is better), plus a per-game-plan breakdown:</p>
 <table class="caption-top table">
 <colgroup>
@@ -1318,25 +1319,25 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tr>
 <tr class="odd">
 <td>exp014 (2-ply dist)</td>
-<td>2.51</td>
+<td>2.16</td>
 <td>14,693</td>
-<td>133</td>
-<td>1.62</td>
+<td>96</td>
+<td>1.13</td>
+<td>2.32</td>
+<td>1.97</td>
+<td>2.68</td>
 <td>2.44</td>
-<td>2.47</td>
-<td>3.05</td>
-<td>2.74</td>
 </tr>
 <tr class="even">
 <td>exp011b (0-ply dist)</td>
-<td>3.53</td>
+<td>2.75</td>
 <td>14,693</td>
-<td>227</td>
-<td>1.51</td>
-<td>3.90</td>
-<td>3.36</td>
-<td>4.31</td>
-<td>3.94</td>
+<td>149</td>
+<td>0.85</td>
+<td>3.15</td>
+<td>2.65</td>
+<td>3.46</td>
+<td>3.02</td>
 </tr>
 </tbody>
 </table>
@@ -1396,33 +1397,191 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tr>
 <tr class="odd">
 <td>exp014 (2-ply dist)</td>
-<td>0.9919</td>
-<td>0.0049</td>
+<td>0.9927</td>
+<td>0.0044</td>
 <td>149,113</td>
-<td>0.9835</td>
-<td>0.0053</td>
+<td>0.9850</td>
+<td>0.0048</td>
 <td>61,917</td>
-<td>0.9811</td>
-<td>0.0052</td>
+<td>0.9814</td>
+<td>0.0051</td>
 <td>116,421</td>
 </tr>
 <tr class="even">
 <td>exp011b (0-ply dist)</td>
-<td>0.9831</td>
-<td>0.0101</td>
+<td>0.9935</td>
+<td>0.0039</td>
 <td>149,113</td>
-<td>0.9658</td>
-<td>0.0109</td>
+<td>0.9870</td>
+<td>0.0042</td>
 <td>61,917</td>
-<td>0.9561</td>
-<td>0.0121</td>
+<td>0.9839</td>
+<td>0.0044</td>
 <td>116,421</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Comparability note.</strong> These PR numbers are not directly comparable to BGSage’s own published figures (Sage 3T ≈ 0.21 PR): this run scores checker decisions only against <code>cubeless_equity</code>, while BGSage’s own figures are cubeful and include cube decisions. The 3P reference tier is Sage 3-ply — a different engine from our GNUBG teacher, used here only as one of three adaptive-precision reference tiers.</p>
-<p><strong>Interpretation.</strong> Two distilled nets, an external reference, and a static protocol reproduce the R²-based ordering from <a href="#exp014">exp014</a> with an independent, lower-variance metric: <strong>exp014 (2-ply-distilled) beats exp011b (0-ply-distilled) on both PR (2.51 vs 3.53) and R² (0.9919 vs 0.9831 on the rollout tier)</strong> — the stronger teacher produces the stronger student, confirmed by move selection, not just fit quality. Neither raccoon net matches GNUBG 0-ply’s move selection (PR 2.14) despite exp014 training on GNUBG <strong>2-ply</strong> labels; the shortfall is consistent across game plans, and <strong>worst on pure-race positions</strong> (exp014 1.62, exp011b 1.51) — exactly where GNUBG plays nearest-perfectly (0.05–0.16) and where a value function should have the easiest time, an open puzzle called out below.</p>
-<p><strong>Conclusion.</strong> <em>Does the 2-ply-distilled net actually play better than the 0-ply-distilled net, independent of exp014’s R² proxy?</em> → <strong>Yes</strong>: on a static, external-reference PR benchmark (n=14,693 decisions), exp014 clearly outscores exp011b (PR 2.51 vs 3.53), corroborating exp014’s R²-only sign with a genuinely different, move-selection metric. Both remain well short of GNUBG 0-ply (PR 2.14), and the raw-ppg <em>size</em> of the gain — like the full-8M deliverable training — is still open.</p>
+<p><strong>Interpretation.</strong> Two distilled nets against an external, static reference give a genuinely two-metric read, not a clean reproduction of <a href="#exp014">exp014</a>’s ordering. On <strong>move selection</strong>, exp014 (2-ply-distilled) beats exp011b (0-ply-distilled) — PR 2.16 vs 2.75 — and comes within noise of GNUBG-0-ply itself (PR 2.14), a much closer read than fit-quality alone suggests. But per-plan, that aggregate near-parity is driven by racing/attacking/priming/anchoring, where exp014 sits roughly on par with (racing, attacking: even fractionally <em>better</em> than) GNUBG-0-ply’s own PR; <strong>pure-race positions remain a stark, specific weak point for both distilled nets</strong> (exp014 1.13, exp011b 0.85) — 5–7× GNUBG-0-ply’s race PR (0.16) — even though races have no contact and should be the easiest category for a value function, an open puzzle called out below. On raw <strong>value-fit to the rollout reference</strong> (R²/MSE), the ordering actually <strong>flips</strong>: exp011b edges out exp014 (R² 0.9935 vs 0.9927, MSE 0.0039 vs 0.0044) — the 0-ply-distilled net fits the <em>external</em> rollout equity slightly better than the 2-ply-distilled net does, despite training on a weaker teacher. This doesn’t contradict exp014’s own held-out R² result (which compared each net to its <em>own</em> training target, tied at 0.9983 vs 0.9983) — it’s a different quantity, fit against a reference neither net trained on — but it demonstrates cleanly that global calibration (R²/MSE) and within-decision move-selection (PR) measure different things and can disagree, echoed by <a href="#exp016">exp016</a>’s value-head panel.</p>
+<p><strong>Conclusion.</strong> <em>Does the 2-ply-distilled net actually play better than the 0-ply-distilled net, independent of exp014’s R² proxy?</em> → <strong>Yes on move selection, no on rollout fit-quality</strong>: exp014 outscores exp011b on PR (2.16 vs 2.75, and near GNUBG-0-ply’s own 2.14) — the metric that actually measures what the hypothesis asks (does it <em>play</em> better) — but exp011b fits the external rollout reference slightly better (R² 0.9935 vs 0.9927, MSE 0.0039 vs 0.0044). The two metrics disagree on which net is “better,” a genuine finding rather than noise (both scored on identical n=14,693 decisions / n=149,113 rollout positions): PR settles the playing-strength question this section asked, but the R²/MSE reversal means exp014’s held-out-R² sign claim doesn’t transfer cleanly to an external reference — an open tension, not a clean confirmation. The raw-ppg <em>size</em> of either gain — like the full-8M deliverable training — is still open.</p>
+</section>
+<section id="exp016" class="level2">
+<h2 class="anchored" data-anchor-id="exp016">exp016 — revisiting old A/B pairs at BGSage power</h2>
+<p><strong>Motivation.</strong> <a href="#exp015">exp015</a> showed the BGSage static benchmark resolves comparisons at far higher power than raw ppg, at zero play cost. Two earlier A/B pairs on this page were called <em>ties</em> by underpowered play metrics: exp011b’s scalar-vs-six-outcome value head (tied on GNUBG-0-ply ppg, n=6000, ±0.046) and the <a href="#feature-ablation">feature ablation</a>’s handcrafted channels, re-tested at production scale in the <a href="#consolidation">consolidation</a> (tied on an n=200 GNUBG match, ±0.5 ppg). <strong>One hypothesis:</strong> does the BGSage rollout tier resolve a real difference in either pair that the underpowered play metric left as a tie?</p>
+<p><strong>Setup.</strong> Two single-seed, production-scale (10×256) pairs, each differing in exactly one factor, re-scored on the full BGSage benchmark (<code>scripts/eval_benchmark_pr.py --dump-dir</code>, extended this experiment to also dump per-candidate predictions for paired analysis):</p>
+<ul>
+<li><strong>Panel A — exp011b value head</strong>: <code>scalar/ep3.pt</code> vs <code>outcomes6/ep3.pt</code> (both 26ch).</li>
+<li><strong>Panel B — handcrafted features</strong>: the consolidation A/B, <code>17ch/pretrained_v2.pt</code> (base-only) vs <code>26ch/pretrained_v2.pt</code> (all 26 channels), both trained on the identical 844k-example label pool.</li>
+</ul>
+<p>Two co-headline metrics (<code>scripts/exp016_paired_mse.py</code>), each reported as a delta between the two checkpoints with a bootstrap 95% CI (B=10,000) — resampling the data with replacement thousands of times and recomputing the delta each time shows how much it wobbles, i.e.&nbsp;whether the difference is real or could be noise. The wrinkle: each decision has 2–773 candidate moves sharing one board, so those candidates aren’t independent — resampling at the candidate level would treat 149,113 correlated rows as if they were independent and understate the noise. The fix is to resample whole <strong>decisions</strong> (all of a decision’s candidates move together), giving 5,695 independent units instead. As a more conservative cross-check, a second bootstrap resamples whole <strong>games</strong> (475 of them, since decisions within a game are sequential too) — reported alongside, and it confirms the decision-level result:</p>
+<ol type="1">
+<li><strong>Rollout-tier value MSE</strong>, candidate-weighted (n=149,113 candidates / 5,695 decisions).</li>
+<li><strong>PR</strong> (move-selection error × 500, all tiers, n=14,693) — objective-neutral, since rollout-MSE is literally the scalar head’s own training loss and would structurally favor a scalar-headed arm on fit quality alone. <strong>A strength difference is only claimed when MSE and PR agree in sign.</strong></li>
+</ol>
+<p><strong>Panel A — exp011b value head</strong> (n=5695 rollout decisions / 149113 candidates, PR over n=14693 decisions):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 12%">
+<col style="width: 15%">
+<col style="width: 13%">
+<col style="width: 25%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">metric</th>
+<th style="text-align: right;">scalar</th>
+<th style="text-align: right;">outcomes6</th>
+<th style="text-align: right;">Δ (A−B)</th>
+<th style="text-align: left;">95% CI (decision)</th>
+<th style="text-align: left;">excl. 0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">rollout MSE</td>
+<td style="text-align: right;">0.0058</td>
+<td style="text-align: right;">0.0039</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: left;">[+0.0017, +0.0023]</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PR (all tiers)</td>
+<td style="text-align: right;">2.62</td>
+<td style="text-align: right;">2.75</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: left;">[-0.25, -0.00]</td>
+<td style="text-align: left;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Panel B — handcrafted features (consolidation A/B)</strong> (n=5695 rollout decisions / 149113 candidates):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 27%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">metric</th>
+<th style="text-align: right;">17ch</th>
+<th style="text-align: right;">26ch</th>
+<th style="text-align: right;">Δ (A−B)</th>
+<th style="text-align: left;">95% CI (decision)</th>
+<th style="text-align: left;">excl. 0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">rollout MSE</td>
+<td style="text-align: right;">0.1205</td>
+<td style="text-align: right;">0.0748</td>
+<td style="text-align: right;">0.0457</td>
+<td style="text-align: left;">[+0.0401, +0.0512]</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PR (all tiers)</td>
+<td style="text-align: right;">28.98</td>
+<td style="text-align: right;">21.59</td>
+<td style="text-align: right;">7.39</td>
+<td style="text-align: left;">[+6.42, +8.37]</td>
+<td style="text-align: left;">yes</td>
+</tr>
+</tbody>
+</table>
+<p>Per-game-plan breakdown (supporting; decision-level bootstrap only, narrower n per plan so wider CIs):</p>
+<p>Panel B by game plan (17ch − 26ch):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 19%">
+<col style="width: 10%">
+<col style="width: 24%">
+<col style="width: 9%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">plan</th>
+<th style="text-align: left;">n (roll/all)</th>
+<th style="text-align: right;">MSE Δ</th>
+<th style="text-align: left;">MSE CI</th>
+<th style="text-align: right;">PR Δ</th>
+<th style="text-align: left;">PR CI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">purerace</td>
+<td style="text-align: left;">1153/1816</td>
+<td style="text-align: right;">0.0538</td>
+<td style="text-align: left;">[+0.0315, +0.0780]</td>
+<td style="text-align: right;">0.89</td>
+<td style="text-align: left;">[-1.31, +3.07]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">racing</td>
+<td style="text-align: left;">1229/3120</td>
+<td style="text-align: right;">0.0461</td>
+<td style="text-align: left;">[+0.0334, +0.0596]</td>
+<td style="text-align: right;">9.6</td>
+<td style="text-align: left;">[+7.35, +11.92]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">attacking</td>
+<td style="text-align: left;">1121/4111</td>
+<td style="text-align: right;">0.0575</td>
+<td style="text-align: left;">[+0.0483, +0.0670]</td>
+<td style="text-align: right;">8.09</td>
+<td style="text-align: left;">[+6.08, +10.19]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">priming</td>
+<td style="text-align: left;">739/2453</td>
+<td style="text-align: right;">0.0718</td>
+<td style="text-align: left;">[+0.0597, +0.0841]</td>
+<td style="text-align: right;">12.88</td>
+<td style="text-align: left;">[+10.18, +15.61]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">anchoring</td>
+<td style="text-align: left;">1453/3193</td>
+<td style="text-align: right;">0.0144</td>
+<td style="text-align: left;">[+0.0089, +0.0200]</td>
+<td style="text-align: right;">3.79</td>
+<td style="text-align: left;">[+2.38, +5.19]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation.</strong> <strong>Panel A is not jointly resolved.</strong> MSE and PR disagree in sign: outcomes6 has <em>lower</em> rollout MSE than scalar (0.0039 vs 0.0058, the opposite of the expected training-objective bias, since scalar trains directly against equity-MSE), but scalar has <em>lower</em> (better) PR (2.62 vs 2.75). Both deltas individually clear their bootstrap CIs — this is a real, higher-power-detected difference, not noise — but the two metrics point in opposite directions on which head “plays better,” so per the pre-registered rule this pair stays undecided; the practical choice (outcomes6, for its win/gammon/bg distribution) is unaffected either way. <strong>Panel B is cleanly resolved</strong>: 26ch beats 17ch on both MSE (0.0748 vs 0.1205) and PR (21.6 vs 29.0), both deltas an order of magnitude past their CIs — the “washes out at scale” call from the consolidation section was a real effect hiding under an n=200 play-metric’s noise floor, not a null result. Per-plan, the MSE gap is significant in every game plan including pure races (smallest of the five, but still excludes zero) — so the handcrafted channels (which include a pip-count feature specifically motivated by races) help fit quality even in the category they were meant for — but the PR gap is <em>not</em> significant for purerace or racing specifically, only for attacking/priming/anchoring; the aggregate PR win is driven by contact-heavy positions, not races.</p>
+<p><strong>Conclusion.</strong> <em>Does BGSage rollout power resolve either pair’s underpowered tie?</em> → <strong>Panel A (value head): no</strong> — MSE and PR now disagree in sign at high power, an open tension rather than a resolved winner. <strong>Panel B (handcrafted features): yes</strong> — 26ch clearly beats 17ch on both value-fit and move-selection at production scale (MSE 0.0748 vs 0.1205, PR 21.6 vs 29.0, n=149,113/14,693), reversing the “features wash out at scale” read; the gain concentrates in contact-heavy plans on PR, though the value-fit gain holds even in pure races.</p>
 </section>
 <section id="what-weve-learned" class="level2">
 <h2 class="anchored" data-anchor-id="what-weve-learned">What we’ve learned</h2>
@@ -1435,12 +1594,14 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>More search can hurt</strong>: deeper MCTS amplifies a miscalibrated value head, overriding a good distilled prior (<a href="#v5">v5</a>, confirmed again in <a href="#exp008">exp008</a>).</li>
 <li><strong>Input scaling is load-bearing</strong> — unnormalised handcrafted channels were an invisible regression; normalise in the encoder, not with an input BatchNorm (<a href="#feature-ablation">ablation</a>).</li>
 <li><strong>On-distribution DAgger works where self-play fails</strong>: learner-generated states + oracle labels for both targets improved on the strongest seed and broke the −1.6 wall (<a href="#exp008">exp008</a>).</li>
-<li><strong>Consolidated retraining beats incremental fine-tuning</strong> (~+0.4 ppg on the same labels), n=100 GNUBG evals mislead (−1.19 vs −1.38), and the handcrafted features wash out at 844k labels (<a href="#consolidation">consolidation</a>).</li>
+<li><strong>Consolidated retraining beats incremental fine-tuning</strong> (~+0.4 ppg on the same labels), n=100 GNUBG evals mislead (−1.19 vs −1.38), and the handcrafted features <em>appeared</em> to wash out at 844k labels on an n=200 GNUBG match (<a href="#consolidation">consolidation</a>) — revised by #16 below: a higher-power benchmark shows they do help.</li>
 <li><strong>Scaling DAgger sets a new best but plateaus</strong> — the loop’s biggest gain lands early (the doubles-policy fix), then an ungated, warm-started loop <em>oscillates</em> around a plateau instead of converging; the fix is eval-gated keep-best, and the ~0.4-ppg-short-of-parity plateau under a fixed 2-ply teacher is the ceiling that motivates TD self-play (<a href="#exp009">exp009</a>).</li>
 <li><strong>Volume, not capacity, was the plateau</strong> — ~8M clean GNUBG-0-ply value labels produced a net that plays 0-ply <strong>near</strong> parity (−0.053 ± 0.046 vs GNUBG-0-ply at n=6000; −0.064 vs 2-ply), clearing the ~−0.3 wall DAgger and TD self-play both stalled at; the 10×256 architecture could always represent the value function, it just needed the labels — though a real ~0.05 handicap remains, so it is <em>near</em> the teacher, not at it. The scalar and six-outcome value heads <strong>tied</strong>, so the six-outcome head is kept downstream for its win/gammon/bg distribution (the cube), not because it plays stronger (<a href="#exp011b">exp011b</a>).</li>
 <li><strong>A 2-ply-distilled net fits its (stronger) teacher just as well as the 0-ply-distilled net fits its own</strong> — held-out R² tied at 0.9983 vs 0.9983 (n≈2M), checked directly for train/holdout leakage (none found to inflate the result). Since GNUBG-2-ply is the stronger player, this points to at least as strong a net — the <em>sign</em>, not the ppg magnitude, which raw play can’t resolve at feasible n (<a href="#exp014">exp014</a>).</li>
 <li><strong>The board-signature replay layer is reusable infrastructure</strong> — 99%+ match rate across raw and analysed corpora, behind every dataset on this page (<a href="#data-and-methodology">Data and methodology</a>).</li>
-<li><strong>A static, external-reference PR benchmark confirms exp014’s R² sign with an independent metric</strong>: the 2-ply-distilled net beats the 0-ply-distilled net on move selection too (PR 2.51 vs 3.53), not just fit quality — but neither matches GNUBG 0-ply (PR 2.14), and both are surprisingly weakest on pure-race positions (<a href="#exp015">exp015</a>).</li>
+<li><strong>A static, external-reference PR benchmark partly confirms, partly complicates exp014’s R² sign</strong>: the 2-ply-distilled net beats the 0-ply-distilled net on move selection (PR 2.16 vs 2.75, and PR comes near GNUBG-0-ply’s own 2.14) — but on raw fit to the external rollout reference, the ordering <strong>flips</strong> (R² 0.9935 vs 0.9927 favors the 0-ply net). Move-selection and value-fit are different skills and can disagree. Both nets are surprisingly weakest on pure-race positions (<a href="#exp015">exp015</a>).</li>
+<li><strong>A checkpoint-selection bug can hide in a hand-transcribed result and go undetected</strong> — exp015’s original numbers scored <code>best.pt</code> (a noisy in-loop-selected artifact) instead of the intended <code>ep3.pt</code> for both arms; caught only because <a href="#exp016">exp016</a> tried to reproduce them from scratch and couldn’t. Saving <code>--output</code> and preferring rendered-from-JSON tables over hand transcription (as done from exp016 onward) makes this class of bug visible immediately instead of silently persisting.</li>
+<li><strong>The “handcrafted features wash out at scale” call was an underpowered read, not a null result</strong> — the exact same two consolidation checkpoints (17ch vs 26ch), re-scored on the high-power BGSage benchmark instead of an n=200 GNUBG match, show a clear, significant edge for the 26ch arm on both PR and rollout MSE (<a href="#exp016">exp016</a>).</li>
 </ol>
 </section>
 <section id="open-questions" class="level2">
@@ -1451,10 +1612,10 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <li><strong>Ranking checkpoints on a plateau.</strong> exp009’s three n=200 milestones (round 6 −0.37, round 18 −0.50, round 25 −0.48) are within ~1 SE, so which is the true best — the deliverable — needs a larger head-to-head (n≥400) or a tie-break arena; the n=100 per-round evals cannot separate them.</li>
 <li><strong>Value calibration under search.</strong> “More sims hurt” has now been measured three times. A value head that search <em>strengthens</em> rather than undermines — possibly via multi-component outputs (win/gammon/bg probabilities, as TD-Gammon and GNUBG use) — is an open design question feeding exp010. It is sharpened by the ply-strength figures below: GNUBG <em>barely</em> improves from 0→2 ply (it is already near-perfect, so search hits diminishing returns) yet never worsens, whereas Raccoon — far from perfect, where search should help most — gets worse. A weak net whose own search degrades it is the clearest single indictment of the value head.</li>
 <li><strong>From near-0-ply to the 2-ply benchmark</strong> <em>(partly answered).</em> <a href="#exp011b">exp011b</a> benchmarked the completed net against <strong>both</strong> references (exp012b): <strong>−0.053 vs 0-ply, −0.064 vs 2-ply</strong> (n=6000 / n=1000) — so its 2-ply standing is now measured, and the searchless 2-ply gap (~0.06) is small (2-ply search buys GNUBG little against it). Still open: arm’s <code>best.pt</code> <strong>under MCTS / 2-ply search</strong> — the value head is, for the first time, calibrated for static play, so this remains the sharpest test of whether “more sims hurt” (below) finally flips into “more sims help.” Note the fair-beat principle: search on our own head is the <em>finish</em>, not the lead — a genuinely better net must win at matched search first.</li>
-<li><strong>Beyond 0-ply needs a stronger signal, not more labels.</strong> Since pure 0-ply distillation caps at the 0-ply teacher, reaching parity <em>ends</em> the value of more 0-ply labels. Per the fair-beat principle above, the priority is a better <em>evaluator</em>, so the routes rank: <strong>(a) TD self-play from the near-parity seed — run as <a href="./training_analysis.html#exp013">exp013</a>.</strong> Greedy TD from the exp011b seed showed no detectable movement over 39 batches (n=6000, ±0.046 each): −0.050 → −0.070 → −0.057, all tied. This rules out exp010’s ~−0.3 plateau as a universal attractor (this seed never fell toward it) but doesn’t establish a climb either — the test’s power (~33%) was too low for the realistic ~0.05 ppg effect. The untested sub-lever is <strong>temperature&gt;0 TD</strong> (this run was pure greedy). <strong>(b) Stronger-teacher distillation — run as <a href="#exp014">exp014</a>, partly answered.</strong> A net distilled on self-generated 2-ply labels fits its teacher exactly as well (held-out R² 0.9983) as the 0-ply-distilled net fits 0-ply, and since 2-ply is the stronger player this points to a genuinely stronger net — but raw ppg (underpowered at feasible n) can’t yet confirm the <em>size</em> of the gain. <a href="#exp015">exp015</a> has since corroborated the <em>sign</em> independently, on a static PR benchmark (2.51 vs 3.53) rather than R² — two different metrics now agree. Still open: train the deliverable on the full 8M (exp014 held out 2M for the A/B) and get a raw-ppg read against GNUBG. <strong>(c) Search on the calibrated head</strong> — the <em>finish</em>, not the lead: a genuinely superior net wins at matched search, so the net is load-bearing; search doubles as a cheap diagnostic of whether “more sims hurt” finally flipped. A volume scale-up (fleet generation + GPU training) earns its keep only under (b); a <em>deeper-than-2-ply</em> teacher (rollout / 3–4-ply analysis, e.g.&nbsp;via a Backgammon Galaxy collaboration) is the only external data that could break the 2-ply ceiling, since we can already self-make 2-ply.</li>
+<li><strong>Beyond 0-ply needs a stronger signal, not more labels.</strong> Since pure 0-ply distillation caps at the 0-ply teacher, reaching parity <em>ends</em> the value of more 0-ply labels. Per the fair-beat principle above, the priority is a better <em>evaluator</em>, so the routes rank: <strong>(a) TD self-play from the near-parity seed — run as <a href="./training_analysis.html#exp013">exp013</a>.</strong> Greedy TD from the exp011b seed showed no detectable movement over 39 batches (n=6000, ±0.046 each): −0.050 → −0.070 → −0.057, all tied. This rules out exp010’s ~−0.3 plateau as a universal attractor (this seed never fell toward it) but doesn’t establish a climb either — the test’s power (~33%) was too low for the realistic ~0.05 ppg effect. The untested sub-lever is <strong>temperature&gt;0 TD</strong> (this run was pure greedy). <strong>(b) Stronger-teacher distillation — run as <a href="#exp014">exp014</a>, partly answered.</strong> A net distilled on self-generated 2-ply labels fits its teacher exactly as well (held-out R² 0.9983) as the 0-ply-distilled net fits 0-ply, and since 2-ply is the stronger player this points to a genuinely stronger net — but raw ppg (underpowered at feasible n) can’t yet confirm the <em>size</em> of the gain. <a href="#exp015">exp015</a> has since checked the <em>sign</em> independently on a static PR benchmark (2.16 vs 2.75) — move selection agrees with the held-out-R² sign, but rollout-tier R²/MSE on the same benchmark actually flips the ordering, so the two metrics don’t cleanly agree after all. Still open: train the deliverable on the full 8M (exp014 held out 2M for the A/B) and get a raw-ppg read against GNUBG. <strong>(c) Search on the calibrated head</strong> — the <em>finish</em>, not the lead: a genuinely superior net wins at matched search, so the net is load-bearing; search doubles as a cheap diagnostic of whether “more sims hurt” finally flipped. A volume scale-up (fleet generation + GPU training) earns its keep only under (b); a <em>deeper-than-2-ply</em> teacher (rollout / 3–4-ply analysis, e.g.&nbsp;via a Backgammon Galaxy collaboration) is the only external data that could break the 2-ply ceiling, since we can already self-make 2-ply.</li>
 <li><strong>The multi-component head, cleanly</strong> <em>(answered).</em> <a href="#exp011b">exp011b</a> is the clean rematch — both arms trained 3 full epochs from random init, selected at n=1000: scalar and outcomes6 <strong>tie</strong> (ep3 −0.010 vs +0.001, 0.011 apart, well inside the difference-CI). So the six-outcome target doesn’t distil 0-ply <em>better</em> — but it is still wanted for the cube and for a TD value head, so it stays the preferred head on capability grounds.</li>
 <li><strong>The cube.</strong> Everything on this page is cubeless checker play, but the M6 goal (“beat GNUBG at money game”) implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.</li>
-<li><strong>Race positions are the distilled nets’ relative weak point.</strong> <a href="#exp015">exp015</a>’s per-game-plan PR breakdown shows both distilled nets doing relatively worst on pure-race positions (exp014 1.62, exp011b 1.51) versus GNUBG’s near-perfect race play (2-ply 0.05, 0-ply 0.16) — the largest relative gap of any game plan, and a surprising one, since races have no contact and should be the easiest category for a value function to get right. Unexplored: whether this is a labeling artifact of the benchmark’s race positions specifically, or a genuine weakness in how either distilled net handles pure races.</li>
+<li><strong>Race positions are the distilled nets’ relative weak point.</strong> <a href="#exp015">exp015</a>’s per-game-plan PR breakdown shows both distilled nets doing relatively worst on pure-race positions (exp014 1.13, exp011b 0.85) versus GNUBG’s near-perfect race play (2-ply 0.05, 0-ply 0.16) — 5–7×, the largest relative gap of any game plan, and a surprising one, since races have no contact and should be the easiest category for a value function to get right. Unexplored: whether this is a labeling artifact of the benchmark’s race positions specifically, or a genuine weakness in how either distilled net handles pure races.</li>
 </ul>
 
 
