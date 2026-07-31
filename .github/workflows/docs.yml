@@ -19,8 +19,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install package and quartodoc
-        run: pip install -e ".[dev]"
+      - name: Install docs dependencies
+        run: pip install quartodoc "griffe<1.0" jupyter pandas matplotlib numpy
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
