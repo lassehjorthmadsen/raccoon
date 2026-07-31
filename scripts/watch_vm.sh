@@ -18,6 +18,10 @@ VM="raccoon-gpu"
 ZONE="europe-west1-b"
 POLL_INTERVAL=300      # 5 min between normal polls
 STOCKOUT_RETRY=120     # 2 min between start retries on stockout
+# Which VM-side relaunch script to run. Default = self-play (train.py). Set
+# RESUME_SCRIPT=scripts/resume_distill.sh for a train_distill.py run (exp017).
+RESUME_SCRIPT="${RESUME_SCRIPT:-scripts/resume_training.sh}"
+GCS_BUCKET="${GCS_BUCKET:-gs://raccoon-training-lhm}"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
@@ -57,13 +61,24 @@ wait_for_ssh() {
 }
 
 resume_training() {
-  log "Launching resume_training.sh on VM"
+  log "Launching $RESUME_SCRIPT on VM"
   gcloud compute ssh "$VM" --zone="$ZONE" \
-    --command="bash ~/raccoon/scripts/resume_training.sh '$EXPNAME' $ITERATIONS"
+    --command="bash ~/raccoon/$RESUME_SCRIPT '$EXPNAME' $ITERATIONS"
 }
 
-log "Watchdog started for $EXPNAME (iterations=$ITERATIONS)"
+# A distillation run writes experiments/<name>/DONE on clean completion (all epochs
+# or the cumulative max-wall cap); its sync loop pushes it to GCS. Once it appears
+# the run is over — stop the VM and exit the watchdog. Self-play never writes DONE,
+# so this is a no-op for train.py runs (behavior unchanged).
+is_done() { gcloud storage ls "$GCS_BUCKET/experiments/$EXPNAME/DONE" >/dev/null 2>&1; }
+
+log "Watchdog started for $EXPNAME (resume=$RESUME_SCRIPT iterations=$ITERATIONS)"
 while true; do
+  if is_done; then
+    log "DONE marker in GCS — training complete; stopping VM and exiting watchdog"
+    [ "$(vm_status)" = "RUNNING" ] && gcloud compute instances stop "$VM" --zone="$ZONE" >/dev/null 2>&1 || true
+    exit 0
+  fi
   status="$(vm_status)"
   case "$status" in
     RUNNING)

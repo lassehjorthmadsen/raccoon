@@ -42,10 +42,26 @@ from raccoon.model.network import RaccoonNet
 from raccoon.train.td_selfplay import gnubg_arena
 
 
-def save_ckpt(net: RaccoonNet, path: Path) -> None:
+def save_ckpt(net: RaccoonNet, path: Path, extra: dict | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"model_state_dict": net.state_dict(), "config": net.config,
-                "step": -1, "pretrain_info": {"note": "exp011 distill"}}, path)
+    payload = {"model_state_dict": net.state_dict(), "config": net.config,
+               "step": -1, "pretrain_info": {"note": "exp011 distill"}}
+    if extra:
+        payload.update(extra)          # optimizer_state_dict + train_state for --resume
+    torch.save(payload, path)
+
+
+def epoch_order(shards, epoch, base_seed):
+    """Deterministic per-epoch shard order.
+
+    Seeded by (base_seed, epoch) so a resumed run reconstructs the *same* order
+    and can skip the shards it already finished — the basis of shard-granular
+    preemption recovery. (Pre-resume this was an unseeded random.shuffle, i.e.
+    non-reproducible run-to-run anyway, so seeding only adds determinism.)
+    """
+    order = list(shards)
+    random.Random(base_seed * 1_000_003 + epoch).shuffle(order)
+    return order
 
 
 def train_on_shard(net, opt, obs, eq, six, head, device, batch_size):
@@ -96,6 +112,15 @@ def main() -> None:
                    help="Seed for --holdout-frac's per-shard split (ignored if "
                         "--holdout-frac is 0).")
     p.add_argument("--smoke", action="store_true")
+    p.add_argument("--resume", default="",
+                   help="'auto' resumes from <ckpt_dir>/latest.pt (shard-granular; "
+                        "a no-op if that file is absent, so it's safe as the default "
+                        "launch flag for a spot/preemptible run). A path resumes from "
+                        "a specific latest-style checkpoint. Default '' = fresh run.")
+    p.add_argument("--shuffle-seed", type=int, default=20,
+                   help="Base seed for the deterministic per-epoch shard order "
+                        "(see epoch_order). Must be held fixed across a resumed run "
+                        "so completed shards are skipped correctly.")
     args = p.parse_args()
 
     torch.set_flush_denormal(True)
@@ -127,15 +152,55 @@ def main() -> None:
           f"{args.epochs} epochs, lr={args.lr} holdout_frac={args.holdout_frac} "
           f"split_seed={args.split_seed}", flush=True)
 
+    # ---- resume state (shard-granular preemption recovery; see --resume/epoch_order) ----
+    resume_epoch, start_idx = 1, 0
     best = float("-inf")
-    t0 = time.time()
+    cum_wall = 0.0          # training wall accumulated across prior (preempted) sessions
     shard_ctr = 0
+    if args.resume:
+        rp = ckpt_dir / "latest.pt" if args.resume == "auto" else Path(args.resume)
+        if rp.exists():
+            ck = torch.load(rp, map_location=device)
+            net.load_state_dict(ck["model_state_dict"])
+            if ck.get("optimizer_state_dict"):
+                opt.load_state_dict(ck["optimizer_state_dict"])
+            ts = ck.get("train_state", {})
+            ep = int(ts.get("epoch", 1))
+            done_in_ep = int(ts.get("shards_done_in_epoch", 0))
+            best = float(ts.get("best", float("-inf")))
+            cum_wall = float(ts.get("cum_wall_hours", 0.0))
+            shard_ctr = int(ts.get("shard_ctr", 0))
+            if done_in_ep >= len(shards):       # epoch was fully finished pre-preemption
+                resume_epoch, start_idx = ep + 1, 0
+            else:
+                resume_epoch, start_idx = ep, done_in_ep
+            print(f"[resume] from {rp}: epoch {resume_epoch} shard-idx {start_idx} "
+                  f"(shard_ctr={shard_ctr}, best={best:+.4f}, cum_wall={cum_wall:.2f}h)",
+                  flush=True)
+        else:
+            print(f"[resume] {rp} absent — starting fresh", flush=True)
+
+    t0 = time.time()
     total_shards = len(shards) * args.epochs
     stop = False
-    for epoch in range(1, args.epochs + 1):
-        order = list(shards)
-        random.shuffle(order)
-        for sh in order:
+    done_reason = None
+
+    def wall_now():
+        return cum_wall + (time.time() - t0) / 3600
+
+    def save_latest(cur_epoch, shards_done):
+        # shard-granular resume point: weights + Adam state + exactly where we are.
+        save_ckpt(net, ckpt_dir / "latest.pt", extra={
+            "optimizer_state_dict": opt.state_dict(),
+            "train_state": {"epoch": cur_epoch, "shards_done_in_epoch": shards_done,
+                            "shard_ctr": shard_ctr, "best": best,
+                            "cum_wall_hours": wall_now()}})
+
+    for epoch in range(resume_epoch, args.epochs + 1):
+        order = epoch_order(shards, epoch, args.shuffle_seed)
+        idx0 = start_idx if epoch == resume_epoch else 0
+        for si in range(idx0, len(order)):
+            sh = order[si]
             with np.load(sh) as z:
                 obs, eq, six = z["observations"], z["equity"], z["outcomes6"]
                 if args.holdout_frac > 0:
@@ -146,7 +211,7 @@ def main() -> None:
                 loss = train_on_shard(net, opt, obs, eq, six, args.value_head,
                                       device, args.batch_size)
             shard_ctr += 1
-            wall = (time.time() - t0) / 3600
+            wall = wall_now()
             rec = {"epoch": epoch, "shard": shard_ctr, "loss": round(loss, 6),
                    "wall_hours": round(wall, 3)}
 
@@ -157,11 +222,12 @@ def main() -> None:
                 eq_ppg = res["equity_per_game"]
                 rec[f"eval_vs_gnubg{args.gnubg_ply}ply_ppg"] = round(eq_ppg, 4)
                 rec["eval_games"] = res["games"]
-                save_ckpt(net, ckpt_dir / "latest.pt")
                 if eq_ppg > best:
                     best = eq_ppg
                     save_ckpt(net, ckpt_dir / "best.pt")
                     rec["new_best"] = True
+
+            save_latest(epoch, si + 1)   # every shard — cheap vs the ~minutes/shard compute
 
             log(rec)
             ev = rec.get(f"eval_vs_gnubg{args.gnubg_ply}ply_ppg")
@@ -170,20 +236,32 @@ def main() -> None:
                   f"best={best:+.3f} wall={rec['wall_hours']}h", flush=True)
 
             if args.max_wall_hours > 0 and wall > args.max_wall_hours:
-                print(f"max wall {args.max_wall_hours}h reached — stopping", flush=True)
+                print(f"cumulative max wall {args.max_wall_hours}h reached — stopping",
+                      flush=True)
+                done_reason = "max_wall"
                 stop = True
                 break
         if stop:
             break
-        # completed a full epoch — save a distinct per-epoch checkpoint so the
-        # real best can be picked offline at low noise (exp011b selects at n>=1000,
-        # not the noisy n=40 inline eval). Truncated final epochs are left to latest.pt.
+        # completed a full epoch — distinct per-epoch checkpoint (weights only) so the
+        # real best can be picked offline at low noise (exp011b selects at n>=1000, not
+        # the noisy n=40 inline eval), then bump latest.pt to the epoch boundary so a
+        # preemption right here resumes at epoch+1.
         save_ckpt(net, ckpt_dir / f"ep{epoch}.pt")
+        save_latest(epoch, len(order))
         print(f"  saved epoch checkpoint -> {ckpt_dir / f'ep{epoch}.pt'}", flush=True)
 
-    save_ckpt(net, ckpt_dir / "latest.pt")
-    print(f"\n===== ARM DONE ({args.value_head}) best vs GNUBG-{args.gnubg_ply}ply "
-          f"= {best:+.4f} ppg  -> {ckpt_dir/'best.pt'}", flush=True)
+    if not stop:
+        done_reason = "epochs_complete"
+    # DONE sentinel only on clean completion (all epochs, or cumulative max-wall) — a
+    # preemption SIGKILLs the process before here, so DONE stays absent and the watchdog
+    # relaunches; once DONE exists the watchdog stops restarting (the true cost cap).
+    if done_reason in ("epochs_complete", "max_wall"):
+        (exp_dir / "DONE").write_text(
+            f"reason={done_reason} wall={wall_now():.2f}h best={best:+.4f}\n")
+    print(f"\n===== ARM DONE ({args.value_head}) reason={done_reason} "
+          f"best vs GNUBG-{args.gnubg_ply}ply = {best:+.4f} ppg  -> {ckpt_dir/'best.pt'}",
+          flush=True)
 
 
 if __name__ == "__main__":
