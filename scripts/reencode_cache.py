@@ -10,7 +10,7 @@ through unchanged.
 Typical use (upgrade the archive + all exp008 on-dist caches):
 
     python scripts/reencode_cache.py --out-dir data/caches_26ch --verify \
-        data/bglab/gnubg4ply_cache_dbl.npz \
+        data/bglab/cache/gnubg4ply_cache_dbl.npz \
         experiments/exp008-ondist-10x256-2ply/caches/ondist_round_*.npz
 """
 

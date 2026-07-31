@@ -5,9 +5,12 @@ Top-level home for datasets shared across experiments (gitignored — see
 re-downloadable/re-fetchable from GCS).
 
 - `wildbg/` — CC0 wildbg-training rollout labels (`make download-wildbg`).
-- `bglab/` — sparse-checkout of the bglab match archive + synthesized 4-ply /
-  policy caches (see `CLAUDE.md` for the synthesis commands).
+- `bglab/` — the bglab match archive (plain files) + synthesized 4-ply /
+  policy caches (below).
 - `distill/` — GNUBG self-play distillation datasets (below).
+- `bgsage/` — the one BGSage dataset raccoon actually consumes, copied in
+  (below). The full bgsage engine is a separate sibling project, not vendored
+  here — see **external**.
 
 ## distill/
 
@@ -66,3 +69,55 @@ generated shards back to GCS as each stage completes.
 - run2: same pipeline, a later independent generation.
 - run3: `scripts/gen_gnubg_selfplay.py --positions 24000000 --seed 12345`
   (the "expand40m" job, `scripts/resume_expand.sh`) → `relabel_2ply.py --ply 2`.
+
+## bglab/
+
+```
+data/bglab/
+  lasse/    {raw, analyzed/{2-ply,4-ply}}   match archive, player "lasse"
+  Llabba/   {raw, analyzed/4-ply}           match archive, player "Llabba"
+  cache/    generated from the archive above (below)
+```
+
+`lasse/` and `Llabba/` are the raw match archive — plain text match files, one
+per game/match, `raw/` (unanalyzed) and `analyzed/<ply>/` (GNUBG-analyzed at
+that ply). This used to be a sparse-checkout git clone of the bglab R package
+(kept only for its `data-raw/` folder); the clone and the R-package scaffolding
+around it (`DESCRIPTION`, `NAMESPACE`, `LICENSE`, `_pkgdown.yml`, etc. — build
+metadata for a package we never build) added nothing we use, so both were
+dropped and only the match files themselves were kept, flattened one level
+(no more `data-raw/` in the path). **No git tracking** — this is now a plain
+point-in-time copy; refreshing with new matches means re-fetching from the
+original bglab source and re-flattening the same way (the exact clone URL
+wasn't recorded before `.git` was dropped).
+
+`cache/` holds what we've generated *from* the archive above, via
+`scripts/synthesize_gnubg_dataset.py` (`gnubg4ply_cache.npz`,
+`gnubg4ply_cache_dbl.npz` + an unzipped memmap copy of the latter for fast
+access) and `scripts/synthesize_policy_dataset.py` (`policy_cache.npz`,
+`policy_cache_iter0447.npz`), plus each run's `synthesis*.log`. See `CLAUDE.md`
+for the synthesis commands. Consumed by the v5/exp008/exp009/consolidate
+pretraining pipelines (`experiments/pipeline_v5*.sh`, `pipeline_exp008.sh`,
+`pipeline_exp009.sh`, `pipeline_consolidate.sh`) and `scripts/pretrain_policy.py`.
+
+## bgsage/
+
+`money_benchmark/benchmark.json.gz` (25.6M) — the only BGSage dataset raccoon
+code touches: 500 Sage-3P self-play money games, 17,535 decisions,
+adaptive-precision-adjudicated (rollout / 3-ply-team / 3-ply). Used by
+`scripts/eval_benchmark_pr.py` (exp015) as an external, low-variance reference
+for per-decision PR / R² scoring — see `docs/pretraining_analysis.qmd#exp015`.
+
+It's a **copy**, not a symlink or generated artifact — checksum-verified
+against the source repo at copy time. Re-copy from the source repo
+(`cp ~/python-projects/bgsage/data/money_benchmark/benchmark.json.gz
+data/bgsage/money_benchmark/`) if bgsage ever publishes an updated benchmark.
+
+## external (not under `data/`)
+
+- **`bgsage`** (full engine) — `https://github.com/markbgsage/bgsage.git`,
+  cloned as a full sibling project at `~/python-projects/bgsage` (a separate
+  C++/Python backgammon engine — the source of `data/bgsage/`, above, but not
+  itself part of raccoon or vendored here). Its `data/` directory has other
+  benchmark/training sets (`pasko_*`, `opponent-backgame-*`, etc.) that
+  raccoon doesn't currently use — only `money_benchmark/` is copied in.

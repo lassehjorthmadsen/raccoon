@@ -64,7 +64,7 @@ PR_MULTIPLIER = 500
 TIERS = ["rollout", "3T", "3P"]
 
 DEFAULT_BENCHMARK = str(
-    Path(__file__).resolve().parent.parent / ".." / "bgsage" / "data"
+    Path(__file__).resolve().parent.parent / "data" / "bgsage"
     / "money_benchmark" / "benchmark.json.gz"
 )
 

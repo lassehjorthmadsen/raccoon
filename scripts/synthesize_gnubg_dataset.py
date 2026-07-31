@@ -20,7 +20,7 @@ Verification: at every decision the replayed board is compared to the file's
 GNU Position ID (decoded); any desync aborts that game (counted, never
 silently mislabeled).
 
-Output ``data/bglab/gnubg4ply_cache.npz``:
+Output ``data/bglab/cache/gnubg4ply_cache.npz``:
   observations  (N,26,2,12) f32
   value_targets (N,)        f32
   policy_actions(N,K)       i32  (padded -1)
@@ -235,9 +235,9 @@ def _synthesize_game(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", type=str, default="data/bglab/gnubg4ply_cache.npz")
+    parser.add_argument("--out", type=str, default="data/bglab/cache/gnubg4ply_cache.npz")
     parser.add_argument(
-        "--analyzed-root", type=str, default="data/bglab/data-raw",
+        "--analyzed-root", type=str, default="data/bglab",
         help="Root holding lasse/analyzed and Llabba/analyzed.",
     )
     parser.add_argument(

@@ -19,7 +19,7 @@ For each decision state reached while replaying a match, we:
 The 0-ply lookahead itself lives in ``raccoon/train/lookahead.py`` (shared with
 TD self-play); this script just replays matches and drives ``process_decision``.
 
-Output: ``data/bglab/policy_cache.npz`` with three arrays:
+Output: ``data/bglab/cache/policy_cache.npz`` with three arrays:
 
   - ``observations`` : (N, 26, 2, 12) float32
   - ``policy_targets``: (N,) int32  — chosen action index in 0..1351
@@ -29,7 +29,7 @@ Typical run on the full corpus (~5000 games, ~240k decisions):
 
     python scripts/synthesize_policy_dataset.py \\
         --pretrained experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt \\
-        --out data/bglab/policy_cache.npz
+        --out data/bglab/cache/policy_cache.npz
 """
 
 from __future__ import annotations
@@ -58,14 +58,14 @@ def main() -> None:
         help="Checkpoint whose V head drives the 0-ply lookahead.",
     )
     parser.add_argument(
-        "--out", type=str, default="data/bglab/policy_cache.npz",
+        "--out", type=str, default="data/bglab/cache/policy_cache.npz",
         help="Output npz path. Directory will be created if needed.",
     )
     parser.add_argument(
         "--patterns", type=str, nargs="+",
         default=[
-            "data/bglab/data-raw/lasse/raw/*.txt",
-            "data/bglab/data-raw/Llabba/raw/*.txt",
+            "data/bglab/lasse/raw/*.txt",
+            "data/bglab/Llabba/raw/*.txt",
         ],
         help="Glob patterns to find match files.",
     )

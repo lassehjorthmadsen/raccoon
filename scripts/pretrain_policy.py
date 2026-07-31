@@ -20,7 +20,7 @@ Typical use:
     python scripts/pretrain_policy.py \\
         --experiment-name pretrain-wildbg-v2 \\
         --base-checkpoint experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt \\
-        --cache data/bglab/policy_cache.npz
+        --cache data/bglab/cache/policy_cache.npz
 """
 
 from __future__ import annotations

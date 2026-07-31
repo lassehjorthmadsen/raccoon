@@ -39,14 +39,15 @@ python3 scripts/train.py --experiment-name exp007-pretrained \
   --resume experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt --simulations 800
 
 # Stage-2 policy pretraining via 1-ply V-lookahead on bglab match positions.
-# Requires bglab cloned at data/bglab/ (sparse-checkout of data-raw/{lasse,Llabba}/raw).
+# Requires the match archive at data/bglab/{lasse,Llabba}/{raw,analyzed} (plain
+# files, no git tracking — see data/README.md for how to refresh from source).
 # Stage 1 (synthesis) is the long step — ~8 h on iMac CPU, ~minutes on T4 GPU.
 python3 scripts/synthesize_policy_dataset.py \
   --pretrained experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt \
-  --out data/bglab/policy_cache.npz
+  --out data/bglab/cache/policy_cache.npz
 python3 scripts/pretrain_policy.py --experiment-name pretrain-wildbg-v2 \
   --base-checkpoint experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt \
-  --cache data/bglab/policy_cache.npz --epochs 10
+  --cache data/bglab/cache/policy_cache.npz --epochs 10
 ```
 
 ## Architecture
