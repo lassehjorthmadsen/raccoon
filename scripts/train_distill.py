@@ -10,16 +10,20 @@ shards, keeping the best checkpoint.
   arm B (outcomes6): cross-entropy(softmax(6 logits), six-outcome target dist);
                      equity is derived from the softmax at eval/play time.
 
-    python scripts/train_distill.py --cache-dir experiments/exp011-distill/cache \\
+    python scripts/train_distill.py --cache-dir data/distill/0ply/run1 \\
         --experiment-name exp011-distill/scalar --value-head scalar --epochs 2
 
 exp014 reuses this unchanged, only swapping --cache-dir for the 2-ply cache and
 adding --holdout-frac so both arms train on the identical 6M positions and hold
 out the identical 2M for a fair R^2 comparison (scripts/eval_r2.py):
 
-    python scripts/train_distill.py --cache-dir experiments/exp011-distill/cache_2ply \\
+    python scripts/train_distill.py --cache-dir data/distill/2ply/run1 \\
         --experiment-name exp014-distill/scalar_2ply --value-head scalar --epochs 3 \\
         --holdout-frac 0.25 --split-seed 14
+
+--cache-dir accepts either a single run dir (e.g. data/distill/2ply/run1) or a
+ply-level dir spanning multiple runs (e.g. data/distill/2ply) — shard discovery
+is recursive (see data/README.md for the run/ply layout and provenance table).
 """
 from __future__ import annotations
 
@@ -96,7 +100,7 @@ def main() -> None:
 
     torch.set_flush_denormal(True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    shards = sorted(Path(args.cache_dir).glob("shard_*.npz"))
+    shards = sorted(Path(args.cache_dir).rglob("shard_*.npz"))
     if not shards:
         raise SystemExit(f"no shards in {args.cache_dir}")
     if args.smoke:

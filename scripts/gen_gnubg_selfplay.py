@@ -14,7 +14,7 @@ outcomes6 float32) so a 10M-position set streams through training (scripts/
 train_distill.py) without holding it all in RAM. Net-free and fast (~0.003 s per
 decision); parallel across workers via a spawn pool (fresh gnubg_nn per process).
 
-    python scripts/gen_gnubg_selfplay.py --out-dir experiments/exp011-distill/cache \\
+    python scripts/gen_gnubg_selfplay.py --out-dir data/distill/0ply/run1 \\
         --positions 10000000 --shard-size 500000 --workers 3
 """
 from __future__ import annotations

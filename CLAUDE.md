@@ -110,4 +110,5 @@ Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-
 - `README.md` — Design decisions, tech stack, and references
 - `docs/plan.md` — Full implementation plan with per-milestone specs, interfaces, and test requirements
 - `docs/gcp_guide.md` — GCP training workflow, commands, costs, and troubleshooting
-- `experiments/<name>/{checkpoints,logs}/` — All training output lives here (gitignored). Same layout on VM, in GCS (`gs://raccoon-training-lhm/experiments/`), and locally.
+- `data/README.md` — Layout of shared datasets (`data/wildbg/`, `data/bglab/`, `data/distill/`); `data/distill/` holds the GNUBG self-play distillation caches organized by label ply then generation run, with GCS provenance
+- `experiments/<name>/{checkpoints,logs}/` — All training output lives here (gitignored). Same layout on VM, in GCS (`gs://raccoon-training-lhm/experiments/`), and locally. `data/distill/` mirrors the same way under `gs://raccoon-training-lhm/data/distill/`.

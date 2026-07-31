@@ -11,8 +11,8 @@ Speed (benchmarked on 16-core Windows work PC via WSL):
   All 18 shards (9M positions) ≈ 4.5 h.
 
     python scripts/relabel_2ply.py \\
-        --in-dir experiments/exp011-distill/cache \\
-        --out-dir experiments/exp011-distill/cache_2ply \\
+        --in-dir data/distill/0ply/run1 \\
+        --out-dir data/distill/2ply/run1 \\
         --ply 2 --workers 14
 """
 from __future__ import annotations

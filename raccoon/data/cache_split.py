@@ -1,14 +1,14 @@
 """Deterministic train/holdout split for GNUBG-label distillation caches.
 
 exp014 compares two nets trained on the *same* 6M positions — one on GNUBG-0-ply
-labels (``experiments/exp011-distill/cache/``), one on GNUBG-2-ply labels
-(``experiments/exp011-distill/cache_2ply/``) — holding out the same 2M positions
-from both, so R² is measured on an identical, unseen set for both arms.
+labels (``data/distill/0ply/run1/``), one on GNUBG-2-ply labels
+(``data/distill/2ply/run1/``) — holding out the same 2M positions from both, so
+R² is measured on an identical, unseen set for both arms.
 
 The two caches are shard-for-shard byte-identical in ``observations`` (only the
 labels differ), so a split that depends only on ``(split_seed, shard_name, row
 index)`` — never on cache content — automatically lines up row-for-row across
-``cache/`` and ``cache_2ply/`` without needing to store or share a mask file.
+``0ply/run1/`` and ``2ply/run1/`` without needing to store or share a mask file.
 ``scripts/train_distill.py`` (excludes holdout rows from training) and
 ``scripts/eval_r2.py`` (scores only holdout rows) both call :func:`held_out_mask`
 so they can never drift apart.

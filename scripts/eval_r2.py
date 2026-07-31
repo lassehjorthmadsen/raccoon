@@ -4,13 +4,20 @@ The hypothesis: can the scalar net fit GNUBG-2-ply labels about as well as it
 fits GNUBG-0-ply labels? Since 2-ply is a stronger player, fitting it equally
 well implies a stronger net (a proxy for play strength, not a ppg number).
 
-``experiments/exp011-distill/cache/`` (0-ply) and ``cache_2ply/`` (2-ply) are
-shard-for-shard byte-identical in ``observations`` — only the labels differ —
-so this script uses ``raccoon.data.cache_split.held_out_mask`` (the SAME split
-function ``train_distill.py --holdout-frac`` uses) to pull the identical held-out
-rows from either cache. Pass ``--cross-cache-dir`` to also score the checkpoint
+``data/distill/0ply/run1`` and ``data/distill/2ply/run1`` are shard-for-shard
+byte-identical in ``observations`` — only the labels differ — so this script
+uses ``raccoon.data.cache_split.held_out_mask`` (the SAME split function
+``train_distill.py --holdout-frac`` uses) to pull the identical held-out rows
+from either cache. Pass ``--cross-cache-dir`` to also score the checkpoint
 against the *other* label set (the exp014 2x2), and ``--sample-train N`` to also
 report an in-sample R^2 for the overfitting check.
+
+``--cache-dir``/``--cross-cache-dir`` accept either a single run dir or a
+ply-level dir spanning multiple runs (shard discovery is recursive — see
+data/README.md for the run/ply layout). ``--cross-cache-dir`` requires
+shard-for-shard filename alignment against ``--cache-dir``, which only holds
+within one run (run1's 0-ply and 2-ply caches share the same positions and
+filenames; run2/run3 do not) — pass single-run dirs when using it.
 
 The real 10x256 net is ~10,000x more compute per sample than a tiny test net, so
 a full-precision pass (all 18 shards, ~2M held-out rows) can take well over an
@@ -23,18 +30,18 @@ supporting/monotonicity check.
     # own-label R^2 (a 2-ply-trained checkpoint scored on 2-ply labels)
     python scripts/eval_r2.py \\
         --checkpoint experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt \\
-        --cache-dir experiments/exp011-distill/cache_2ply
+        --cache-dir data/distill/2ply/run1
 
     # fast supporting-curve pass (subsampled, for a non-headline epoch)
     python scripts/eval_r2.py \\
         --checkpoint experiments/exp014-distill/scalar_2ply/checkpoints/ep1.pt \\
-        --cache-dir experiments/exp011-distill/cache_2ply --max-holdout 200000
+        --cache-dir data/distill/2ply/run1 --max-holdout 200000
 
     # full 2x2 cell + train-sample R^2 (overfitting check)
     python scripts/eval_r2.py \\
         --checkpoint experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt \\
-        --cache-dir experiments/exp011-distill/cache_2ply \\
-        --cross-cache-dir experiments/exp011-distill/cache \\
+        --cache-dir data/distill/2ply/run1 \\
+        --cross-cache-dir data/distill/0ply/run1 \\
         --sample-train 200000
 """
 from __future__ import annotations
@@ -95,12 +102,21 @@ def collect(cache_dir: str, holdout_frac: float, split_seed: int,
     all shards; leave ``max_holdout`` at 0 (full precision) when combining with
     ``--sample-train`` for a headline read.
     """
-    shards = sorted(Path(cache_dir).glob("shard_*.npz"))
+    shards = sorted(Path(cache_dir).rglob("shard_*.npz"))
     if not shards:
         raise SystemExit(f"no shards in {cache_dir}")
     cross_shards = None
     if cross_cache_dir:
-        cross_shards = {p.name: p for p in Path(cross_cache_dir).glob("shard_*.npz")}
+        cross_paths = sorted(Path(cross_cache_dir).rglob("shard_*.npz"))
+        names = [p.name for p in cross_paths]
+        if len(set(names)) != len(names):
+            raise SystemExit(
+                f"--cross-cache-dir {cross_cache_dir} has duplicate shard "
+                "filenames across runs — cross-cache alignment is by filename "
+                "and only holds within a single run; pass a single-run dir "
+                "(e.g. data/distill/0ply/run1), not a ply-level dir spanning "
+                "multiple runs")
+        cross_shards = {p.name: p for p in cross_paths}
 
     rng = np.random.default_rng(sample_seed)
     ho_obs, ho_eq, ho_eq_cross = [], [], [] if cross_shards is not None else None

@@ -8,6 +8,7 @@ set -euo pipefail
 
 REPO="$HOME/raccoon"
 LOG="$REPO/experiments/exp011-distill/expand40m.log"
+GCS_ROOT="gs://raccoon-training-lhm/data/distill"
 
 cd "$REPO"
 
@@ -24,20 +25,26 @@ tmux new-session -d -s gen40m "
 
   echo '--- gen step: '\$(date) >> $LOG
   python scripts/gen_gnubg_selfplay.py \
-      --out-dir experiments/exp011-distill/cache_new2 \
+      --out-dir data/distill/0ply/run3 \
       --positions 24000000 \
       --shard-size 500000 \
       --workers 4 \
       --seed 12345 \
       2>&1 | tee -a $LOG
 
+  echo '--- syncing 0-ply shards to GCS: '\$(date) >> $LOG
+  gcloud storage rsync data/distill/0ply/run3/ $GCS_ROOT/0ply/run3/ --recursive 2>&1 | tee -a $LOG
+
   echo '--- relabel step: '\$(date) >> $LOG
   python scripts/relabel_2ply.py \
-      --in-dir experiments/exp011-distill/cache_new2 \
-      --out-dir experiments/exp011-distill/cache_new2_2ply \
+      --in-dir data/distill/0ply/run3 \
+      --out-dir data/distill/2ply/run3 \
       --ply 2 \
       --workers 14 \
       2>&1 | tee -a $LOG
+
+  echo '--- syncing 2-ply shards to GCS: '\$(date) >> $LOG
+  gcloud storage rsync data/distill/2ply/run3/ $GCS_ROOT/2ply/run3/ --recursive 2>&1 | tee -a $LOG
 
   echo '=== expand40m done: '\$(date) >> $LOG
 "
