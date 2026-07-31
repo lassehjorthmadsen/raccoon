@@ -105,7 +105,7 @@ Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-
 
 ## Hardware
 
-- **Local dev (Windows work PC)**: Windows PC (WSL2, 16 CPU cores, no GPU). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
+- **Local dev (Windows work PC)**: Windows PC (WSL2, Intel i7-1365U, 6 cores / 12 threads, 16 GB RAM, no GPU). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.
 - **Local dev (Windows home PC)**: Windows PC (WSL2, Intel i7-8550U, 4 cores / 8 threads, 8 GB RAM, no GPU). Same small defaults; smoke runs only.
 - **Local dev (iMac)**: 2013 iMac (`lasse-iMac14-2`), Ubuntu 24.04, Intel i5-4570 (4 cores), 16 GB RAM, GT 755M (no CUDA — CPU only). Same small defaults as the Windows box; expect smoke runs only.
 - **Cloud training**: GCP spot VM with T4 GPU (`raccoon-gpu` in `europe-west1-b`). Auto-detects CUDA. See `docs/gcp_guide.md` for workflow.
