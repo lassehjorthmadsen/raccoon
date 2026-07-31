@@ -44,7 +44,7 @@ format:
     code-fold: true
 
 execute:
-  freeze: auto
+  freeze: true
 
 jupyter: python3
 
