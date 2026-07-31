@@ -1,0 +1,168 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: scalar (experiments/exp011b-distill/scalar/checkpoints/ep3.pt)...
+  [scalar] 500/14693 (34s, ~976s remaining)
+  [scalar] 1000/14693 (66s, ~899s remaining)
+  [scalar] 1500/14693 (93s, ~817s remaining)
+  [scalar] 2000/14693 (120s, ~760s remaining)
+  [scalar] 2500/14693 (148s, ~722s remaining)
+  [scalar] 3000/14693 (178s, ~693s remaining)
+  [scalar] 3500/14693 (206s, ~659s remaining)
+  [scalar] 4000/14693 (236s, ~631s remaining)
+  [scalar] 4500/14693 (266s, ~603s remaining)
+  [scalar] 5000/14693 (298s, ~577s remaining)
+  [scalar] 5500/14693 (327s, ~547s remaining)
+  [scalar] 6000/14693 (357s, ~518s remaining)
+  [scalar] 6500/14693 (389s, ~490s remaining)
+  [scalar] 7000/14693 (423s, ~465s remaining)
+  [scalar] 7500/14693 (460s, ~441s remaining)
+  [scalar] 8000/14693 (497s, ~416s remaining)
+  [scalar] 8500/14693 (534s, ~389s remaining)
+  [scalar] 9000/14693 (571s, ~361s remaining)
+  [scalar] 9500/14693 (603s, ~330s remaining)
+  [scalar] 10000/14693 (635s, ~298s remaining)
+  [scalar] 10500/14693 (670s, ~267s remaining)
+  [scalar] 11000/14693 (705s, ~237s remaining)
+  [scalar] 11500/14693 (738s, ~205s remaining)
+  [scalar] 12000/14693 (774s, ~174s remaining)
+  [scalar] 12500/14693 (809s, ~142s remaining)
+  [scalar] 13000/14693 (843s, ~110s remaining)
+  [scalar] 13500/14693 (879s, ~78s remaining)
+  [scalar] 14000/14693 (913s, ~45s remaining)
+  [scalar] 14500/14693 (947s, ~13s remaining)
+  [scalar] Done: 14693 decisions in 959.9s
+  [scalar] Saved predictions: experiments/exp016-benchmark-revisit/dumps/scalar.npz
+
+Scoring raccoon: outcomes6 (experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt)...
+  [outcomes6] 500/14693 (36s, ~1026s remaining)
+  [outcomes6] 1000/14693 (72s, ~986s remaining)
+  [outcomes6] 1500/14693 (107s, ~940s remaining)
+  [outcomes6] 2000/14693 (142s, ~901s remaining)
+  [outcomes6] 2500/14693 (176s, ~859s remaining)
+  [outcomes6] 3000/14693 (211s, ~822s remaining)
+  [outcomes6] 3500/14693 (244s, ~780s remaining)
+  [outcomes6] 4000/14693 (279s, ~745s remaining)
+  [outcomes6] 4500/14693 (312s, ~708s remaining)
+  [outcomes6] 5000/14693 (346s, ~671s remaining)
+  [outcomes6] 5500/14693 (378s, ~631s remaining)
+  [outcomes6] 6000/14693 (410s, ~593s remaining)
+  [outcomes6] 6500/14693 (443s, ~559s remaining)
+  [outcomes6] 7000/14693 (476s, ~524s remaining)
+  [outcomes6] 7500/14693 (514s, ~493s remaining)
+  [outcomes6] 8000/14693 (551s, ~461s remaining)
+  [outcomes6] 8500/14693 (586s, ~427s remaining)
+  [outcomes6] 9000/14693 (624s, ~395s remaining)
+  [outcomes6] 9500/14693 (656s, ~358s remaining)
+  [outcomes6] 10000/14693 (687s, ~322s remaining)
+  [outcomes6] 10500/14693 (721s, ~288s remaining)
+  [outcomes6] 11000/14693 (755s, ~254s remaining)
+  [outcomes6] 11500/14693 (785s, ~218s remaining)
+  [outcomes6] 12000/14693 (819s, ~184s remaining)
+  [outcomes6] 12500/14693 (855s, ~150s remaining)
+  [outcomes6] 13000/14693 (888s, ~116s remaining)
+  [outcomes6] 13500/14693 (925s, ~82s remaining)
+  [outcomes6] 14000/14693 (964s, ~48s remaining)
+  [outcomes6] 14500/14693 (1001s, ~13s remaining)
+  [outcomes6] Done: 14693 decisions in 1015.8s
+  [outcomes6] Saved predictions: experiments/exp016-benchmark-revisit/dumps/outcomes6.npz
+
+Scoring raccoon: consol_17ch (experiments/pretrain-consol/17ch/checkpoints/pretrained_v2.pt)...
+  [consol_17ch] 500/14693 (40s, ~1134s remaining)
+  [consol_17ch] 1000/14693 (84s, ~1149s remaining)
+  [consol_17ch] 1500/14693 (119s, ~1044s remaining)
+  [consol_17ch] 2000/14693 (152s, ~966s remaining)
+  [consol_17ch] 2500/14693 (185s, ~900s remaining)
+  [consol_17ch] 3000/14693 (220s, ~856s remaining)
+  [consol_17ch] 3500/14693 (252s, ~806s remaining)
+  [consol_17ch] 4000/14693 (285s, ~762s remaining)
+  [consol_17ch] 4500/14693 (317s, ~719s remaining)
+  [consol_17ch] 5000/14693 (351s, ~680s remaining)
+  [consol_17ch] 5500/14693 (379s, ~634s remaining)
+  [consol_17ch] 6000/14693 (411s, ~596s remaining)
+  [consol_17ch] 6500/14693 (444s, ~560s remaining)
+  [consol_17ch] 7000/14693 (477s, ~524s remaining)
+  [consol_17ch] 7500/14693 (513s, ~492s remaining)
+  [consol_17ch] 8000/14693 (550s, ~460s remaining)
+  [consol_17ch] 8500/14693 (584s, ~426s remaining)
+  [consol_17ch] 9000/14693 (622s, ~393s remaining)
+  [consol_17ch] 9500/14693 (656s, ~358s remaining)
+  [consol_17ch] 10000/14693 (687s, ~322s remaining)
+  [consol_17ch] 10500/14693 (720s, ~287s remaining)
+  [consol_17ch] 11000/14693 (754s, ~253s remaining)
+  [consol_17ch] 11500/14693 (786s, ~218s remaining)
+  [consol_17ch] 12000/14693 (820s, ~184s remaining)
+  [consol_17ch] 12500/14693 (855s, ~150s remaining)
+  [consol_17ch] 13000/14693 (888s, ~116s remaining)
+  [consol_17ch] 13500/14693 (923s, ~82s remaining)
+  [consol_17ch] 14000/14693 (956s, ~47s remaining)
+  [consol_17ch] 14500/14693 (988s, ~13s remaining)
+  [consol_17ch] Done: 14693 decisions in 1000.1s
+  [consol_17ch] Saved predictions: experiments/exp016-benchmark-revisit/dumps/consol_17ch.npz
+
+Scoring raccoon: consol_26ch (experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt)...
+  [consol_26ch] 500/14693 (36s, ~1010s remaining)
+  [consol_26ch] 1000/14693 (70s, ~963s remaining)
+  [consol_26ch] 1500/14693 (104s, ~914s remaining)
+  [consol_26ch] 2000/14693 (136s, ~865s remaining)
+  [consol_26ch] 2500/14693 (169s, ~824s remaining)
+  [consol_26ch] 3000/14693 (201s, ~784s remaining)
+  [consol_26ch] 3500/14693 (233s, ~747s remaining)
+  [consol_26ch] 4000/14693 (267s, ~713s remaining)
+  [consol_26ch] 4500/14693 (298s, ~676s remaining)
+  [consol_26ch] 5000/14693 (331s, ~641s remaining)
+  [consol_26ch] 5500/14693 (357s, ~597s remaining)
+  [consol_26ch] 6000/14693 (389s, ~564s remaining)
+  [consol_26ch] 6500/14693 (420s, ~529s remaining)
+  [consol_26ch] 7000/14693 (453s, ~497s remaining)
+  [consol_26ch] 7500/14693 (488s, ~468s remaining)
+  [consol_26ch] 8000/14693 (523s, ~438s remaining)
+  [consol_26ch] 8500/14693 (554s, ~404s remaining)
+  [consol_26ch] 9000/14693 (589s, ~373s remaining)
+  [consol_26ch] 9500/14693 (624s, ~341s remaining)
+  [consol_26ch] 10000/14693 (657s, ~308s remaining)
+  [consol_26ch] 10500/14693 (691s, ~276s remaining)
+  [consol_26ch] 11000/14693 (723s, ~243s remaining)
+  [consol_26ch] 11500/14693 (754s, ~209s remaining)
+  [consol_26ch] 12000/14693 (785s, ~176s remaining)
+  [consol_26ch] 12500/14693 (819s, ~144s remaining)
+  [consol_26ch] 13000/14693 (850s, ~111s remaining)
+  [consol_26ch] 13500/14693 (884s, ~78s remaining)
+  [consol_26ch] 14000/14693 (916s, ~45s remaining)
+  [consol_26ch] 14500/14693 (947s, ~13s remaining)
+  [consol_26ch] Done: 14693 decisions in 959.8s
+  [consol_26ch] Saved predictions: experiments/exp016-benchmark-revisit/dumps/consol_26ch.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  scalar                             2.62  14693    144    1.15    3.06    2.57    3.20    2.65
+  outcomes6                          2.75  14693    149    0.85    3.15    2.65    3.46    3.02
+  consol_17ch                       28.98  14693   3219   16.34   29.37   35.74   38.21   19.98
+  consol_26ch                       21.59  14693   2546   15.45   19.77   27.65   25.33   16.18
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  scalar                                  0.9903   0.0058   149113        0.9793   0.0066    61917        0.9732   0.0074   116421        0.9850   0.0065   327451
+  outcomes6                               0.9935   0.0039   149113        0.9870   0.0042    61917        0.9839   0.0044   116421        0.9905   0.0041   327451
+  consol_17ch                             0.7991   0.1205   149113        0.6465   0.1127    61917        0.6228   0.1040   116421        0.7400   0.1131   327451
+  consol_26ch                             0.8753   0.0748   149113        0.7807   0.0699    61917        0.7413   0.0713   116421        0.8331   0.0726   327451
+
+Saving results to experiments/exp016-benchmark-revisit/results/
+  Saved: experiments/exp016-benchmark-revisit/results/scalar.json
+  Saved: experiments/exp016-benchmark-revisit/results/outcomes6.json
+  Saved: experiments/exp016-benchmark-revisit/results/consol_17ch.json
+  Saved: experiments/exp016-benchmark-revisit/results/consol_26ch.json
+  Saved: experiments/exp016-benchmark-revisit/results/summary.json

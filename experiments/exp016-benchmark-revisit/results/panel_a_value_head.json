@@ -1,0 +1,216 @@
+{
+  "panel": "exp011b value head (10x256, 26ch, ep3)",
+  "n_decisions": 5695,
+  "n_games": 475,
+  "n_candidates": 149113,
+  "bootstrap_B": 10000,
+  "mse_candidate_weighted": {
+    "decision_level": {
+      "point": 0.0019661334845655592,
+      "ci95": [
+        0.0016899073652734465,
+        0.0022709401153600288
+      ],
+      "excludes_zero": true
+    },
+    "game_level": {
+      "point": 0.0019661334845655592,
+      "ci95": [
+        0.001673991111068614,
+        0.0022777160906853455
+      ],
+      "excludes_zero": true
+    }
+  },
+  "mse_decision_mean": {
+    "decision_level": {
+      "point": 0.0013851920432697488,
+      "ci95": [
+        0.0012590304322992363,
+        0.0015265651130194474
+      ],
+      "excludes_zero": true
+    },
+    "game_level": {
+      "point": 0.0013851920432697488,
+      "ci95": [
+        0.001238227976891882,
+        0.0015454174160191105
+      ],
+      "excludes_zero": true
+    }
+  },
+  "pr": {
+    "decision_level": {
+      "point": -0.127981406170151,
+      "ci95": [
+        -0.252821605301908,
+        -0.004791207214299669
+      ],
+      "excludes_zero": true
+    },
+    "game_level": {
+      "point": -0.127981406170151,
+      "ci95": [
+        -0.2507124966376907,
+        -0.003798009746713688
+      ],
+      "excludes_zero": true
+    }
+  },
+  "arm_a": {
+    "mse_candidate_weighted": 0.005837802203891327,
+    "mse_decision_mean": 0.004230452773701275,
+    "pr": 2.6220200084287604
+  },
+  "arm_b": {
+    "mse_candidate_weighted": 0.0038716687193257678,
+    "mse_decision_mean": 0.002845260730431526,
+    "pr": 2.7500014145989113
+  },
+  "n_decisions_pr": 14693,
+  "n_games_pr": 499,
+  "tier": "rollout",
+  "by_plan": {
+    "purerace": {
+      "n_decisions_rollout": 1153,
+      "n_decisions_all": 1816,
+      "mse_candidate_weighted": {
+        "point": 0.0007706244682469862,
+        "ci95": [
+          0.00016622256658575942,
+          0.0016552027328693706
+        ],
+        "excludes_zero": true
+      },
+      "pr": {
+        "point": 0.30689164036265365,
+        "ci95": [
+          0.06911060201471857,
+          0.5529522698798414
+        ],
+        "excludes_zero": true
+      },
+      "arm_a": {
+        "mse_candidate_weighted": 0.001947991807767772,
+        "pr": 1.154955045906999
+      },
+      "arm_b": {
+        "mse_candidate_weighted": 0.0011773673395207857,
+        "pr": 0.8480634055443453
+      }
+    },
+    "racing": {
+      "n_decisions_rollout": 1229,
+      "n_decisions_all": 3120,
+      "mse_candidate_weighted": {
+        "point": 0.002458503921966901,
+        "ci95": [
+          0.0018208870455923367,
+          0.0031523824165867464
+        ],
+        "excludes_zero": true
+      },
+      "pr": {
+        "point": -0.08726313027240763,
+        "ci95": [
+          -0.3820601447641818,
+          0.20815126199879366
+        ],
+        "excludes_zero": false
+      },
+      "arm_a": {
+        "mse_candidate_weighted": 0.007754542821674593,
+        "pr": 3.0617304646266676
+      },
+      "arm_b": {
+        "mse_candidate_weighted": 0.0052960388997076915,
+        "pr": 3.1489935948990753
+      }
+    },
+    "attacking": {
+      "n_decisions_rollout": 1121,
+      "n_decisions_all": 4111,
+      "mse_candidate_weighted": {
+        "point": 0.0034043598832352437,
+        "ci95": [
+          0.002563991600648446,
+          0.004337685438329586
+        ],
+        "excludes_zero": true
+      },
+      "pr": {
+        "point": -0.08339345959456398,
+        "ci95": [
+          -0.3066960890359244,
+          0.15261310464271774
+        ],
+        "excludes_zero": false
+      },
+      "arm_a": {
+        "mse_candidate_weighted": 0.008538139389498853,
+        "pr": 2.5715080803442354
+      },
+      "arm_b": {
+        "mse_candidate_weighted": 0.00513377950626361,
+        "pr": 2.654901539938799
+      }
+    },
+    "priming": {
+      "n_decisions_rollout": 739,
+      "n_decisions_all": 2453,
+      "mse_candidate_weighted": {
+        "point": 0.0020637187907261373,
+        "ci95": [
+          0.0015648199361912249,
+          0.0025876973494514334
+        ],
+        "excludes_zero": true
+      },
+      "pr": {
+        "point": -0.26613562656155504,
+        "ci95": [
+          -0.636351613465878,
+          0.10587376719742825
+        ],
+        "excludes_zero": false
+      },
+      "arm_a": {
+        "mse_candidate_weighted": 0.006625996199006793,
+        "pr": 3.1977142082012913
+      },
+      "arm_b": {
+        "mse_candidate_weighted": 0.004562277408280656,
+        "pr": 3.463849834762846
+      }
+    },
+    "anchoring": {
+      "n_decisions_rollout": 1453,
+      "n_decisions_all": 3193,
+      "mse_candidate_weighted": {
+        "point": 0.0010654691184091842,
+        "ci95": [
+          0.0008174067974184962,
+          0.0013198897000377648
+        ],
+        "excludes_zero": true
+      },
+      "pr": {
+        "point": -0.36637139021545617,
+        "ci95": [
+          -0.6198003718887908,
+          -0.12287290903746599
+        ],
+        "excludes_zero": true
+      },
+      "arm_a": {
+        "mse_candidate_weighted": 0.0038636400573606377,
+        "pr": 2.6495082680327418
+      },
+      "arm_b": {
+        "mse_candidate_weighted": 0.0027981709389514535,
+        "pr": 3.015879658248198
+      }
+    }
+  }
+}

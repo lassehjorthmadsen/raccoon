@@ -32,6 +32,15 @@ Usage:
     # Quick smoke test (first 200 decisions):
     python scripts/eval_benchmark_pr.py --gnubg-ply 0 --max-positions 200
 
+    # Dump per-candidate predictions for paired analysis across checkpoints
+    # (see scripts/exp016_paired_mse.py), one .npz per --engine-label:
+    python scripts/eval_benchmark_pr.py \\
+        --checkpoint experiments/exp011b-distill/scalar/checkpoints/ep3.pt \\
+        --engine-label scalar \\
+        --checkpoint experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt \\
+        --engine-label outcomes6 \\
+        --dump-dir experiments/exp016-benchmark-revisit/dumps/
+
     # Full exp015 comparison:
     python scripts/eval_benchmark_pr.py \\
         --gnubg-ply 0 --gnubg-ply 2 \\
@@ -45,6 +54,9 @@ import argparse
 import gzip
 import json
 import os
+
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")  # avoid CPU spin-collapse
+
 import subprocess
 import sys
 import tempfile
@@ -283,11 +295,20 @@ def score_raccoon(
     engine_label: str,
     device_str: str = "cpu",
     max_positions: int | None = None,
+    dump_predictions: str | None = None,
 ) -> dict:
-    """Score all checker decisions with a raccoon network checkpoint."""
+    """Score all checker decisions with a raccoon network checkpoint.
+
+    If `dump_predictions` is given, also write a per-candidate .npz with
+    aligned `pred_eq`/`ref_eq`/`tier`/`decision_key`/`game_seed`/`game_plan`
+    arrays (one row per candidate move, in benchmark order) for downstream
+    paired analysis across checkpoints (see scripts/exp016_paired_mse.py).
+    """
     import torch
     from raccoon.model.network import load_model
     from raccoon.env.encoder import encode_state, channels_for_network
+
+    torch.set_flush_denormal(True)  # iMac CPU: avoid denormal slowdown
 
     if max_positions is not None:
         decisions = decisions[:max_positions]
@@ -304,6 +325,14 @@ def score_raccoon(
 
     n_total = len(decisions)
     all_decision_results: list[dict] = []
+
+    # Flat per-candidate accumulators for --dump-predictions (exp016).
+    dump_pred: list[float] = []
+    dump_ref: list[float] = []
+    dump_tier: list[str] = []
+    dump_key: list[str] = []
+    dump_seed: list[int] = []
+    dump_plan: list[str] = []
 
     t0 = time.perf_counter()
 
@@ -345,6 +374,15 @@ def score_raccoon(
             "reference": reference_eqs,
         })
 
+        if dump_predictions:
+            n_cand = len(predicted_eqs)
+            dump_pred.extend(predicted_eqs)
+            dump_ref.extend(reference_eqs)
+            dump_tier.extend([dec["tier"]] * n_cand)
+            dump_key.extend([dec["key"]] * n_cand)
+            dump_seed.extend([dec["seed"]] * n_cand)
+            dump_plan.extend([dec["game_plan"]] * n_cand)
+
         if (i + 1) % 500 == 0:
             elapsed = time.perf_counter() - t0
             rate = (i + 1) / elapsed
@@ -360,6 +398,20 @@ def score_raccoon(
         f"  [{engine_label}] Done: {n_total} decisions in {elapsed:.1f}s",
         flush=True,
     )
+
+    if dump_predictions:
+        os.makedirs(os.path.dirname(dump_predictions) or ".", exist_ok=True)
+        np.savez_compressed(
+            dump_predictions,
+            pred_eq=np.array(dump_pred, dtype=np.float64),
+            ref_eq=np.array(dump_ref, dtype=np.float64),
+            tier=np.array(dump_tier, dtype=object),
+            decision_key=np.array(dump_key, dtype=object),
+            game_seed=np.array(dump_seed, dtype=np.int64),
+            game_plan=np.array(dump_plan, dtype=object),
+        )
+        print(f"  [{engine_label}] Saved predictions: {dump_predictions}", flush=True)
+
     return aggregate(all_decision_results, engine_label)
 
 
@@ -502,16 +554,20 @@ def print_table(results: list[dict]) -> None:
     print()
 
 
+def sanitize_label(label: str) -> str:
+    """Turn an engine label into a filesystem-safe stem, e.g. for filenames."""
+    fname = label.lower()
+    for ch in " ()/-.,":
+        fname = fname.replace(ch, "_")
+    return fname.strip("_")
+
+
 def save_results(results: list[dict], output_dir: str) -> None:
     """Save per-engine JSON files and summary.json."""
     os.makedirs(output_dir, exist_ok=True)
 
     for r in results:
-        # Sanitize label for filename
-        fname = r["engine_label"].lower()
-        for ch in " ()/-.,":
-            fname = fname.replace(ch, "_")
-        fname = fname.strip("_") + ".json"
+        fname = sanitize_label(r["engine_label"]) + ".json"
         path = os.path.join(output_dir, fname)
         with open(path, "w") as f:
             json.dump(r, f, indent=2)
@@ -599,6 +655,14 @@ def main():
         "--output", type=str, default=None,
         help="Directory to save JSON results",
     )
+    parser.add_argument(
+        "--dump-dir", type=str, default=None,
+        help=(
+            "Directory to save per-candidate prediction .npz files for each "
+            "raccoon checkpoint (one file per --checkpoint, named after its "
+            "--engine-label), for downstream paired analysis (exp016)."
+        ),
+    )
     args = parser.parse_args()
 
     if args.workers <= 0:
@@ -637,12 +701,19 @@ def main():
             print()
 
     # Score raccoon checkpoints
+    if args.dump_dir:
+        os.makedirs(args.dump_dir, exist_ok=True)
     for cp, label in zip(checkpoints, labels):
         print(f"Scoring raccoon: {label} ({cp})...")
+        dump_path = (
+            os.path.join(args.dump_dir, sanitize_label(label) + ".npz")
+            if args.dump_dir else None
+        )
         result = score_raccoon(
             decisions, cp, label,
             device_str=args.device,
             max_positions=args.max_positions,
+            dump_predictions=dump_path,
         )
         all_results.append(result)
         print()

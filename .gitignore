@@ -14,6 +14,8 @@ experiments/*
 !experiments/*/results/**
 experiments/*/checkpoints/
 experiments/*/caches/
+experiments/*/dumps/
+experiments/*/scratch/
 experiments/smoke/
 experiments/*/logs/*.out
 experiments/*/logs/stdout.log
