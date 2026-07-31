@@ -1,4 +1,4 @@
-.PHONY: setup test smoke train eval eval-gnubg play download-wildbg pretrain-smoke pretrain
+.PHONY: setup test smoke train eval eval-gnubg play download-wildbg pretrain-smoke pretrain pull-data push-data
 
 PYTHON := .venv/bin/python3
 
@@ -27,6 +27,12 @@ play:
 
 download-wildbg:
 	./scripts/download_wildbg.sh
+
+pull-data:
+	./scripts/pull_data.sh
+
+push-data:
+	./scripts/push_data.sh
 
 pretrain-smoke:
 	$(PYTHON) scripts/pretrain.py --experiment-name pretrain-smoke --epochs 1 --max-positions 2000

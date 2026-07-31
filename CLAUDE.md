@@ -17,6 +17,8 @@ make eval           # Checkpoint vs checkpoint evaluation
 make eval-gnubg     # Automated benchmark against GNUBG (gnubg-nn engine; level=world → full-width 2-ply)
 make play           # Interactive terminal play
 make download-wildbg # Fetch wildbg-training labeled positions (CC0) into data/wildbg/
+make pull-data       # Fetch data/bglab/ + data/bgsage/ from GCS — run once on a fresh machine
+make push-data       # Push local changes to data/bglab/ or data/bgsage/ back to GCS
 make pretrain-smoke  # 1 epoch on 2k positions — sanity check before a full pretrain
 make pretrain NAME=… # Full supervised pretraining on wildbg data
 
