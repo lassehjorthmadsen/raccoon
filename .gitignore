@@ -6,6 +6,7 @@ __pycache__/
 checkpoints/
 logs/
 experiments/*
+!experiments/*.sh
 !experiments/*/
 !experiments/*/logs/
 !experiments/*/logs/**
