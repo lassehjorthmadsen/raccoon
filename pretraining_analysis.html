@@ -217,7 +217,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="summary-the-strength-ladder" class="level2">
 <h2 class="anchored" data-anchor-id="summary-the-strength-ladder">Summary: the strength ladder</h2>
 <p>The one metric that matters is standalone strength against GNUBG 2-ply (<code>gnubg-nn</code> at <code>level=world</code> — full-width 2-ply, “World class”; see the <a href="./training_analysis.html#how-to-read-the-results">self-play page</a> for eval conventions). Each bar is one experiment’s final checkpoint — or its best, where a run oscillated (exp009 shows its round-6 peak):</p>
-<div id="b9fcbfc7" class="cell" data-execution_count="2">
+<div id="494406ba" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -531,7 +531,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The cheapest possible seed: regress the value head onto wildbg’s ~300k rollout equities and see how far a calibrated value function alone goes.</p>
 <p><strong>Setup.</strong> 20 epochs on the default 6×128 net (<code>pretrain-wildbg-v1</code>). The policy head receives no gradient and stays random.</p>
 <p><strong>Results.</strong></p>
-<div id="814060c4" class="cell" data-execution_count="4">
+<div id="30f6fc41" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -551,7 +551,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> wildbg has no move labels. Manufacture them: replay the bglab human matches, and at each decision do a 0-ply lookahead — static value evaluation of each candidate move, GNUBG’s convention (TD-Gammon calls it 1-ply) — with v1’s value head, one-hotting the best child as the policy target (~238k decisions).</p>
 <p><strong>Setup.</strong> Fine-tune both heads from v1 (<code>pretrain-wildbg-v2</code>): policy cross-entropy plus value distillation against the teacher’s own V(s), which keeps the value head calibrated while the trunk learns the dice channels (wildbg positions are all pre-roll).</p>
 <p><strong>Results.</strong></p>
-<div id="c6deb507" class="cell" data-execution_count="5">
+<div id="ae0efb75" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -568,7 +568,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> If the teacher is the ceiling, raise the teacher: re-synthesise the same policy targets using the strongest value function available — exp005’s iter_0447 — for the 0-ply lookahead. Same matches, same pipeline, better labels.</p>
 <p><strong>Setup.</strong> As v2, with iter_0447 as both the lookahead value function and the value-distillation target (<code>pretrain-wildbg-v2b</code>).</p>
 <p><strong>Results.</strong></p>
-<div id="6d388b67" class="cell" data-execution_count="6">
+<div id="ce3a3b08" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -585,7 +585,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> The way past iter_0447’s level is a teacher stronger than any network we own. The bglab archive ships one: GNUBG 4-ply analysis of the same matches — world-class labels, for free.</p>
 <p><strong>Setup.</strong> Read GNUBG’s labels directly off the analysed files at every non-doubles decision (<code>pretrain-gnubg-v3</code>): a <strong>soft</strong> policy target <code>softmax(money_equities / T)</code> over GNUBG’s candidate moves (near-ties taught as near-ties), and a money-equity value target — never GNUBG’s match-cubeful equity. ~139k positions. Doubles decisions (~18%) are dropped: OpenSpiel splits a doubles play into two decision nodes while GNUBG scores the whole move, so the first-half action is ambiguous. Same 6×128 net, warm from v1.</p>
 <p><strong>Results.</strong></p>
-<div id="68babfaa" class="cell" data-execution_count="7">
+<div id="6b29e22d" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -602,7 +602,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Motivation.</strong> With the teacher fixed at world class, the student’s shortfall has two candidate axes: capacity and coverage. v4 isolates capacity — same teacher, same ~139k cache, network scaled 6×128 → <strong>10×256</strong> (2.5M → 11.9M parameters).</p>
 <p><strong>Setup.</strong> Single-stage training from random init on the GNUBG cache (<code>pretrain-gnubg-v4-10x256</code>) — the cache carries value targets, so v1’s warm-start is no longer needed. 10 epochs, ~5.6 h on the iMac CPU.</p>
 <p><strong>Results.</strong></p>
-<div id="5f380a1b" class="cell" data-execution_count="8">
+<div id="ac34bed9" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -637,7 +637,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 <p><strong>Motivation.</strong> The encoder carries nine handcrafted broadcast channels (pip counts, blots, anchors, contact) added wholesale in commit <code>23463f0</code> and never tested. They are deterministic functions of the board — a large net could re-derive them — so their value, if any, is an inductive-bias shortcut in data-limited regimes. Are they helping or hurting?</p>
 <p><strong>Setup.</strong> Paired ablation in a deliberately small regime: 50k wildbg positions, 15 epochs, 6×128, two seeds per condition (same seed ⇒ same split). Yardstick: held-out value MSE, split into wildbg’s race vs contact files — pip count should help races most. Value-only training, so no play-strength numbers (v1’s lesson: they’d be meaningless).</p>
 <p><strong>Results.</strong></p>
-<div id="3c8ae90d" class="cell" data-execution_count="9">
+<div id="2fab8ffa" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -647,7 +647,7 @@ gnubg    total             3330     0.0051      0.171   (baseline)</code></pre>
 </div>
 </div>
 <p><strong>The features were silently mis-scaled.</strong> The base planes live in [0, 1] by construction; the handcrafted channels were emitted raw — pip count ~95–230, roughly 100× larger. Adding raw pip count alone <em>raised</em> val MSE by ~88% (0.0058 vs 0.0031): the input convolution reads every channel through one weight scale, so the giant channels dominate the gradient. A live regression, hiding since the commit that added the features.</p>
-<div id="8a6070fa" class="cell" data-execution_count="10">
+<div id="d06424ed" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1117,7 +1117,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 </tbody>
 </table>
 <p>(arena = 100 games vs the frozen consolidation 26ch seed; GNUBG every 2nd round, n=100, milestone n=200 at rounds 6/18/25; 50 eval sims. Blank cells are evals skipped when a VM preemption resumed past a completed round.)</p>
-<div id="20d47644" class="cell" data-execution_count="14">
+<div id="69dae71b" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1266,7 +1266,7 @@ cells: overall (race / contact); 2-seed mean of each run's best epoch</code></pr
 <p><strong>Motivation.</strong> <a href="#exp014">exp014</a>’s held-out R² result (0.9983 vs 0.9983) shows the 2-ply-distilled net fits its teacher as well as the 0-ply-distilled net fits its own — evidence for the <em>sign</em> of a strength difference, not its size, and explicitly not a raw-play confirmation. Resolving that difference with raw ppg needs a <strong>paired</strong> comparison between the two checkpoints, and <a href="./training_analysis.html#exp013">exp013</a> already measured that kind of test at only ~33% power for a δ≈0.05 effect at n=6000 (n=24000 is marginal even at the low end). A static, per-decision benchmark against an external, high-precision reference sidesteps that noise floor entirely — the same reason human players and commercial bots (XG, GNUBG) report skill as a per-decision Performance Rating (PR) rather than raw match results. The BGSage money-game benchmark (500 Sage-3P vs Sage-3P self-play games, analysed by Sage at adaptive precision; a sibling repo, not part of this project) gives exactly that: a fixed, noise-free position set with a reference stronger than any engine under test.</p>
 <p><strong>Why PR, not raw ppg, as the primary metric.</strong> This is a deliberate exception to the “primary metric must be raw play” convention, made explicit for that reason (mirroring <a href="#exp014">exp014</a>’s R² exception). It differs from the project’s previously-dropped “error-rate ppg” proxy: that one converted a per-decision error rate into a ppg estimate using a self-referential control variate (the evaluated net’s own pre-roll value against its own 1-ply lookahead), and that self-consistency failure is what made it biased. Here the reference (Sage rollout / 3-ply-team / 3-ply) is wholly external to every engine being scored and PR is reported in its own native units — no ppg conversion is attempted. The trade-off: PR measures move-selection skill on a fixed position set, not outcomes of complete games, so it is a <strong>proxy for playing strength</strong>, not playing strength itself; it is used here precisely because it is unbiased <em>and</em> far lower-variance than raw ppg for this comparison, not as a replacement for the raw-ppg standard elsewhere on this page.</p>
 <p><strong>Setup.</strong> <code>scripts/eval_benchmark_pr.py</code> scores each engine on every checker decision in the benchmark: encode all candidate moves from the opponent’s (next-to-move) perspective, take the engine’s argmax, and score <code>error = max(0, best_cubeless_eq − chosen_cubeless_eq)</code> against Sage’s <code>cubeless_equity</code> reference (never Sage’s cubeful equity, which would penalize cubeless engines for a cube they don’t carry). PR = mean(error) × 500, GNUBG’s convention. Cube decisions are skipped (all engines here are cubeless). Four engines: GNUBG 0-ply and 2-ply (via <code>gnubg-nn</code>), and the two existing distilled checkpoints from this page — <strong>exp011b’s outcomes6/ep3</strong> (the head kept downstream per <a href="#exp011b">exp011b</a>) and <strong>exp014’s scalar_2ply/ep3</strong> (the confound-free A/B arm, <em>not</em> the still-untrained full-8M deliverable <a href="#exp014">exp014</a> flagged as its own next step — that remains open). The benchmark corpus: 500 games, 17,535 total decisions (14,693 checker + 2,842 cube); BGSage’s adaptive-precision scheme assigns each of the corpus’s 16,889 non-trivial decisions a reference tier — rollout (5,977), 3-ply-team/3T (3,260), or 3-ply/3P (7,652) — costlier tiers going to closer, more contested decisions. <em>(That corpus-wide tally covers checker + cube decisions together; the R² breakdown below reports checker-only candidate positions by tier, a different, larger denominator — see the counts in that table.)</em></p>
-<p><em>(Numbers below are transcribed from the run’s printed output, not recomputed at render time like the rest of this page — the benchmark file lives in a sibling <code>bgsage</code> repo outside this project and the run’s raw per-decision JSON wasn’t saved (<code>--output</code> was not passed), so reproducing the exact table requires re-running the script.)</em></p>
+<p><em>(Numbers below are transcribed from the run’s printed output, not recomputed at render time like the rest of this page — the benchmark file lives in a sibling <code>bgsage</code> repo outside this project and the run’s raw per-decision JSON wasn’t saved (<code>--output</code> was not passed), so reproducing the exact table requires re-running the script. Update, 2026-07-31: the benchmark file is now copied into <code>data/bgsage/money_benchmark/benchmark.json.gz</code> (sourced from the bgsage repo, cloned as a sibling project at <code>~/python-projects/bgsage</code> — see <code>data/README.md</code>), so <code>scripts/eval_benchmark_pr.py</code> can be re-run directly; this table itself remains the original transcribed run, not re-derived.)</em></p>
 <p><strong>Results.</strong> Move selection, PR = mean(error) × 500 over all 14,693 checker decisions (lower is better), plus a per-game-plan breakdown:</p>
 <table class="caption-top table">
 <colgroup>
