@@ -72,6 +72,17 @@ resume_training() {
 # so this is a no-op for train.py runs (behavior unchanged).
 is_done() { gcloud storage ls "$GCS_BUCKET/experiments/$EXPNAME/DONE" >/dev/null 2>&1; }
 
+# Is training actually running? The 'train' tmux session (used by both resume_training.sh
+# and resume_distill.sh) is the liveness signal. Guards against the failure mode where the
+# VM is RUNNING but the resume launch never took (e.g. its SSH died on a network blip) —
+# without this the watchdog would sit logging "OK" while nothing trains. A false negative
+# (SSH itself blips) is harmless: the resume scripts are idempotent and no-op if 'train' exists.
+training_alive() {
+  gcloud compute ssh "$VM" --zone="$ZONE" \
+    --command="tmux has-session -t train 2>/dev/null" \
+    -- -o ConnectTimeout=10 -o StrictHostKeyChecking=no >/dev/null 2>&1
+}
+
 log "Watchdog started for $EXPNAME (resume=$RESUME_SCRIPT iterations=$ITERATIONS)"
 while true; do
   if is_done; then
@@ -82,7 +93,12 @@ while true; do
   status="$(vm_status)"
   case "$status" in
     RUNNING)
-      log "VM is RUNNING — OK"
+      if training_alive; then
+        log "VM RUNNING, training alive — OK"
+      else
+        log "VM RUNNING but 'train' session absent — relaunching (idempotent)"
+        wait_for_ssh && { resume_training || log "resume_training failed"; }
+      fi
       ;;
     TERMINATED|STOPPED|STOPPING)
       log "VM status=$status — bringing it back up"
