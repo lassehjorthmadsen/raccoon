@@ -78,9 +78,19 @@ is_done() { gcloud storage ls "$GCS_BUCKET/experiments/$EXPNAME/DONE" >/dev/null
 # without this the watchdog would sit logging "OK" while nothing trains. A false negative
 # (SSH itself blips) is harmless: the resume scripts are idempotent and no-op if 'train' exists.
 training_alive() {
-  gcloud compute ssh "$VM" --zone="$ZONE" \
-    --command="tmux has-session -t train 2>/dev/null" \
-    -- -o ConnectTimeout=10 -o StrictHostKeyChecking=no >/dev/null 2>&1
+  # Only report "not alive" when SSH actually CONNECTS and confirms 'train' is gone.
+  # A connect failure (flaky iMac network) yields no sentinel -> treated as unknown ->
+  # assume OK, so transient SSH timeouts don't trigger spurious relaunches. Distinguishing
+  # "SSH failed" from "session absent" is the whole point: the naive version conflated them
+  # and spammed harmless-but-alarming relaunch logs whenever the wifi hiccuped.
+  local out
+  out="$(gcloud compute ssh "$VM" --zone="$ZONE" \
+    --command="tmux has-session -t train 2>/dev/null && echo __ALIVE__ || echo __DEAD__" \
+    -- -o ConnectTimeout=10 -o StrictHostKeyChecking=no 2>/dev/null)"
+  case "$out" in
+    *__DEAD__*) return 1 ;;   # SSH connected, 'train' genuinely absent -> relaunch
+    *)          return 0 ;;   # __ALIVE__, or empty (SSH failed) -> assume OK
+  esac
 }
 
 log "Watchdog started for $EXPNAME (resume=$RESUME_SCRIPT iterations=$ITERATIONS)"
