@@ -781,6 +781,169 @@ print(plan_table(panel_b, "17ch", "26ch").to_markdown(index=False))
 
 **Conclusion.** *Does BGSage rollout power resolve either pair's underpowered tie?* → **Panel A (value head): no** — MSE and PR now disagree in sign at high power, an open tension rather than a resolved winner. **Panel B (handcrafted features): yes** — 26ch clearly beats 17ch on both value-fit and move-selection at production scale (MSE 0.0748 vs 0.1205, PR 21.6 vs 29.0, n=149,113/14,693), reversing the "features wash out at scale" read; the gain concentrates in contact-heavy plans on PR, though the value-fit gain holds even in pure races.
 
+## exp017 — does 40M 2-ply distillation beat 8M, and fix the race gap? {#exp017}
+
+**Motivation.** [exp015](#exp015) scored [exp014](#exp014)'s 2-ply-distilled net — trained on **8M** GNUBG-2-ply value labels — at **PR 2.16 / rollout-MSE 0.0044**, against the GNUBG-2-ply teacher's 0.56 / 0.0019. That 2.3× rollout-MSE gap is the signature of a net still **underfitting** its (harder) 2-ply target, not one sitting at a representational wall: the same 10×256 architecture already reached near-0-ply parity on 8M 0-ply labels ([exp011b](#exp011b)), so capacity is not the obvious ceiling. The obvious lever is **more of the same labels** — this run distils the full **40M** 2-ply corpus (5× the data: run1 plus the 32M *new* self-play positions of run2/run3, all 2-ply — see [data](#data-and-methodology)) and asks whether the extra data buys a stronger evaluator.
+
+The primary question is a **plateau** question: is BGSage error still descending at the last epoch (→ more epochs/data are worth it) or has it flattened (→ the bottleneck is capacity or the scalar target, not data)? The secondary question is **specific**: [exp015](#exp015)'s per-plan breakdown flagged pure races as both distilled nets' worst category (exp014 1.13 vs GNUBG-0-ply's 0.16). But a race fix is only real if it does not come **at the expense of the contact plans** — so the read below is the *full five-plan PR profile per epoch*, not pure-race alone; a genuine improvement lowers pure-race PR while racing / attacking / priming / anchoring hold or improve.
+
+**Setup.** The same recipe as [exp014](#exp014)'s scalar arm (10×256, scalar value head, lr 1e-3), on the 40M cache. The run was budgeted at 20 epochs / 72 h cumulative wall on a T4 spot VM and stopped on the **72 h cap after 14 complete epochs** (`ep1`–`ep14`); every epoch checkpoint is scored on the full BGSage benchmark by `experiments/score_exp017.sh` → `experiments/exp017-benchmark/results/`. The **anchor** is exp014's 8M `scalar_2ply/ep3` (the same checkpoint [exp015](#exp015) scored — re-scored here as a pipeline check), and the GNUBG 0-/2-ply and exp011b rows are carried verbatim from [exp015](#exp015)'s results so the tables extend the identical ladder. Pre-registered selection: **best epoch = minimum overall PR** (n=14,693); rollout-MSE (n≈149k) is reported alongside, and per [exp015](#exp015)/[exp016](#exp016) a strength claim is only clean when PR and MSE agree in sign.
+
+**Results.**
+
+```{python}
+#| echo: false
+# exp017 per-epoch BGSage results — shared loader for the tables + figure below.
+EXP017_RES = EXP_ROOT / "exp017-benchmark" / "results"
+EXP015_RES = EXP_ROOT / "exp015-benchmark" / "results"
+PLANS = ["purerace", "racing", "attacking", "priming", "anchoring"]
+N_EPOCHS_EXPECTED = 14
+
+def _bench_load(p):
+    return json.loads(Path(p).read_text())
+
+# Reference rows carried verbatim from exp015 (identical n → same ladder).
+_REF_FILES = {
+    "GNUBG 2-ply":        "gnubg_2_ply.json",
+    "GNUBG 0-ply":        "gnubg_0_ply.json",
+    "exp014 (8M, 2-ply)": "exp014__2_ply_dist.json",
+    "exp011b (0-ply)":    "exp011b__0_ply_dist.json",
+}
+REF = {name: _bench_load(EXP015_RES / fn)
+       for name, fn in _REF_FILES.items() if (EXP015_RES / fn).exists()}
+REF_ORDER = [n for n in _REF_FILES if n in REF]
+
+# exp017 per-epoch results, keyed by epoch parsed from the internal engine_label.
+EPOCHS = {}
+if EXP017_RES.exists():
+    for p in EXP017_RES.glob("*.json"):
+        if p.name == "summary.json":
+            continue
+        d = _bench_load(p)
+        m = re.match(r"exp017-ep(\d+)$", d.get("engine_label", ""))
+        if m:
+            EPOCHS[int(m.group(1))] = d
+
+EXP017_READY = len(EPOCHS) >= N_EPOCHS_EXPECTED
+BEST_EP = min(EPOCHS, key=lambda e: EPOCHS[e]["pr"]) if EPOCHS else None
+LAST_EP = max(EPOCHS) if EPOCHS else None
+
+def _pending(what):
+    print(f"*exp017 scoring in progress — {len(EPOCHS)}/{N_EPOCHS_EXPECTED} epochs "
+          f"scored; {what} auto-populate on re-render once "
+          f"`experiments/score_exp017.sh` finishes.*")
+```
+
+*Move selection* — PR = mean(error) × 500 over 14,693 checker decisions (lower is better), with the per-game-plan breakdown; reference rows carried from [exp015](#exp015):
+
+```{python}
+#| echo: false
+#| output: asis
+def _move_row(name, d):
+    row = {"Engine": name, "PR": round(d["pr"], 2), "n": d["n"], "Blunders": d["blunders"]}
+    row.update({pl: round(d["by_plan"][pl]["pr"], 2) for pl in PLANS})
+    return row
+
+if not EXP017_READY:
+    _pending("the exp017 tables and figure")
+else:
+    rows = [_move_row(n, REF[n]) for n in REF_ORDER]
+    rows.append(_move_row(f"exp017 ep{BEST_EP} (best PR)", EPOCHS[BEST_EP]))
+    if LAST_EP != BEST_EP:
+        rows.append(_move_row(f"exp017 ep{LAST_EP} (last)", EPOCHS[LAST_EP]))
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+*Eval accuracy* — R² / MSE of each engine's raw value estimate vs Sage's `cubeless_equity`; rollout tier is the headline (n≈149k), 3T / 3P alongside:
+
+```{python}
+#| echo: false
+#| output: asis
+def _acc_row(name, d):
+    ea = d["eval_accuracy"]
+    row = {"Engine": name}
+    for tier in ["rollout", "3T", "3P"]:
+        row[f"R² ({tier})"] = round(ea[tier]["r2"], 4)
+        row[f"MSE ({tier})"] = round(ea[tier]["mse"], 4)
+    row["n (roll)"] = ea["rollout"]["n_positions"]
+    return row
+
+if EXP017_READY:
+    rows = [_acc_row(n, REF[n]) for n in REF_ORDER]
+    rows.append(_acc_row(f"exp017 ep{BEST_EP} (best PR)", EPOCHS[BEST_EP]))
+    if LAST_EP != BEST_EP:
+        rows.append(_acc_row(f"exp017 ep{LAST_EP} (last)", EPOCHS[LAST_EP]))
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+*Per-epoch curve* — the plateau and the race-vs-contact trade-off in numbers (overall + per-plan PR, rollout MSE, ep1 → ep14):
+
+```{python}
+#| echo: false
+#| output: asis
+if EPOCHS:
+    rows = []
+    for ep in sorted(EPOCHS):
+        d = EPOCHS[ep]
+        row = {"epoch": ep, "PR": round(d["pr"], 2)}
+        row.update({pl: round(d["by_plan"][pl]["pr"], 2) for pl in PLANS})
+        row["rollout MSE"] = round(d["eval_accuracy"]["rollout"]["mse"], 4)
+        rows.append(row)
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+The same curve as a figure — **top panel**: each game plan's PR *relative to the 8M anchor* (dashed zero line), so below zero is better than 8M and a race fix that costs contact plans shows pure-race dropping while another plan rises above zero; **bottom panel**: rollout value-fit MSE against the GNUBG teacher references.
+
+```{python}
+#| echo: false
+if EPOCHS:
+    eps = sorted(EPOCHS)
+    # Okabe-Ito (colorblind-safe); pure-race gets the vermillion "hero" hue.
+    PLAN_COLORS = {"purerace": "#D55E00", "racing": "#0072B2", "attacking": "#009E73",
+                   "priming": "#CC79A7", "anchoring": "#E69F00"}
+    anchor = REF.get("exp014 (8M, 2-ply)")
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.5, 7.2), sharex=True)
+
+    # Panel 1: PR change vs the 8M anchor, per plan (+ overall).
+    if anchor:
+        for pl in PLANS:
+            base = anchor["by_plan"][pl]["pr"]
+            ax1.plot(eps, [EPOCHS[e]["by_plan"][pl]["pr"] - base for e in eps],
+                     "-o", color=PLAN_COLORS[pl], lw=2, ms=6, label=pl)
+        ax1.plot(eps, [EPOCHS[e]["pr"] - anchor["pr"] for e in eps],
+                 "-o", color="#333333", lw=2.6, ms=7, label="overall")
+        ax1.axhline(0, color="#333333", ls="--", lw=1.2)
+        ax1.text(eps[0], 0, " exp014 8M anchor", va="bottom", ha="left",
+                 fontsize=8, color="#333333")
+    ax1.set_ylabel("PR − 8M anchor\n(↓ = better than 8M)")
+    ax1.set_title("Move-selection PR by game plan, relative to the 8M anchor")
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(ncol=3, fontsize=8, loc="best")
+
+    # Panel 2: rollout value-fit MSE vs epoch, with teacher references.
+    ax2.plot(eps, [EPOCHS[e]["eval_accuracy"]["rollout"]["mse"] for e in eps],
+             "-o", color="#333333", lw=2.4, ms=7, label="exp017 (40M)")
+    for name, ls, col in [("exp014 (8M, 2-ply)", ":", "#888888"),
+                          ("GNUBG 2-ply", "--", "#009E73"),
+                          ("GNUBG 0-ply", "-.", "#0072B2")]:
+        r = REF.get(name)
+        if r:
+            m = r["eval_accuracy"]["rollout"]["mse"]
+            ax2.axhline(m, ls=ls, color=col, lw=1.4, label=f"{name} ({m:.4f})")
+    ax2.set_xlabel("epoch")
+    ax2.set_ylabel("rollout MSE  (↓ better)")
+    ax2.set_title("Value-fit to the rollout reference vs the teacher")
+    ax2.grid(True, alpha=0.3)
+    ax2.legend(fontsize=8, loc="best")
+    ax2.set_xticks(eps)
+    plt.tight_layout()
+    plt.show()
+```
+
+**Interpretation.** The pipeline check passes exactly — the exp014 8M anchor re-scores to PR 2.16 / rollout-MSE 0.0044, identical to [exp015](#exp015). Against it, 40M is a transformation, not a nudge: the best epoch (ep12) scores overall **PR 0.93** — down from 2.16, *past* GNUBG-0-ply's own raw 2.14 and most of the way to the GNUBG-2-ply teacher (0.56) — while rollout-tier MSE bottoms at **0.0019** (ep8–11), **matching the 2-ply teacher's 0.0019** and beating GNUBG-0-ply's 0.0021 (8M was 0.0044). So the 8M net was badly *underfit*, exactly as its 2.3× rollout-MSE gap warned; the 8M PR≈GNUBG-0-ply coincidence was never a searchless ceiling. **(a) Plateau**: both curves fall steeply through ~ep5, then flatten — PR oscillates 0.93–1.01 from ep6 on, MSE sits at 0.0019–0.0021 from ep8 on — so 14 epochs was ample and more epochs won't move it; the residual PR gap to 0.56 is the 2-ply search the teacher runs *at play time*, not missing labels. **(b) Trade-off**: none — *every* plan improves together (ep12 vs anchor: priming −1.67, anchoring −1.24, racing −1.22, attacking −1.14, purerace −0.84). Pure race — exp015's stark 1.13 outlier (~7× the teacher) — falls to 0.29, so that weakness was a **data/underfitting artifact resolved by scale**, not a structural blind spot. **(c) Agreement**: PR and rollout-MSE improve together and bottom within one epoch of each other (PR at ep12, MSE at ep11) — so unlike [exp015](#exp015)/[exp016](#exp016), the two metrics agree cleanly.
+
+**Conclusion.** *Does scaling 2-ply distillation 8M→40M lower BGSage error and fix pure races without trading off other plans?* → **Yes, decisively — and it plateaus.** Best epoch ep12 = **PR 0.93** (from the 8M anchor's 2.16, below GNUBG-0-ply's own 2.14) with rollout-MSE bottoming at **0.0019** (level with the GNUBG-2-ply teacher, from 0.0044); n=14,693 / n≈149k. All five game plans improve together — pure race 1.13→0.29 — so there is no trade-off and the race anomaly was underfitting, not structure. Both curves flatten by ~ep6–8, so the data/epoch lever is now spent; the gap left to the teacher's 0.56 PR is its play-time 2-ply search, not more labels. (Static-benchmark PR/MSE, not raw ppg — the fair-beat ppg confirmation at matched search is the open finish.)
+
 ## What we've learned
 
 1. **A calibrated value head is not a player** — with a random policy prior, MCTS never searches the moves the value head would reward ([v1](#v1)).
@@ -799,6 +962,7 @@ print(plan_table(panel_b, "17ch", "26ch").to_markdown(index=False))
 14. **A static, external-reference PR benchmark partly confirms, partly complicates exp014's R² sign**: the 2-ply-distilled net beats the 0-ply-distilled net on move selection (PR 2.16 vs 2.75, and PR comes near GNUBG-0-ply's own 2.14) — but on raw fit to the external rollout reference, the ordering **flips** (R² 0.9935 vs 0.9927 favors the 0-ply net). Move-selection and value-fit are different skills and can disagree. Both nets are surprisingly weakest on pure-race positions ([exp015](#exp015)).
 15. **A checkpoint-selection bug can hide in a hand-transcribed result and go undetected** — exp015's original numbers scored `best.pt` (a noisy in-loop-selected artifact) instead of the intended `ep3.pt` for both arms; caught only because [exp016](#exp016) tried to reproduce them from scratch and couldn't. Saving `--output` and preferring rendered-from-JSON tables over hand transcription (as done from exp016 onward) makes this class of bug visible immediately instead of silently persisting.
 16. **The "handcrafted features wash out at scale" call was an underpowered read, not a null result** — the exact same two consolidation checkpoints (17ch vs 26ch), re-scored on the high-power BGSage benchmark instead of an n=200 GNUBG match, show a clear, significant edge for the 26ch arm on both PR and rollout MSE ([exp016](#exp016)).
+17. **Data volume was the 2-ply bottleneck, and scaling it is transformative** — distilling the same 2-ply labels at 40M (vs [exp014](#exp014)'s 8M) drops static-benchmark PR from 2.16 to 0.93 and rollout-MSE from 0.0044 to 0.0019 (level with the GNUBG-2-ply teacher, and past GNUBG-0-ply on both metrics), every game plan improving together with no trade-off. The 8M net was underfit, not capacity-bound; the pure-race weakness ([exp015](#exp015)) was a data artifact (pure-race PR 1.13→0.29). It plateaus by ~ep6–8, so the residual gap to the teacher's 0.56 PR is its play-time 2-ply search, not more labels ([exp017](#exp017)).
 
 ## Open questions
 
@@ -810,4 +974,4 @@ print(plan_table(panel_b, "17ch", "26ch").to_markdown(index=False))
 - **Beyond 0-ply needs a stronger signal, not more labels.** Since pure 0-ply distillation caps at the 0-ply teacher, reaching parity *ends* the value of more 0-ply labels. Per the fair-beat principle above, the priority is a better *evaluator*, so the routes rank: **(a) TD self-play from the near-parity seed — run as [exp013](training_analysis.qmd#exp013).** Greedy TD from the exp011b seed showed no detectable movement over 39 batches (n=6000, ±0.046 each): −0.050 → −0.070 → −0.057, all tied. This rules out exp010's ~−0.3 plateau as a universal attractor (this seed never fell toward it) but doesn't establish a climb either — the test's power (~33%) was too low for the realistic ~0.05 ppg effect. The untested sub-lever is **temperature>0 TD** (this run was pure greedy). **(b) Stronger-teacher distillation — run as [exp014](#exp014), partly answered.** A net distilled on self-generated 2-ply labels fits its teacher exactly as well (held-out R² 0.9983) as the 0-ply-distilled net fits 0-ply, and since 2-ply is the stronger player this points to a genuinely stronger net — but raw ppg (underpowered at feasible n) can't yet confirm the *size* of the gain. [exp015](#exp015) has since checked the *sign* independently on a static PR benchmark (2.16 vs 2.75) — move selection agrees with the held-out-R² sign, but rollout-tier R²/MSE on the same benchmark actually flips the ordering, so the two metrics don't cleanly agree after all. Still open: train the deliverable on the full 8M (exp014 held out 2M for the A/B) and get a raw-ppg read against GNUBG. **(c) Search on the calibrated head** — the *finish*, not the lead: a genuinely superior net wins at matched search, so the net is load-bearing; search doubles as a cheap diagnostic of whether "more sims hurt" finally flipped. A volume scale-up (fleet generation + GPU training) earns its keep only under (b); a *deeper-than-2-ply* teacher (rollout / 3–4-ply analysis, e.g. via a Backgammon Galaxy collaboration) is the only external data that could break the 2-ply ceiling, since we can already self-make 2-ply.
 - **The multi-component head, cleanly** *(answered).* [exp011b](#exp011b) is the clean rematch — both arms trained 3 full epochs from random init, selected at n=1000: scalar and outcomes6 **tie** (ep3 −0.010 vs +0.001, 0.011 apart, well inside the difference-CI). So the six-outcome target doesn't distil 0-ply *better* — but it is still wanted for the cube and for a TD value head, so it stays the preferred head on capability grounds.
 - **The cube.** Everything on this page is cubeless checker play, but the M6 goal ("beat GNUBG at money game") implies the doubling cube. Reaching parity on the cubeless metric is necessary but not sufficient; either the goal is re-scoped to cubeless explicitly, or cube modelling joins the roadmap.
-- **Race positions are the distilled nets' relative weak point.** [exp015](#exp015)'s per-game-plan PR breakdown shows both distilled nets doing relatively worst on pure-race positions (exp014 1.13, exp011b 0.85) versus GNUBG's near-perfect race play (2-ply 0.05, 0-ply 0.16) — 5–7×, the largest relative gap of any game plan, and a surprising one, since races have no contact and should be the easiest category for a value function to get right. Unexplored: whether this is a labeling artifact of the benchmark's race positions specifically, or a genuine weakness in how either distilled net handles pure races.
+- **Race positions are the distilled nets' relative weak point.** [exp015](#exp015)'s per-game-plan PR breakdown shows both distilled nets doing relatively worst on pure-race positions (exp014 1.13, exp011b 0.85) versus GNUBG's near-perfect race play (2-ply 0.05, 0-ply 0.16) — 5–7×, the largest relative gap of any game plan, and a surprising one, since races have no contact and should be the easiest category for a value function to get right. **Largely answered by [exp017](#exp017):** scaling the 2-ply labels 8M→40M drops pure-race PR 1.13→0.29 with no trade-off against the other plans, so the gap was mostly an **underfitting / data-volume artifact**, not a structural weakness. At 0.29 it is still the category nearest its GNUBG reference (0.16), so a small residual remains, but it is no longer the stark 5–7× outlier.
