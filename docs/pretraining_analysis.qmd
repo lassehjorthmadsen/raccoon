@@ -22,6 +22,7 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
@@ -795,7 +796,7 @@ print(plan_table(panel_b, "17ch", "26ch").to_markdown(index=False))
 
 The primary question is a **plateau** question: is BGSage error still descending at the last epoch (→ more epochs/data are worth it) or has it flattened (→ the bottleneck is capacity or the scalar target, not data)? The secondary question is **specific**: [exp015](#exp015)'s per-plan breakdown flagged pure races as both distilled nets' worst category (exp014 1.13 vs GNUBG-0-ply's 0.16). But a race fix is only real if it does not come **at the expense of the contact plans** — so the read below is the *full five-plan PR profile per epoch*, not pure-race alone; a genuine improvement lowers pure-race PR while racing / attacking / priming / anchoring hold or improve.
 
-**Setup.** The same recipe as [exp014](#exp014)'s scalar arm (10×256, scalar value head, lr 1e-3), on the 40M cache. The run was budgeted at 20 epochs / 72 h cumulative wall on a T4 spot VM and stopped on the **72 h cap after 14 complete epochs** (`ep1`–`ep14`); every epoch checkpoint is scored on the full BGSage benchmark by `experiments/score_exp017.sh` → `experiments/exp017-benchmark/results/`. The **anchor** is exp014's 8M `scalar_2ply/ep3` (the same checkpoint [exp015](#exp015) scored — re-scored here as a pipeline check), and the GNUBG 0-/2-ply and exp011b rows are carried verbatim from [exp015](#exp015)'s results so the tables extend the identical ladder. Pre-registered selection: **best epoch = minimum overall PR** (n=14,693); rollout-MSE (n≈149k) is reported alongside, and per [exp015](#exp015)/[exp016](#exp016) a strength claim is only clean when PR and MSE agree in sign.
+**Setup.** The same recipe as [exp014](#exp014)'s scalar arm (10×256, scalar value head, lr 1e-3), on the 40M cache. The run was budgeted at 20 epochs / 72 h cumulative wall on a T4 spot VM and stopped on the **72 h cap after 14 complete epochs** (`ep1`–`ep14`); every epoch checkpoint is scored on the full BGSage benchmark by `experiments/score_exp017.sh` → `experiments/exp017-benchmark/results/`, and the run's own shard-level training log (`experiments/exp017-distill/logs/distill_log.jsonl`) supplies the supporting loss curve. The **anchor** is exp014's 8M `scalar_2ply/ep3` (the same checkpoint [exp015](#exp015) scored — re-scored here as a pipeline check), and the GNUBG 0-/2-ply and exp011b rows are carried verbatim from [exp015](#exp015)'s results so the tables extend the identical ladder. Pre-registered selection: **best epoch = minimum overall PR** (n=14,693); rollout-MSE (n≈149k) is reported alongside, and per [exp015](#exp015)/[exp016](#exp016) a strength claim is only clean when PR and MSE agree in sign.
 
 **Results.**
 
@@ -835,6 +836,24 @@ if EXP017_RES.exists():
 EXP017_READY = len(EPOCHS) >= N_EPOCHS_EXPECTED
 BEST_EP = min(EPOCHS, key=lambda e: EPOCHS[e]["pr"]) if EPOCHS else None
 LAST_EP = max(EPOCHS) if EPOCHS else None
+
+# Training loss (supporting metric). train_distill.py logs the *last batch* loss
+# of each shard, so an epoch's level is the mean of its ~86 shard records. The
+# scalar arm trains on equity/3, so x9 puts it in the equity units the panels
+# above use. One record is NUL-padded by a spot preemption mid-write — strip it.
+_shard_losses = {}
+_TRAIN_LOG = EXP_ROOT / "exp017-distill" / "logs" / "distill_log.jsonl"
+if _TRAIN_LOG.exists():
+    for _line in _TRAIN_LOG.read_text().splitlines():
+        _line = _line.strip("\x00 \t")
+        if not _line:
+            continue
+        try:
+            _r = json.loads(_line)
+        except json.JSONDecodeError:
+            continue
+        _shard_losses.setdefault(_r["epoch"], []).append(_r["loss"] * 9)
+TRAIN_LOSS = {e: sum(v) / len(v) for e, v in _shard_losses.items()}
 
 def _pending(what):
     print(f"*exp017 scoring in progress — {len(EPOCHS)}/{N_EPOCHS_EXPECTED} epochs "
@@ -900,7 +919,7 @@ if EPOCHS:
     print(pd.DataFrame(rows).to_markdown(index=False))
 ```
 
-The same curve as a figure — **top panel**: each game plan's PR *relative to the 8M anchor* (dashed zero line), so below zero is better than 8M and a race fix that costs contact plans shows pure-race dropping while another plan rises above zero; **bottom panel**: rollout value-fit MSE against the GNUBG teacher references.
+The same curve as a figure — **top panel**: each game plan's PR per epoch, with that plan's 8M anchor as a dotted line in the same colour, so a curve sitting below its own dotted line means 40M improved that plan, and a race fix bought at the contact plans' expense would show one curve crossing back above; **middle panel**: rollout value-fit MSE against the GNUBG teacher references; **bottom panel** (supporting, not a strength metric): the run's own training loss — mean MSE against its 2-ply labels across each epoch's ~86 shard records, log scale — which says whether *optimisation* was still making progress, a separate question from whether the benchmark was.
 
 ```{python}
 #| echo: false
@@ -910,23 +929,31 @@ if EPOCHS:
     PLAN_COLORS = {"purerace": "#D55E00", "racing": "#0072B2", "attacking": "#009E73",
                    "priming": "#CC79A7", "anchoring": "#E69F00"}
     anchor = REF.get("exp014 (8M, 2-ply)")
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.5, 7.2), sharex=True)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8.5, 10.4), sharex=True)
 
-    # Panel 1: PR change vs the 8M anchor, per plan (+ overall).
+    # Panel 1: PR by game plan per epoch, each against its own 8M anchor
+    # (dotted, matching colour — so a curve below its dotted line beat 8M).
+    for pl in PLANS:
+        ax1.plot(eps, [EPOCHS[e]["by_plan"][pl]["pr"] for e in eps],
+                 "-o", color=PLAN_COLORS[pl], lw=2, ms=6, label=pl)
+    ax1.plot(eps, [EPOCHS[e]["pr"] for e in eps],
+             "-o", color="#333333", lw=2.6, ms=7, label="overall")
     if anchor:
         for pl in PLANS:
-            base = anchor["by_plan"][pl]["pr"]
-            ax1.plot(eps, [EPOCHS[e]["by_plan"][pl]["pr"] - base for e in eps],
-                     "-o", color=PLAN_COLORS[pl], lw=2, ms=6, label=pl)
-        ax1.plot(eps, [EPOCHS[e]["pr"] - anchor["pr"] for e in eps],
-                 "-o", color="#333333", lw=2.6, ms=7, label="overall")
-        ax1.axhline(0, color="#333333", ls="--", lw=1.2)
-        ax1.text(eps[0], 0, " exp014 8M anchor", va="bottom", ha="left",
-                 fontsize=8, color="#333333")
-    ax1.set_ylabel("PR − 8M anchor\n(↓ = better than 8M)")
-    ax1.set_title("Move-selection PR by game plan, relative to the 8M anchor")
+            ax1.axhline(anchor["by_plan"][pl]["pr"], ls=":", lw=1.1,
+                        color=PLAN_COLORS[pl])
+        ax1.axhline(anchor["pr"], ls=":", lw=1.5, color="#333333")
+        ax1.plot([], [], ls=":", lw=1.5, color="#666666",
+                 label="8M anchor (matching colour)")
+        ax1.text(eps[0], anchor["pr"], " exp014 8M anchor (overall)",
+                 va="bottom", ha="left", fontsize=8, color="#333333")
+        # Headroom above the highest anchor so the legend clears the dotted band.
+        top = max(anchor["by_plan"][pl]["pr"] for pl in PLANS)
+        ax1.set_ylim(0, top * 1.42)
+    ax1.set_ylabel("PR  (↓ better)")
+    ax1.set_title("Move-selection PR by game plan, against the 8M anchor")
     ax1.grid(True, alpha=0.3)
-    ax1.legend(ncol=3, fontsize=8, loc="best")
+    ax1.legend(ncol=4, fontsize=8, loc="upper center")
 
     # Panel 2: rollout value-fit MSE vs epoch, with teacher references.
     ax2.plot(eps, [EPOCHS[e]["eval_accuracy"]["rollout"]["mse"] for e in eps],
@@ -938,17 +965,34 @@ if EPOCHS:
         if r:
             m = r["eval_accuracy"]["rollout"]["mse"]
             ax2.axhline(m, ls=ls, color=col, lw=1.4, label=f"{name} ({m:.4f})")
-    ax2.set_xlabel("epoch")
     ax2.set_ylabel("rollout MSE  (↓ better)")
     ax2.set_title("Value-fit to the rollout reference vs the teacher")
     ax2.grid(True, alpha=0.3)
     ax2.legend(fontsize=8, loc="best")
-    ax2.set_xticks(eps)
+
+    # Panel 3: training loss (supporting) — is the fit itself still improving?
+    # Single series, so no legend box; endpoints are direct-labelled instead.
+    # Plotted in units of 1e-4 so the log ticks read as plain numbers.
+    tl = [TRAIN_LOSS[e] * 1e4 for e in eps if e in TRAIN_LOSS]
+    if len(tl) == len(eps):
+        ax3.plot(eps, tl, "-o", color="#333333", lw=2.4, ms=7)
+        ax3.set_yscale("log")
+        ax3.yaxis.set_major_locator(mticker.LogLocator(base=10, subs=(1, 2, 3, 5)))
+        ax3.yaxis.set_major_formatter(mticker.ScalarFormatter())
+        ax3.yaxis.set_minor_formatter(mticker.NullFormatter())
+        for e, v, dy in [(eps[0], tl[0], 6), (eps[-1], tl[-1], 8)]:
+            ax3.annotate(f"{v:.1f}", (e, v), textcoords="offset points",
+                         xytext=(0, dy), ha="center", fontsize=8, color="#333333")
+        ax3.set_ylabel(r"training MSE  $\times 10^{-4}$" "\n(log scale, ↓ better)")
+        ax3.set_title("Fit to its own 2-ply training labels (supporting metric)")
+        ax3.grid(True, alpha=0.3, which="both")
+    ax3.set_xlabel("epoch")
+    ax3.set_xticks(eps)
     plt.tight_layout()
     plt.show()
 ```
 
-**Interpretation.** The pipeline check passes exactly — the exp014 8M anchor re-scores to PR 2.16 / rollout-MSE 0.0044, identical to [exp015](#exp015). Against it, 40M is a transformation, not a nudge: the best epoch (ep12) scores overall **PR 0.93** — down from 2.16, *past* GNUBG-0-ply's own raw 2.14 and most of the way to the GNUBG-2-ply teacher (0.56) — while rollout-tier MSE bottoms at **0.0019** (ep8–11), **matching the 2-ply teacher's 0.0019** and beating GNUBG-0-ply's 0.0021 (8M was 0.0044). So the 8M net was badly *underfit*, exactly as its 2.3× rollout-MSE gap warned; the 8M PR≈GNUBG-0-ply coincidence was never a searchless ceiling. **(a) Plateau**: both curves fall steeply through ~ep5, then flatten — PR oscillates 0.93–1.01 from ep6 on, MSE sits at 0.0019–0.0021 from ep8 on — so 14 epochs was ample and more epochs won't move it; the residual PR gap to 0.56 is the 2-ply search the teacher runs *at play time*, not missing labels. **(b) Trade-off**: none — *every* plan improves together (ep12 vs anchor: priming −1.67, anchoring −1.24, racing −1.22, attacking −1.14, purerace −0.84). Pure race — exp015's stark 1.13 outlier (~7× the teacher) — falls to 0.29, so that weakness was a **data/underfitting artifact resolved by scale**, not a structural blind spot. **(c) Agreement**: PR and rollout-MSE improve together and bottom within one epoch of each other (PR at ep12, MSE at ep11) — so unlike [exp015](#exp015)/[exp016](#exp016), the two metrics agree cleanly.
+**Interpretation.** The pipeline check passes exactly — the exp014 8M anchor re-scores to PR 2.16 / rollout-MSE 0.0044, identical to [exp015](#exp015). Against it, 40M is a transformation, not a nudge: the best epoch (ep12) scores overall **PR 0.93** — down from 2.16, *past* GNUBG-0-ply's own raw 2.14 and most of the way to the GNUBG-2-ply teacher (0.56) — while rollout-tier MSE bottoms at **0.0019** (ep8–11), **matching the 2-ply teacher's 0.0019** and beating GNUBG-0-ply's 0.0021 (8M was 0.0044). So the 8M net was badly *underfit*, exactly as its 2.3× rollout-MSE gap warned; the 8M PR≈GNUBG-0-ply coincidence was never a searchless ceiling. **(a) Plateau**: both benchmark curves fall steeply through ~ep5, then flatten — PR oscillates 0.93–1.01 from ep6 on, MSE sits at 0.0019–0.0021 from ep8 on. The training loss makes that a sharper claim than "the run converged", because it is *still descending* at the cap: 28.5 → 1.5 ×10⁻⁴ overall, and still −25% between ep8 and ep14 (a 15th epoch ran into the 72 h wall and landed within 0.3% of ep14). So optimisation had not stalled — the net went on fitting its 2-ply labels while BGSage error stood still. Label-fit and benchmark strength **decoupled**, which is a firmer reason to stop than a flat loss curve would have been: further epochs on this corpus buy a tighter fit to GNUBG-2-ply's own answers and nothing measurable in play. Consistently, by ep14 the net sits ~12× closer to its training labels (1.5 ×10⁻⁴) than to BGSage's rollout reference (19 ×10⁻⁴) — in-sample against out-of-sample, so not a like-for-like gap, but far too large a ratio for the residual benchmark error to be failure to fit. The remainder is teacher-vs-rollout disagreement plus the 2-ply search the teacher runs *at play time*, not missing labels. **(b) Trade-off**: none — *every* plan improves together (ep12 vs anchor: priming −1.67, anchoring −1.24, racing −1.22, attacking −1.14, purerace −0.84). Pure race — exp015's stark 1.13 outlier (~7× the teacher) — falls to 0.29, so that weakness was a **data/underfitting artifact resolved by scale**, not a structural blind spot. **(c) Agreement**: PR and rollout-MSE improve together and bottom within one epoch of each other (PR at ep12, MSE at ep11) — so unlike [exp015](#exp015)/[exp016](#exp016), the two metrics agree cleanly.
 
 **Conclusion.** *Does scaling 2-ply distillation 8M→40M lower BGSage error and fix pure races without trading off other plans?* → **Yes, decisively — and it plateaus.** Best epoch ep12 = **PR 0.93** (from the 8M anchor's 2.16, below GNUBG-0-ply's own 2.14) with rollout-MSE bottoming at **0.0019** (level with the GNUBG-2-ply teacher, from 0.0044); n=14,693 / n≈149k. All five game plans improve together — pure race 1.13→0.29 — so there is no trade-off and the race anomaly was underfitting, not structure. Both curves flatten by ~ep6–8, so the data/epoch lever is now spent; the gap left to the teacher's 0.56 PR is its play-time 2-ply search, not more labels. (Static-benchmark PR/MSE, not raw ppg — the fair-beat ppg confirmation at matched search is the open finish.)
 
