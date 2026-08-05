@@ -12,6 +12,11 @@ experiments/*
 !experiments/*/logs/**
 !experiments/*/results/
 !experiments/*/results/**
+# Per-round / per-arm sub-experiments (exp008/exp009 round_NN, pretrain-consol
+# 17ch|26ch, ...): the bare `logs/` above matches at any depth, so the one-level
+# negations don't reach them — but the docs read these jsonl at render time.
+!experiments/*/*/logs/
+!experiments/*/*/logs/**
 experiments/*/checkpoints/
 experiments/*/caches/
 experiments/*/dumps/
@@ -19,6 +24,8 @@ experiments/*/scratch/
 experiments/smoke/
 experiments/*/logs/*.out
 experiments/*/logs/stdout.log
+experiments/*/*/logs/*.out
+experiments/*/*/logs/stdout.log
 perplexity-conversation.md
 *.html
 *_files/

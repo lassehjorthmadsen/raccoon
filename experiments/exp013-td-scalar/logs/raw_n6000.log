@@ -1,0 +1,11 @@
+[21:17:07] raw n=6000 (unbiased) — seed anchor + TD peak + endpoint
+[21:17:07] === SEED scalar-ep3 ===
+[SEED scalar-ep3] experiments/exp011b-distill/scalar/checkpoints/ep3.pt
+  2900/6000 wins (48.3%), -0.0500 ppg vs GNUBG-0ply  (95% CI ~±0.046)
+[00:43:57] === batch_0030 coarse-peak ===
+[batch_0030 coarse-peak] experiments/exp013-td-scalar/checkpoints/batch_0030.pt
+  2888/6000 wins (48.1%), -0.0698 ppg vs GNUBG-0ply  (95% CI ~±0.046)
+[03:58:19] === latest batch39 ===
+[latest batch39] experiments/exp013-td-scalar/checkpoints/latest.pt
+  2897/6000 wins (48.3%), -0.0568 ppg vs GNUBG-0ply  (95% CI ~±0.046)
+[07:03:01] RAW_N6000_DONE

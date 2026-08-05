@@ -1,0 +1,13 @@
+{"epoch": 1, "shard": 1, "loss": 0.856273, "wall_hours": 1.329}
+{"epoch": 1, "shard": 2, "loss": 0.827309, "wall_hours": 2.639}
+{"epoch": 1, "shard": 3, "loss": 0.833318, "wall_hours": 3.932}
+{"epoch": 1, "shard": 4, "loss": 0.871125, "wall_hours": 5.212}
+{"epoch": 1, "shard": 5, "loss": 0.880079, "wall_hours": 6.506}
+{"epoch": 1, "shard": 6, "loss": 0.861789, "wall_hours": 7.788, "eval_vs_gnubg0ply_ppg": 0.1, "eval_games": 40, "new_best": true}
+{"epoch": 1, "shard": 7, "loss": 0.846523, "wall_hours": 9.079}
+{"epoch": 1, "shard": 8, "loss": 0.82402, "wall_hours": 10.331}
+{"epoch": 1, "shard": 9, "loss": 0.840967, "wall_hours": 10.75}
+{"epoch": 1, "shard": 10, "loss": 0.909975, "wall_hours": 12.003}
+{"epoch": 1, "shard": 11, "loss": 0.903915, "wall_hours": 12.424}
+{"epoch": 1, "shard": 12, "loss": 0.84046, "wall_hours": 13.677, "eval_vs_gnubg0ply_ppg": -0.2, "eval_games": 40}
+{"epoch": 1, "shard": 13, "loss": 0.858724, "wall_hours": 15.003}

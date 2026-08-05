@@ -1,0 +1,14 @@
+[20:19:03] seed error-rate ppg = -0.128 (n=1000 baseline)
+[20:19:03] === batch_0005 ===
+[batch_0005] experiments/exp013-td-scalar/checkpoints/batch_0005.pt
+  vs GNUBG-0ply, n=500 games, 15929 net decisions, 50.4% wins
+  raw ppg        = +0.0320  (95% CI ±0.1158)
+  error-rate ppg = -0.1149  (95% CI ±0.0164)   <- low variance
+  error rate     = 3.61 mppg/decision
+[20:36:03] === batch_0010 ===
+[batch_0010] experiments/exp013-td-scalar/checkpoints/batch_0010.pt
+  vs GNUBG-0ply, n=500 games, 15788 net decisions, 48.0% wins
+  raw ppg        = -0.0980  (95% CI ±0.1184)
+  error-rate ppg = -0.1194  (95% CI ±0.0122)   <- low variance
+  error rate     = 3.78 mppg/decision
+[20:53:29] === batch_0015 ===

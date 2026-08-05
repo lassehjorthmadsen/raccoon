@@ -1,0 +1,39 @@
+{"batch": 1, "games": 500, "decisions": 32293, "train_value_mse": 0.008967, "batch_sec": 2301.8, "wall_hours": 0.639}
+{"batch": 2, "games": 500, "decisions": 32341, "train_value_mse": 0.011382, "batch_sec": 2267.3, "wall_hours": 1.269}
+{"batch": 3, "games": 500, "decisions": 31637, "train_value_mse": 0.005374, "batch_sec": 2199.5, "wall_hours": 1.88, "eval_vs_gnubg0ply_ppg": -0.17, "eval_games": 100, "new_best": true}
+{"batch": 4, "games": 500, "decisions": 31510, "train_value_mse": 0.003065, "batch_sec": 2215.9, "wall_hours": 2.552}
+{"batch": 5, "games": 500, "decisions": 32191, "train_value_mse": 0.006009, "batch_sec": 2277.7, "wall_hours": 3.185}
+{"batch": 6, "games": 500, "decisions": 31639, "train_value_mse": 0.006693, "batch_sec": 2251.1, "wall_hours": 3.81, "eval_vs_gnubg0ply_ppg": -0.15, "eval_games": 100, "new_best": true}
+{"batch": 7, "games": 500, "decisions": 32372, "train_value_mse": 0.005107, "batch_sec": 2285.3, "wall_hours": 4.5}
+{"batch": 8, "games": 500, "decisions": 30821, "train_value_mse": 0.006531, "batch_sec": 2186.9, "wall_hours": 5.108}
+{"batch": 9, "games": 500, "decisions": 32386, "train_value_mse": 0.010614, "batch_sec": 2296.9, "wall_hours": 5.746, "eval_vs_gnubg0ply_ppg": -0.13, "eval_games": 100, "new_best": true}
+{"batch": 10, "games": 500, "decisions": 30985, "train_value_mse": 0.003612, "batch_sec": 2225.2, "wall_hours": 6.422}
+{"batch": 11, "games": 500, "decisions": 30764, "train_value_mse": 0.006817, "batch_sec": 2126.7, "wall_hours": 7.013}
+{"batch": 12, "games": 500, "decisions": 31407, "train_value_mse": 0.006388, "batch_sec": 2146.1, "wall_hours": 7.609, "eval_vs_gnubg0ply_ppg": -0.04, "eval_games": 100, "new_best": true}
+{"batch": 13, "games": 500, "decisions": 31768, "train_value_mse": 0.007253, "batch_sec": 2170.1, "wall_hours": 8.267}
+{"batch": 14, "games": 500, "decisions": 31022, "train_value_mse": 0.005171, "batch_sec": 2134.9, "wall_hours": 8.86}
+{"batch": 15, "games": 500, "decisions": 31066, "train_value_mse": 0.005056, "batch_sec": 2165.8, "wall_hours": 9.462, "eval_vs_gnubg0ply_ppg": -0.1, "eval_games": 100}
+{"batch": 16, "games": 500, "decisions": 30611, "train_value_mse": 0.006302, "batch_sec": 2169.5, "wall_hours": 10.117}
+{"batch": 17, "games": 500, "decisions": 30702, "train_value_mse": 0.00695, "batch_sec": 2166.3, "wall_hours": 10.719}
+{"batch": 18, "games": 500, "decisions": 31326, "train_value_mse": 0.004204, "batch_sec": 2157.5, "wall_hours": 11.318, "eval_vs_gnubg0ply_ppg": 0.02, "eval_games": 100, "new_best": true}
+{"batch": 19, "games": 500, "decisions": 32109, "train_value_mse": 0.00769, "batch_sec": 2201.9, "wall_hours": 11.988}
+{"batch": 20, "games": 500, "decisions": 31306, "train_value_mse": 0.009796, "batch_sec": 2145.2, "wall_hours": 12.584}
+{"batch": 21, "games": 500, "decisions": 31149, "train_value_mse": 0.005411, "batch_sec": 2136.3, "wall_hours": 13.177, "eval_vs_gnubg0ply_ppg": -0.07, "eval_games": 100}
+{"batch": 22, "games": 500, "decisions": 31529, "train_value_mse": 0.012995, "batch_sec": 2171.4, "wall_hours": 13.837}
+{"batch": 23, "games": 500, "decisions": 30835, "train_value_mse": 0.011249, "batch_sec": 2084.0, "wall_hours": 14.416}
+{"batch": 24, "games": 500, "decisions": 31103, "train_value_mse": 0.007011, "batch_sec": 2117.2, "wall_hours": 15.004, "eval_vs_gnubg0ply_ppg": -0.29, "eval_games": 100}
+{"batch": 25, "games": 500, "decisions": 32026, "train_value_mse": 0.005534, "batch_sec": 2166.2, "wall_hours": 15.663}
+{"batch": 26, "games": 500, "decisions": 31691, "train_value_mse": 0.006157, "batch_sec": 2158.9, "wall_hours": 16.263}
+{"batch": 27, "games": 500, "decisions": 31495, "train_value_mse": 0.00161, "batch_sec": 2160.8, "wall_hours": 16.863, "eval_vs_gnubg0ply_ppg": -0.04, "eval_games": 100}
+{"batch": 28, "games": 500, "decisions": 32388, "train_value_mse": 0.01016, "batch_sec": 2226.5, "wall_hours": 17.538}
+{"batch": 29, "games": 500, "decisions": 32412, "train_value_mse": 0.005811, "batch_sec": 2228.1, "wall_hours": 18.157}
+{"batch": 30, "games": 500, "decisions": 32440, "train_value_mse": 0.007576, "batch_sec": 2218.1, "wall_hours": 18.773, "eval_vs_gnubg0ply_ppg": 0.11, "eval_games": 100, "new_best": true}
+{"batch": 31, "games": 500, "decisions": 32628, "train_value_mse": 0.007116, "batch_sec": 2249.7, "wall_hours": 19.452}
+{"batch": 32, "games": 500, "decisions": 33111, "train_value_mse": 0.007631, "batch_sec": 2282.3, "wall_hours": 20.086}
+{"batch": 33, "games": 500, "decisions": 32278, "train_value_mse": 0.002703, "batch_sec": 2216.4, "wall_hours": 20.702, "eval_vs_gnubg0ply_ppg": 0.09, "eval_games": 100}
+{"batch": 34, "games": 500, "decisions": 32034, "train_value_mse": 0.006124, "batch_sec": 2268.2, "wall_hours": 21.389}
+{"batch": 35, "games": 500, "decisions": 31997, "train_value_mse": 0.005316, "batch_sec": 2255.8, "wall_hours": 22.016}
+{"batch": 36, "games": 500, "decisions": 32714, "train_value_mse": 0.005847, "batch_sec": 2343.6, "wall_hours": 22.667, "eval_vs_gnubg0ply_ppg": -0.2, "eval_games": 100}
+{"batch": 37, "games": 500, "decisions": 31232, "train_value_mse": 0.004259, "batch_sec": 2298.3, "wall_hours": 23.361}
+{"batch": 38, "games": 500, "decisions": 31846, "train_value_mse": 0.009385, "batch_sec": 2283.7, "wall_hours": 23.995}
+{"batch": 39, "games": 500, "decisions": 31224, "train_value_mse": 0.007405, "batch_sec": 2246.7, "wall_hours": 24.619, "eval_vs_gnubg0ply_ppg": -0.11, "eval_games": 100}
