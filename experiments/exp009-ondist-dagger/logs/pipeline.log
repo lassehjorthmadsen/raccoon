@@ -1,0 +1,1424 @@
+===== EXP009 START 2026-07-10_18:40:27 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 SYNTH (net=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-10_18:40:27 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_01.npz: 120,008 examples (K=6)
+===== ROUND 01 MERGE 2026-07-10_23:17:39 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz: 39,896 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz: 46,509 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz: 56,324 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_01.npz: 427,160 examples (K=6)
+===== ROUND 01 TRAIN (warm from experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt) 2026-07-10_23:17:54 =====
+Device: cuda
+Loading base checkpoint experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_01.npz
+  observations: (427160, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.033 std=0.313
+Split: 405,802 train / 21,358 val (soft policy targets)
+Baseline val: policy_CE=2.5478  value_MSE=0.0059  top1_acc=35.1%
+Epoch   1/2: train pol=1.8891 val=0.0049 | val pol=2.1722 val=0.0046 top1=39.9% | 151.7s
+Epoch   2/2: train pol=1.8270 val=0.0045 | val pol=2.1603 val=0.0044 top1=39.3% | 155.6s
+Selected epoch 2 (lowest val combined loss 2.1647)
+
+Saved experiments/exp009-ondist-dagger/round_01/checkpoints/pretrained_v2.pt
+  final val: pol=2.1603 val=0.0044 top1=39.3%
+  total 5.1 min
+===== ROUND 01 EVAL 2026-07-10_23:23:13 =====
+----- arena: round_01 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_01/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_01/logs/eval_log.jsonl
+===== ROUND 01 DONE (next=experiments/exp009-ondist-dagger/round_01/checkpoints/pretrained_v2.pt) 2026-07-11_03:04:17 =====
+===== ROUND 02 SYNTH (net=experiments/exp009-ondist-dagger/round_01/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-11_03:04:17 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_02.npz: 120,008 examples (K=6)
+===== ROUND 02 MERGE 2026-07-11_07:14:49 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz: 46,509 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz: 56,324 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_02.npz: 507,272 examples (K=6)
+===== ROUND 02 TRAIN (warm from experiments/exp009-ondist-dagger/round_01/checkpoints/pretrained_v2.pt) 2026-07-11_07:15:07 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_01/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_02.npz
+  observations: (507272, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.032 std=0.319
+Split: 481,909 train / 25,363 val (soft policy targets)
+Baseline val: policy_CE=2.1339  value_MSE=0.0043  top1_acc=41.0%
+Epoch   1/2: train pol=1.9214 val=0.0044 | val pol=2.1362 val=0.0044 top1=40.3% | 182.9s
+Epoch   2/2: train pol=1.8974 val=0.0043 | val pol=2.1375 val=0.0043 top1=40.4% | 182.9s
+Selected epoch 0 (lowest val combined loss 2.1382)
+
+Saved experiments/exp009-ondist-dagger/round_02/checkpoints/pretrained_v2.pt
+  final val: pol=2.1339 val=0.0043 top1=41.0%
+  total 6.1 min
+===== ROUND 02 EVAL 2026-07-11_07:21:25 =====
+----- arena: round_02 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_02/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_02/logs/eval_log.jsonl
+----- gnubg: round_02 vs world/2-ply (2 x 50 games) -----
+  Wins: 11-39 (22.0% +/- 11.5%)
+  Equity/game: -0.820
+  Wins: 17-33 (34.0% +/- 13.1%)
+  Equity/game: -0.560
+===== ROUND 02 DONE (next=experiments/exp009-ondist-dagger/round_02/checkpoints/pretrained_v2.pt) 2026-07-11_13:29:24 =====
+===== ROUND 03 SYNTH (net=experiments/exp009-ondist-dagger/round_02/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-11_13:29:24 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_03.npz: 120,008 examples (K=6)
+===== ROUND 03 MERGE 2026-07-11_17:23:32 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz: 56,324 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_03.npz: 580,771 examples (K=6)
+===== ROUND 03 TRAIN (warm from experiments/exp009-ondist-dagger/round_02/checkpoints/pretrained_v2.pt) 2026-07-11_17:23:52 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_02/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_03.npz
+  observations: (580771, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.031 std=0.324
+Split: 551,733 train / 29,038 val (soft policy targets)
+Baseline val: policy_CE=2.1728  value_MSE=0.0045  top1_acc=40.4%
+Epoch   1/2: train pol=2.0068 val=0.0045 | val pol=2.1497 val=0.0043 top1=40.4% | 206.5s
+Epoch   2/2: train pol=1.9776 val=0.0043 | val pol=2.1434 val=0.0042 top1=39.8% | 209.8s
+Selected epoch 2 (lowest val combined loss 2.1476)
+
+Saved experiments/exp009-ondist-dagger/round_03/checkpoints/pretrained_v2.pt
+  final val: pol=2.1434 val=0.0042 top1=39.8%
+  total 6.9 min
+===== ROUND 03 EVAL 2026-07-11_17:31:02 =====
+----- arena: round_03 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_03/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_03/logs/eval_log.jsonl
+===== ROUND 03 DONE (next=experiments/exp009-ondist-dagger/round_03/checkpoints/pretrained_v2.pt) 2026-07-11_21:31:18 =====
+===== ROUND 04 SYNTH (net=experiments/exp009-ondist-dagger/round_03/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-11_21:31:18 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_04.npz: 120,008 examples (K=6)
+===== ROUND 04 MERGE 2026-07-12_01:38:36 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_01.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_04.npz: 644,455 examples (K=6)
+===== ROUND 04 TRAIN (warm from experiments/exp009-ondist-dagger/round_03/checkpoints/pretrained_v2.pt) 2026-07-12_01:38:58 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_03/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_04.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.031 std=0.328
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1038  value_MSE=0.0040  top1_acc=41.8%
+Epoch   1/2: train pol=2.0365 val=0.0042 | val pol=2.1373 val=0.0042 top1=40.0% | 232.8s
+Epoch   2/2: train pol=2.0186 val=0.0041 | val pol=2.1195 val=0.0039 top1=40.6% | 231.0s
+Selected epoch 0 (lowest val combined loss 2.1079)
+
+Saved experiments/exp009-ondist-dagger/round_04/checkpoints/pretrained_v2.pt
+  final val: pol=2.1038 val=0.0040 top1=41.8%
+  total 7.7 min
+===== ROUND 04 EVAL 2026-07-12_01:46:56 =====
+----- arena: round_04 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_04/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_04/logs/eval_log.jsonl
+----- gnubg: round_04 vs world/2-ply (2 x 50 games) -----
+  Wins: 16-34 (32.0% +/- 12.9%)
+  Equity/game: -0.560
+  Wins: 14-36 (28.0% +/- 12.4%)
+  Equity/game: -0.680
+===== ROUND 04 DONE (next=experiments/exp009-ondist-dagger/round_04/checkpoints/pretrained_v2.pt) 2026-07-12_08:15:51 =====
+===== ROUND 05 SYNTH (net=experiments/exp009-ondist-dagger/round_04/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-12_08:15:51 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_05.npz: 120,008 examples (K=6)
+===== ROUND 05 MERGE 2026-07-12_12:15:34 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_02.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_05.npz: 644,455 examples (K=6)
+===== ROUND 05 TRAIN (warm from experiments/exp009-ondist-dagger/round_04/checkpoints/pretrained_v2.pt) 2026-07-12_12:15:57 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_04/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_05.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.330
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1149  value_MSE=0.0039  top1_acc=41.4%
+Epoch   1/2: train pol=2.0469 val=0.0042 | val pol=2.1243 val=0.0038 top1=41.0% | 233.1s
+Epoch   2/2: train pol=2.0254 val=0.0040 | val pol=2.1204 val=0.0038 top1=40.8% | 231.9s
+Selected epoch 0 (lowest val combined loss 2.1188)
+
+Saved experiments/exp009-ondist-dagger/round_05/checkpoints/pretrained_v2.pt
+  final val: pol=2.1149 val=0.0039 top1=41.4%
+  total 7.8 min
+===== ROUND 05 EVAL 2026-07-12_12:23:56 =====
+----- arena: round_05 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_05/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_05/logs/eval_log.jsonl
+===== ROUND 05 DONE (next=experiments/exp009-ondist-dagger/round_05/checkpoints/pretrained_v2.pt) 2026-07-12_16:45:49 =====
+===== ROUND 06 SYNTH (net=experiments/exp009-ondist-dagger/round_05/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-12_16:45:49 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_06.npz: 120,008 examples (K=6)
+===== ROUND 06 MERGE 2026-07-12_20:40:39 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_03.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_06.npz: 644,455 examples (K=6)
+===== ROUND 06 TRAIN (warm from experiments/exp009-ondist-dagger/round_05/checkpoints/pretrained_v2.pt) 2026-07-12_20:41:01 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_05/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_06.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1294  value_MSE=0.0040  top1_acc=41.0%
+Epoch   1/2: train pol=2.0564 val=0.0042 | val pol=2.1308 val=0.0040 top1=40.1% | 232.9s
+Epoch   2/2: train pol=2.0311 val=0.0040 | val pol=2.1197 val=0.0038 top1=41.2% | 230.8s
+Selected epoch 2 (lowest val combined loss 2.1236)
+
+Saved experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt
+  final val: pol=2.1197 val=0.0038 top1=41.2%
+  total 7.7 min
+===== ROUND 06 EVAL 2026-07-12_20:48:59 =====
+----- arena: round_06 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_06/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_06/logs/eval_log.jsonl
+----- gnubg: round_06 vs world/2-ply (4 x 50 games) -----
+  Wins: 17-33 (34.0% +/- 13.1%)
+  Equity/game: -0.620
+  Wins: 20-30 (40.0% +/- 13.6%)
+  Equity/game: -0.380
+  Wins: 25-25 (50.0% +/- 13.9%)
+  Equity/game: -0.080
+  Wins: 21-29 (42.0% +/- 13.7%)
+  Equity/game: -0.400
+===== ROUND 06 DONE (next=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt) 2026-07-13_03:47:58 =====
+===== ROUND 07 SYNTH (net=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_03:47:58 =====
+===== EXP009 START 2026-07-13_07:32:02 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 02 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 03 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 04 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 05 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 06 already complete — skipping 2026-07-13_07:32:02 =====
+===== ROUND 07 SYNTH (net=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_07:32:02 =====
+===== EXP009 START 2026-07-13_07:47:56 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 02 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 03 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 04 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 05 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 06 already complete — skipping 2026-07-13_07:47:56 =====
+===== ROUND 07 SYNTH (net=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_07:47:56 =====
+===== EXP009 START 2026-07-13_09:48:26 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 02 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 03 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 04 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 05 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 06 already complete — skipping 2026-07-13_09:48:26 =====
+===== ROUND 07 SYNTH (net=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_09:48:26 =====
+===== EXP009 START 2026-07-13_09:59:52 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 02 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 03 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 04 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 05 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 06 already complete — skipping 2026-07-13_09:59:52 =====
+===== ROUND 07 SYNTH (net=experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_09:59:52 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_07.npz: 120,008 examples (K=6)
+===== ROUND 07 MERGE 2026-07-13_12:35:01 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_04.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_07.npz: 644,455 examples (K=6)
+===== ROUND 07 TRAIN (warm from experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt) 2026-07-13_12:35:26 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_06/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_07.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0899  value_MSE=0.0038  top1_acc=41.6%
+Epoch   1/2: train pol=2.0277 val=0.0040 | val pol=2.1052 val=0.0038 top1=40.7% | 232.3s
+Epoch   2/2: train pol=2.0121 val=0.0040 | val pol=2.1078 val=0.0040 top1=40.9% | 230.5s
+Selected epoch 0 (lowest val combined loss 2.0938)
+
+Saved experiments/exp009-ondist-dagger/round_07/checkpoints/pretrained_v2.pt
+  final val: pol=2.0899 val=0.0038 top1=41.6%
+  total 7.7 min
+===== ROUND 07 EVAL 2026-07-13_12:43:25 =====
+----- arena: round_07 vs SEED (2 x 50 games) -----
+===== EXP009 START 2026-07-13_16:03:23 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 02 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 03 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 04 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 05 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 06 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 07 already complete — skipping 2026-07-13_16:03:23 =====
+===== ROUND 08 SYNTH (net=experiments/exp009-ondist-dagger/round_07/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-13_16:03:23 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_08.npz: 120,008 examples (K=6)
+===== ROUND 08 MERGE 2026-07-13_19:46:51 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_05.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_08.npz: 644,455 examples (K=6)
+===== ROUND 08 TRAIN (warm from experiments/exp009-ondist-dagger/round_07/checkpoints/pretrained_v2.pt) 2026-07-13_19:47:14 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_07/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_08.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1116  value_MSE=0.0038  top1_acc=41.2%
+Epoch   1/2: train pol=2.0344 val=0.0041 | val pol=2.1188 val=0.0038 top1=41.0% | 225.0s
+Epoch   2/2: train pol=2.0159 val=0.0040 | val pol=2.1180 val=0.0038 top1=41.7% | 224.2s
+Selected epoch 0 (lowest val combined loss 2.1155)
+
+Saved experiments/exp009-ondist-dagger/round_08/checkpoints/pretrained_v2.pt
+  final val: pol=2.1116 val=0.0038 top1=41.2%
+  total 7.5 min
+===== ROUND 08 EVAL 2026-07-13_19:54:59 =====
+----- arena: round_08 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_08/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_08/logs/eval_log.jsonl
+----- gnubg: round_08 vs world/2-ply (2 x 50 games) -----
+  Wins: 14-36 (28.0% +/- 12.4%)
+  Equity/game: -0.680
+  Wins: 22-28 (44.0% +/- 13.8%)
+  Equity/game: -0.360
+===== ROUND 08 DONE (next=experiments/exp009-ondist-dagger/round_08/checkpoints/pretrained_v2.pt) 2026-07-14_03:15:55 =====
+===== ROUND 09 SYNTH (net=experiments/exp009-ondist-dagger/round_08/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-14_03:15:55 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_09.npz: 120,008 examples (K=6)
+===== ROUND 09 MERGE 2026-07-14_06:53:22 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_06.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_09.npz: 644,455 examples (K=6)
+===== ROUND 09 TRAIN (warm from experiments/exp009-ondist-dagger/round_08/checkpoints/pretrained_v2.pt) 2026-07-14_06:53:46 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_08/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_09.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1261  value_MSE=0.0039  top1_acc=40.7%
+Epoch   1/2: train pol=2.0391 val=0.0041 | val pol=2.1309 val=0.0041 top1=40.9% | 225.5s
+Epoch   2/2: train pol=2.0177 val=0.0040 | val pol=2.1255 val=0.0038 top1=40.9% | 225.2s
+Selected epoch 2 (lowest val combined loss 2.1293)
+
+Saved experiments/exp009-ondist-dagger/round_09/checkpoints/pretrained_v2.pt
+  final val: pol=2.1255 val=0.0038 top1=40.9%
+  total 7.5 min
+===== ROUND 09 EVAL 2026-07-14_07:01:32 =====
+----- arena: round_09 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_09/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_09/logs/eval_log.jsonl
+===== ROUND 09 DONE (next=experiments/exp009-ondist-dagger/round_09/checkpoints/pretrained_v2.pt) 2026-07-14_11:28:23 =====
+===== ROUND 10 SYNTH (net=experiments/exp009-ondist-dagger/round_09/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-14_11:28:23 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_10.npz: 120,008 examples (K=6)
+===== ROUND 10 MERGE 2026-07-14_15:06:10 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_07.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_10.npz: 644,455 examples (K=6)
+===== ROUND 10 TRAIN (warm from experiments/exp009-ondist-dagger/round_09/checkpoints/pretrained_v2.pt) 2026-07-14_15:06:33 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_09/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_10.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.330
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0820  value_MSE=0.0038  top1_acc=42.1%
+Epoch   1/2: train pol=2.0201 val=0.0040 | val pol=2.0946 val=0.0039 top1=40.8% | 226.9s
+Epoch   2/2: train pol=2.0053 val=0.0039 | val pol=2.0946 val=0.0037 top1=41.1% | 224.4s
+Selected epoch 0 (lowest val combined loss 2.0857)
+
+Saved experiments/exp009-ondist-dagger/round_10/checkpoints/pretrained_v2.pt
+  final val: pol=2.0820 val=0.0038 top1=42.1%
+  total 7.5 min
+===== ROUND 10 EVAL 2026-07-14_15:14:18 =====
+----- arena: round_10 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_10/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_10/logs/eval_log.jsonl
+----- gnubg: round_10 vs world/2-ply (2 x 50 games) -----
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.740
+  Wins: 18-32 (36.0% +/- 13.3%)
+  Equity/game: -0.560
+===== ROUND 10 DONE (next=experiments/exp009-ondist-dagger/round_10/checkpoints/pretrained_v2.pt) 2026-07-14_22:27:34 =====
+===== ROUND 11 SYNTH (net=experiments/exp009-ondist-dagger/round_10/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-14_22:27:34 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_11.npz: 120,008 examples (K=6)
+===== ROUND 11 MERGE 2026-07-15_03:00:02 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_08.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_11.npz: 644,455 examples (K=6)
+===== ROUND 11 TRAIN (warm from experiments/exp009-ondist-dagger/round_10/checkpoints/pretrained_v2.pt) 2026-07-15_03:00:26 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_10/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_11.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1169  value_MSE=0.0038  top1_acc=41.3%
+Epoch   1/2: train pol=2.0291 val=0.0040 | val pol=2.1266 val=0.0039 top1=40.4% | 225.4s
+Epoch   2/2: train pol=2.0121 val=0.0039 | val pol=2.1273 val=0.0039 top1=40.5% | 224.8s
+Selected epoch 0 (lowest val combined loss 2.1207)
+
+Saved experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt
+  final val: pol=2.1169 val=0.0038 top1=41.3%
+  total 7.5 min
+===== ROUND 11 EVAL 2026-07-15_03:08:11 =====
+----- arena: round_11 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_11/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_11/logs/eval_log.jsonl
+===== ROUND 11 DONE (next=experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt) 2026-07-15_07:43:07 =====
+===== ROUND 12 SYNTH (net=experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-15_07:43:07 =====
+===== EXP009 START 2026-07-15_10:54:04 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 02 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 03 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 04 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 05 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 06 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 07 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 08 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 09 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 10 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 11 already complete — skipping 2026-07-15_10:54:04 =====
+===== ROUND 12 SYNTH (net=experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-15_10:54:04 =====
+===== EXP009 START 2026-07-15_11:20:42 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 02 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 03 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 04 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 05 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 06 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 07 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 08 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 09 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 10 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 11 already complete — skipping 2026-07-15_11:20:42 =====
+===== ROUND 12 SYNTH (net=experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-15_11:20:42 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_12.npz: 120,008 examples (K=6)
+===== ROUND 12 MERGE 2026-07-15_14:40:56 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_09.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_12.npz: 644,455 examples (K=6)
+===== ROUND 12 TRAIN (warm from experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt) 2026-07-15_14:41:19 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_11/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_12.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1228  value_MSE=0.0037  top1_acc=40.9%
+Epoch   1/2: train pol=2.0392 val=0.0040 | val pol=2.1281 val=0.0039 top1=40.4% | 222.3s
+Epoch   2/2: train pol=2.0197 val=0.0039 | val pol=2.1246 val=0.0038 top1=41.0% | 221.5s
+Selected epoch 0 (lowest val combined loss 2.1265)
+
+Saved experiments/exp009-ondist-dagger/round_12/checkpoints/pretrained_v2.pt
+  final val: pol=2.1228 val=0.0037 top1=40.9%
+  total 7.4 min
+===== ROUND 12 EVAL 2026-07-15_14:48:58 =====
+----- arena: round_12 vs SEED (2 x 50 games) -----
+===== EXP009 START 2026-07-15_14:56:25 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 02 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 03 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 04 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 05 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 06 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 07 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 08 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 09 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 10 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 11 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 12 already complete — skipping 2026-07-15_14:56:25 =====
+===== ROUND 13 SYNTH (net=experiments/exp009-ondist-dagger/round_12/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-15_14:56:25 =====
+===== EXP009 START 2026-07-15_15:29:41 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-15_15:29:41 =====
+===== ROUND 02 already complete — skipping 2026-07-15_15:29:41 =====
+===== ROUND 03 already complete — skipping 2026-07-15_15:29:41 =====
+===== ROUND 04 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 05 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 06 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 07 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 08 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 09 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 10 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 11 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 12 already complete — skipping 2026-07-15_15:29:42 =====
+===== ROUND 13 SYNTH (net=experiments/exp009-ondist-dagger/round_12/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-15_15:29:42 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_13.npz: 120,008 examples (K=6)
+===== ROUND 13 MERGE 2026-07-15_19:36:46 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_10.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_13.npz: 644,455 examples (K=6)
+===== ROUND 13 TRAIN (warm from experiments/exp009-ondist-dagger/round_12/checkpoints/pretrained_v2.pt) 2026-07-15_19:37:09 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_12/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_13.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.329
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1445  value_MSE=0.0038  top1_acc=40.5%
+Epoch   1/2: train pol=2.0492 val=0.0040 | val pol=2.1397 val=0.0038 top1=40.0% | 234.4s
+Epoch   2/2: train pol=2.0265 val=0.0039 | val pol=2.1375 val=0.0036 top1=40.2% | 236.0s
+Selected epoch 2 (lowest val combined loss 2.1412)
+
+Saved experiments/exp009-ondist-dagger/round_13/checkpoints/pretrained_v2.pt
+  final val: pol=2.1375 val=0.0036 top1=40.2%
+  total 7.8 min
+===== ROUND 13 EVAL 2026-07-15_19:45:15 =====
+----- arena: round_13 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_13/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_13/logs/eval_log.jsonl
+===== ROUND 13 DONE (next=experiments/exp009-ondist-dagger/round_13/checkpoints/pretrained_v2.pt) 2026-07-16_00:13:17 =====
+===== ROUND 14 SYNTH (net=experiments/exp009-ondist-dagger/round_13/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_00:13:17 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_14.npz: 120,008 examples (K=6)
+===== ROUND 14 MERGE 2026-07-16_04:56:24 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_11.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_14.npz: 644,455 examples (K=6)
+===== ROUND 14 TRAIN (warm from experiments/exp009-ondist-dagger/round_13/checkpoints/pretrained_v2.pt) 2026-07-16_04:56:47 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_13/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_14.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.330
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0973  value_MSE=0.0036  top1_acc=41.5%
+Epoch   1/2: train pol=2.0235 val=0.0039 | val pol=2.1084 val=0.0037 top1=41.0% | 231.4s
+Epoch   2/2: train pol=2.0101 val=0.0038 | val pol=2.1133 val=0.0036 top1=41.0% | 234.6s
+Selected epoch 0 (lowest val combined loss 2.1009)
+
+Saved experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt
+  final val: pol=2.0973 val=0.0036 top1=41.5%
+  total 7.8 min
+===== ROUND 14 EVAL 2026-07-16_05:04:47 =====
+----- arena: round_14 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_14/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_14/logs/eval_log.jsonl
+----- gnubg: round_14 vs world/2-ply (2 x 50 games) -----
+  Wins: 13-37 (26.0% +/- 12.2%)
+  Equity/game: -0.900
+  Wins: 12-38 (24.0% +/- 11.8%)
+  Equity/game: -0.720
+===== ROUND 14 DONE (next=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt) 2026-07-16_12:04:22 =====
+===== ROUND 15 SYNTH (net=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_12:04:22 =====
+===== EXP009 START 2026-07-16_13:26:52 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 02 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 03 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 04 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 05 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 06 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 07 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 08 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 09 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 10 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 11 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 12 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 13 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 14 already complete — skipping 2026-07-16_13:26:52 =====
+===== ROUND 15 SYNTH (net=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_13:26:52 =====
+===== EXP009 START 2026-07-16_13:33:13 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 02 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 03 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 04 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 05 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 06 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 07 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 08 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 09 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 10 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 11 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 12 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 13 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 14 already complete — skipping 2026-07-16_13:33:13 =====
+===== ROUND 15 SYNTH (net=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_13:33:13 =====
+===== EXP009 START 2026-07-16_13:39:28 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 02 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 03 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 04 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 05 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 06 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 07 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 08 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 09 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 10 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 11 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 12 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 13 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 14 already complete — skipping 2026-07-16_13:39:28 =====
+===== ROUND 15 SYNTH (net=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_13:39:28 =====
+===== EXP009 START 2026-07-16_16:22:50 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 02 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 03 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 04 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 05 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 06 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 07 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 08 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 09 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 10 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 11 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 12 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 13 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 14 already complete — skipping 2026-07-16_16:22:50 =====
+===== ROUND 15 SYNTH (net=experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-16_16:22:50 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_15.npz: 120,008 examples (K=6)
+===== ROUND 15 MERGE 2026-07-16_21:04:05 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_12.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_15.npz: 644,455 examples (K=6)
+===== ROUND 15 TRAIN (warm from experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt) 2026-07-16_21:04:27 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_14/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_15.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1139  value_MSE=0.0036  top1_acc=40.7%
+Epoch   1/2: train pol=2.0301 val=0.0039 | val pol=2.1190 val=0.0036 top1=40.6% | 247.5s
+Epoch   2/2: train pol=2.0137 val=0.0038 | val pol=2.1230 val=0.0036 top1=41.0% | 261.5s
+Selected epoch 0 (lowest val combined loss 2.1175)
+
+Saved experiments/exp009-ondist-dagger/round_15/checkpoints/pretrained_v2.pt
+  final val: pol=2.1139 val=0.0036 top1=40.7%
+  total 8.5 min
+===== ROUND 15 EVAL 2026-07-16_21:13:13 =====
+----- arena: round_15 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_15/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_15/logs/eval_log.jsonl
+===== ROUND 15 DONE (next=experiments/exp009-ondist-dagger/round_15/checkpoints/pretrained_v2.pt) 2026-07-17_01:27:46 =====
+===== ROUND 16 SYNTH (net=experiments/exp009-ondist-dagger/round_15/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-17_01:27:46 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_16.npz: 120,008 examples (K=6)
+===== ROUND 16 MERGE 2026-07-17_05:41:18 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_13.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_16.npz: 644,455 examples (K=6)
+===== ROUND 16 TRAIN (warm from experiments/exp009-ondist-dagger/round_15/checkpoints/pretrained_v2.pt) 2026-07-17_05:41:40 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_15/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_16.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.332
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1212  value_MSE=0.0036  top1_acc=40.0%
+Epoch   1/2: train pol=2.0358 val=0.0039 | val pol=2.1208 val=0.0037 top1=40.7% | 251.9s
+Epoch   2/2: train pol=2.0158 val=0.0039 | val pol=2.1246 val=0.0037 top1=40.4% | 260.0s
+Selected epoch 1 (lowest val combined loss 2.1245)
+
+Saved experiments/exp009-ondist-dagger/round_16/checkpoints/pretrained_v2.pt
+  final val: pol=2.1208 val=0.0037 top1=40.7%
+  total 8.5 min
+===== ROUND 16 EVAL 2026-07-17_05:50:27 =====
+----- arena: round_16 vs SEED (2 x 50 games) -----
+===== EXP009 START 2026-07-17_10:06:21 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 02 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 03 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 04 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 05 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 06 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 07 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 08 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 09 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 10 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 11 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 12 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 13 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 14 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 15 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 16 already complete — skipping 2026-07-17_10:06:21 =====
+===== ROUND 17 SYNTH (net=experiments/exp009-ondist-dagger/round_16/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-17_10:06:21 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_17.npz: 120,008 examples (K=6)
+===== ROUND 17 MERGE 2026-07-17_14:15:19 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_14.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_17.npz: 644,455 examples (K=6)
+===== ROUND 17 TRAIN (warm from experiments/exp009-ondist-dagger/round_16/checkpoints/pretrained_v2.pt) 2026-07-17_14:15:42 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_16/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_17.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.332
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1057  value_MSE=0.0036  top1_acc=41.1%
+Epoch   1/2: train pol=2.0227 val=0.0039 | val pol=2.1210 val=0.0039 top1=40.4% | 242.9s
+Epoch   2/2: train pol=2.0064 val=0.0038 | val pol=2.1168 val=0.0037 top1=40.7% | 241.2s
+Selected epoch 0 (lowest val combined loss 2.1093)
+
+Saved experiments/exp009-ondist-dagger/round_17/checkpoints/pretrained_v2.pt
+  final val: pol=2.1057 val=0.0036 top1=41.1%
+  total 8.1 min
+===== ROUND 17 EVAL 2026-07-17_14:24:02 =====
+----- arena: round_17 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_17/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_17/logs/eval_log.jsonl
+===== ROUND 17 DONE (next=experiments/exp009-ondist-dagger/round_17/checkpoints/pretrained_v2.pt) 2026-07-17_18:47:41 =====
+===== ROUND 18 SYNTH (net=experiments/exp009-ondist-dagger/round_17/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-17_18:47:41 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_18.npz: 120,008 examples (K=6)
+===== ROUND 18 MERGE 2026-07-17_22:47:17 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_15.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_18.npz: 644,455 examples (K=6)
+===== ROUND 18 TRAIN (warm from experiments/exp009-ondist-dagger/round_17/checkpoints/pretrained_v2.pt) 2026-07-17_22:47:40 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_17/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_18.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0946  value_MSE=0.0038  top1_acc=41.2%
+Epoch   1/2: train pol=2.0283 val=0.0039 | val pol=2.1017 val=0.0038 top1=40.4% | 242.8s
+Epoch   2/2: train pol=2.0094 val=0.0038 | val pol=2.1023 val=0.0037 top1=41.1% | 240.4s
+Selected epoch 0 (lowest val combined loss 2.0984)
+
+Saved experiments/exp009-ondist-dagger/round_18/checkpoints/pretrained_v2.pt
+  final val: pol=2.0946 val=0.0038 top1=41.2%
+  total 8.1 min
+===== ROUND 18 EVAL 2026-07-17_22:55:57 =====
+----- arena: round_18 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_18/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_18/logs/eval_log.jsonl
+----- gnubg: round_18 vs world/2-ply (4 x 50 games) -----
+  Wins: 18-32 (36.0% +/- 13.3%)
+  Equity/game: -0.360
+  Wins: 19-31 (38.0% +/- 13.5%)
+  Equity/game: -0.520
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.640
+  Wins: 18-32 (36.0% +/- 13.3%)
+  Equity/game: -0.460
+===== ROUND 18 DONE (next=experiments/exp009-ondist-dagger/round_18/checkpoints/pretrained_v2.pt) 2026-07-18_05:58:59 =====
+===== ROUND 19 SYNTH (net=experiments/exp009-ondist-dagger/round_18/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-18_05:58:59 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_19.npz: 120,008 examples (K=6)
+===== ROUND 19 MERGE 2026-07-18_09:58:17 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_16.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_19.npz: 644,455 examples (K=6)
+===== ROUND 19 TRAIN (warm from experiments/exp009-ondist-dagger/round_18/checkpoints/pretrained_v2.pt) 2026-07-18_09:58:40 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_18/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_19.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1062  value_MSE=0.0037  top1_acc=40.8%
+Epoch   1/2: train pol=2.0306 val=0.0039 | val pol=2.1108 val=0.0038 top1=40.4% | 241.9s
+Epoch   2/2: train pol=2.0101 val=0.0038 | val pol=2.1090 val=0.0039 top1=41.0% | 240.2s
+Selected epoch 0 (lowest val combined loss 2.1099)
+
+Saved experiments/exp009-ondist-dagger/round_19/checkpoints/pretrained_v2.pt
+  final val: pol=2.1062 val=0.0037 top1=40.8%
+  total 8.0 min
+===== ROUND 19 EVAL 2026-07-18_10:06:57 =====
+----- arena: round_19 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_19/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_19/logs/eval_log.jsonl
+===== ROUND 19 DONE (next=experiments/exp009-ondist-dagger/round_19/checkpoints/pretrained_v2.pt) 2026-07-18_14:37:44 =====
+===== ROUND 20 SYNTH (net=experiments/exp009-ondist-dagger/round_19/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-18_14:37:44 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_20.npz: 120,008 examples (K=6)
+===== ROUND 20 MERGE 2026-07-18_19:04:18 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_17.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_20.npz: 644,455 examples (K=6)
+===== ROUND 20 TRAIN (warm from experiments/exp009-ondist-dagger/round_19/checkpoints/pretrained_v2.pt) 2026-07-18_19:04:41 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_19/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_20.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.1329  value_MSE=0.0036  top1_acc=40.6%
+Epoch   1/2: train pol=2.0338 val=0.0039 | val pol=2.1302 val=0.0037 top1=40.4% | 240.4s
+Epoch   2/2: train pol=2.0118 val=0.0039 | val pol=2.1277 val=0.0037 top1=40.3% | 241.8s
+Selected epoch 2 (lowest val combined loss 2.1313)
+
+Saved experiments/exp009-ondist-dagger/round_20/checkpoints/pretrained_v2.pt
+  final val: pol=2.1277 val=0.0037 top1=40.3%
+  total 8.0 min
+===== ROUND 20 EVAL 2026-07-18_19:12:59 =====
+----- arena: round_20 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_20/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_20/logs/eval_log.jsonl
+----- gnubg: round_20 vs world/2-ply (2 x 50 games) -----
+  Wins: 16-34 (32.0% +/- 12.9%)
+  Equity/game: -0.520
+  Wins: 15-35 (30.0% +/- 12.7%)
+  Equity/game: -0.800
+===== ROUND 20 DONE (next=experiments/exp009-ondist-dagger/round_20/checkpoints/pretrained_v2.pt) 2026-07-19_02:14:10 =====
+===== ROUND 21 SYNTH (net=experiments/exp009-ondist-dagger/round_20/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-19_02:14:10 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_21.npz: 120,008 examples (K=6)
+===== ROUND 21 MERGE 2026-07-19_06:51:56 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_18.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_21.npz: 644,455 examples (K=6)
+===== ROUND 21 TRAIN (warm from experiments/exp009-ondist-dagger/round_20/checkpoints/pretrained_v2.pt) 2026-07-19_06:52:20 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_20/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_21.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0829  value_MSE=0.0038  top1_acc=41.2%
+Epoch   1/2: train pol=2.0081 val=0.0038 | val pol=2.0963 val=0.0038 top1=40.2% | 237.1s
+Epoch   2/2: train pol=1.9951 val=0.0038 | val pol=2.0969 val=0.0036 top1=40.7% | 241.1s
+Selected epoch 0 (lowest val combined loss 2.0866)
+
+Saved experiments/exp009-ondist-dagger/round_21/checkpoints/pretrained_v2.pt
+  final val: pol=2.0829 val=0.0038 top1=41.2%
+  total 8.0 min
+===== ROUND 21 EVAL 2026-07-19_07:00:32 =====
+----- arena: round_21 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_21/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_21/logs/eval_log.jsonl
+===== ROUND 21 DONE (next=experiments/exp009-ondist-dagger/round_21/checkpoints/pretrained_v2.pt) 2026-07-19_11:40:30 =====
+===== ROUND 22 SYNTH (net=experiments/exp009-ondist-dagger/round_21/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-19_11:40:30 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_22.npz: 120,008 examples (K=6)
+===== ROUND 22 MERGE 2026-07-19_15:54:04 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_19.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_22.npz: 644,455 examples (K=6)
+===== ROUND 22 TRAIN (warm from experiments/exp009-ondist-dagger/round_21/checkpoints/pretrained_v2.pt) 2026-07-19_15:54:27 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_21/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_22.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0800  value_MSE=0.0039  top1_acc=41.2%
+Epoch   1/2: train pol=2.0091 val=0.0039 | val pol=2.0879 val=0.0038 top1=41.2% | 241.9s
+Epoch   2/2: train pol=1.9930 val=0.0039 | val pol=2.0880 val=0.0040 top1=41.5% | 240.8s
+Selected epoch 0 (lowest val combined loss 2.0839)
+
+Saved experiments/exp009-ondist-dagger/round_22/checkpoints/pretrained_v2.pt
+  final val: pol=2.0800 val=0.0039 top1=41.2%
+  total 8.0 min
+===== ROUND 22 EVAL 2026-07-19_16:02:44 =====
+----- arena: round_22 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_22/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_22/logs/eval_log.jsonl
+----- gnubg: round_22 vs world/2-ply (2 x 50 games) -----
+  Wins: 17-33 (34.0% +/- 13.1%)
+  Equity/game: -0.620
+  Wins: 19-31 (38.0% +/- 13.5%)
+  Equity/game: -0.400
+===== ROUND 22 DONE (next=experiments/exp009-ondist-dagger/round_22/checkpoints/pretrained_v2.pt) 2026-07-19_22:47:15 =====
+===== ROUND 23 SYNTH (net=experiments/exp009-ondist-dagger/round_22/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-19_22:47:15 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_23.npz: 120,008 examples (K=6)
+===== ROUND 23 MERGE 2026-07-20_02:37:58 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_20.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_23.npz: 644,455 examples (K=6)
+===== ROUND 23 TRAIN (warm from experiments/exp009-ondist-dagger/round_22/checkpoints/pretrained_v2.pt) 2026-07-20_02:38:22 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_22/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_23.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.332
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0949  value_MSE=0.0039  top1_acc=40.7%
+Epoch   1/2: train pol=2.0101 val=0.0039 | val pol=2.0952 val=0.0039 top1=41.0% | 242.3s
+Epoch   2/2: train pol=1.9898 val=0.0039 | val pol=2.0949 val=0.0038 top1=41.2% | 241.8s
+Selected epoch 2 (lowest val combined loss 2.0987)
+
+Saved experiments/exp009-ondist-dagger/round_23/checkpoints/pretrained_v2.pt
+  final val: pol=2.0949 val=0.0038 top1=41.2%
+  total 8.1 min
+===== ROUND 23 EVAL 2026-07-20_02:46:41 =====
+----- arena: round_23 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_23/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_23/logs/eval_log.jsonl
+===== ROUND 23 DONE (next=experiments/exp009-ondist-dagger/round_23/checkpoints/pretrained_v2.pt) 2026-07-20_07:13:44 =====
+===== ROUND 24 SYNTH (net=experiments/exp009-ondist-dagger/round_23/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-20_07:13:44 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_24.npz: 120,008 examples (K=6)
+===== ROUND 24 MERGE 2026-07-20_11:05:37 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_21.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_24.npz: 644,455 examples (K=6)
+===== ROUND 24 TRAIN (warm from experiments/exp009-ondist-dagger/round_23/checkpoints/pretrained_v2.pt) 2026-07-20_11:06:00 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_23/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_24.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.332
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0709  value_MSE=0.0038  top1_acc=41.5%
+Epoch   1/2: train pol=1.9917 val=0.0039 | val pol=2.0890 val=0.0038 top1=41.1% | 242.2s
+Epoch   2/2: train pol=1.9785 val=0.0038 | val pol=2.0883 val=0.0037 top1=41.4% | 240.7s
+Selected epoch 0 (lowest val combined loss 2.0747)
+
+Saved experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt
+  final val: pol=2.0709 val=0.0038 top1=41.5%
+  total 8.1 min
+===== ROUND 24 EVAL 2026-07-20_11:14:18 =====
+----- arena: round_24 vs SEED (2 x 50 games) -----
+===== EXP009 START 2026-07-20_13:34:52 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 02 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 03 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 04 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 05 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 06 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 07 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 08 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 09 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 10 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 11 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 12 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 13 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 14 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 15 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 16 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 17 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 18 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 19 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 20 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 21 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 22 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 23 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 24 already complete — skipping 2026-07-20_13:34:52 =====
+===== ROUND 25 SYNTH (net=experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-20_13:34:52 =====
+===== EXP009 START 2026-07-20_13:58:54 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 02 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 03 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 04 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 05 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 06 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 07 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 08 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 09 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 10 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 11 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 12 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 13 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 14 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 15 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 16 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 17 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 18 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 19 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 20 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 21 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 22 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 23 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 24 already complete — skipping 2026-07-20_13:58:54 =====
+===== ROUND 25 SYNTH (net=experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-20_13:58:54 =====
+===== EXP009 START 2026-07-20_14:05:23 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 02 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 03 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 04 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 05 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 06 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 07 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 08 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 09 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 10 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 11 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 12 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 13 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 14 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 15 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 16 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 17 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 18 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 19 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 20 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 21 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 22 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 23 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 24 already complete — skipping 2026-07-20_14:05:23 =====
+===== ROUND 25 SYNTH (net=experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-20_14:05:23 =====
+===== EXP009 START 2026-07-20_14:40:21 =====
+seed=experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt ply=2 rounds=25 workers=14 maxdec=120000
+epochs=2 lr=3e-4 window=4 backfill=[experiments/pretrain-consol/caches/26ch/ondist_round_12_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_13_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_14_26ch.npz experiments/pretrain-consol/caches/26ch/ondist_round_15_26ch.npz]
+===== ROUND 01 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 02 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 03 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 04 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 05 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 06 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 07 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 08 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 09 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 10 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 11 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 12 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 13 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 14 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 15 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 16 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 17 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 18 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 19 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 20 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 21 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 22 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 23 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 24 already complete — skipping 2026-07-20_14:40:21 =====
+===== ROUND 25 SYNTH (net=experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt, ply=2, 14 workers) 2026-07-20_14:40:21 =====
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w1.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w2.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w3.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w4.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w5.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w6.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w7.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w8.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w9.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w10.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w11.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w12.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w13.npz: 8,572 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.w14.npz: 8,572 examples
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_25.npz: 120,008 examples (K=6)
+===== ROUND 25 MERGE 2026-07-20_18:37:40 =====
+  experiments/pretrain-consol/caches/26ch/gnubg4ply_cache_dbl_26ch.npz: 164,423 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_22.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_23.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_24.npz: 120,008 examples
+  experiments/exp009-ondist-dagger/caches/ondist_round_25.npz: 120,008 examples
+Wrote experiments/exp009-ondist-dagger/caches/combined_round_25.npz: 644,455 examples (K=6)
+===== ROUND 25 TRAIN (warm from experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt) 2026-07-20_18:38:03 =====
+Device: cuda
+Loading base checkpoint experiments/exp009-ondist-dagger/round_24/checkpoints/pretrained_v2.pt
+Loading policy cache experiments/exp009-ondist-dagger/caches/combined_round_25.npz
+  observations: (644455, 26, 2, 12)  policy: SOFT targets, 6 cols, actions 1351 max  value: mean=0.030 std=0.331
+Split: 612,233 train / 32,222 val (soft policy targets)
+Baseline val: policy_CE=2.0957  value_MSE=0.0038  top1_acc=41.5%
+Epoch   1/2: train pol=2.0033 val=0.0039 | val pol=2.1041 val=0.0041 top1=40.3% | 216.9s
+Epoch   2/2: train pol=1.9867 val=0.0038 | val pol=2.1031 val=0.0036 top1=41.2% | 224.6s
+Selected epoch 0 (lowest val combined loss 2.0995)
+
+Saved experiments/exp009-ondist-dagger/round_25/checkpoints/pretrained_v2.pt
+  final val: pol=2.0957 val=0.0038 top1=41.5%
+  total 7.4 min
+===== ROUND 25 EVAL 2026-07-20_18:45:40 =====
+----- arena: round_25 vs SEED (2 x 50 games) -----
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_25/logs/eval_log.jsonl
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_25/logs/eval_log.jsonl
+----- gnubg: round_25 vs world/2-ply (4 x 50 games) -----
+  Wins: 18-32 (36.0% +/- 13.3%)
+  Equity/game: -0.440
+  Wins: 16-34 (32.0% +/- 12.9%)
+  Equity/game: -0.680
+  Wins: 22-28 (44.0% +/- 13.8%)
+  Equity/game: -0.220
+  Wins: 14-36 (28.0% +/- 12.4%)
+  Equity/game: -0.580
+===== ROUND 25 DONE (next=experiments/exp009-ondist-dagger/round_25/checkpoints/pretrained_v2.pt) 2026-07-21_02:11:23 =====
+===== FINAL: vs iter_0447 (docs continuity) 2026-07-21_02:11:23 =====
+Player 1: experiments/exp009-ondist-dagger/round_25/checkpoints/pretrained_v2.pt (10x256)
+Player 2: experiments/exp005-6x128-800sims/checkpoints/iter_0447.pt (6x128)
+Playing 100 games with 50 simulations each...
+Game 1/100  P1 0-0  Equity: +0.000 ppgGame 2/100  P1 1-0  Equity: +3.000 ppgGame 3/100  P1 2-0  Equity: +3.000 ppgGame 4/100  P1 3-0  Equity: +2.667 ppgGame 5/100  P1 4-0  Equity: +2.500 ppgGame 6/100  P1 5-0  Equity: +2.400 ppgGame 7/100  P1 6-0  Equity: +2.500 ppgGame 8/100  P1 7-0  Equity: +2.571 ppgGame 9/100  P1 8-0  Equity: +2.500 ppgGame 10/100  P1 9-0  Equity: +2.556 ppgGame 11/100  P1 10-0  Equity: +2.600 ppgGame 12/100  P1 11-0  Equity: +2.636 ppgGame 13/100  P1 12-0  Equity: +2.583 ppgGame 14/100  P1 13-0  Equity: +2.615 ppgGame 15/100  P1 14-0  Equity: +2.643 ppgGame 16/100  P1 15-0  Equity: +2.600 ppgGame 17/100  P1 16-0  Equity: +2.625 ppgGame 18/100  P1 17-0  Equity: +2.647 ppgGame 19/100  P1 18-0  Equity: +2.667 ppgGame 20/100  P1 19-0  Equity: +2.632 ppgGame 21/100  P1 20-0  Equity: +2.550 ppgGame 22/100  P1 21-0  Equity: +2.524 ppgGame 23/100  P1 22-0  Equity: +2.500 ppgGame 24/100  P1 23-0  Equity: +2.478 ppgGame 25/100  P1 24-0  Equity: +2.500 ppgGame 26/100  P1 25-0  Equity: +2.520 ppgGame 27/100  P1 26-0  Equity: +2.538 ppgGame 28/100  P1 27-0  Equity: +2.556 ppgGame 29/100  P1 28-0  Equity: +2.536 ppgGame 30/100  P1 29-0  Equity: +2.552 ppgGame 31/100  P1 30-0  Equity: +2.533 ppgGame 32/100  P1 31-0  Equity: +2.484 ppgGame 33/100  P1 32-0  Equity: +2.500 ppgGame 34/100  P1 33-0  Equity: +2.515 ppgGame 35/100  P1 34-0  Equity: +2.500 ppgGame 36/100  P1 35-0  Equity: +2.486 ppgGame 37/100  P1 36-0  Equity: +2.472 ppgGame 38/100  P1 37-0  Equity: +2.459 ppgGame 39/100  P1 38-0  Equity: +2.447 ppgGame 40/100  P1 39-0  Equity: +2.462 ppgGame 41/100  P1 40-0  Equity: +2.450 ppgGame 42/100  P1 41-0  Equity: +2.463 ppgGame 43/100  P1 42-0  Equity: +2.476 ppgGame 44/100  P1 43-0  Equity: +2.488 ppgGame 45/100  P1 44-0  Equity: +2.477 ppgGame 46/100  P1 45-0  Equity: +2.489 ppgGame 47/100  P1 46-0  Equity: +2.478 ppgGame 48/100  P1 47-0  Equity: +2.489 ppgGame 49/100  P1 48-0  Equity: +2.479 ppgGame 50/100  P1 49-0  Equity: +2.469 ppgGame 51/100  P1 49-1  Equity: +2.380 ppgGame 52/100  P1 50-1  Equity: +2.373 ppgGame 53/100  P1 51-1  Equity: +2.365 ppgGame 54/100  P1 52-1  Equity: +2.377 ppgGame 55/100  P1 53-1  Equity: +2.352 ppgGame 56/100  P1 54-1  Equity: +2.364 ppgGame 57/100  P1 55-1  Equity: +2.357 ppgGame 58/100  P1 56-1  Equity: +2.368 ppgGame 59/100  P1 57-1  Equity: +2.345 ppgGame 60/100  P1 58-1  Equity: +2.339 ppgGame 61/100  P1 59-1  Equity: +2.350 ppgGame 62/100  P1 60-1  Equity: +2.361 ppgGame 63/100  P1 61-1  Equity: +2.355 ppgGame 64/100  P1 62-1  Equity: +2.349 ppgGame 65/100  P1 63-1  Equity: +2.344 ppgGame 66/100  P1 64-1  Equity: +2.338 ppgGame 67/100  P1 65-1  Equity: +2.333 ppgGame 68/100  P1 66-1  Equity: +2.328 ppgGame 69/100  P1 67-1  Equity: +2.338 ppgGame 70/100  P1 68-1  Equity: +2.348 ppgGame 71/100  P1 69-1  Equity: +2.343 ppgGame 72/100  P1 70-1  Equity: +2.338 ppgGame 73/100  P1 71-1  Equity: +2.347 ppgGame 74/100  P1 72-1  Equity: +2.356 ppgGame 75/100  P1 73-1  Equity: +2.365 ppgGame 76/100  P1 74-1  Equity: +2.360 ppgGame 77/100  P1 75-1  Equity: +2.355 ppgGame 78/100  P1 76-1  Equity: +2.364 ppgGame 79/100  P1 77-1  Equity: +2.372 ppgGame 80/100  P1 78-1  Equity: +2.367 ppgGame 81/100  P1 79-1  Equity: +2.375 ppgGame 82/100  P1 80-1  Equity: +2.383 ppgGame 83/100  P1 81-1  Equity: +2.390 ppgGame 84/100  P1 82-1  Equity: +2.386 ppgGame 85/100  P1 83-1  Equity: +2.381 ppgGame 86/100  P1 84-1  Equity: +2.388 ppgGame 87/100  P1 85-1  Equity: +2.395 ppgGame 88/100  P1 86-1  Equity: +2.402 ppgGame 89/100  P1 87-1  Equity: +2.386 ppgGame 90/100  P1 88-1  Equity: +2.393 ppgGame 91/100  P1 89-1  Equity: +2.400 ppgGame 92/100  P1 90-1  Equity: +2.396 ppgGame 93/100  P1 91-1  Equity: +2.402 ppgGame 94/100  P1 92-1  Equity: +2.398 ppgGame 95/100  P1 93-1  Equity: +2.394 ppgGame 96/100  P1 94-1  Equity: +2.400 ppgGame 97/100  P1 95-1  Equity: +2.406 ppgGame 98/100  P1 96-1  Equity: +2.402 ppgGame 99/100  P1 97-1  Equity: +2.408 ppgGame 100/100  P1 98-1  Equity: +2.414 ppg
+P1 wins: 99/100 (99.0%), Equity: +2.410 ppg, P1 gammons/bg: 44/50, P2 gammons/bg: 1/0, Avg length: 68 moves
+Result logged to /home/lasse/raccoon/experiments/exp009-ondist-dagger/round_25/logs/eval_log.jsonl
+===== EXP009 COMPLETE 2026-07-21_04:26:45 =====

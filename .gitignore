@@ -26,6 +26,15 @@ experiments/*/logs/*.out
 experiments/*/logs/stdout.log
 experiments/*/*/logs/*.out
 experiments/*/*/logs/stdout.log
+# Per-chunk arena/GNUBG stdout (exp009 `arena_rNN_cN.log`, `gnubg_rNN_cN.log`):
+# every completed chunk ends "Result logged to .../eval_log.jsonl" and is a strict
+# duplicate of a committed jsonl row; the rest are runs killed mid-match with no
+# result at all. Committing them would only invite the double-count that
+# pretraining_analysis.qmd warns about at R15_BASELINE. Deliberately narrow — it
+# must NOT catch pretrain-consol/logs/gnubg_round15_chunk*.log, which is the sole
+# record of that n=200 benchmark and IS read at render time.
+experiments/*/logs/arena_r[0-9]*_c[0-9]*.log
+experiments/*/logs/gnubg_r[0-9]*_c[0-9]*.log
 perplexity-conversation.md
 *.html
 *_files/

@@ -1,0 +1,12 @@
+Rollout net: experiments/pretrain-consol/26ch/checkpoints/pretrained_v2.pt (10x256)  oracle ply=2  encode_channels=26
+  games=25 emitted=2,040 (nondbl=1,492 dbl_vo=0 dbl_pol=548) el=58.6min rate=35/min
+  games=50 emitted=4,092 (nondbl=2,974 dbl_vo=0 dbl_pol=1,118) el=118.8min rate=34/min
+  games=75 emitted=6,057 (nondbl=4,410 dbl_vo=0 dbl_pol=1,647) el=166.8min rate=36/min
+  games=100 emitted=8,386 (nondbl=6,142 dbl_vo=0 dbl_pol=2,244) el=214.1min rate=39/min
+
+Wrote experiments/exp009-ondist-dagger/caches/ondist_round_01.w5.npz
+  examples: 8,572  (games=103)
+  non-doubles policy=6,267  doubles value-only=0  doubles policy=2,305
+  value mean=0.028 std=0.339 min=-1.000 max=1.000
+  mean prob mass on best move: 0.499 (policy_temperature=0.02)
+  total 216.9 min
