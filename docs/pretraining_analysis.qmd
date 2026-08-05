@@ -124,8 +124,14 @@ def parse_gnubg_txt(glob_pattern):
     return w, l, pts, w + l
 
 
-# The fair n=200 GNUBG re-benchmark of exp008 round_15 (run during Phase A)
-# was only logged as text chunks.
+# The fair n=200 GNUBG re-benchmark of exp008 round_15 (run during Phase A),
+# as four n=50 text chunks.
+#
+# DO NOT also take these from round_15/logs/gnubg_eval_log.jsonl. The GPU VM's
+# copy of that jsonl holds the same four runs (verified identical: 5-45/-1.58,
+# 5-45/-1.46, 7-43/-1.30, 9-41/-1.16), because the eval wrote both formats there.
+# The committed jsonl deliberately excludes them, so syncing the VM's version over
+# it would count this benchmark twice and shift the exp008 bar.
 R15_BASELINE = parse_gnubg_txt("pretrain-consol/logs/gnubg_round15_chunk*.log")
 
 CHECKPOINTS = [
