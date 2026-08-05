@@ -35,7 +35,7 @@ if [ ! -f "$PARAMS" ]; then
   mkdir -p "$EXP_DIR"
   gcloud storage cp "$GCS_BUCKET/experiments/$EXPNAME/resume_params.env" "$PARAMS" 2>/dev/null || true
 fi
-[ -f "$PARAMS" ] || { echo "missing $PARAMS (run pipeline_exp017.sh first)" >&2; exit 1; }
+[ -f "$PARAMS" ] || { echo "missing $PARAMS (run the experiment's pipeline_*.sh first)" >&2; exit 1; }
 # shellcheck disable=SC1090
 source "$PARAMS"   # CACHE_DIR GCS_CACHE VALUE_HEAD EPOCHS LR EVAL_EVERY EVAL_GAMES MAXWALL SHUFFLE_SEED GNUBG_PLY
 
