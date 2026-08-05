@@ -196,16 +196,24 @@ print(pd.DataFrame(rows).to_markdown(index=False, disable_numparse=True))
 
 ## Data and methodology
 
-Two external data sources feed the track:
+Four datasets feed the track — two external corpora, one generated in-house by GNUBG self-play, and one external benchmark used only for scoring:
 
-| Source | License | What it provides | Size |
-|---|---|---|---|
-| [wildbg-training](https://github.com/carsten-wenderdel/wildbg-training) | CC0 | Pre-roll positions with rollout equities (`win`, `win_g`, `win_bg`, `lose_g`, `lose_bg`) — value labels only, no moves | ~300k positions |
-| [bglab](https://github.com/lassehjorthmadsen/bglab) match archive | personal match data | Human match positions (raw), and GNUBG 2-ply/4-ply analysis of those matches (`analyzed/`) | ~1777 raw matches → ~238k decisions; ~4319 analysed games → ~164k labeled decisions |
+| Source | Role | License | What it provides | Size |
+|---|---|---|---|---|
+| [wildbg-training](https://github.com/carsten-wenderdel/wildbg-training) | training | CC0 | Pre-roll positions with rollout equities (`win`, `win_g`, `win_bg`, `lose_g`, `lose_bg`) — value labels only, no moves | ~300k positions |
+| [bglab](https://github.com/lassehjorthmadsen/bglab) match archive | training | personal match data | Human match positions (raw), and GNUBG 2-ply/4-ply analysis of those matches (`analyzed/`) | ~1777 raw matches → ~238k decisions; ~4319 analysed games → ~164k labeled decisions |
+| GNUBG self-play distillation (`data/distill/`) | training | generated in-house | GNUBG self-play positions labeled by GNUBG itself — cubeless money `equity` plus the six-outcome distribution, at 0-ply and/or 2-ply | 40M positions at 2-ply, 16M at 0-ply |
+| [BGSage](https://github.com/markbgsage/bgsage) money benchmark (`data/bgsage/`) | evaluation only | sibling project | Sage self-play money games with adaptive-precision cubeless-equity references | 14,693 checker decisions → ~327k candidate positions |
 
 The shared pipeline (`raccoon/data/`): decode positions into a perspective-relative board, encode with the same tensor encoder the self-play network uses (so any pretrained checkpoint is a drop-in `--resume` target), and **replay matches move-by-move through OpenSpiel** to recover the legal-action set at every decision. Move matching is robust to notation variants by falling back to a final-board-signature comparison — 99%+ replay success across both the raw and analysed corpora, with per-decision Position-ID verification against the analysed files (0 mismatches). bglab's own equities are match-cubeful and are never used as targets; value targets come from wildbg rollouts, from a network, or from GNUBG money equities.
 
-Eval conventions match the [self-play page](training_analysis.qmd#how-to-read-the-results): ppg under cubeless money scoring, arena matches at equal MCTS sims, GNUBG benchmark vs 2-ply. Where a benchmark was logged in chunks or replicated, tables on this page pool all rows for the same (checkpoint, opponent, sims).
+**The distillation corpus** (`data/distill/`; `data/README.md` has the full layout) is the dominant training source from [exp011b](#exp011b) onward, and the only one that scales: positions come from GNUBG self-play (`scripts/gen_gnubg_selfplay.py`), labels from re-querying GNUBG at a chosen ply (`scripts/relabel_2ply.py`). Shards are organised **by label ply first, then by generation run** — `2ply/{run1,run2,run3}` totalling **40M** positions (8M + 8M + 24M), `0ply/{run1,run2}` totalling 16M. `run1` is the **matched pair**: the same 8M positions labeled at both plies, which is what lets [exp014](#exp014) isolate the effect of teacher ply from the effect of which positions were sampled; run2 and run3 are independent samples whose shard filenames only align within a run, so they can't be paired that way. run3 is 2-ply-only by design — its 0-ply twin was generated, relabeled, and deleted. Which slice each experiment consumed: [exp011b](#exp011b) `0ply/run1` (8M), [exp014](#exp014) `0ply/run1` vs `2ply/run1` (8M each), [exp017](#exp017) all of `2ply/` (40M).
+
+**The BGSage benchmark** (`data/bgsage/money_benchmark/benchmark.json.gz`) is scoring-only — nothing on this page trains on it. 500 Sage-3P self-play money games, 17,535 decisions of which 14,693 are checker decisions, each adjudicated at one of three reference tiers (rollout > 3-ply-team > 3-ply) by BGSage's adaptive-precision scheme. Being external to every engine scored against it is what makes it usable as a primary metric rather than a proxy; the full scoring protocol and its caveats are in [exp015](#exp015).
+
+Two further *derived* caches sit alongside the experiments that made them: the bglab 4-ply and policy caches (`data/bglab/cache/`, via `scripts/synthesize_gnubg_dataset.py` and `synthesize_policy_dataset.py`) behind [v2](#v2)–[v5](#v5), and the on-distribution DAgger caches (`experiments/<exp>/caches/`) of learner-generated positions labeled live by GNUBG, behind [exp008](#exp008) and [exp009](#exp009).
+
+Eval conventions match the [self-play page](training_analysis.qmd#how-to-read-the-results): ppg under cubeless money scoring, arena matches at equal MCTS sims, GNUBG benchmark vs 2-ply. Where a benchmark was logged in chunks or replicated, tables on this page pool all rows for the same (checkpoint, opponent, sims). From [exp015](#exp015) onward the headline metric is instead the static BGSage score — PR over all 14,693 checker decisions, and value-head R²/MSE on the rollout tier (n≈149k) — which resolves near-parity comparisons that raw ppg cannot at any feasible n.
 
 ## v1 — value-only pretraining {#v1}
 
