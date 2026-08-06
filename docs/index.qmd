@@ -1,23 +1,105 @@
 ---
 title: "Raccoon"
-subtitle: "AlphaZero-style backgammon AI"
+subtitle: "A modern neural engine for backgammon"
+toc: false
 ---
 
-Raccoon is a backgammon AI that uses AlphaZero-style reinforcement learning to challenge GNUBG at money game play. The name is a nod to the doubling cube term in backgammon.
+::: {.lead}
+Backgammon's strongest engines are built on 1990s technology. Raccoon is an
+attempt to rebuild one from scratch with the methods that have since transformed
+chess, shogi, and Go — a deep residual policy-value network, Monte Carlo tree
+search, and large-scale supervised distillation.
+:::
 
-GNUBG, the strongest open-source backgammon engine, uses TD reinforcement learning with value-only neural networks and shallow search — a design from the 1990s (TD-Gammon era). Modern AlphaZero-style training (policy+value network + Monte Carlo Tree Search) has beaten world-class engines in chess, shogi, and Go. This project applies that approach to backgammon.
+GNU Backgammon (GNUBG) has been the reference open-source engine for two decades.
+Its evaluator is a small, hand-tuned neural network in the TD-Gammon lineage, and
+its strength comes mostly from full-width search on top of that network — search
+that costs roughly two orders of magnitude more compute per decision than a single
+network evaluation. Raccoon asks whether a modern network can absorb that search
+quality into its weights instead, so that a *single forward pass* plays at the
+level GNUBG needs a deep search to reach.
 
-## Quick Start
+## Where it stands today
+
+Raccoon is scored on the [BGSage money benchmark](pretraining_analysis.qmd):
+14,693 checker decisions with cubeless-equity references from rollouts. The metric
+is **PR** — mean move-selection error over the benchmark, scaled by 500. Lower is
+better; 0 would mean never picking a suboptimal move.
+
+| Engine | Compute per decision | PR (n = 14,693) |
+|---|---|---|
+| GNUBG, 2-ply full-width search | ~1.3 s | **0.56** |
+| **Raccoon, single network evaluation** | ~10 ms | **0.93** |
+| GNUBG, single network evaluation (0-ply) | ~10 ms | **2.14** |
+
+*Raccoon figure: checkpoint `exp017-ep12`, the current best network — a 10-block,
+256-channel ResNet trained on 40M positions distilled from GNUBG's 2-ply search.
+GNUBG figures scored on the identical benchmark. Full method and per-epoch curves:
+[Supervised & Expert-Iteration Analysis](pretraining_analysis.qmd).*
+
+Read plainly: **at equal cost, Raccoon's checker play is well past GNUBG's own
+network**, and it has closed most of the distance to GNUBG's 2-ply search while
+doing no search at all. In direct play, an earlier checkpoint scored
+−0.05 ± 0.046 points per game against GNUBG at 0-ply over 6,000 cubeless money
+games — statistical parity ([exp011b](pretraining_analysis.qmd)); the current
+network has not yet been measured head-to-head at that sample size.
+
+The honest caveats: this is **checker play only, cubeless**. Raccoon does not yet
+handle the doubling cube, which is half of competitive backgammon. It is a
+research engine, not a product.
+
+## How it works
+
+| Piece | Approach |
+|---|---|
+| **Board encoding** | Custom `(26, 2, 12)` tensor — checker planes per player, bar/borne-off/dice broadcasts, plus handcrafted pip, blot, anchor, and contact features |
+| **Network** | ResNet with a shared trunk, a 1352-way policy head over OpenSpiel's action encoding, and a value head |
+| **Search** | AlphaZero-style MCTS with PUCT selection; dice are sampled at chance nodes so the tree holds only decision nodes |
+| **Training** | Supervised distillation from GNUBG's search, expert iteration (DAgger) on self-play distributions, and TD self-play — see the analyses below for which of these actually worked |
+
+Game rules and legal-move generation come from [OpenSpiel](https://openspiel.readthedocs.io/);
+everything else — encoder, network, search, training loops, evaluation harnesses — is
+written from scratch in Python and PyTorch.
+
+## Roadmap
+
+- **Cube-capable value head.** Move from a scalar equity to a six-outcome
+  distribution (win/gammon/backgammon, either side), the prerequisite for doubling
+  and take/pass decisions.
+- **A stronger teacher.** Distilling from deeper GNUBG search rather than more
+  2-ply data — the residual gap to the teacher is search, not data.
+- **Match play**, where score-dependent equity and the cube dominate.
+- **Engine integration.** The [Raccoon Game Protocol](architecture.md) is a
+  UCI-style text protocol so analysis GUIs can embed the engine.
+
+## Research write-ups
+
+Every experiment is documented with its hypothesis, primary metric, sample size,
+and conclusion — including the ones that failed.
+
+| Doc | What it covers |
+|---|---|
+| [Supervised & Expert Iteration](pretraining_analysis.qmd) | Distilling GNUBG, on-distribution DAgger, consolidation — the current best results |
+| [Self-Play Analysis](training_analysis.qmd) | What pure AlphaZero self-play achieved, and why it plateaued |
+| [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
+| [MCTS Explained](mcts_explained.md) | Simulations, PUCT selection, temperature, Dirichlet noise |
+| [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |
+| [GCP Guide](gcp_guide.md) | Running training on Google Cloud GPU VMs |
+| [API Reference](reference/index.qmd) | Generated module documentation |
+
+## Try it
+
+Raccoon is open source under the [MIT licence](https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE).
 
 ```bash
-make setup          # Install in editable mode with dev deps
-make test           # Run all tests
-make smoke          # Quick sanity: 2 iterations, 3 games, 10 sims
-make train          # Full training run
-make play           # Play against Raccoon in terminal
+git clone https://github.com/lassehjorthmadsen/raccoon.git
+cd raccoon
+make setup          # install in editable mode with dev deps
+make test           # run the test suite
+make play           # play against Raccoon in the terminal
 ```
 
-Training with custom parameters (`--experiment-name` is required; outputs go to `experiments/<name>/`):
+Training runs need an experiment name; outputs land in `experiments/<name>/`:
 
 ```bash
 python3 scripts/train.py --experiment-name my-run --iterations 100 \
@@ -25,25 +107,5 @@ python3 scripts/train.py --experiment-name my-run --iterations 100 \
   --channels 128 --num-blocks 6 --checkpoint-every 10
 ```
 
-## Project Map
-
-| Doc | What it covers |
-|---|---|
-| [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
-| [MCTS Explained](mcts_explained.md) | Concepts: simulations, PUCT selection, temperature, Dirichlet noise |
-| [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |
-| [Self-Play Analysis](training_analysis.qmd) | The self-play track (exp000–exp007): what pure AlphaZero self-play achieved, and why it plateaued |
-| [Supervised & Expert-Iteration Analysis](pretraining_analysis.qmd) | The supervised track: distilling GNUBG (v1–v5), on-distribution DAgger, consolidation — the current best results |
-| [GCP Guide](gcp_guide.md) | Running training on Google Cloud GPU VMs |
-
-## Tech Stack
-
-- **Python 3.10+**, **PyTorch** — neural network training
-- **OpenSpiel** — backgammon game logic and 1352-action encoding
-- **NumPy** — tensor encoding
-- **pytest** — testing
-- **GNUBG** — evaluation benchmark (CLI mode)
-
-## Source
-
-[github.com/lassehjorthmadsen/raccoon](https://github.com/lassehjorthmadsen/raccoon)
+Source: [github.com/lassehjorthmadsen/raccoon](https://github.com/lassehjorthmadsen/raccoon) ·
+Questions and collaboration: [get in touch](contact.qmd).

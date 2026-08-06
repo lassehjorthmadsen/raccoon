@@ -1,0 +1,25 @@
+---
+title: "Contact"
+toc: false
+---
+
+**Email** — [hello@raccoonbg.com](mailto:hello@raccoonbg.com)
+
+**Code and issues** —
+[github.com/lassehjorthmadsen/raccoon](https://github.com/lassehjorthmadsen/raccoon).
+Bug reports and questions about the engine are best filed as
+[issues](https://github.com/lassehjorthmadsen/raccoon/issues).
+
+We are especially interested in hearing from:
+
+- **Backgammon players and analysts** with labelled position sets, rollout
+  archives, or match databases we could benchmark against.
+- **Researchers** working on stochastic games, distillation, or search-free
+  evaluation.
+- **Tool authors** who would like to embed the engine — the
+  [Raccoon Game Protocol](architecture.md) is a UCI-style text protocol built for
+  exactly that.
+
+---
+
+**{{< var company.name >}}** · CVR {{< var company.cvr >}} · Denmark

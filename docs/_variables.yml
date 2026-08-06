@@ -1,0 +1,9 @@
+# Company details rendered into the site via {{< var company.* >}}.
+# FILL THESE IN before publishing — they appear on the About page, the Contact
+# page, and in the site footer, and the Google for Startups application is
+# checked against them.
+company:
+  name: "Tekst og tal"
+  cvr: "34101302"
+  email: "hello@raccoonbg.com"
+  domain: "raccoonbg.com"

@@ -1,0 +1,65 @@
+---
+title: "About"
+subtitle: "Who builds Raccoon, and why"
+toc: false
+---
+
+Raccoon is developed by **{{< var company.name >}}**, an independent research and
+development company registered in Denmark (CVR {{< var company.cvr >}}).
+
+We are a one-person operation working on applied machine learning, currently
+focused on a single question: how much of a classical game engine's search can a
+modern neural network absorb into its weights?
+
+## Why backgammon
+
+Backgammon is an unusual target. It is stochastic — 21 distinct dice rolls
+separate every decision from the next — which makes deep search expensive and
+rules out the tree-search tricks that carry chess engines. It has a large,
+irregular action space: OpenSpiel encodes 1,352 distinct checker moves. And it
+has a doubling cube, an equity-based side game that most published game-AI work
+ignores entirely.
+
+It is also a game where the state of the art is genuinely old. GNU Backgammon,
+still the strongest freely available engine, was built around a small neural
+network in the TD-Gammon lineage, trained in the 1990s, with modern strength
+coming from full-width search layered on top. The methods that reshaped computer
+chess and Go after 2017 — deep residual networks, policy-value architectures,
+distillation at scale — have never been applied to backgammon in a sustained way.
+
+That gap is the opportunity: a well-understood benchmark, a strong reference
+opponent to measure against honestly, and a community of serious players for whom
+the existing analysis tools are dated.
+
+## How we work
+
+**Everything is measured, and everything is published.** Each experiment states one
+hypothesis, fixes one primary metric before the run, and reports every checkpoint
+against it with sample sizes and confidence intervals. The write-ups include the
+experiments that failed, the conclusions we later retracted, and the measurement
+bugs we found in our own evaluation code. That is deliberate — in a domain where
+the effect sizes are small and the noise is large, a result without its error bar
+is not a result.
+
+**The code is open.** The engine, training pipelines, and evaluation harnesses are
+MIT-licensed and public. Game rules come from
+[OpenSpiel](https://openspiel.readthedocs.io/); every line of the ML and search
+code is written from scratch.
+
+**Training runs on Google Cloud** — preemptible GPU instances for network training,
+Cloud Storage for datasets and checkpoints.
+
+## Where this is going
+
+The near-term goal is an engine that plays money-game backgammon at the level of
+the strongest existing bots while evaluating positions far more cheaply, exposed
+through a UCI-style protocol so that analysis tools and GUIs can embed it. Longer
+term, the interesting product is analysis: helping competitive players understand
+their errors, in a domain where the incumbent tooling is two decades old.
+
+Today the project is pre-product, pre-revenue R&D. The engine handles checker play
+cubeless; cube handling is the next milestone.
+
+## Get in touch
+
+Collaboration, questions, or backgammon data: [contact us](contact.qmd).

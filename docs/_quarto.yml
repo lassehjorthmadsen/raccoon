@@ -1,6 +1,10 @@
 project:
   type: website
   output-dir: _site
+  # Emitted into _site so the custom domain survives the gh-pages force-push
+  # that `quarto publish` performs on every docs build.
+  resources:
+    - CNAME
   render:
     - "*.qmd"
     - "*.md"
@@ -11,13 +15,22 @@ project:
 
 website:
   title: "Raccoon"
-  description: "AlphaZero-style backgammon AI"
+  description: "A modern neural engine for backgammon"
+  site-url: https://raccoonbg.com
+  favicon: favicon.svg
+  open-graph: true
   repo-url: https://github.com/lassehjorthmadsen/raccoon
   repo-actions: [issue]
+  page-footer:
+    left: "**{{< var company.name >}}** · CVR {{< var company.cvr >}} · Denmark"
+    center: "[hello@raccoonbg.com](mailto:hello@raccoonbg.com)"
+    right: "[GitHub](https://github.com/lassehjorthmadsen/raccoon) · [MIT licence](https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE)"
   navbar:
     left:
       - text: "Home"
         file: index.qmd
+      - text: "About"
+        file: about.qmd
       - text: "Concepts"
         menu:
           - text: "MCTS Explained"
@@ -36,10 +49,14 @@ website:
         file: gcp_guide.md
       - text: "Reference"
         file: reference/index.qmd
+    right:
+      - text: "Contact"
+        file: contact.qmd
 
 format:
   html:
     theme: cosmo
+    css: styles.css
     toc: true
     code-fold: true
 
