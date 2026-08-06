@@ -1,0 +1,43 @@
+/* Raccoon site styling — a thin layer over the stock `cosmo` Bootswatch theme. */
+
+:root {
+  --raccoon-accent: #c07a33;
+  --raccoon-ink: #2b2f38;
+}
+
+/* Landing-page opening paragraph. */
+.lead {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--raccoon-ink);
+  border-left: 4px solid var(--raccoon-accent);
+  padding-left: 1.1rem;
+  margin: 1.6rem 0 2.2rem;
+}
+
+/* The subtitle under a page title reads as a tagline, not a heading. */
+.quarto-title .subtitle {
+  color: #5c6370;
+  font-weight: 400;
+}
+
+/* Give the result tables a bit more air than Bootstrap's default. */
+main table {
+  margin-block: 1.2rem 1.8rem;
+}
+
+main table td,
+main table th {
+  padding: 0.5rem 0.8rem;
+}
+
+/* Footer: quieter than the body text, with the company line centred. */
+.nav-footer {
+  border-top: 1px solid #e3e6ea;
+  font-size: 0.9rem;
+  color: #5c6370;
+}
+
+.nav-footer a {
+  color: var(--raccoon-accent);
+}

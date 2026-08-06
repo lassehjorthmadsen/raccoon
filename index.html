@@ -71,6 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
+<link href="./favicon.svg" rel="icon" type="image/svg+xml">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -110,9 +111,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Raccoon">
+<meta property="og:description" content="A modern neural engine for backgammon">
+<meta property="og:site_name" content="Raccoon">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -132,6 +137,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -176,6 +185,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Reference</span></a>
   </li>  
 </ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./contact.html"> 
+<span class="menu-text">Contact</span></a>
+  </li>  
+</ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
 </div>
@@ -186,25 +201,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#quick-start" id="toc-quick-start" class="nav-link active" data-scroll-target="#quick-start">Quick Start</a></li>
-  <li><a href="#project-map" id="toc-project-map" class="nav-link" data-scroll-target="#project-map">Project Map</a></li>
-  <li><a href="#tech-stack" id="toc-tech-stack" class="nav-link" data-scroll-target="#tech-stack">Tech Stack</a></li>
-  <li><a href="#source" id="toc-source" class="nav-link" data-scroll-target="#source">Source</a></li>
-  </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Raccoon</h1>
-<p class="subtitle lead">AlphaZero-style backgammon AI</p>
+<p class="subtitle lead">A modern neural engine for backgammon</p>
 </div>
 
 
@@ -221,22 +225,89 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Raccoon is a backgammon AI that uses AlphaZero-style reinforcement learning to challenge GNUBG at money game play. The name is a nod to the doubling cube term in backgammon.</p>
-<p>GNUBG, the strongest open-source backgammon engine, uses TD reinforcement learning with value-only neural networks and shallow search — a design from the 1990s (TD-Gammon era). Modern AlphaZero-style training (policy+value network + Monte Carlo Tree Search) has beaten world-class engines in chess, shogi, and Go. This project applies that approach to backgammon.</p>
-<section id="quick-start" class="level2">
-<h2 class="anchored" data-anchor-id="quick-start">Quick Start</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> setup          <span class="co"># Install in editable mode with dev deps</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test           <span class="co"># Run all tests</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> smoke          <span class="co"># Quick sanity: 2 iterations, 3 games, 10 sims</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> train          <span class="co"># Full training run</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> play           <span class="co"># Play against Raccoon in terminal</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Training with custom parameters (<code>--experiment-name</code> is required; outputs go to <code>experiments/&lt;name&gt;/</code>):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/train.py <span class="at">--experiment-name</span> my-run <span class="at">--iterations</span> 100 <span class="dt">\</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--games-per-iter</span> 50 <span class="at">--simulations</span> 100 <span class="at">--lr</span> 0.001 <span class="dt">\</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--channels</span> 128 <span class="at">--num-blocks</span> 6 <span class="at">--checkpoint-every</span> 10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="lead">
+<p>Backgammon’s strongest engines are built on 1990s technology. Raccoon is an attempt to rebuild one from scratch with the methods that have since transformed chess, shogi, and Go — a deep residual policy-value network, Monte Carlo tree search, and large-scale supervised distillation.</p>
+</div>
+<p>GNU Backgammon (GNUBG) has been the reference open-source engine for two decades. Its evaluator is a small, hand-tuned neural network in the TD-Gammon lineage, and its strength comes mostly from full-width search on top of that network — search that costs roughly two orders of magnitude more compute per decision than a single network evaluation. Raccoon asks whether a modern network can absorb that search quality into its weights instead, so that a <em>single forward pass</em> plays at the level GNUBG needs a deep search to reach.</p>
+<section id="where-it-stands-today" class="level2">
+<h2 class="anchored" data-anchor-id="where-it-stands-today">Where it stands today</h2>
+<p>Raccoon is scored on the <a href="./pretraining_analysis.html">BGSage money benchmark</a>: 14,693 checker decisions with cubeless-equity references from rollouts. The metric is <strong>PR</strong> — mean move-selection error over the benchmark, scaled by 500. Lower is better; 0 would mean never picking a suboptimal move.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Engine</th>
+<th>Compute per decision</th>
+<th>PR (n = 14,693)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GNUBG, 2-ply full-width search</td>
+<td>~1.3 s</td>
+<td><strong>0.56</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Raccoon, single network evaluation</strong></td>
+<td>~10 ms</td>
+<td><strong>0.93</strong></td>
+</tr>
+<tr class="odd">
+<td>GNUBG, single network evaluation (0-ply)</td>
+<td>~10 ms</td>
+<td><strong>2.14</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Raccoon figure: checkpoint <code>exp017-ep12</code>, the current best network — a 10-block, 256-channel ResNet trained on 40M positions distilled from GNUBG’s 2-ply search. GNUBG figures scored on the identical benchmark. Full method and per-epoch curves: <a href="./pretraining_analysis.html">Supervised &amp; Expert-Iteration Analysis</a>.</em></p>
+<p>Read plainly: <strong>at equal cost, Raccoon’s checker play is well past GNUBG’s own network</strong>, and it has closed most of the distance to GNUBG’s 2-ply search while doing no search at all. In direct play, an earlier checkpoint scored −0.05 ± 0.046 points per game against GNUBG at 0-ply over 6,000 cubeless money games — statistical parity (<a href="./pretraining_analysis.html">exp011b</a>); the current network has not yet been measured head-to-head at that sample size.</p>
+<p>The honest caveats: this is <strong>checker play only, cubeless</strong>. Raccoon does not yet handle the doubling cube, which is half of competitive backgammon. It is a research engine, not a product.</p>
 </section>
-<section id="project-map" class="level2">
-<h2 class="anchored" data-anchor-id="project-map">Project Map</h2>
+<section id="how-it-works" class="level2">
+<h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Piece</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Board encoding</strong></td>
+<td>Custom <code>(26, 2, 12)</code> tensor — checker planes per player, bar/borne-off/dice broadcasts, plus handcrafted pip, blot, anchor, and contact features</td>
+</tr>
+<tr class="even">
+<td><strong>Network</strong></td>
+<td>ResNet with a shared trunk, a 1352-way policy head over OpenSpiel’s action encoding, and a value head</td>
+</tr>
+<tr class="odd">
+<td><strong>Search</strong></td>
+<td>AlphaZero-style MCTS with PUCT selection; dice are sampled at chance nodes so the tree holds only decision nodes</td>
+</tr>
+<tr class="even">
+<td><strong>Training</strong></td>
+<td>Supervised distillation from GNUBG’s search, expert iteration (DAgger) on self-play distributions, and TD self-play — see the analyses below for which of these actually worked</td>
+</tr>
+</tbody>
+</table>
+<p>Game rules and legal-move generation come from <a href="https://openspiel.readthedocs.io/">OpenSpiel</a>; everything else — encoder, network, search, training loops, evaluation harnesses — is written from scratch in Python and PyTorch.</p>
+</section>
+<section id="roadmap" class="level2">
+<h2 class="anchored" data-anchor-id="roadmap">Roadmap</h2>
+<ul>
+<li><strong>Cube-capable value head.</strong> Move from a scalar equity to a six-outcome distribution (win/gammon/backgammon, either side), the prerequisite for doubling and take/pass decisions.</li>
+<li><strong>A stronger teacher.</strong> Distilling from deeper GNUBG search rather than more 2-ply data — the residual gap to the teacher is search, not data.</li>
+<li><strong>Match play</strong>, where score-dependent equity and the cube dominate.</li>
+<li><strong>Engine integration.</strong> The <a href="./architecture.html">Raccoon Game Protocol</a> is a UCI-style text protocol so analysis GUIs can embed the engine.</li>
+</ul>
+</section>
+<section id="research-write-ups" class="level2">
+<h2 class="anchored" data-anchor-id="research-write-ups">Research write-ups</h2>
+<p>Every experiment is documented with its hypothesis, primary metric, sample size, and conclusion — including the ones that failed.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -246,45 +317,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
+<td><a href="./pretraining_analysis.html">Supervised &amp; Expert Iteration</a></td>
+<td>Distilling GNUBG, on-distribution DAgger, consolidation — the current best results</td>
+</tr>
+<tr class="even">
+<td><a href="./training_analysis.html">Self-Play Analysis</a></td>
+<td>What pure AlphaZero self-play achieved, and why it plateaued</td>
+</tr>
+<tr class="odd">
 <td><a href="./architecture.html">Architecture</a></td>
 <td>Board encoding, network, MCTS, and training loop design</td>
 </tr>
 <tr class="even">
 <td><a href="./mcts_explained.html">MCTS Explained</a></td>
-<td>Concepts: simulations, PUCT selection, temperature, Dirichlet noise</td>
+<td>Simulations, PUCT selection, temperature, Dirichlet noise</td>
 </tr>
 <tr class="odd">
 <td><a href="./training_parameters.html">Training Parameters</a></td>
 <td>Every CLI flag explained with intuition and reference points</td>
 </tr>
 <tr class="even">
-<td><a href="./training_analysis.html">Self-Play Analysis</a></td>
-<td>The self-play track (exp000–exp007): what pure AlphaZero self-play achieved, and why it plateaued</td>
-</tr>
-<tr class="odd">
-<td><a href="./pretraining_analysis.html">Supervised &amp; Expert-Iteration Analysis</a></td>
-<td>The supervised track: distilling GNUBG (v1–v5), on-distribution DAgger, consolidation — the current best results</td>
-</tr>
-<tr class="even">
 <td><a href="./gcp_guide.html">GCP Guide</a></td>
 <td>Running training on Google Cloud GPU VMs</td>
+</tr>
+<tr class="odd">
+<td><a href="./reference/index.html">API Reference</a></td>
+<td>Generated module documentation</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="tech-stack" class="level2">
-<h2 class="anchored" data-anchor-id="tech-stack">Tech Stack</h2>
-<ul>
-<li><strong>Python 3.10+</strong>, <strong>PyTorch</strong> — neural network training</li>
-<li><strong>OpenSpiel</strong> — backgammon game logic and 1352-action encoding</li>
-<li><strong>NumPy</strong> — tensor encoding</li>
-<li><strong>pytest</strong> — testing</li>
-<li><strong>GNUBG</strong> — evaluation benchmark (CLI mode)</li>
-</ul>
-</section>
-<section id="source" class="level2">
-<h2 class="anchored" data-anchor-id="source">Source</h2>
-<p><a href="https://github.com/lassehjorthmadsen/raccoon">github.com/lassehjorthmadsen/raccoon</a></p>
+<section id="try-it" class="level2">
+<h2 class="anchored" data-anchor-id="try-it">Try it</h2>
+<p>Raccoon is open source under the <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE">MIT licence</a>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/lassehjorthmadsen/raccoon.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> raccoon</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> setup          <span class="co"># install in editable mode with dev deps</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test           <span class="co"># run the test suite</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> play           <span class="co"># play against Raccoon in the terminal</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Training runs need an experiment name; outputs land in <code>experiments/&lt;name&gt;/</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/train.py <span class="at">--experiment-name</span> my-run <span class="at">--iterations</span> 100 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--games-per-iter</span> 50 <span class="at">--simulations</span> 100 <span class="at">--lr</span> 0.001 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--channels</span> 128 <span class="at">--num-blocks</span> 6 <span class="at">--checkpoint-every</span> 10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Source: <a href="https://github.com/lassehjorthmadsen/raccoon">github.com/lassehjorthmadsen/raccoon</a> · Questions and collaboration: <a href="./contact.html">get in touch</a>.</p>
 
 
 </section>
@@ -363,7 +438,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/lassehjorthmadsen\.github\.io\/raccoon\/");
+        var filterRegex = new RegExp("https:\/\/raccoonbg\.com");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -691,8 +766,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   });
   </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p><strong>Tekst og tal</strong> · CVR 34101302 · Denmark</p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="mailto:hello@raccoonbg.com">hello@raccoonbg.com</a></p>
+<div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/lassehjorthmadsen/raccoon">GitHub</a> · <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE">MIT licence</a></p>
+</div>
+  </div>
+</footer>
 
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+</body></html>

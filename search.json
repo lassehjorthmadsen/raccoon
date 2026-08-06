@@ -382,35 +382,84 @@
     "href": "index.html",
     "title": "Raccoon",
     "section": "",
-    "text": "Raccoon is a backgammon AI that uses AlphaZero-style reinforcement learning to challenge GNUBG at money game play. The name is a nod to the doubling cube term in backgammon.\nGNUBG, the strongest open-source backgammon engine, uses TD reinforcement learning with value-only neural networks and shallow search — a design from the 1990s (TD-Gammon era). Modern AlphaZero-style training (policy+value network + Monte Carlo Tree Search) has beaten world-class engines in chess, shogi, and Go. This project applies that approach to backgammon."
+    "text": "Backgammon’s strongest engines are built on 1990s technology. Raccoon is an attempt to rebuild one from scratch with the methods that have since transformed chess, shogi, and Go — a deep residual policy-value network, Monte Carlo tree search, and large-scale supervised distillation.\nGNU Backgammon (GNUBG) has been the reference open-source engine for two decades. Its evaluator is a small, hand-tuned neural network in the TD-Gammon lineage, and its strength comes mostly from full-width search on top of that network — search that costs roughly two orders of magnitude more compute per decision than a single network evaluation. Raccoon asks whether a modern network can absorb that search quality into its weights instead, so that a single forward pass plays at the level GNUBG needs a deep search to reach."
   },
   {
-    "objectID": "index.html#quick-start",
-    "href": "index.html#quick-start",
+    "objectID": "index.html#where-it-stands-today",
+    "href": "index.html#where-it-stands-today",
     "title": "Raccoon",
-    "section": "Quick Start",
-    "text": "Quick Start\nmake setup          # Install in editable mode with dev deps\nmake test           # Run all tests\nmake smoke          # Quick sanity: 2 iterations, 3 games, 10 sims\nmake train          # Full training run\nmake play           # Play against Raccoon in terminal\nTraining with custom parameters (--experiment-name is required; outputs go to experiments/&lt;name&gt;/):\npython3 scripts/train.py --experiment-name my-run --iterations 100 \\\n  --games-per-iter 50 --simulations 100 --lr 0.001 \\\n  --channels 128 --num-blocks 6 --checkpoint-every 10"
+    "section": "Where it stands today",
+    "text": "Where it stands today\nRaccoon is scored on the BGSage money benchmark: 14,693 checker decisions with cubeless-equity references from rollouts. The metric is PR — mean move-selection error over the benchmark, scaled by 500. Lower is better; 0 would mean never picking a suboptimal move.\n\n\n\nEngine\nCompute per decision\nPR (n = 14,693)\n\n\n\n\nGNUBG, 2-ply full-width search\n~1.3 s\n0.56\n\n\nRaccoon, single network evaluation\n~10 ms\n0.93\n\n\nGNUBG, single network evaluation (0-ply)\n~10 ms\n2.14\n\n\n\nRaccoon figure: checkpoint exp017-ep12, the current best network — a 10-block, 256-channel ResNet trained on 40M positions distilled from GNUBG’s 2-ply search. GNUBG figures scored on the identical benchmark. Full method and per-epoch curves: Supervised & Expert-Iteration Analysis.\nRead plainly: at equal cost, Raccoon’s checker play is well past GNUBG’s own network, and it has closed most of the distance to GNUBG’s 2-ply search while doing no search at all. In direct play, an earlier checkpoint scored −0.05 ± 0.046 points per game against GNUBG at 0-ply over 6,000 cubeless money games — statistical parity (exp011b); the current network has not yet been measured head-to-head at that sample size.\nThe honest caveats: this is checker play only, cubeless. Raccoon does not yet handle the doubling cube, which is half of competitive backgammon. It is a research engine, not a product."
   },
   {
-    "objectID": "index.html#project-map",
-    "href": "index.html#project-map",
+    "objectID": "index.html#how-it-works",
+    "href": "index.html#how-it-works",
     "title": "Raccoon",
-    "section": "Project Map",
-    "text": "Project Map\n\n\n\nDoc\nWhat it covers\n\n\n\n\nArchitecture\nBoard encoding, network, MCTS, and training loop design\n\n\nMCTS Explained\nConcepts: simulations, PUCT selection, temperature, Dirichlet noise\n\n\nTraining Parameters\nEvery CLI flag explained with intuition and reference points\n\n\nSelf-Play Analysis\nThe self-play track (exp000–exp007): what pure AlphaZero self-play achieved, and why it plateaued\n\n\nSupervised & Expert-Iteration Analysis\nThe supervised track: distilling GNUBG (v1–v5), on-distribution DAgger, consolidation — the current best results\n\n\nGCP Guide\nRunning training on Google Cloud GPU VMs"
+    "section": "How it works",
+    "text": "How it works\n\n\n\n\n\n\n\nPiece\nApproach\n\n\n\n\nBoard encoding\nCustom (26, 2, 12) tensor — checker planes per player, bar/borne-off/dice broadcasts, plus handcrafted pip, blot, anchor, and contact features\n\n\nNetwork\nResNet with a shared trunk, a 1352-way policy head over OpenSpiel’s action encoding, and a value head\n\n\nSearch\nAlphaZero-style MCTS with PUCT selection; dice are sampled at chance nodes so the tree holds only decision nodes\n\n\nTraining\nSupervised distillation from GNUBG’s search, expert iteration (DAgger) on self-play distributions, and TD self-play — see the analyses below for which of these actually worked\n\n\n\nGame rules and legal-move generation come from OpenSpiel; everything else — encoder, network, search, training loops, evaluation harnesses — is written from scratch in Python and PyTorch."
   },
   {
-    "objectID": "index.html#tech-stack",
-    "href": "index.html#tech-stack",
+    "objectID": "index.html#roadmap",
+    "href": "index.html#roadmap",
     "title": "Raccoon",
-    "section": "Tech Stack",
-    "text": "Tech Stack\n\nPython 3.10+, PyTorch — neural network training\nOpenSpiel — backgammon game logic and 1352-action encoding\nNumPy — tensor encoding\npytest — testing\nGNUBG — evaluation benchmark (CLI mode)"
+    "section": "Roadmap",
+    "text": "Roadmap\n\nCube-capable value head. Move from a scalar equity to a six-outcome distribution (win/gammon/backgammon, either side), the prerequisite for doubling and take/pass decisions.\nA stronger teacher. Distilling from deeper GNUBG search rather than more 2-ply data — the residual gap to the teacher is search, not data.\nMatch play, where score-dependent equity and the cube dominate.\nEngine integration. The Raccoon Game Protocol is a UCI-style text protocol so analysis GUIs can embed the engine."
   },
   {
-    "objectID": "index.html#source",
-    "href": "index.html#source",
+    "objectID": "index.html#research-write-ups",
+    "href": "index.html#research-write-ups",
     "title": "Raccoon",
-    "section": "Source",
-    "text": "Source\ngithub.com/lassehjorthmadsen/raccoon"
+    "section": "Research write-ups",
+    "text": "Research write-ups\nEvery experiment is documented with its hypothesis, primary metric, sample size, and conclusion — including the ones that failed.\n\n\n\nDoc\nWhat it covers\n\n\n\n\nSupervised & Expert Iteration\nDistilling GNUBG, on-distribution DAgger, consolidation — the current best results\n\n\nSelf-Play Analysis\nWhat pure AlphaZero self-play achieved, and why it plateaued\n\n\nArchitecture\nBoard encoding, network, MCTS, and training loop design\n\n\nMCTS Explained\nSimulations, PUCT selection, temperature, Dirichlet noise\n\n\nTraining Parameters\nEvery CLI flag explained with intuition and reference points\n\n\nGCP Guide\nRunning training on Google Cloud GPU VMs\n\n\nAPI Reference\nGenerated module documentation"
+  },
+  {
+    "objectID": "index.html#try-it",
+    "href": "index.html#try-it",
+    "title": "Raccoon",
+    "section": "Try it",
+    "text": "Try it\nRaccoon is open source under the MIT licence.\ngit clone https://github.com/lassehjorthmadsen/raccoon.git\ncd raccoon\nmake setup          # install in editable mode with dev deps\nmake test           # run the test suite\nmake play           # play against Raccoon in the terminal\nTraining runs need an experiment name; outputs land in experiments/&lt;name&gt;/:\npython3 scripts/train.py --experiment-name my-run --iterations 100 \\\n  --games-per-iter 50 --simulations 100 --lr 0.001 \\\n  --channels 128 --num-blocks 6 --checkpoint-every 10\nSource: github.com/lassehjorthmadsen/raccoon · Questions and collaboration: get in touch."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Raccoon is developed by Tekst og tal, an independent research and development company registered in Denmark (CVR 34101302).\nWe are a one-person operation working on applied machine learning, currently focused on a single question: how much of a classical game engine’s search can a modern neural network absorb into its weights?"
+  },
+  {
+    "objectID": "about.html#why-backgammon",
+    "href": "about.html#why-backgammon",
+    "title": "About",
+    "section": "Why backgammon",
+    "text": "Why backgammon\nBackgammon is an unusual target. It is stochastic — 21 distinct dice rolls separate every decision from the next — which makes deep search expensive and rules out the tree-search tricks that carry chess engines. It has a large, irregular action space: OpenSpiel encodes 1,352 distinct checker moves. And it has a doubling cube, an equity-based side game that most published game-AI work ignores entirely.\nIt is also a game where the state of the art is genuinely old. GNU Backgammon, still the strongest freely available engine, was built around a small neural network in the TD-Gammon lineage, trained in the 1990s, with modern strength coming from full-width search layered on top. The methods that reshaped computer chess and Go after 2017 — deep residual networks, policy-value architectures, distillation at scale — have never been applied to backgammon in a sustained way.\nThat gap is the opportunity: a well-understood benchmark, a strong reference opponent to measure against honestly, and a community of serious players for whom the existing analysis tools are dated."
+  },
+  {
+    "objectID": "about.html#how-we-work",
+    "href": "about.html#how-we-work",
+    "title": "About",
+    "section": "How we work",
+    "text": "How we work\nEverything is measured, and everything is published. Each experiment states one hypothesis, fixes one primary metric before the run, and reports every checkpoint against it with sample sizes and confidence intervals. The write-ups include the experiments that failed, the conclusions we later retracted, and the measurement bugs we found in our own evaluation code. That is deliberate — in a domain where the effect sizes are small and the noise is large, a result without its error bar is not a result.\nThe code is open. The engine, training pipelines, and evaluation harnesses are MIT-licensed and public. Game rules come from OpenSpiel; every line of the ML and search code is written from scratch.\nTraining runs on Google Cloud — preemptible GPU instances for network training, Cloud Storage for datasets and checkpoints."
+  },
+  {
+    "objectID": "about.html#where-this-is-going",
+    "href": "about.html#where-this-is-going",
+    "title": "About",
+    "section": "Where this is going",
+    "text": "Where this is going\nThe near-term goal is an engine that plays money-game backgammon at the level of the strongest existing bots while evaluating positions far more cheaply, exposed through a UCI-style protocol so that analysis tools and GUIs can embed it. Longer term, the interesting product is analysis: helping competitive players understand their errors, in a domain where the incumbent tooling is two decades old.\nToday the project is pre-product, pre-revenue R&D. The engine handles checker play cubeless; cube handling is the next milestone."
+  },
+  {
+    "objectID": "about.html#get-in-touch",
+    "href": "about.html#get-in-touch",
+    "title": "About",
+    "section": "Get in touch",
+    "text": "Get in touch\nCollaboration, questions, or backgammon data: contact us."
+  },
+  {
+    "objectID": "contact.html",
+    "href": "contact.html",
+    "title": "Contact",
+    "section": "",
+    "text": "Email — hello@raccoonbg.com\nCode and issues — github.com/lassehjorthmadsen/raccoon. Bug reports and questions about the engine are best filed as issues.\nWe are especially interested in hearing from:\n\nBackgammon players and analysts with labelled position sets, rollout archives, or match databases we could benchmark against.\nResearchers working on stochastic games, distillation, or search-free evaluation.\nTool authors who would like to embed the engine — the Raccoon Game Protocol is a UCI-style text protocol built for exactly that.\n\n\nTekst og tal · CVR 34101302 · Denmark"
   },
   {
     "objectID": "pretraining_analysis.html",

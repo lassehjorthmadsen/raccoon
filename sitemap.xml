@@ -1,87 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/training_parameters.html</loc>
-    <lastmod>2026-08-05T19:09:42.903Z</lastmod>
+    <loc>https://raccoonbg.com/training_parameters.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/mcts_explained.html</loc>
-    <lastmod>2026-08-05T19:09:42.901Z</lastmod>
+    <loc>https://raccoonbg.com/mcts_explained.html</loc>
+    <lastmod>2026-08-06T07:00:11.238Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/architecture.html</loc>
-    <lastmod>2026-08-05T19:09:42.901Z</lastmod>
+    <loc>https://raccoonbg.com/architecture.html</loc>
+    <lastmod>2026-08-06T07:00:11.237Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/training_analysis.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/training_analysis.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.replay_buffer.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/train.replay_buffer.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/search.mcts.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/search.mcts.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/model.network.html</loc>
-    <lastmod>2026-08-05T19:10:03.014Z</lastmod>
+    <loc>https://raccoonbg.com/reference/model.network.html</loc>
+    <lastmod>2026-08-06T07:00:34.146Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/eval.gnubg_harness.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/eval.gnubg_harness.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.game_wrapper.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/env.game_wrapper.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.actions.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/env.actions.html</loc>
+    <lastmod>2026-08-06T07:00:11.238Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/index.html</loc>
-    <lastmod>2026-08-05T19:09:42.901Z</lastmod>
+    <loc>https://raccoonbg.com/index.html</loc>
+    <lastmod>2026-08-06T07:00:11.237Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/pretraining_analysis.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/about.html</loc>
+    <lastmod>2026-08-06T07:00:11.237Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/env.encoder.html</loc>
-    <lastmod>2026-08-05T19:10:02.987Z</lastmod>
+    <loc>https://raccoonbg.com/contact.html</loc>
+    <lastmod>2026-08-06T07:00:11.237Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/eval.arena.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/pretraining_analysis.html</loc>
+    <lastmod>2026-08-06T07:00:11.238Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/index.html</loc>
-    <lastmod>2026-08-05T19:10:02.925Z</lastmod>
+    <loc>https://raccoonbg.com/reference/env.encoder.html</loc>
+    <lastmod>2026-08-06T07:00:34.119Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/protocol.rgp.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/eval.arena.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.coach.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/index.html</loc>
+    <lastmod>2026-08-06T07:00:34.054Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/reference/train.self_play.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/reference/protocol.rgp.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/2ply_label_generation.html</loc>
-    <lastmod>2026-08-05T19:09:42.894Z</lastmod>
+    <loc>https://raccoonbg.com/reference/train.coach.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/gcp_guide.html</loc>
-    <lastmod>2026-08-05T19:09:42.901Z</lastmod>
+    <loc>https://raccoonbg.com/reference/train.self_play.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
   <url>
-    <loc>https://lassehjorthmadsen.github.io/raccoon/research-perfomance-benchmarks.html</loc>
-    <lastmod>2026-08-05T19:09:42.902Z</lastmod>
+    <loc>https://raccoonbg.com/2ply_label_generation.html</loc>
+    <lastmod>2026-08-06T07:00:11.231Z</lastmod>
+  </url>
+  <url>
+    <loc>https://raccoonbg.com/gcp_guide.html</loc>
+    <lastmod>2026-08-06T07:00:11.237Z</lastmod>
+  </url>
+  <url>
+    <loc>https://raccoonbg.com/research-perfomance-benchmarks.html</loc>
+    <lastmod>2026-08-06T07:00:11.239Z</lastmod>
   </url>
 </urlset>
