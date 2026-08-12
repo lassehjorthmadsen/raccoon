@@ -2,94 +2,94 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://raccoonbg.com/training_parameters.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/mcts_explained.html</loc>
-    <lastmod>2026-08-06T11:00:46.566Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.469Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/architecture.html</loc>
-    <lastmod>2026-08-06T11:00:46.565Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.467Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/training_analysis.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/train.replay_buffer.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/search.mcts.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/model.network.html</loc>
-    <lastmod>2026-08-06T11:01:21.364Z</lastmod>
+    <lastmod>2026-08-12T16:23:50.886Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/eval.gnubg_harness.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/env.game_wrapper.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/env.actions.html</loc>
-    <lastmod>2026-08-06T11:00:46.566Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.469Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/index.html</loc>
-    <lastmod>2026-08-06T11:00:46.565Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.467Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/about.html</loc>
-    <lastmod>2026-08-06T11:00:46.565Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.467Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/contact.html</loc>
-    <lastmod>2026-08-06T11:00:46.565Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.467Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/pretraining_analysis.html</loc>
-    <lastmod>2026-08-06T11:00:46.566Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.469Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/env.encoder.html</loc>
-    <lastmod>2026-08-06T11:01:21.342Z</lastmod>
+    <lastmod>2026-08-12T16:23:50.858Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/eval.arena.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/index.html</loc>
-    <lastmod>2026-08-06T11:01:21.292Z</lastmod>
+    <lastmod>2026-08-12T16:23:50.795Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/protocol.rgp.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/train.coach.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/reference/train.self_play.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/2ply_label_generation.html</loc>
-    <lastmod>2026-08-06T11:00:46.557Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.460Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/gcp_guide.html</loc>
-    <lastmod>2026-08-06T11:00:46.565Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.467Z</lastmod>
   </url>
   <url>
     <loc>https://raccoonbg.com/research-perfomance-benchmarks.html</loc>
-    <lastmod>2026-08-06T11:00:46.567Z</lastmod>
+    <lastmod>2026-08-12T16:23:35.470Z</lastmod>
   </url>
 </urlset>
