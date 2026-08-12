@@ -10,9 +10,11 @@ This page documents the **supervised & expert-iteration track** — everything a
 The arc in one paragraph: a calibrated value head alone is useless without a policy prior (v1); synthesised policy labels fix that mechanically (v2); distillation tops out at its teacher's strength, so teacher quality is the lever (v2b); a GNUBG 4-ply teacher produces the project's first wins against GNUBG (v3); capacity, eval-time search, and value-label coverage each fail to push past ~−1.6 ppg (v4, v5); the missing ingredient is *on-distribution policy* data, which live GNUBG labeling of the learner's own positions supplies (exp008); retraining from scratch on all accumulated labels consolidates those gains (~−0.93 ppg); and scaling the loop (exp009) reaches **~−0.37 ppg** before plateauing ~0.4 ppg short of parity — until **0-ply value distillation** ([exp011b](#exp011b)) breaks that wall, reaching **−0.05 vs 0-ply** and **−0.06 vs 2-ply**, the current best. Each section below covers one experiment: motivation, setup, results, interpretation — results computed from the experiment logs at render time.
 
 ::: {.callout-note}
-## Current best (2026-07-24)
+## Current best (2026-08-12)
 
-[exp011b](#exp011b) is the best net on this page: distilling ~8M **GNUBG-0-ply** labels onto a fresh 10×256 net reaches **−0.053 ± 0.046 ppg vs GNUBG-0-ply** (n=6000) and **−0.064 vs GNUBG-2-ply** (n=1000) — near 0-ply parity (~0.05 short), and far past the DAgger track's best ([exp009](#exp009) round_06, −0.37 vs 2-ply). This broke the ~−0.3 wall that held across DAgger and TD self-play: the plateau was *volume-bound*, not a capacity limit of the architecture. Pure 0-ply distillation can't pass its teacher; going *past* it (TD self-play, [exp013](training_analysis.qmd#exp013); 2-ply distillation) is the live lever.
+[exp018](#exp018)'s `ep22` is the deliverable: 24 epochs of **GNUBG-2-ply** distillation over the full 40M corpus with the six-outcome value head, scoring **PR 0.950** and **rollout-MSE 0.00190** on the BGSage money benchmark (n=14,693 / n≈149k) — past GNUBG-0-ply on both (2.145 / 0.00209) and within 2% of the GNUBG-2-ply teacher's MSE (0.00187). It is chosen over [exp017](#exp017)'s scalar `ep12` (PR 0.928) on **capability**, not strength: only the six-outcome head emits the win/gammon/backgammon split the cube needs. On checker play the scalar head is in fact slightly ahead — a paired +0.067 PR at their matched ep14 (CI [+0.009, +0.127]) — though the two tie on rollout MSE, and with one unseeded run per arm that gap cannot be attributed to the head rather than to initialisation.
+
+Two caveats on that headline. It is a **static-benchmark** number, so it is not comparable to the ppg figures quoted for earlier nets ([exp011b](#exp011b)'s −0.053 ± 0.046 vs GNUBG-0-ply, n=6000, remains the best *measured-in-play* result); a raw-ppg confirmation at matched search is still outstanding. And **0.950 is a winner's-curse pick** — the ep15–24 plateau averages 0.994 (SD 0.023), so read the recipe's true level as ≈0.99. Both training levers behind it are now spent or bounded: epochs are closed ([exp018](#exp018)), and beyond that the gap to the teacher's 0.56 is play-time search and label quality, not undertraining.
 :::
 
 ```{python}
@@ -1016,6 +1018,203 @@ What the run does establish is that the two curves **separated**: the value head
 
 **But neither lever is spent, and this run does not show that it is.** Rollout MSE flattens by ~ep8; PR does not, still falling −0.0082/epoch over ep6–14 (t = −4.0) when the 72 h cap hit, with a power-law fit putting ep20 at ≈0.88. On the data axis there are only **two points** (8M→2.16, 40M→0.93), which cannot distinguish a curve from a line: extrapolating them puts 80M at ≈0.76 floored at the teacher's 0.56, or ≈0.65 unfloored. And the two points are themselves **confounded** — [exp014](#exp014)'s anchor ran 3 epochs to this run's 12, so 5× the data arrived with 20× the gradient steps, and "volume was the bottleneck" is not cleanly separated from "optimisation budget was". A presentation-matched glance favours volume (exp017 ep1, one pass over 40M, scores 1.61 against the anchor's 2.16 for three passes over 8M — 25% better PR on 1.7× the presentations) but that is suggestive, not a matched test. So the residual 0.93→0.56 gap is *part* play-time 2-ply search and *part* untapped epochs and labels, in an unknown split. (Static-benchmark PR/MSE, not raw ppg — the fair-beat ppg confirmation at matched search remains the open finish.)
 
+## exp018 — does the six-outcome head match scalar at 40M, and do ten more epochs help? {#exp018}
+
+**Motivation.** [exp017](#exp017) produced the page's strongest evaluator but with a **scalar** value head: it emits a cubeless equity and nothing else, so it cannot feed cube decisions, which need the win/gammon/backgammon split. That made "no cube-capable head at current scale" the binding blocker rather than more data. The fix costs no new labels — the 2-ply shards already carry `outcomes6` targets alongside `equity` — so re-running exp017's recipe with `--value-head outcomes6` produces the cube-capable deliverable *and* settles two questions pre-registered in `experiments/pipeline_exp018.sh` before the run started:
+
+- **Q1 (head)** — does outcomes6 match scalar at 40M? [exp016](#exp016) left this unresolved at 8M, where PR and MSE disagreed.
+- **Q2 (epochs)** — [exp017](#exp017) stopped on its 72 h wall cap after 14 epochs with PR still descending (−0.0082/epoch over ep6–14, t = −4.0), *not* on convergence, so "is 40M enough epochs?" was unanswered. A power-law fit predicted ≈0.09 further PR against an epoch-to-epoch scatter of SD ≈0.016 — powered, if the trend held.
+
+**Setup.** Identical to [exp017](#exp017) in every respect except the value head and the epoch budget (24, against exp017's 20-capped-at-14): same 40M 2-ply corpus, same 10×256 net, same lr 1e-3, and critically the **same shard order** (`--shuffle-seed 20`; `epoch_order()` is deterministic in (seed, epoch)), so exp018 ep*k* and exp017 ep*k* saw identical shards in identical order — a matched comparison, not two unrelated runs. The run completed all **24 epochs in 120.4 h** on a T4 spot VM, stopping on the epoch budget rather than the 200 h insurance cap that truncated exp017. Every epoch checkpoint is scored on the full BGSage benchmark by `experiments/score_exp018.sh` → `experiments/exp018-benchmark/results/`; GNUBG 0-/2-ply reference rows are carried verbatim from [exp015](#exp015) and exp017's per-epoch rows from `experiments/exp017-benchmark/results/`, all at identical *n*, so every number extends one ladder.
+
+Pre-registered readings, applied as written: primary metric **BGSage checker PR** (n=14,693), best epoch = **minimum PR**; rollout-tier MSE (n≈149k) is secondary and read **asymmetrically** for Q1, because it is literally the *scalar* arm's own training objective and so favours exp017 at equal strength — outcomes6 winning it is strong evidence, scalar winning it is ambiguous. On the record from the same file: `train_distill.py` does not seed model init and this is one run per arm, so only a Q1 gap **clearly exceeding the ~0.016 PR scatter** reads as a head effect.
+
+**Results.**
+
+```{python}
+#| echo: false
+# exp018 per-epoch BGSage results. Reuses REF / PLANS / _bench_load / _move_row /
+# _acc_row from the exp017 chunks above (same kernel, same benchmark, same n), and
+# keeps its own EPOCHS18 so exp017's EPOCHS is left intact.
+EXP018_RES = EXP_ROOT / "exp018-benchmark" / "results"
+N_EPOCHS_18 = 24
+
+EPOCHS18 = {}
+if EXP018_RES.exists():
+    for p in EXP018_RES.glob("*.json"):
+        if p.name == "summary.json":
+            continue
+        d = _bench_load(p)
+        m = re.match(r"exp018-ep(\d+)$", d.get("engine_label", ""))
+        if m:
+            EPOCHS18[int(m.group(1))] = d
+
+EXP018_READY = len(EPOCHS18) >= N_EPOCHS_18
+BEST18 = min(EPOCHS18, key=lambda e: EPOCHS18[e]["pr"]) if EPOCHS18 else None
+LAST18 = max(EPOCHS18) if EPOCHS18 else None
+BEST18_MSE = (min(EPOCHS18, key=lambda e: EPOCHS18[e]["eval_accuracy"]["rollout"]["mse"])
+              if EPOCHS18 else None)
+
+# Plateau level vs the pre-registered Q2 prediction. The benchmark is a fixed,
+# deterministically-scored set, so this scatter is real checkpoint-to-checkpoint
+# variation, not sampling noise.
+def _pr_stats(d, lo, hi):
+    v = [d[k]["pr"] for k in d if lo <= k <= hi]
+    return (np.mean(v), np.std(v, ddof=1), len(v)) if v else (np.nan, np.nan, 0)
+
+PLATEAU18 = _pr_stats(EPOCHS18, 15, 24)      # after the descent stops
+LATE17 = _pr_stats(EPOCHS, 12, 14)           # exp017's last three epochs
+MID18 = _pr_stats(EPOCHS18, 12, 14)          # exp018 at exp017's endpoint
+```
+
+*Move selection* — PR = mean(error) × 500 over 14,693 checker decisions (lower is better), with the per-game-plan breakdown; reference rows carried from [exp015](#exp015) and [exp017](#exp017):
+
+```{python}
+#| echo: false
+#| output: asis
+if not EXP018_READY:
+    print(f"*exp018 scoring in progress — {len(EPOCHS18)}/{N_EPOCHS_18} epochs scored; "
+          f"tables and figure auto-populate on re-render once "
+          f"`experiments/score_exp018.sh` finishes.*")
+else:
+    rows = [_move_row(n, REF[n]) for n in REF_ORDER]
+    rows.append(_move_row(f"exp017 ep{BEST_EP} (scalar, best PR)", EPOCHS[BEST_EP]))
+    rows.append(_move_row(f"exp018 ep{BEST18} (outcomes6, best PR)", EPOCHS18[BEST18]))
+    rows.append(_move_row(f"exp018 ep{LAST18} (outcomes6, last)", EPOCHS18[LAST18]))
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+*Eval accuracy* — R² / MSE of each engine's raw value estimate vs Sage's `cubeless_equity`; rollout tier is the headline (n≈149k). For exp018 the value estimate is the equity implied by the six-outcome distribution, so this row is a like-for-like comparison of what each net would actually play on:
+
+```{python}
+#| echo: false
+#| output: asis
+if EXP018_READY:
+    rows = [_acc_row(n, REF[n]) for n in REF_ORDER]
+    rows.append(_acc_row(f"exp017 ep{BEST_EP} (scalar, best PR)", EPOCHS[BEST_EP]))
+    rows.append(_acc_row(f"exp018 ep{BEST18_MSE} (outcomes6, best MSE)", EPOCHS18[BEST18_MSE]))
+    rows.append(_acc_row(f"exp018 ep{LAST18} (outcomes6, last)", EPOCHS18[LAST18]))
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+*Per-epoch curve* — the Q2 plateau in numbers, with exp017's matched scalar epoch alongside for Q1 (ep1 → ep24):
+
+```{python}
+#| echo: false
+#| output: asis
+if EPOCHS18:
+    rows = []
+    for ep in sorted(EPOCHS18):
+        d = EPOCHS18[ep]
+        row = {"epoch": ep, "PR (outcomes6)": round(d["pr"], 3)}
+        row["PR (scalar)"] = round(EPOCHS[ep]["pr"], 3) if ep in EPOCHS else None
+        row.update({pl: round(d["by_plan"][pl]["pr"], 2) for pl in PLANS})
+        row["rollout MSE"] = round(d["eval_accuracy"]["rollout"]["mse"], 5)
+        rows.append(row)
+    print(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+The same curve as a figure — **top panel**: overall PR per epoch for both heads on the identical shard order, so vertical distance at a given epoch *is* the Q1 head difference and the shape after ep14 *is* Q2, with exp017's endpoint marked and exp018's ep15–24 plateau drawn as a band; **middle panel**: rollout value-fit MSE for both heads against the GNUBG teacher references; **bottom panel**: PR per game plan for exp018, each against its own GNUBG-0-ply reference (dotted, matching colour), so a curve below its dotted line means that plan has passed 0-ply.
+
+```{python}
+#| echo: false
+if EXP018_READY:
+    eps18 = sorted(EPOCHS18)
+    eps17 = sorted(EPOCHS)
+    PLAN_COLORS = {"purerace": "#D55E00", "racing": "#0072B2", "attacking": "#009E73",
+                   "priming": "#CC79A7", "anchoring": "#E69F00"}
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8.5, 10.4), sharex=True)
+
+    # Panel 1: the two heads on identical data/order — Q1 is vertical distance,
+    # Q2 is the shape past ep14.
+    ax1.plot(eps18, [EPOCHS18[e]["pr"] for e in eps18], "-o",
+             color="#333333", lw=2.4, ms=6, label="exp018 outcomes6 (24 ep)")
+    ax1.plot(eps17, [EPOCHS[e]["pr"] for e in eps17], "-s",
+             color="#0072B2", lw=2.0, ms=5, label="exp017 scalar (14 ep, wall cap)")
+    if not np.isnan(PLATEAU18[0]):
+        m, s, _ = PLATEAU18
+        ax1.axhspan(m - s, m + s, xmin=0.55, color="#333333", alpha=0.10)
+        ax1.axhline(m, ls="--", lw=1.2, color="#333333")
+        ax1.text(eps18[-1], m, f" ep15–24 mean {m:.3f}", va="bottom", ha="right",
+                 fontsize=8, color="#333333")
+    ax1.axvline(14, ls=":", lw=1.2, color="#888888")
+    for name, col in [("GNUBG 2-ply", "#009E73"), ("GNUBG 0-ply", "#CC79A7")]:
+        if name in REF:
+            ax1.axhline(REF[name]["pr"], ls="-.", lw=1.3, color=col,
+                        label=f"{name} ({REF[name]['pr']:.2f})")
+    # Headroom above the 0-ply reference so the legend never sits on a line.
+    ax1.set_ylim(top=max(REF["GNUBG 0-ply"]["pr"], 2.2) * 1.30)
+    ax1.text(14, ax1.get_ylim()[1], " exp017 cap", va="top", ha="left",
+             fontsize=8, color="#888888")
+    ax1.set_ylabel("PR  (↓ better)")
+    ax1.set_title("Move-selection PR: six-outcome vs scalar head on identical shards")
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(fontsize=8, loc="upper left", framealpha=0.95)
+
+    # Panel 2: rollout MSE, both heads. Read asymmetrically for Q1 — this is the
+    # scalar arm's own training objective.
+    ax2.plot(eps18, [EPOCHS18[e]["eval_accuracy"]["rollout"]["mse"] for e in eps18],
+             "-o", color="#333333", lw=2.4, ms=6, label="exp018 outcomes6")
+    ax2.plot(eps17, [EPOCHS[e]["eval_accuracy"]["rollout"]["mse"] for e in eps17],
+             "-s", color="#0072B2", lw=2.0, ms=5, label="exp017 scalar")
+    for name, ls, col in [("GNUBG 2-ply", "--", "#009E73"),
+                          ("GNUBG 0-ply", "-.", "#CC79A7")]:
+        r = REF.get(name)
+        if r:
+            mse = r["eval_accuracy"]["rollout"]["mse"]
+            ax2.axhline(mse, ls=ls, color=col, lw=1.4, label=f"{name} ({mse:.5f})")
+    ax2.set_ylabel("rollout MSE  (↓ better)")
+    ax2.set_title("Value-fit to the rollout reference vs the teacher")
+    ax2.grid(True, alpha=0.3)
+    ax2.legend(fontsize=8, loc="best")
+
+    # Panel 3: per-plan PR for exp018 against its own GNUBG-0-ply reference.
+    g0 = REF.get("GNUBG 0-ply")
+    for pl in PLANS:
+        ax3.plot(eps18, [EPOCHS18[e]["by_plan"][pl]["pr"] for e in eps18],
+                 "-o", color=PLAN_COLORS[pl], lw=1.8, ms=4, label=pl)
+        if g0:
+            ax3.axhline(g0["by_plan"][pl]["pr"], ls=":", lw=1.1, color=PLAN_COLORS[pl])
+    if g0:
+        ax3.plot([], [], ls=":", lw=1.3, color="#666666",
+                 label="GNUBG 0-ply (matching colour)")
+    ax3.set_ylabel("PR by game plan  (↓ better)")
+    ax3.set_title("Per-plan PR against the GNUBG-0-ply reference")
+    ax3.grid(True, alpha=0.3)
+    # Clear the highest dotted 0-ply reference before placing the legend.
+    if g0:
+        ax3.set_ylim(top=max(g0["by_plan"][pl]["pr"] for pl in PLANS) * 1.32)
+    ax3.legend(ncol=3, fontsize=8, loc="upper center", framealpha=0.95)
+    ax3.set_xlabel("epoch")
+    ax3.set_xticks(eps18[::2])
+    plt.tight_layout()
+    plt.show()
+```
+
+**Interpretation.**
+
+*Pipeline check.* exp018 ep1 scores PR 1.599 against exp017 ep1's 1.608 — the two heads are indistinguishable on their first pass over identical shards, as they should be before either has learned much, confirming the arms really are matched.
+
+*(a) Q2 — do epochs 15–24 help?* **No, and this is a clean, powered null.** The descent that was still running at exp017's cap does continue for a few more epochs — exp018's PR falls −0.0127/epoch over ep6–14 — and then **stops**. Over ep15–24 the slope is **−0.0009/epoch (t = −0.33)**, indistinguishable from flat, and the level sits at mean **0.994 (SD 0.023, n=10 epochs)**. Endpoint to endpoint, ep14 = 1.015 → ep24 = **1.019**: no improvement at all. Against the pre-registered prediction of ≈0.09 further PR this is decisive rather than merely unresolved — 0.09 would have been ~4 SD of the observed plateau scatter, so the test had ample power to see it and did not. The extrapolation was the thing that failed: fitting a power law to a curve that had not yet plateaued predicted travel that was not there.
+
+The plateau also makes **post-hoc best-epoch selection hazardous**, and the pre-registered rule ("minimum PR") walks straight into it. The minimum over ep15–24 is ep22 at 0.950 — but that is a minimum of ten draws from a distribution with mean 0.994 and SD 0.023, i.e. ~1.9 SD below the mean, which is roughly what the minimum of ten draws *should* be under pure noise. The honest reading is that the run's converged level is **≈0.99**, and 0.950 is a winner's-curse estimate; ep22 is a fine checkpoint to ship, but its 0.950 should not be quoted as this recipe's strength.
+
+*(b) Q1 — does outcomes6 match scalar?* **The difference is real as a measurement and small; whether the *head* causes it is not established by this design.** Over their three common late epochs scalar averages **0.946 (ep12–14)** against outcomes6's **1.001**, in scalar's favour at every epoch from ep5 on. The pre-registered paired test at ep14 (`PAIR=14`, `experiments/exp018-benchmark/results/paired_head_ep14.json`; cluster bootstrap, B=10,000 over 5,695 rollout decisions / 475 games) puts the gap at **PR +0.067, 95% CI [+0.009, +0.127]** game-clustered — excluding zero, so on a fresh sample of positions scalar would still be ahead at ep14.
+
+That resolves the *measurement*, not the *attribution*. The bootstrap propagates benchmark sampling error only; it says nothing about **initialisation variance**, and since `train_distill.py` does not seed model init and this is one run per arm, a ~0.067 PR difference between two runs is exactly the size [exp016](#exp016) judged inseparable from init noise (it saw 0.13 between arms it could not separate). So "the six-outcome head costs ~0.07 PR" and "this initialisation drew ~0.07 worse" remain observationally equivalent here. Separating them needs several seeds per arm, which this run deliberately did not buy.
+
+The pre-registered asymmetry cuts the other way and keeps the verdict open rather than closing it. On rollout MSE — the metric that structurally favours scalar, being its own training objective — the two are **statistically tied**: candidate-weighted Δ = +2.3×10⁻⁵, CI [−4.6×10⁻⁵, +9.1×10⁻⁵], including zero. Each arm's best epoch lands on the same **0.00190** (exp018 ep19; exp017 ep8 and ep11), within 2% of the GNUBG-2-ply teacher's 0.00187 and past GNUBG-0-ply's 0.00209. Outcomes6 matching *despite* the handicap is the strongest evidence the heads are equally good evaluators, and the script's own joint rule reads the pair as **not resolved** — PR favours scalar, MSE ties.
+
+The per-plan breakdown adds a genuine reversal: on **pure race** outcomes6 is significantly *better*, PR Δ = **−0.12, CI [−0.17, −0.07]**, with rollout MSE agreeing in sign. None of the four contact plans separates (racing +0.10, attacking +0.09, priming +0.13, anchoring +0.07, every CI spanning zero). So the aggregate PR gap is not a uniform head penalty; it is a modest contact-plan deficit set against a clear racing advantage.
+
+*(c) Does it beat GNUBG 0-ply?* **Yes, unambiguously, on both metrics** — the question that actually gates the deliverable. exp018 ep22 scores **PR 0.950 vs 0-ply's 2.145** with **19 blunders against 95**, and rollout-MSE **0.00190 vs 0.00209** (n=14,693 / n≈149k). Unlike [exp015](#exp015)/[exp016](#exp016), where PR and MSE disagreed in sign and no clean claim was possible, here they agree, so the claim is clean. The cube-capable net is not paying for its head with strength against the reference that matters.
+
+*(d) Per-plan, and the race.* [exp017](#exp017) left pure race as the one plan still behind its GNUBG-0-ply reference (0.29 vs 0.16). exp018 **passes it**: ep22 scores **0.13 against 0-ply's 0.16**, so all five plans are now ahead of their 0-ply references (racing 1.09 vs 2.72, attacking 0.95 vs 2.15, priming 1.03 vs 2.66, anchoring 1.22 vs 2.32). Whether the extra 10 epochs or the head did that is not separable here, but the residual race weakness flagged back in [exp015](#exp015) is now closed.
+
+*(e) A diagnostic that does not transfer.* [exp017](#exp017) read its scalar training loss (MSE against `equity/3`, ×9 into equity units) as an optimisation-progress signal, and it fell 28.5 → 1.5 ×10⁻⁴ across the run. That reading **cannot** be carried over: the outcomes6 arm trains cross-entropy against a six-outcome distribution, a different objective in different units, and its per-epoch mean sits at **0.845–0.860 with no trend across all 24 epochs**. That flatness is not evidence the fit stalled — a distribution over future outcomes carries large irreducible dice entropy, which dominates the loss and masks the improvement the benchmark clearly measures over ep1–14. For this head the training loss is simply not a convergence diagnostic, and the benchmark curve has to do that work alone.
+
+**Conclusion.** *Does the six-outcome head match scalar at 40M, and do ten more epochs help?* → **Head: close enough to ship — tied on rollout MSE, +0.067 PR behind at ep14 (CI [+0.009, +0.127]), a gap this design cannot attribute to the head rather than to initialisation. Epochs: no — the curve is flat after ~ep14.** Deliverable `exp018-distill/ep22` = **PR 0.950**, 19 blunders, **rollout-MSE 0.00190** (n=14,693 / n≈149k) — past GNUBG-0-ply on both (2.145 / 0.00209), within 2% of the GNUBG-2-ply teacher's MSE, with all five game plans now ahead of their 0-ply references including pure race (0.13 vs 0.16). Read the converged level as **≈0.99**, not 0.950: ep15–24 average 0.994 (SD 0.023) and the minimum is a winner's-curse pick. **This closes the epoch lever** — exp017's "PR was still descending" was real but nearly spent, worth ~0.02 not the extrapolated ~0.09 — and delivers the **cube-capable net at current best scale**, which was the blocker. It does *not* close the data lever: what is ruled out is **undertraining on this corpus**, so the residual 0.95→0.56 gap to the 2-ply teacher now divides among play-time search, label *quality* (teacher ply), and label *volume* — the last two still untested at this scale.
+
 ## What we've learned
 
 1. **A calibrated value head is not a player** — with a random policy prior, MCTS never searches the moves the value head would reward ([v1](#v1)).
@@ -1034,13 +1233,15 @@ What the run does establish is that the two curves **separated**: the value head
 14. **A static, external-reference PR benchmark partly confirms, partly complicates exp014's R² sign**: the 2-ply-distilled net beats the 0-ply-distilled net on move selection (PR 2.16 vs 2.75, and PR comes near GNUBG-0-ply's own 2.14) — but on raw fit to the external rollout reference, the ordering **flips** (R² 0.9935 vs 0.9927 favors the 0-ply net). Move-selection and value-fit are different skills and can disagree. Both nets are surprisingly weakest on pure-race positions ([exp015](#exp015)).
 15. **A checkpoint-selection bug can hide in a hand-transcribed result and go undetected** — exp015's original numbers scored `best.pt` (a noisy in-loop-selected artifact) instead of the intended `ep3.pt` for both arms; caught only because [exp016](#exp016) tried to reproduce them from scratch and couldn't. Saving `--output` and preferring rendered-from-JSON tables over hand transcription (as done from exp016 onward) makes this class of bug visible immediately instead of silently persisting.
 16. **The "handcrafted features wash out at scale" call was an underpowered read, not a null result** — the exact same two consolidation checkpoints (17ch vs 26ch), re-scored on the high-power BGSage benchmark instead of an n=200 GNUBG match, show a clear, significant edge for the 26ch arm on both PR and rollout MSE ([exp016](#exp016)).
-17. **Scaling the 2-ply distillation 8M→40M is transformative** — static-benchmark PR falls from 2.16 to 0.93 and rollout-MSE from 0.0044 to 0.0019 (within 2% of the GNUBG-2-ply teacher's 0.00187, past GNUBG-0-ply on both), every game plan improving together with no trade-off, and the pure-race weakness ([exp015](#exp015)) turning out to be an artifact (1.13→0.29). The 8M net was underfit, not capacity-bound — though it ran 3 epochs to the 40M run's 12, so *volume* and *optimisation budget* both changed and this pair alone can't apportion the credit. And the run is **not** converged: rollout MSE flattens by ~ep8 but PR is still descending when the wall-clock cap hits, so more epochs and more labels both remain live levers ([exp017](#exp017)).
+17. **Scaling the 2-ply distillation 8M→40M is transformative** — static-benchmark PR falls from 2.16 to 0.93 and rollout-MSE from 0.0044 to 0.0019 (within 2% of the GNUBG-2-ply teacher's 0.00187, past GNUBG-0-ply on both), every game plan improving together with no trade-off, and the pure-race weakness ([exp015](#exp015)) turning out to be an artifact (1.13→0.29). The 8M net was underfit, not capacity-bound — though it ran 3 epochs to the 40M run's 12, so *volume* and *optimisation budget* both changed and this pair alone can't apportion the credit. And the run is **not** converged: rollout MSE flattens by ~ep8 but PR is still descending when the wall-clock cap hits, so more epochs and more labels both remain live levers ([exp017](#exp017)) — *the epoch half of that has since been closed by [exp018](#exp018): it was worth ~0.02 PR, not the extrapolated ~0.09.*
+18. **The six-outcome head costs little enough to ship, so the cube-capable net is now the deliverable** — at 40M on identical shards, outcomes6 **ties** scalar on rollout MSE (paired Δ = +2.3×10⁻⁵, CI spanning zero; each arm's best epoch at 0.00190) despite that metric being the scalar arm's own training objective, while trailing on PR by a paired **+0.067, CI [+0.009, +0.127]** at ep14. That PR gap is a solid *measurement* but not an attribution: the bootstrap covers benchmark sampling error, not initialisation variance, and with one unseeded run per arm it is the same size [exp016](#exp016) could not separate from init noise. The gap is also not uniform — outcomes6 is significantly **better** at pure race (Δ = −0.12, CI [−0.17, −0.07]) and no contact plan separates individually. `exp018/ep22` reaches PR 0.950 / MSE 0.00190, past GNUBG-0-ply on both, with all five game plans now ahead of their 0-ply references — pure race included (0.13 vs 0.16), closing the last per-plan gap [exp017](#exp017) left open ([exp018](#exp018)).
+19. **Training more epochs on 40M is a spent lever, and extrapolating an unplateaued curve overstates it** — [exp017](#exp017)'s PR was genuinely still descending at its wall cap, and a power-law fit predicted ≈0.09 more by ep24. Running it produced **+0.004** (ep14 1.015 → ep24 1.019), with the ep15–24 slope flat at −0.0009/epoch (t = −0.33). The descent stopped a few epochs past where the cap had fallen. A corollary worth carrying: on a plateau, "best epoch = minimum PR" is a **winner's-curse** estimate — ep22's 0.950 is ~1.9 SD below the ep15–24 mean of 0.994 (SD 0.023, n=10), about what the minimum of ten noise draws should be, so the recipe's true level is ≈0.99 ([exp018](#exp018)).
 
 ## Open questions
 
-- **The strongest net has no cube-capable head — and that is the next blocker, not more data.** [exp017](#exp017)'s deliverable trains the **scalar** value head (`value_fc2` is 1×256), so it emits a cubeless equity and nothing else. Cube decisions need the win/gammon/backgammon split, which only the six-outcome head provides — and the only outcomes6 net we have is [exp011b](#exp011b)'s ep3, back at PR 2.75 against exp017's 0.93. The corpus already solves half of it: the 2-ply shards carry valid `outcomes6` labels alongside `equity` (columns `[win, win-g, win-bg, lose, lose-g, lose-bg]`, verified to sum to 1.0), so an outcomes6 net at 40M needs **no new labels** — the same corpus with `--value-head outcomes6`. That one run does triple duty: it produces the cube-capable deliverable at current best scale, it answers the epoch question above on the arm that actually matters, and — since exp017 supplies a per-epoch *scalar* curve on the identical corpus — it is a properly matched A/B for the value-head comparison [exp016](#exp016) left unresolved. A cheaper first attempt: warm-start from exp017's ep12 trunk with a swapped six-output head and fine-tune, ~⅕ the cost, falling back to from-scratch (which [exp011b](#exp011b) shows works) if its BGSage curve lands below exp017's. Note that outcomes6 is *necessary but not sufficient* for the cube — cubeful equity and take points still sit on top of the distribution.
+- **The strongest net has no cube-capable head** *(answered — [exp018](#exp018)).* Re-running exp017's recipe with `--value-head outcomes6` on the same 40M corpus and the same shard order produced the cube-capable net at current best scale: `exp018/ep22`, **PR 0.950 / rollout-MSE 0.00190** (n=14,693 / n≈149k), past GNUBG-0-ply on both. The matched A/B this question asked for came out **not jointly resolved**: outcomes6 ties scalar on rollout MSE (the metric that structurally favours scalar) but trails on PR by a paired +0.067 (CI [+0.009, +0.127]) at ep14 — a real measurement that this one-run-per-arm design cannot attribute to the head rather than to initialisation, and one that reverses on pure race, where outcomes6 is significantly better. The warm-start shortcut was not needed; from-scratch worked, as [exp011b](#exp011b) predicted. **Still open, and unchanged by this run:** outcomes6 is *necessary but not sufficient* for the cube — cubeful equity and take points sit on top of the distribution, and nothing here validates the **gammon/backgammon split itself**. The BGSage benchmark scores cubeless equity and move choice only, so the calibration that the cube will actually depend on is still unmeasured; that needs a gammon-rate reference, and it is the natural next step on the cube track.
 
-- **How much is left in epochs and labels? [exp017](#exp017) stopped on a wall-clock cap, not on convergence.** PR was still descending at −0.0082/epoch over ep6–14 (t = −4.0) when the 72 h budget ran out, while rollout MSE had been flat since ~ep8 — so the run answers "is 40M better than 8M" but not "is 40M enough". **On epochs:** `train_distill.py --resume auto` restarts from `latest.pt` with optimizer state intact, so more epochs cost only GPU time at ~4.5 h/epoch on a T4 spot VM, and a power-law fit predicts ≈0.88 by ep20 — but this is better folded into the outcomes6 run above than spent extending an arm that has to be redone anyway. **On labels:** the data axis has exactly two points (8M, 40M), and two points fit any two-parameter curve exactly — so the 80M extrapolations (≈0.76 floored at the teacher's 0.56, ≈0.65 unfloored) come from the assumed form, not from evidence. A ladder of runs on 9M/17M/24M subsets of run3 (verified to share run1's label and position distribution, so they sit on one curve) would measure the *marginal return per doubling* near the current scale — the decision-relevant quantity — though four points across a single decade would not settle the functional form or the asymptote. **Worth doing only if generating more labels is a cost we would be paying ourselves**; if a larger corpus can be sourced instead, the ladder's whole purpose (deciding whether to fund generation) falls away, and the effort belongs on teacher *quality* instead — a 4-ply teacher moves the 0.56 asymptote itself, where more 2-ply labels only slide us along a curve that ends there. Separately, exp014's 8M anchor ran 3 epochs to exp017's 12, so no existing pair separates data volume from optimisation budget; a matched-budget subset ladder would fix that too.
+- **How much is left in labels?** *(the epoch half is answered — [exp018](#exp018).)* **On epochs: closed.** exp017 stopped on its wall cap with PR still descending at −0.0082/epoch (t = −4.0), and a power-law fit predicted ≈0.09 more by ep24. [exp018](#exp018) ran the full 24 epochs and got **+0.004** (ep14 1.015 → ep24 1.019), with ep15–24 flat at −0.0009/epoch (t = −0.33): the descent stopped a few epochs past where the cap had fallen, and the lever was worth ~0.02, not ~0.09. The general lesson is about the *method*, not this run — extrapolating a curve that has not yet plateaued measures the fitted form, not the system. **On labels:** the data axis has exactly two points (8M, 40M), and two points fit any two-parameter curve exactly — so the 80M extrapolations (≈0.76 floored at the teacher's 0.56, ≈0.65 unfloored) come from the assumed form, not from evidence. A ladder of runs on 9M/17M/24M subsets of run3 (verified to share run1's label and position distribution, so they sit on one curve) would measure the *marginal return per doubling* near the current scale — the decision-relevant quantity — though four points across a single decade would not settle the functional form or the asymptote. **Worth doing only if generating more labels is a cost we would be paying ourselves**; if a larger corpus can be sourced instead, the ladder's whole purpose (deciding whether to fund generation) falls away, and the effort belongs on teacher *quality* instead — a 4-ply teacher moves the 0.56 asymptote itself, where more 2-ply labels only slide us along a curve that ends there. Separately, exp014's 8M anchor ran 3 epochs to exp017's 12, so no existing pair separates data volume from optimisation budget; a matched-budget subset ladder would fix that too.
 
 - **What counts as beating GNUBG.** The bar is a *matched-or-less-search* win: our net must beat GNUBG's deployed 2-ply play either with **no more search** (the gold standard — a static 0-ply net that beats GNUBG-2-ply, i.e. a strictly better evaluator playing *cheaper*) or at **equal search** (our-net + 2-ply vs GNUBG + 2-ply). Winning only by searching *deeper* at play time (our-net + 3-ply beats GNUBG-2-ply) does not count — it is GNUBG's own idea with more inference compute, and it collapses the instant search is held equal. The real distinction is *where the compute lives*: lookahead baked into the **net** at training time (better labels, self-play) is fair and deploys cheap; lookahead **escalated at play time** is not. This is why the roadmap builds the evaluator first and treats search as the finish, not the crutch.
 - **The teacher ceiling.** DAgger converges to GNUBG 2-ply by construction, and 3-ply labels cost 53× per label — steep for a teacher we intend to outgrow. exp009 plateaued ~0.4 ppg short of parity, confirming this is now the binding constraint. The leading escape — TD(λ) self-play from the consolidated seed — was tested in [exp010](training_analysis.qmd#exp010): it **does** lift a strong seed (the first self-play method here to do so, unlike exp007), but on a pure-greedy recipe it plateaus ~0.3 ppg short of even 0-ply parity. The obvious next candidate lever — distilling *to* 0-ply parity before self-play — has since been tried: [exp013](training_analysis.qmd#exp013) reran the same greedy recipe from the exp011b near-parity seed and found no detectable movement, but at a sample size only powered to catch effects several times the realistic ~0.05 ppg ceiling, so this doesn't close the question. Surpassing 0-ply is still open; candidate levers are exploration/temperature in the TD loop (untested), a much larger confirm run, or the value-head changes below.
