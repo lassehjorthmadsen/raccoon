@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>search.mcts – Raccoon</title>
+<title>eval.vr_arena – Raccoon</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -210,18 +210,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#raccoon.search.mcts" id="toc-raccoon.search.mcts" class="nav-link active" data-scroll-target="#raccoon.search.mcts">search.mcts</a>
+  <li><a href="#raccoon.eval.vr_arena" id="toc-raccoon.eval.vr_arena" class="nav-link active" data-scroll-target="#raccoon.eval.vr_arena">eval.vr_arena</a>
   <ul class="collapse">
-  <li><a href="#classes" id="toc-classes" class="nav-link" data-scroll-target="#classes">Classes</a>
-  <ul class="collapse">
-  <li><a href="#raccoon.search.mcts.Analysis" id="toc-raccoon.search.mcts.Analysis" class="nav-link" data-scroll-target="#raccoon.search.mcts.Analysis">Analysis</a></li>
-  <li><a href="#raccoon.search.mcts.Candidate" id="toc-raccoon.search.mcts.Candidate" class="nav-link" data-scroll-target="#raccoon.search.mcts.Candidate">Candidate</a></li>
-  <li><a href="#raccoon.search.mcts.MCTS" id="toc-raccoon.search.mcts.MCTS" class="nav-link" data-scroll-target="#raccoon.search.mcts.MCTS">MCTS</a></li>
-  <li><a href="#raccoon.search.mcts.MCTSNode" id="toc-raccoon.search.mcts.MCTSNode" class="nav-link" data-scroll-target="#raccoon.search.mcts.MCTSNode">MCTSNode</a></li>
-  </ul></li>
   <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
   <ul class="collapse">
-  <li><a href="#raccoon.search.mcts.select_action" id="toc-raccoon.search.mcts.select_action" class="nav-link" data-scroll-target="#raccoon.search.mcts.select_action">select_action</a></li>
+  <li><a href="#raccoon.eval.vr_arena.gnubg_arena_vr" id="toc-raccoon.eval.vr_arena.gnubg_arena_vr" class="nav-link" data-scroll-target="#raccoon.eval.vr_arena.gnubg_arena_vr">gnubg_arena_vr</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -233,107 +226,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="raccoon.search.mcts" class="level1">
-<h1>search.mcts</h1>
-<p><code>search.mcts</code></p>
-<p>AlphaZero-style MCTS with chance-node handling for backgammon.</p>
-<section id="classes" class="level2">
-<h2 class="anchored" data-anchor-id="classes">Classes</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><a href="#raccoon.search.mcts.Analysis">Analysis</a></td>
-<td>Full MCTS analysis of a position, for display/debugging.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.search.mcts.Candidate">Candidate</a></td>
-<td>A single candidate move from MCTS analysis.</td>
-</tr>
-<tr class="odd">
-<td><a href="#raccoon.search.mcts.MCTS">MCTS</a></td>
-<td>Monte Carlo Tree Search with PUCT selection.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.search.mcts.MCTSNode">MCTSNode</a></td>
-<td>A node in the MCTS tree. Only decision and terminal nodes are stored.</td>
-</tr>
-</tbody>
-</table>
-<section id="raccoon.search.mcts.Analysis" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.search.mcts.Analysis">Analysis</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>search.mcts.Analysis(candidates, root_value, num_simulations)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Full MCTS analysis of a position, for display/debugging.</p>
-</section>
-<section id="raccoon.search.mcts.Candidate" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.search.mcts.Candidate">Candidate</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>search.mcts.Candidate(action, visits, visit_prob, prior, q_value)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A single candidate move from MCTS analysis.</p>
-</section>
-<section id="raccoon.search.mcts.MCTS" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.search.mcts.MCTS">MCTS</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>search.mcts.MCTS(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    network,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    num_simulations<span class="op">=</span><span class="dv">100</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    c_puct<span class="op">=</span><span class="fl">1.5</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    virtual_loss_count<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    dirichlet_alpha<span class="op">=</span><span class="fl">0.0</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    noise_eps<span class="op">=</span><span class="fl">0.25</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Monte Carlo Tree Search with PUCT selection.</p>
-<section id="methods" class="level4">
-<h4 class="anchored" data-anchor-id="methods">Methods</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><a href="#raccoon.search.mcts.MCTS.analyze">analyze</a></td>
-<td>Run MCTS and return a full Analysis with per-candidate stats.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.search.mcts.MCTS.search">search</a></td>
-<td>Run MCTS and return (action -&gt; visit proportion, visit entropy).</td>
-</tr>
-<tr class="odd">
-<td><a href="#raccoon.search.mcts.MCTS.search_with_value">search_with_value</a></td>
-<td>Run MCTS and return (action_probs, visit_entropy, root_q_value).</td>
-</tr>
-</tbody>
-</table>
-<section id="raccoon.search.mcts.MCTS.analyze" class="level5">
-<h5 class="anchored" data-anchor-id="raccoon.search.mcts.MCTS.analyze">analyze</h5>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>search.mcts.MCTS.analyze(state)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run MCTS and return a full Analysis with per-candidate stats.</p>
-</section>
-<section id="raccoon.search.mcts.MCTS.search" class="level5">
-<h5 class="anchored" data-anchor-id="raccoon.search.mcts.MCTS.search">search</h5>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>search.mcts.MCTS.search(state)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run MCTS and return (action -&gt; visit proportion, visit entropy).</p>
-</section>
-<section id="raccoon.search.mcts.MCTS.search_with_value" class="level5">
-<h5 class="anchored" data-anchor-id="raccoon.search.mcts.MCTS.search_with_value">search_with_value</h5>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>search.mcts.MCTS.search_with_value(state)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run MCTS and return (action_probs, visit_entropy, root_q_value).</p>
-</section>
-</section>
-</section>
-<section id="raccoon.search.mcts.MCTSNode" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.search.mcts.MCTSNode">MCTSNode</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>search.mcts.MCTSNode(state, parent<span class="op">=</span><span class="va">None</span>, parent_action<span class="op">=</span><span class="va">None</span>, prior<span class="op">=</span><span class="fl">0.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A node in the MCTS tree. Only decision and terminal nodes are stored.</p>
-<p>Uses lazy child creation: when a node is expanded (evaluated by the network), only the prior probabilities are stored. Child nodes are created on-demand when first selected by PUCT, avoiding expensive state cloning for actions that are never visited.</p>
-</section>
-</section>
+<section id="raccoon.eval.vr_arena" class="level1">
+<h1>eval.vr_arena</h1>
+<p><code>eval.vr_arena</code></p>
+<p>Net-vs-GNUBG matches with a variance-reduced ppg estimator.</p>
+<p>Same games as :func:<code>raccoon.train.td_selfplay.gnubg_arena</code> — net plays 0-ply greedy value lookahead, GNUBG plays at <code>gnubg_ply</code>, seats alternate — but every pre-roll state is intercepted before the dice are sampled so the realised <strong>luck</strong> of the roll can be recorded (see :mod:<code>raccoon.eval.luck</code> for the estimator and why it is exactly unbiased). Each game then yields two numbers:</p>
+<pre><code>raw = the game result in points, from the net's POV
+vr  = raw - (accumulated luck)</code></pre>
+<p><code>mean(vr)</code> estimates the same quantity as <code>mean(raw)</code> with far less variance, which is what makes sub-0.05-ppg differences measurable at a practical number of games.</p>
+<p>Turning variance reduction off (<code>vr=False</code>) plays <em>identical</em> games from the same seed: the control variate reads gnubg through a pure C path and touches no RNG. That is what lets a plain run and a variance-reduced run be compared as two independent samples of one process rather than two different processes.</p>
 <section id="functions" class="level2">
 <h2 class="anchored" data-anchor-id="functions">Functions</h2>
 <table class="caption-top table">
@@ -345,15 +246,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#raccoon.search.mcts.select_action">select_action</a></td>
-<td>Sample an action from the visit distribution.</td>
+<td><a href="#raccoon.eval.vr_arena.gnubg_arena_vr">gnubg_arena_vr</a></td>
+<td>Play <code>games</code> net-vs-GNUBG games, returning per-game raw and VR results.</td>
 </tr>
 </tbody>
 </table>
-<section id="raccoon.search.mcts.select_action" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.search.mcts.select_action">select_action</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>search.mcts.select_action(action_probs, temperature<span class="op">=</span><span class="fl">1.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Sample an action from the visit distribution.</p>
+<section id="raccoon.eval.vr_arena.gnubg_arena_vr" class="level3">
+<h3 class="anchored" data-anchor-id="raccoon.eval.vr_arena.gnubg_arena_vr">gnubg_arena_vr</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.vr_arena.gnubg_arena_vr(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    net,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    device,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    games,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    gnubg_ply<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    cv_ply<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    max_moves<span class="op">=</span><span class="dv">2000</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    vr<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Play <code>games</code> net-vs-GNUBG games, returning per-game raw and VR results.</p>
+<p>Returns <code>{"games", "net_wins", "game_pts", "game_luck", "game_vr", "game_rolls"}</code>. <code>game_pts</code> is the raw result in points from the net’s POV (±1/±2/±3 under <code>full_scoring</code>); <code>game_luck</code> is the accumulated dice luck, also from the net’s POV; <code>game_vr = game_pts - game_luck</code>. With <code>vr=False</code> the luck array is all zeros and <code>game_vr</code> equals <code>game_pts</code>.</p>
+<p><code>cv_ply</code> is the ply of the control-variate evaluator and must be 0 (gnubg-nn’s <code>best_move</code> segfaults deeper); <code>gnubg_ply</code> is the <em>opponent’s</em> strength and is unconstrained. The two are deliberately independent — the control variate stays a fixed function of (position, roll) whatever the opponent does, which is what keeps the estimator unbiased.</p>
+<p>Seeds the global numpy RNG (dice), like the other arenas in this project.</p>
 
 
 </section>

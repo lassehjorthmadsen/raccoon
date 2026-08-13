@@ -138,6 +138,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../pretraining_analysis.html">
  <span class="dropdown-text">Supervised &amp; Expert Iteration</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../variance_reduction.html">
+ <span class="dropdown-text">Variance-Reduced Rollouts</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -256,7 +260,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="evaluation" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
-<p>Checkpoint arena and GNUBG benchmark</p>
+<p>Checkpoint arena, GNUBG benchmark, and variance-reduced rollouts</p>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
@@ -266,6 +270,14 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td><a href="../reference/eval.gnubg_harness.html#raccoon.eval.gnubg_harness">eval.gnubg_harness</a></td>
 <td>Automated money-game sessions against GNUBG via the <code>gnubg-nn</code> package.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/eval.luck.html#raccoon.eval.luck">eval.luck</a></td>
+<td>Dice-luck control variate for variance-reduced rollouts (XG/GNUBG/BGSage style).</td>
+</tr>
+<tr class="even">
+<td><a href="../reference/eval.vr_arena.html#raccoon.eval.vr_arena">eval.vr_arena</a></td>
+<td>Net-vs-GNUBG matches with a variance-reduced ppg estimator.</td>
 </tr>
 </tbody>
 </table>
