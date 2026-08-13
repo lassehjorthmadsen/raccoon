@@ -3,11 +3,13 @@
 ⚠️  DROPPED as a strength metric (2026-07-26). The **error-rate ppg** below is BIASED
 ~0.07 (seed scalar/ep3 read −0.128 at n=1000 vs its true raw ~−0.05): the 0-ply pre-roll
 value isn't self-consistent with its own 1-ply lookahead, so the implicit luck term isn't
-zero-mean. For strength claims use **raw ppg at high n** (`scripts/eval_gnubg0.py`) instead.
-Kept only as a building block for a future *proper* variance-reduced rollout (XG/GNUBG-style,
-self-consistent 1-ply control variate → unbiased + low-variance). The raw-ppg column here is
-fine; the per-decision error rate (mppg/decision) is a valid PR-like skill number, but the
-ppg *conversion* is the biased part. Do not use for decisions.
+zero-mean. The raw-ppg column here is fine; the per-decision error rate (mppg/decision) is a
+valid PR-like skill number, but the ppg *conversion* is the biased part.
+
+**The proper variance-reduced rollout this was a placeholder for now exists** — use
+`scripts/eval_gnubg_vr.py` (XG/GNUBG-style, self-consistent control variate → exactly
+unbiased *and* ~7x tighter than raw ppg on the same games). Prefer it over both columns
+below for any strength claim; `scripts/eval_gnubg0.py` remains the plain raw-ppg ruler.
 
 
 Runs ``gnubg_arena_scored`` across worker processes and pools per-game results,

@@ -1,0 +1,552 @@
+---
+title: "Variance-Reduced Rollouts"
+subtitle: "How Raccoon measures a 0.05-point-per-game edge without playing hundreds of thousands of games — and the evidence it isn't cheating"
+toc-depth: 2
+jupyter: python3
+---
+
+Raccoon is a backgammon engine, and the only claim that ultimately matters about one is *does it win?* So its strength is settled by playing games against a reference opponent — here GNU Backgammon — and reporting the average margin in **points per game (ppg)** under cubeless money scoring: a plain win counts 1, a gammon 2, a backgammon 3. Both sides play at **0-ply**, meaning each ranks its legal moves by a static evaluation of the resulting position, with no further search.
+
+That is the honest way to measure an engine, and it is also where the project kept hitting a wall: **backgammon between two strong engines is almost entirely dice**. A single game's result swings by more than a point, while the difference we need to resolve is around 0.05. Separating a real edge that small from dice noise takes tens of thousands of games — and to say it *precisely*, hundreds of thousands.
+
+This page documents the tool that removes most of that noise, the argument for why it does not distort the answer, and a demonstration that it behaves as claimed. It closes with [exp019](#exp019), the first head-to-head measurement of `exp018/ep22`, the project's strongest network.
+
+The technique is not new — it is what eXtreme Gammon, GNU Backgammon and BGSage all do in their rollouts, and this project pre-registered it as future work after a cheaper shortcut turned out to be biased. What is new here is the implementation, and the evidence that it works.
+
+```{python}
+#| echo: false
+import json
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams["figure.dpi"] = 120
+
+RESULTS = Path("../experiments/exp019-vr/results")
+
+def load(tag):
+    """Load one scored run: summary fields plus per-game raw / luck / block arrays."""
+    d = json.loads((RESULTS / f"{tag}.json").read_text())
+    d["raw"] = np.array(d["game_pts"], dtype=np.float64)
+    d["luck"] = np.array(d["game_luck"], dtype=np.float64)
+    d["vr"] = d["raw"] - d["luck"]
+    d["block"] = np.array(d["game_shard"], dtype=int)
+    return d
+
+DEMO_RAW = load("demo_raw")
+DEMO_VR = load("demo_vr")
+HEAD = load("ep22_vr")
+
+def block_means(d, values):
+    return np.array([values[d["block"] == b].mean() for b in np.unique(d["block"])])
+
+def ci95(x):
+    return 1.96 * x.std(ddof=1) / len(x) ** 0.5
+
+RAW_SD = HEAD["raw"].std(ddof=1)
+VR_SD = HEAD["vr"].std(ddof=1)
+SD_RATIO = RAW_SD / VR_SD
+```
+
+## The problem, in numbers
+
+```{python}
+#| echo: false
+#| output: asis
+n_head = HEAD["games"]
+raw_ci = ci95(HEAD["raw"])
+vr_ci = ci95(HEAD["vr"])
+n_for_vr_ci = int(np.ceil((1.96 * RAW_SD / vr_ci) ** 2))
+
+print(f"""
+A backgammon result is worth ±1 (plain win), ±2 (gammon) or ±3 (backgammon). Two
+near-equal players trade those outcomes almost at random, so over the {n_head:,} games
+played for [exp019](#exp019) the per-game result has a standard deviation of
+**{RAW_SD:.2f}** — some {RAW_SD / 0.05:.0f} times the effect we are trying to detect. The
+95% confidence interval on the mean shrinks only as 1/√n:
+
+| games | 95% CI on raw ppg | wall-clock on 3 CPU workers |
+|---|---|---|""")
+for n in sorted({100, 1_000, 6_000, 100_000, n_for_vr_ci}):
+    hours = n * HEAD["sec_per_game_per_worker"] / 3 / 3600
+    when = f"{hours * 60:.0f} min" if hours < 1.5 else (
+        f"{hours:.1f} h" if hours < 48 else f"{hours / 24:.0f} days")
+    print(f"| {n:,} | ±{1.96 * RAW_SD / n ** 0.5:.3f} | {when} |")
+print(f"""
+The project's standard benchmark, n=6,000, buys ±{raw_ci:.3f}. Against a hypothesised
+edge of +0.05 that is a 2σ test with roughly 55% power — barely better than a coin flip on
+whether a real effect shows up at all. And reaching ±{vr_ci:.3f}, the precision actually
+achieved below, would take about **{n_for_vr_ci:,} games**: {n_for_vr_ci / n_head:.0f}× the
+compute, and the bottom row of that table.
+
+So the question is not how to buy more games. It is whether the same games can be made to
+say more.
+""")
+```
+
+::: {.callout-note collapse="true"}
+## A correction found along the way: the per-game SD is 1.36, not 1.8
+
+```{python}
+#| echo: false
+#| output: asis
+raw_all = DEMO_RAW["raw"]
+vals, counts = np.unique(raw_all, return_counts=True)
+dist = ", ".join(f"{int(v):+d}: {100 * c / len(raw_all):.1f}%" for v, c in zip(vals, counts))
+print(f"""
+This project has assumed a per-game equity SD of **1.8** since its earliest benchmarks, and
+`scripts/eval_gnubg0.py` hard-coded it. Measuring it directly here shows that 1.8 is the
+**variance**, not the standard deviation: over {len(raw_all):,} games the outcome
+distribution is {dist}, whose variance is {raw_all.var(ddof=1):.2f} — and whose standard
+deviation is therefore **{raw_all.std(ddof=1):.2f}**.
+
+The consequence is that every raw-ppg confidence interval the project has published is
+about **{1.8 / raw_all.std(ddof=1):.2f}× too wide** — n=6,000 gives ±{1.96 * raw_all.std(ddof=1) / 6000 ** 0.5:.3f},
+not the ±{1.96 * 1.8 / 6000 ** 0.5:.3f} previously quoted. Every such interval was therefore
+*conservative*, so no earlier conclusion is overturned; the affected results (for instance
+[exp011b](pretraining_analysis.qmd#exp011b)'s −0.053 ± 0.046, which becomes
+−0.053 ± {1.96 * raw_all.std(ddof=1) / 6000 ** 0.5:.3f}) get stronger, not weaker. `eval_gnubg0.py` now computes
+the interval from the sample instead of assuming a constant.
+
+One caveat on generalising it: this SD is measured at *near-parity*. A weaker network
+losing many gammons has a wider outcome distribution, which is the most likely origin of
+the 1.8 figure in the first place.
+""")
+```
+:::
+
+## The method
+
+They can, because most of that variance is *identifiable*. When a player rolls double sixes and hits, the result swings for a reason we can point at, and — crucially — for a reason we can put a number on **before knowing how the game turns out**.
+
+At every pre-roll position $s$, before the dice are thrown, define
+
+$$h(s, d) \;=\; \text{equity after best play of roll } d, \text{ from a fixed player's point of view}$$
+
+$$m(s) \;=\; \sum_d p(d)\, h(s, d) \qquad\qquad \text{luck} \;=\; h(s, d_{\text{actual}}) - m(s)$$
+
+$m(s)$ is what the position was worth *before* the roll: the average over all 21 distinct rolls, doubles weighted 1/36 and non-doubles 2/36. (The opening roll is the one exception — doubles are re-rolled there, so it averages over 30 equally likely outcomes instead, and the position is symmetric, so that average is exactly zero.) The luck of the roll that actually came up is how much better or worse than that average it was. Accumulate this over **both** players' rolls for a whole game — a good roll for the opponent is bad luck for us, with the sign flipped — and report
+
+$$\text{vr} \;=\; \text{raw game result} \;-\; \textstyle\sum_t \text{luck}_t$$
+
+### A worked example: the opening roll
+
+The clearest case is the very first roll, because the position before it is symmetric and therefore worth exactly zero to both players. Whatever the roll turns out to be worth is *pure* luck. Here is what Raccoon's control variate says about it, from the roller's point of view:
+
+| best openers | luck | worst openers | luck |
+|---|---|---|---|
+| 3-1 | **+0.160** | 2-1 | **−0.006** |
+| 4-2 | +0.114 | 4-1 | −0.003 |
+| 6-1 | +0.091 | 5-1 | +0.001 |
+
+Win the opening roll with 3-1 and you bank about a sixth of a point before playing a single checker; the estimator hands that back. Win it with 2-1 and you have gained nothing at all — after your reply the opponent is on roll, and that is worth about as much as your move was.
+
+This is also a free correctness check, because backgammon players already know the answer: 3-1, 4-2 and 6-1 — making the 5-point, the 4-point and the bar-point — are the three best opening rolls, and the 1-plays that neither point nor prime are the weakest. Nothing in the implementation was tuned to produce that ordering; it falls out of GNUBG's evaluation. And the 30 values average to zero to twelve decimal places, as symmetry demands.
+
+### Why this doesn't bias the answer
+
+The obvious worry is that we are adjusting results using an estimate, and estimates are wrong. The reason it is safe is that the correction has **mean exactly zero, by construction**:
+
+$$\mathbb{E}\big[\text{luck}_t \,\big|\, \text{history}\big] \;=\; \sum_d p(d)\, h(s_t, d) \;-\; m(s_t) \;=\; 0$$
+
+because $m(s_t)$ *is* that sum. This holds for every roll regardless of what $h$ is, so the accumulated correction is a mean-zero martingale, and subtracting it cannot move the expectation of the estimator. As David Montgomery put it in [the canonical explanation of the technique](https://bkgm.com/articles/GOL/Feb00/var.htm):
+
+> The luck associated with a roll […] averages zero. That's the way averages work. […] Subtracting zero can't change the expected value of a rollout. No matter how poorly a program understands a position, luck estimates will still average zero.
+
+A bad evaluator makes the technique *less useful* — the correction correlates less with the result, so less variance is removed — but never makes it *wrong*. That is an unusually forgiving property, and it is the whole reason this is worth doing.
+
+### The rule that makes it self-consistent
+
+There is one way to break it, and this project has already broken it once.
+
+$h$ must be the same function on both legs of the subtraction, and in particular **it must not depend on the move actually played**. Raccoon always uses GNUBG's 0-ply best-play value for whoever is on roll — whatever either side actually does, and at whatever ply they think. If Raccoon blunders, no luck term changes; the cost lands in the raw result and in the next pre-roll position, which is exactly where it belongs.
+
+An earlier metric in this project, "error-rate ppg", violated this. It charged the network for the equity its chosen move conceded, against a pre-roll value that was not that quantity's own dice-average. The implicit luck term was therefore not zero-mean, and the metric read **−0.128** where the truth was about **−0.05**: a bias of ~0.07 ppg, larger than the effects it was being used to measure. It was dropped in July 2026 and the correct construction noted as future work. This page is that future work.
+
+The same trap is visible in other engines. BGSage evaluates the *played* move on the actual leg against the *1-ply-best* move in the mean; when its decision ply exceeds its variance-reduction ply those differ, leaving a small residual bias it polices with a paired t-test. Raccoon's formulation closes that gap by never letting the played move enter the control variate at all.
+
+## How Raccoon implements it
+
+The estimator lives in [`raccoon/eval/luck.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/luck.py), the match loop in [`raccoon/eval/vr_arena.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/vr_arena.py), and the driver in `scripts/eval_gnubg_vr.py`. Four implementation decisions are worth recording, because three of them were bugs first.
+
+**The 21-roll sweep is native, and it is nearly free.**
+
+```{python}
+#| echo: false
+#| output: asis
+rolls = HEAD.get("mean_rolls_per_game") or 55.0
+sweep_ms = 2.6
+cost_raw = DEMO_RAW["sec_per_game_per_worker"]
+cost_vr = DEMO_VR["sec_per_game_per_worker"]
+rolls_txt = f"the {rolls:.0f} pre-roll positions of an average game"
+print(f"""
+The obvious route — loop over every legal move of every roll and ask GNUBG to evaluate
+each resulting position — costs about **260 ms** per pre-roll position, which would have
+made variance reduction roughly thirteen times more expensive than the game it is
+measuring. Going through `gnubg_nn.best_move`, which generates and ranks a whole roll (all
+four half-moves of a double included) inside C, costs **~{sweep_ms} ms** for the same
+21-roll sweep, and agrees with the slow route exactly.
+
+Over {rolls_txt} that is ~{rolls * sweep_ms / 1000:.2f} s of extra work against a game
+that costs ~{cost_raw:.1f} s to play: a **~{100 * rolls * sweep_ms / 1000 / cost_raw:.0f}%
+overhead** for a {SD_RATIO ** 2:.0f}-fold gain in statistical efficiency. (End-to-end
+wall-clock on the two demonstration arms — identical games, differing only in whether the
+correction was computed — came out at {cost_raw:.2f} s and {cost_vr:.2f} s per game, in
+the same range; those runs share a desktop with other work, so the arithmetic above is the
+more reliable figure.)
+""")
+```
+
+**Terminal rolls need their exact value.** The adapter's `candidate_equities` reports a flat `+3.0` for any move that ends the game — correct for *ranking* moves, since a win is a win, but catastrophic here: it would score every game-ending roll as a backgammon and inject a large spurious luck term at the end of every game. The sweep instead classifies the finished position properly into 1.0 / 2.0 / 3.0.
+
+**GNUBG's own move-list equities are not trustworthy in races.** `best_move` returns a detail tuple with probabilities and an equity, and using them directly looked natural. On a bear-off position it reported `P(win) = 1.0` and equity `0.912` for a position that `probabilities()` scores at `0.982` with the opponent still winning 5.7% of the time. So `best_move` is used for **move generation only**; the position it lands on is reconstructed from the returned position key and re-evaluated through the same `probabilities()` call the rest of the project uses. With that fix the fast route agrees with the slow one **exactly** — 2,160 of 2,160 rolls across 60 real pre-roll positions, doubles and game-ending rolls included.
+
+**The control variate is 0-ply, and must be.** `best_move` segfaults at ply ≥ 1 on real bear-off boards, so anything deeper is refused outright rather than risked mid-run. This costs nothing: evaluating each roll's best reply *is* one ply of lookahead, so a 0-ply leaf already yields a 1-ply pre-roll mean — the same depth GNUBG and BGSage use for their own variance reduction. The opponent's playing strength is a separate setting and can be anything.
+
+One more property matters for how the demonstration below is framed: **the control variate touches no randomness**. It reads GNUBG through a pure C path and draws the roll from the same call on the same distribution whether or not it is enabled. Turning variance reduction on therefore plays *identical games* from the same seed — asserted in `tests/test_luck.py`.
+
+## Is it unbiased?
+
+Three checks — two exact, one empirical.
+
+**The zero-mean property is asserted directly, in CI.** `test_luck_is_zero_mean_exact` enumerates every outcome of real pre-roll positions through the production code path and checks that the probability-weighted luck sums to zero to within 1e-9, from both players' perspectives. This is the property everything rests on, so it is tested rather than reasoned about. Two supporting tests cover the ways it can silently break: the chance-action-to-dice table is verified against OpenSpiel's own labels at both node sizes, and the fast sweep is verified against OpenSpiel's move generation roll by roll.
+
+**The opening position gives a free exact check**, as shown [above](#a-worked-example-the-opening-roll): its pre-roll mean is zero to twelve decimal places even though individual opening rolls are worth up to +0.16, and the ranking of those rolls matches established backgammon theory. A sign error, a mis-mapped dice table or a perspective flip would all show up here immediately, so this is asserted as a test too.
+
+**Empirically, the correction has no detectable mean.**
+
+```{python}
+#| echo: false
+#| output: asis
+mean_luck = HEAD["luck"].mean()
+se_luck = HEAD["luck"].std(ddof=1) / len(HEAD["luck"]) ** 0.5
+t_luck = mean_luck / se_luck
+print(f"""
+Over the {HEAD['games']:,} games of [exp019](#exp019) the accumulated luck averages
+**{mean_luck:+.4f} ± {1.96 * se_luck:.4f}** points per game (t = {t_luck:+.2f}) — consistent
+with zero, as it must be. Equivalently: the raw and variance-reduced estimates of the same
+quantity, on the same games, are **{HEAD['raw'].mean():+.4f}** and **{HEAD['vr'].mean():+.4f}**,
+and they differ by exactly that mean luck.
+""")
+```
+
+**What is missing, on the record.** The strongest possible check would have been external: re-measure `exp011b/ep3`, the one checkpoint with a published raw answer (−0.053 ± 0.046 at n=6,000), and confirm the variance-reduced estimate lands inside that interval with a far tighter one. That run was considered and deliberately skipped to save an overnight slot. The evidence above is solid but all internal, and this remains the first follow-up if the result below ever looks surprising.
+
+## How much does it buy?
+
+Two independent sets of matches, played with the same network against the same opponent: twenty matches of fifty games with variance reduction **off**, then twenty more with it **on**, on different dice. Nothing is shared between the two sets — they are separate samples of the same process, which is legitimate precisely because enabling the correction does not change how the games are played.
+
+```{python}
+#| echo: false
+raw_blocks = block_means(DEMO_RAW, DEMO_RAW["raw"])
+vr_blocks = block_means(DEMO_VR, DEMO_VR["vr"])
+
+fig, (ax1, ax2) = plt.subplots(
+    2, 1, figsize=(8, 5), sharex=True, gridspec_kw={"height_ratios": [1, 1.3]}
+)
+lim = max(np.abs(raw_blocks).max(), np.abs(vr_blocks).max()) * 1.15
+
+rng = np.random.default_rng(0)
+ax1.scatter(raw_blocks, rng.normal(1, 0.055, len(raw_blocks)), s=42,
+            color="#d62728", alpha=0.75, label="no variance reduction")
+ax1.scatter(vr_blocks, rng.normal(0, 0.055, len(vr_blocks)), s=42,
+            color="#1f77b4", alpha=0.75, label="variance reduced")
+ax1.axvline(0, color="0.4", lw=1, ls="--")
+ax1.set_yticks([0, 1]); ax1.set_yticklabels(["VR", "raw"])
+ax1.set_ylim(-0.55, 1.55); ax1.set_xlim(-lim, lim)
+ax1.set_title(f"{len(raw_blocks)} matches of {DEMO_RAW['shard_sizes'][0]} games per arm, "
+              "independent dice", fontsize=11)
+
+bins = np.linspace(-lim, lim, 41)
+ax2.hist(raw_blocks, bins=bins, color="#d62728", alpha=0.55, label="no variance reduction")
+ax2.hist(vr_blocks, bins=bins, color="#1f77b4", alpha=0.75, label="variance reduced")
+ax2.axvline(0, color="0.4", lw=1, ls="--")
+ax2.set_xlabel("match result (points per game)")
+ax2.set_ylabel("matches")
+ax2.legend(frameon=True, fontsize=9)
+fig.tight_layout()
+plt.show()
+```
+
+```{python}
+#| echo: false
+#| output: asis
+sd_raw_b, sd_vr_b = raw_blocks.std(ddof=1), vr_blocks.std(ddof=1)
+boot = np.array([
+    (rng.choice(raw_blocks, len(raw_blocks)).std(ddof=1)
+     / rng.choice(vr_blocks, len(vr_blocks)).std(ddof=1))
+    for _ in range(20000)
+])
+lo, hi = np.percentile(boot, [2.5, 97.5])
+gap = raw_blocks.mean() - vr_blocks.mean()
+gap_ci = 1.96 * (sd_raw_b**2 / len(raw_blocks) + sd_vr_b**2 / len(vr_blocks)) ** 0.5
+print(f"""
+| | matches | mean of match results | 95% CI | SD across matches |
+|---|---|---|---|---|
+| no variance reduction | {len(raw_blocks)} | {raw_blocks.mean():+.4f} | ±{1.96 * sd_raw_b / len(raw_blocks) ** 0.5:.4f} | **{sd_raw_b:.4f}** |
+| variance reduced | {len(vr_blocks)} | {vr_blocks.mean():+.4f} | ±{1.96 * sd_vr_b / len(vr_blocks) ** 0.5:.4f} | **{sd_vr_b:.4f}** |
+
+The two arms disagree entirely on how confidently they speak: the spread across matches is
+**{sd_raw_b / sd_vr_b:.1f}× narrower**, which at equal precision is worth
+**{(sd_raw_b / sd_vr_b) ** 2:.0f}× as many games**. Twenty matches is a thin basis for a
+ratio, so that figure carries a bootstrap 95% interval of [{lo:.1f}×, {hi:.1f}×]. The
+picture is the point here; the number comes from the {HEAD['games']:,}-game run below,
+where the same ratio is **{SD_RATIO:.2f}×** ({SD_RATIO ** 2:.0f}× the games).
+
+They also agree on the answer — the arm means differ by {gap:+.4f} ± {gap_ci:.4f}, which
+is consistent with zero. That is a weak statement rather than a strong one, and worth
+being explicit about: the interval is wide almost entirely because of the raw arm, which
+is exactly the problem being solved. It rules out a gross bias, not a subtle one; the
+sharp unbiasedness evidence is the exact zero-mean property above.
+""")
+```
+
+### Why it works this well
+
+```{python}
+#| echo: false
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.5, 4))
+
+jit = rng.normal(0, 0.06, len(HEAD["raw"]))
+ax1.scatter(HEAD["luck"], HEAD["raw"] + jit, s=3, alpha=0.10, color="#1f77b4",
+            edgecolors="none")
+lo_l, hi_l = np.percentile(HEAD["luck"], [0.2, 99.8])
+ax1.plot([lo_l, hi_l], [lo_l, hi_l], color="#d62728", lw=1.4, ls="--",
+         label="result = luck")
+ax1.set_xlabel("accumulated luck (points)")
+ax1.set_ylabel("raw game result (points, jittered)")
+ax1.set_title(f"r = {np.corrcoef(HEAD['raw'], HEAD['luck'])[0, 1]:.3f}", fontsize=11)
+ax1.legend(frameon=True, fontsize=9)
+
+# Games are split across worker shards; shuffle (one permutation for both estimators, so
+# they stay paired) so the running curve reads as "as games accumulate" rather than
+# showing shard boundaries.
+order = np.random.default_rng(1).permutation(HEAD["games"])
+step = max(1, HEAD["games"] // 400)
+ns = np.arange(step, HEAD["games"] + 1, step)
+for values, colour, label in (
+    (HEAD["raw"][order], "#d62728", "raw"),
+    (HEAD["vr"][order], "#1f77b4", "variance reduced"),
+):
+    cum = np.cumsum(values)[ns - 1] / ns
+    sd = np.array([values[:n].std(ddof=1) for n in ns])
+    ax2.fill_between(ns, cum - 1.96 * sd / np.sqrt(ns), cum + 1.96 * sd / np.sqrt(ns),
+                     color=colour, alpha=0.18)
+    ax2.plot(ns, cum, color=colour, lw=1.4, label=label)
+ax2.axhline(0, color="0.4", lw=1, ls="--")
+ax2.set_xlabel("games played")
+ax2.set_ylabel("estimate of ppg vs GNUBG-0-ply")
+ax2.set_title("Running estimate ± 95% CI, same games", fontsize=11)
+ax2.legend(frameon=True, fontsize=9)
+fig.tight_layout()
+plt.show()
+```
+
+```{python}
+#| echo: false
+#| output: asis
+r = np.corrcoef(HEAD["raw"], HEAD["luck"])[0, 1]
+beta = np.cov(HEAD["raw"], HEAD["luck"])[0, 1] / np.var(HEAD["luck"], ddof=1)
+print(f"""
+The left panel is the mechanism: accumulated luck explains **{100 * r ** 2:.1f}%** of the
+variance in the raw result (r = {r:.3f}), and the cloud sits on the 45° line rather than
+merely near it. Backgammon between two strong engines really is mostly a dice-reading
+exercise, and a one-ply lookahead reads the dice well enough to account for nearly all of
+it. What survives the subtraction is the part that is actually about skill.
+
+That the relationship sits on the diagonal is itself a calibration check. Fitting the
+regression-optimal coefficient — the β that would minimise variance in
+`raw − β·luck` — gives **β̂ = {beta:.3f}**, within a few thousandths of the 1.0 the
+estimator uses. (The estimator keeps β = 1 deliberately: any *fixed* coefficient stays
+exactly unbiased, whereas one fitted on the same sample does not.)
+
+The right panel is the practical consequence. Both estimators are computed from the same
+{HEAD['games']:,} games and converge on the same answer, but not at the same speed: the
+variance-reduced estimate is already tighter after
+**{int(np.ceil((1.96 * VR_SD / ci95(HEAD['raw'])) ** 2)):,} games** than the raw one is
+after all {HEAD['games']:,}.
+""")
+```
+
+## exp019 — does `exp018/ep22` beat GNUBG-0-ply? {#exp019}
+
+**Motivation.** `exp018/ep22` is the project's best network, and on the static [BGSage benchmark](pretraining_analysis.qmd#exp018) it is already past GNUBG-0-ply — PR 0.950 over 14,693 checker decisions, rollout-tier MSE 0.00190 over ~149k candidates, both better than the 0-ply reference. But a static benchmark scores move *choices* against a fixed position set; it does not play games. The exp018 write-up flagged the gap explicitly: a raw-ppg confirmation at matched search was still outstanding. Until now it was not affordable.
+
+**Setup.** `exp018-distill/ep22` (10×256, six-outcome value head) playing 0-ply greedy value lookahead against GNUBG at 0-ply, cubeless money scoring, seats alternated. Primary metric fixed in advance in `experiments/pipeline_exp019.sh`: **variance-reduced ppg, n = 6,000 games**, 95% CI from the empirical SD of the per-game variance-reduced values. One arm only — `ep22` was selected on the BGSage benchmark, an independent metric on independent data, so this is a clean confirmation with no winner's-curse correction needed, and no epoch sweep was run on this metric.
+
+**Results.**
+
+```{python}
+#| echo: false
+#| output: asis
+raw_m, vr_m = HEAD["raw"].mean(), HEAD["vr"].mean()
+raw_c, vr_c = ci95(HEAD["raw"]), ci95(HEAD["vr"])
+print(f"""
+| estimator | ppg vs GNUBG-0-ply | 95% CI | interval | per-game SD |
+|---|---|---|---|---|
+| raw (unbiased ruler) | {raw_m:+.4f} | ±{raw_c:.4f} | [{raw_m - raw_c:+.3f}, {raw_m + raw_c:+.3f}] | {RAW_SD:.3f} |
+| **variance reduced** | **{vr_m:+.4f}** | **±{vr_c:.4f}** | [{vr_m - vr_c:+.4f}, {vr_m + vr_c:+.4f}] | {VR_SD:.3f} |
+
+n = {HEAD['games']:,} games, {HEAD['net_wins']:,} wins ({HEAD['win_pct']:.1f}%).
+Supporting diagnostics: mean luck {HEAD['luck'].mean():+.4f} (t = {HEAD['luck'].mean() / (HEAD['luck'].std(ddof=1) / len(HEAD['luck']) ** 0.5):+.2f}),
+corr(raw, luck) = {np.corrcoef(HEAD['raw'], HEAD['luck'])[0, 1]:.3f}, β̂ = {np.cov(HEAD['raw'], HEAD['luck'])[0, 1] / np.var(HEAD['luck'], ddof=1):.3f},
+SD ratio {SD_RATIO:.2f}× ({SD_RATIO ** 2:.0f}× the games).
+""")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+z = vr_m / (VR_SD / HEAD["games"] ** 0.5)
+n_raw_equiv = int(np.ceil((1.96 * RAW_SD / vr_c) ** 2))
+lo_v, hi_v = vr_m - vr_c, vr_m + vr_c
+if lo_v > 0:
+    verdict, resolved = "beats", True
+elif hi_v < 0:
+    verdict, resolved = "loses to", True
+else:
+    verdict, resolved = "is not separable from", False
+
+raw_resolves = (raw_m - raw_c > 0) or (raw_m + raw_c < 0)
+raw_note = (
+    f"reaches the same verdict, but only just: {raw_m:+.4f} ± {raw_c:.4f}"
+    if raw_resolves else
+    f"cannot resolve it at all: {raw_m:+.4f} ± {raw_c:.4f}, an interval spanning both a "
+    "meaningful edge and a meaningful deficit"
+)
+agree = "consistent with" if abs(raw_m - vr_m) < raw_c else "further than expected from"
+
+print(f"""
+**Interpretation.** The variance-reduced interval [{lo_v:+.4f}, {hi_v:+.4f}]
+{'excludes' if resolved else 'includes'} zero (z = {z:+.1f}), so on this evidence `ep22`
+**{verdict}** GNUBG-0-ply in head-to-head play. The raw estimator, on the *very same
+games*, {raw_note} — {agree} the variance-reduced value, as it must be, since the two
+differ by exactly the mean luck. That contrast is the point of this page: matching this
+precision by brute force would have taken roughly {n_raw_equiv:,} games,
+{n_raw_equiv / HEAD['games']:.0f}× what was actually played.
+
+The remaining caveats are unchanged. This is 0-ply against 0-ply and cubeless, so it says
+nothing yet about GNUBG at 2-ply, and nothing about cube handling.
+""")
+if resolved and vr_m > 0:
+    print("""
+It does, however, settle a question the project has carried since the distillation track
+began. The static [BGSage benchmark](pretraining_analysis.qmd#exp018) had already put
+`ep22` past GNUBG-0-ply on move-selection error and on value accuracy; play now agrees on
+the **direction**. A network distilled from GNUBG has passed its own teacher at matched
+search, over the board and not merely on a scorecard.
+
+The two do *not* agree on the **size** of the edge, which is the subject of the next
+section.
+""")
+elif not resolved:
+    print("""
+What it does *not* do is confirm the static benchmark. The
+[BGSage benchmark](pretraining_analysis.qmd#exp018) puts `ep22` past GNUBG-0-ply on
+move-selection error and value accuracy, but that is a score over a fixed position set,
+not a game outcome; the two need not agree, and here they do not resolve to the same
+claim. The honest reading is that the head-to-head edge, if any, is smaller than the
+static score suggests.
+""")
+```
+
+### Cross-check: what the static benchmark predicted
+
+The [BGSage benchmark](pretraining_analysis.qmd#exp015) scores an engine's move choices against rollout-quality references and reports **PR** — mean equity error per checker decision, ×500. Because that is an error *rate* in points, it makes a falsifiable prediction about points per game, and this is the first time the project has been able to test it.
+
+```{python}
+#| echo: false
+#| output: asis
+pr_net = json.loads(
+    Path("../experiments/exp018-benchmark/results/exp018_ep22.json").read_text())["pr"]
+pr_ref = json.loads(
+    Path("../experiments/exp015-benchmark/results/gnubg_0_ply.json").read_text())["pr"]
+rolls_pg = HEAD.get("mean_rolls_per_game") or 55.5
+turns_per_player = rolls_pg / 2
+edge_per_decision = (pr_ref - pr_net) / 500
+predicted = edge_per_decision * turns_per_player
+gap_sd = (predicted - vr_m) / (VR_SD / HEAD["games"] ** 0.5)
+
+print(f"""
+| | PR (n = 14,693) | equity error per decision |
+|---|---|---|
+| GNUBG, 0-ply | {pr_ref:.3f} | {pr_ref / 500:.5f} |
+| `exp018/ep22` | {pr_net:.3f} | {pr_net / 500:.5f} |
+| **difference** | **{pr_ref - pr_net:.3f}** | **{edge_per_decision:.5f}** |
+
+A game runs {rolls_pg:.1f} rolls, so each side makes about {turns_per_player:.0f} checker
+decisions. If error rates simply accumulated, ep22's advantage would be
+{edge_per_decision:.5f} × {turns_per_player:.0f} ≈ **{predicted:+.3f} ppg**. Measured:
+**{vr_m:+.4f} ± {vr_c:.4f}**.
+""")
+if abs(predicted - vr_m) < 2 * vr_c:
+    print(f"""
+Those agree. The static benchmark and head-to-head play are measuring the same thing, by
+two entirely different routes, and they land in the same place — which is a much stronger
+joint statement than either makes alone.
+""")
+else:
+    print(f"""
+**Those do not agree** — the measured edge falls short of the predicted one by
+{predicted - vr_m:.3f} ppg, about {abs(gap_sd):.0f} standard errors. Both numbers are
+sound on their own terms, so the discrepancy is real and worth naming rather than
+smoothing over. Two explanations are available, and they are testable:
+
+1. **The benchmark's positions are not the positions that arise in this matchup.** BGSage's
+   set comes from Sage 3-ply self-play. An error rate measured there need not transfer to
+   the distribution generated by ep22 playing GNUBG, and a rate advantage concentrated in
+   positions that rarely occur here would buy little.
+2. **The network cannot execute a doubles turn as well as it can evaluate one.** This is the
+   more specific candidate, and the arithmetic fits. On the benchmark every candidate is a
+   *complete* move, and the network scores the finished position. In play, OpenSpiel splits
+   a double into two consecutive decisions, and `raccoon/train/lookahead.py` ranks the first
+   half by the static value of the *intermediate* position — a position the value head
+   never saw in training, having been trained on pre-roll positions only. It then picks the
+   second half greedily. GNUBG, through `candidate_equities`, recurses and optimises all
+   four half-moves jointly. So on doubles the two engines are not playing by the same rule,
+   and only one of them is handicapped.
+
+   Doubles are 1/6 of turns, or about {turns_per_player / 6:.1f} per player per game.
+   Absorbing the {predicted - vr_m:.3f} ppg shortfall would take a loss of only
+   **{(predicted - vr_m) / (turns_per_player / 6):.3f} points per doubles turn** — an
+   entirely ordinary cost for greedy-decomposed play against joint optimisation over four
+   half-moves.
+
+Explanation 2 predicts something checkable: score the network on the benchmark's doubles
+decisions *through the two-step path it actually plays*, rather than on complete moves, and
+most of the shortfall should reappear. That is the natural next experiment. If it holds,
+this is a **strength bug worth fixing**, not a measurement artefact — and fixing it would
+convert a benchmark advantage the network already has into points it currently does not
+collect.
+""")
+```
+
+**Conclusion.**
+
+```{python}
+#| echo: false
+#| output: asis
+answer = "Yes" if lo_v > 0 else ("No" if hi_v < 0 else "Not at this n")
+print(f"""
+> Does `exp018/ep22` beat GNUBG-0-ply? → **{answer}**:
+> ep22 = **{vr_m:+.4f} ± {vr_c:.4f}** (variance-reduced ppg vs GNUBG-0-ply,
+> n={HEAD['games']:,}).
+""")
+```
+
+## What this does and does not change
+
+Variance reduction is a **measurement** tool, not a strength gain. It does not alter a single move; the network that plays is the network that plays. What it changes is the price of knowing how good that network is: the project's established rulers stay valid, but a comparison that used to need tens of thousands of games now needs a few thousand.
+
+Two limitations worth stating. First, the estimator is unbiased but its *variance reduction* is only as good as the control variate — a position class GNUBG's 0-ply evaluator reads poorly is a class where less noise gets removed, silently. Second, none of this helps against a slow opponent: the cost of measuring GNUBG at 2-ply is dominated by GNUBG's own thinking time, not by the estimator, though the same 6,000 games would now say a great deal more than they used to.
+
+Left on the table, in rough order of value: the doubles-execution question raised above, which is the only one of these that could be a *strength* gain rather than a measurement one; the external unbiasedness control against `exp011b/ep3`; a 2-ply opponent, now finally affordable in information terms; and stratified opening rolls, an orthogonal and completely free further reduction, deliberately left out here so it would not confound the comparison.
+
+## References
+
+- David Montgomery, [*Variance Reduction*](https://bkgm.com/articles/GOL/Feb00/var.htm), GammOnLine, February 2000 — the canonical explanation, and the source of the zero-mean argument quoted above.
+- GNU Backgammon, `rollout.c` (`BasicCubefulRollout`) — accumulates `arMean − aaar[actual]` over all 36 rolls (30 for the opening) for both players, and applies it to the trial's outcome, exactly as here.
+- [GNU Backgammon manual, *Rollouts*](https://www.gnu.org/software/gnubg/manual/html_node/Rollouts-in-GNU-Backgammon.html) — variance reduction and the separate technique of quasi-random dice.
+- BGSage, `ROLLOUT.md` §4 and `cpp/src/rollout.cpp` — a production implementation with per-branch cubeful variance reduction; its measured 6.5× reduction in standard error on cubeless equity is the closest published comparison to the figure obtained here.

@@ -107,9 +107,8 @@ def gnubg_arena(
 
     np.random.seed(seed)
     wrapper = GameWrapper()
-    total = 0.0
+    game_pts: list[float] = []
     wins = 0
-    completed = 0
     for g in range(games):
         net_is_p0 = (g % 2 == 0)
         state = wrapper.new_game()
@@ -128,13 +127,18 @@ def gnubg_arena(
             continue
         pts_p0 = state.returns()[0]
         net_pts = pts_p0 if net_is_p0 else -pts_p0
-        total += net_pts
+        game_pts.append(net_pts)
         wins += int(net_pts > 0)
-        completed += 1
+    completed = len(game_pts)
     return {
         "games": completed,
         "net_wins": wins,
-        "equity_per_game": total / completed if completed else 0.0,
+        "equity_per_game": (sum(game_pts) / completed) if completed else 0.0,
+        # Per-game results, so callers can compute an EMPIRICAL CI rather than assume a
+        # per-game SD. The long-assumed constant 1.8 is the *variance*, not the SD: at
+        # near-parity the measured SD is ~1.36 (E[X^2] ~ 1.85), so a hard-coded 1.8
+        # overstates every interval by ~32%.
+        "game_pts": np.array(game_pts, dtype=np.float64),
     }
 
 
@@ -187,9 +191,11 @@ def gnubg_arena_scored(
 
     ⚠️  The error-rate-as-ppg (−mean per-game error) is BIASED ~0.07 and was DROPPED as a
     strength metric (2026-07-26) — the 0-ply pre-roll value isn't self-consistent with its own
-    1-ply lookahead, so the implicit luck term isn't zero-mean. Use raw ppg at high n for
-    strength; this stays as a building block for a *proper* variance-reduced rollout (self-
-    consistent 1-ply control variate). The per-decision error RATE itself is unbiased (PR-like).
+    1-ply lookahead, so the implicit luck term isn't zero-mean. The per-decision error RATE
+    itself is unbiased (PR-like). **The proper variance-reduced rollout it was a placeholder
+    for now exists**: :func:`raccoon.eval.vr_arena.gnubg_arena_vr`, built on the
+    self-consistent control variate in :mod:`raccoon.eval.luck` — prefer that for strength
+    claims (it measures ~7x tighter than raw ppg on the same games).
 
     Like :func:`gnubg_arena` (raw ppg from net-vs-GNUBG games) but ALSO scores every
     *net* decision against GNUBG at ``ref_ply``: ``error = V_best - V_played`` where

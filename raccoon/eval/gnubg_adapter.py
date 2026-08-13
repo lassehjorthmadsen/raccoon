@@ -75,6 +75,78 @@ def outcome_probs(
     return float(win), float(wg), float(wbg), float(lg), float(lbg)
 
 
+def terminal_equity_after_move(board: list[list[int]]) -> float | None:
+    """Win magnitude for slot 0 if ``board`` is a finished game, else ``None``.
+
+    ``board`` is a post-move :func:`board_from_view` layout: slot 0 is the player who
+    just moved, slot 1 is the player who would be on roll. Checkers borne off are
+    implicit (gnubg infers them from the sum), so the mover has won iff slot 0 is empty.
+    Returns ``1.0`` for a plain win, ``2.0`` for a gammon (loser borne off none) and
+    ``3.0`` for a backgammon (loser also on the bar or still in the winner's home).
+
+    The loser's points are stored from their own POV, and their point ``24 - j`` is the
+    winner's point ``j + 1``, so the winner's home board (points 1-6) is the loser's
+    indices 18-23.
+    """
+    if sum(board[0]) > 0:
+        return None
+    loser = board[1]
+    if sum(loser) < 15:
+        return 1.0
+    return 3.0 if (loser[24] > 0 or any(loser[18:24])) else 2.0
+
+
+def best_move_equity(
+    board: list[list[int]], die1: int, die2: int, ply: int = 0,
+) -> float:
+    """Equity of ``board`` after GNUBG plays ``(die1, die2)`` best, from the mover's POV.
+
+    ``board`` is in :func:`board_from_view` layout (slot 1 on roll). The result is on
+    GNUBG's native *points* scale, with **exact** terminal values — a plain win is
+    ``+1.0``, a gammon ``+2.0``, a backgammon ``+3.0``. That exactness is what makes this
+    the right primitive for the dice-luck control variate in :mod:`raccoon.eval.luck`;
+    :func:`candidate_equities` hard-codes ``+3.0`` for every terminal child, which is fine
+    for ranking but would score every game-ending roll as a backgammon.
+
+    ``gnubg_nn.best_move`` generates and ranks the whole roll — all four half-moves of a
+    double included — inside C, making it ~150x faster than the equivalent loop over
+    :func:`candidate_equities` (a 21-roll sweep costs ~1.7 ms against ~260 ms). We use it
+    for **move generation only** and re-evaluate the position it lands on with
+    :func:`evaluate_equity`, for two reasons:
+
+    - The equity and probabilities in its detail tuple are **not trustworthy in race and
+      bear-off classes** — observed reporting ``P(win) = 1.0`` and equity ``0.912`` for a
+      position ``probabilities`` scores at ``0.982`` with the opponent still winning 5.7%.
+      Re-evaluating keeps one evaluator for the whole project.
+    - It keeps this function consistent with :func:`candidate_equities`, so the two agree
+      wherever they both apply and the cheap route can be tested against the slow one.
+
+    The detail tuple's position *key* round-trips exactly through
+    ``board_from_position_key``, so the re-evaluation costs one extra ``probabilities``
+    call per roll and no move-application logic of our own.
+
+    Two behaviours of the native call are handled here:
+
+    - A **dance** (no legal move) returns an empty move list. The board is then unchanged
+      and the turn passes; we evaluate with the sides swapped and negate.
+    - ``ply >= 1`` **segfaults** on real bear-off boards (``ply=0`` is solid over
+      thousands of positions), so anything but 0 is refused rather than risking a core
+      dump mid-run. Use :func:`candidate_equities` if a deeper best-play value is needed.
+    """
+    if ply != 0:
+        raise ValueError(
+            f"best_move_equity: ply must be 0, got {ply}. gnubg-nn's best_move "
+            "segfaults at ply >= 1; use candidate_equities for deeper lookahead."
+        )
+    entries = _gnubg.best_move(board, die1, die2, ply, list=1)[1]
+    if not entries:
+        # Dance: no legal move, board unchanged, turn passes to the opponent.
+        return -evaluate_equity([board[1], board[0]], ply)
+    after = [list(side) for side in _gnubg.board_from_position_key(entries[0][0])]
+    terminal = terminal_equity_after_move(after)
+    return terminal if terminal is not None else -evaluate_equity(after, ply)
+
+
 def candidate_equities(state: GameState, ply: int = 0) -> list[tuple[int, float]]:
     """Return ``[(action, my_equity)]`` for every legal action of the side to move.
 

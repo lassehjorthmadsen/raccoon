@@ -1,0 +1,21 @@
+exp019 started 2026-08-13T06:38:05+02:00
+=== .venv/bin/python scripts/eval_gnubg_vr.py --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --blocks 20 --block-size 50 --workers 3 --ply 0 --no-vr --seed-base 2000 --exp-dir experiments/exp019-vr --tag demo_raw ===
+[demo_raw] experiments/exp018-distill/checkpoints/ep22.pt
+  vs GNUBG-0ply, n=1000 games, 536 wins (53.6%), 34.4 min
+  raw ppg = +0.0720  (95% CI ±0.0844)
+  wrote experiments/exp019-vr/results/demo_raw.json
+=== .venv/bin/python scripts/eval_gnubg_vr.py --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --blocks 20 --block-size 50 --workers 3 --ply 0 --seed-base 3000 --exp-dir experiments/exp019-vr --tag demo_vr ===
+[demo_vr] experiments/exp018-distill/checkpoints/ep22.pt
+  vs GNUBG-0ply, n=1000 games, 485 wins (48.5%), 34.2 min
+  raw ppg = -0.0290  (95% CI ±0.0849)
+  VR  ppg = +0.0034  (95% CI ±0.0127)   <- 6.71x tighter (= 45.0x the games)
+  mean luck = -0.0324 (t=-0.76, should be ~0)   corr(raw,luck) = 0.989   beta_hat = 1.005
+  wrote experiments/exp019-vr/results/demo_vr.json
+=== .venv/bin/python scripts/eval_gnubg_vr.py --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --games 6000 --workers 3 --ply 0 --seed-base 1000 --exp-dir experiments/exp019-vr --tag ep22_vr ===
+[ep22_vr] experiments/exp018-distill/checkpoints/ep22.pt
+  vs GNUBG-0ply, n=6000 games, 3022 wins (50.4%), 200.9 min
+  raw ppg = +0.0102  (95% CI ±0.0348)
+  VR  ppg = +0.0129  (95% CI ±0.0053)   <- 6.51x tighter (= 42.4x the games)
+  mean luck = -0.0028 (t=-0.16, should be ~0)   corr(raw,luck) = 0.988   beta_hat = 0.995
+  wrote experiments/exp019-vr/results/ep22_vr.json
+exp019 finished 2026-08-13T11:07:41+02:00

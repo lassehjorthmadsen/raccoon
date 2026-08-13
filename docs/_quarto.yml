@@ -45,6 +45,8 @@ website:
             file: training_analysis.qmd
           - text: "Supervised & Expert Iteration"
             file: pretraining_analysis.qmd
+          - text: "Variance-Reduced Rollouts"
+            file: variance_reduction.qmd
       - text: "Developer"
         file: gcp_guide.md
       - text: "Reference"
@@ -92,10 +94,12 @@ quartodoc:
         - train.replay_buffer
         - train.coach
     - title: "Evaluation"
-      desc: "Checkpoint arena and GNUBG benchmark"
+      desc: "Checkpoint arena, GNUBG benchmark, and variance-reduced rollouts"
       contents:
         - eval.arena
         - eval.gnubg_harness
+        - eval.luck
+        - eval.vr_arena
     - title: "Protocol"
       desc: "Raccoon Game Protocol (RGP)"
       contents:
