@@ -40,13 +40,15 @@ from raccoon.eval.vr_arena import gnubg_arena_vr
 from raccoon.model.network import load_model
 
 
-def _shard(ckpt: str, n: int, ply: int, cv_ply: int, seed: int, vr: bool):
+def _shard(ckpt: str, n: int, ply: int, cv_ply: int, seed: int, vr: bool,
+           joint_doubles: bool):
     torch.set_flush_denormal(True)
     torch.set_num_threads(1)
     net = load_model(ckpt)
     net.eval()
     r = gnubg_arena_vr(
         net, torch.device("cpu"), n, gnubg_ply=ply, cv_ply=cv_ply, seed=seed, vr=vr,
+        joint_doubles=joint_doubles,
     )
     return r["game_pts"], r["game_luck"], r["game_rolls"], r["net_wins"]
 
@@ -97,6 +99,9 @@ def main() -> None:
                     help="control-variate ply; must be 0 (best_move segfaults deeper)")
     ap.add_argument("--no-vr", action="store_true",
                     help="skip the control variate entirely; plays identical games")
+    ap.add_argument("--greedy-doubles", action="store_true",
+                    help="execute doubles by the old greedy two-step path instead of "
+                         "enumerating all four half-moves jointly (the exp019 engine)")
     ap.add_argument("--seed-base", type=int, default=1000)
     ap.add_argument("--exp-dir", default="", help="experiment dir for logs/ + results/")
     ap.add_argument("--tag", default="", help="results filename stem (defaults to label)")
@@ -104,6 +109,7 @@ def main() -> None:
     a = ap.parse_args()
 
     vr = not a.no_vr
+    joint_doubles = not a.greedy_doubles
     if a.blocks:
         sizes = [a.block_size] * a.blocks
     else:
@@ -122,7 +128,7 @@ def main() -> None:
     wins = 0
     with ProcessPoolExecutor(max_workers=a.workers) as ex:
         futs = [
-            ex.submit(_shard, a.checkpoint, n, a.ply, a.cv_ply, seed, vr)
+            ex.submit(_shard, a.checkpoint, n, a.ply, a.cv_ply, seed, vr, joint_doubles)
             for n, seed in zip(sizes, seeds)
         ]
         for k, f in enumerate(futs):
@@ -146,6 +152,7 @@ def main() -> None:
         "gnubg_ply": a.ply,
         "cv_ply": a.cv_ply,
         "variance_reduction": vr,
+        "joint_doubles": joint_doubles,
         "seed_base": a.seed_base,
         "shard_sizes": sizes,
         "net_wins": wins,

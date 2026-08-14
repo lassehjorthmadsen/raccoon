@@ -97,6 +97,7 @@ quartodoc:
       desc: "Checkpoint arena, GNUBG benchmark, and variance-reduced rollouts"
       contents:
         - eval.arena
+        - eval.doubles
         - eval.gnubg_harness
         - eval.luck
         - eval.vr_arena

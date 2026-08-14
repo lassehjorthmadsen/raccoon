@@ -9,7 +9,7 @@ Raccoon is a backgammon engine, and the only claim that ultimately matters about
 
 That is the honest way to measure an engine, and it is also where the project kept hitting a wall: **backgammon between two strong engines is almost entirely dice**. A single game's result swings by more than a point, while the difference we need to resolve is around 0.05. Separating a real edge that small from dice noise takes tens of thousands of games — and to say it *precisely*, hundreds of thousands.
 
-This page documents the tool that removes most of that noise, the argument for why it does not distort the answer, and a demonstration that it behaves as claimed. It closes with [exp019](#exp019), the first head-to-head measurement of `exp018/ep22`, the project's strongest network.
+This page documents the tool that removes most of that noise, the argument for why it does not distort the answer, and a demonstration that it behaves as claimed. It then puts it to work twice: [exp019](#exp019), the first head-to-head measurement of `exp018/ep22`, the project's strongest network — and [exp020](#exp020), which chases down a discrepancy exp019 exposed and finds a real bug in how the engine plays doubles. The second would not have been findable without the first: at the old resolution, the effect was invisible.
 
 The technique is not new — it is what eXtreme Gammon, GNU Backgammon and BGSage all do in their rollouts, and this project pre-registered it as future work after a cheaper shortcut turned out to be biased. What is new here is the implementation, and the evidence that it works.
 
@@ -514,12 +514,11 @@ smoothing over. Two explanations are available, and they are testable:
    entirely ordinary cost for greedy-decomposed play against joint optimisation over four
    half-moves.
 
-Explanation 2 predicts something checkable: score the network on the benchmark's doubles
-decisions *through the two-step path it actually plays*, rather than on complete moves, and
-most of the shortfall should reappear. That is the natural next experiment. If it holds,
-this is a **strength bug worth fixing**, not a measurement artefact — and fixing it would
-convert a benchmark advantage the network already has into points it currently does not
-collect.
+Explanation 2 predicts something checkable, and [exp020](#exp020) below checks it: if the
+two-step path is really conceding equity, then replacing it with joint enumeration should
+recover points *without touching the weights* — a **strength bug**, not a measurement
+artefact, and one that would convert a benchmark advantage the network already has into
+points it does not currently collect.
 """)
 ```
 
@@ -536,13 +535,253 @@ print(f"""
 """)
 ```
 
+## exp020 — the doubles execution bug {#exp020}
+
+> **Hypothesis.** Raccoon's greedy two-step doubles execution is a strength bug, and fixing
+> it collects ppg the static benchmark says the network has already earned.
+
+When you roll a double in backgammon you play **four** half-moves, not two. OpenSpiel models
+that by splitting the turn into two consecutive decisions by the same player, two half-moves
+each, with no dice roll in between. That is a reasonable way to keep the action space small,
+and it quietly created an asymmetry in the arena.
+
+GNUBG's side handled it correctly. `candidate_equities` **recurses**: it scores each half-1
+option by the best half-2 continuation available after it, so all four half-moves are chosen
+together.
+
+```python
+elif child.current_player() == me:
+    # Doubles half-1 still pending a half-2 by the same player. Our
+    # equity for this half-1 action is the best over the half-2 subgame.
+    my_equity = max(eq for _, eq in candidate_equities(child, ply))
+```
+
+Raccoon's side did not. It ranked half-1 by the static value of the **intermediate**
+position — the board halfway through its own turn — and then chose half-2 greedily. Worse,
+the value head cannot evaluate such a position even in principle: `encode_pre_roll` hands it
+over with the dice cleared and the mid-doubles flag off, which says *"you are about to
+roll"* about a position where the mover still owes two half-moves of a known die. The
+network was never trained on anything like it, and could not have been —
+`gen_gnubg_selfplay.py` writes one record per turn at the start-of-turn pre-roll and skips
+mid-doubles states outright, so none of the 40M distilled positions is one.
+
+Doubles are 1/6 of rolls, and about four fifths of them leave enough legal play to need both
+decisions — measured below at 3.79 such turns per game. On every one of those the two
+engines were not playing by the same rule, and only one of them was handicapped.
+
+None of this shows up on the BGSage benchmark, where every candidate is a *complete* move
+and the network simply scores the finished position. That is precisely why the benchmark
+could rate `ep22` above GNUBG-0-ply while play did not: the benchmark measures the value
+function, and the bug is in the search around it.
+
+### What it costs
+
+The fix is to give Raccoon the same recursion GNUBG already had, so both sides optimise the
+whole turn. That is a pure inference-time change: identical weights, identical benchmark
+score, different search. Before running it over 6,000 games, the cost of the old path was
+measured directly. At every turn, both arms are played out on clones from the same position
+and the resting positions compared:
+
+$$\text{concession} = \mathrm{eq}_{\text{GNUBG}}(\text{final}_{\text{joint}}) - \mathrm{eq}_{\text{GNUBG}}(\text{final}_{\text{greedy}})$$
+
+Both finals come from the **same network**, so this isolates how the value function is
+*searched* from how good it is. GNUBG at 2-ply prices the difference, and only when the two
+arms actually disagree — when they land on the same position the concession is exactly zero.
+The games play the greedy arm, so the sample is the exp019 playing distribution.
+
+```{python}
+#| echo: false
+#| output: asis
+DBL = json.loads(
+    Path("../experiments/exp020-doubles/results/ep22_concession.json").read_text())
+conc = np.array(DBL["concession"], dtype=np.float64)
+two_step = np.array(DBL["two_step"], dtype=bool)
+disagreed = np.array(DBL["disagreed"], dtype=bool)
+ctrl_n = int(DBL["non_doubles_turns"])
+ctrl_bad = int(DBL["non_doubles_disagreements"])
+
+print(f"""
+| | value |
+|---|---|
+| games | {DBL['games']:,} |
+| net turns scored | {DBL['net_turns']:,} |
+| of which two-step doubles turns | {DBL['two_step_turns']:,} ({DBL['two_step_per_game']:.2f}/game) |
+| greedy and joint pick different moves | **{100 * DBL['disagreement_rate']:.1f}%** of them |
+| mean concession when they differ | **{DBL['concession_when_disagreed']:+.4f}** |
+| mean concession per doubles turn | **{DBL['concession_mean']:+.5f} ± {DBL['concession_ci95']:.5f}** |
+| **implied cost** | **{DBL['ppg_cost']:+.4f} ± {DBL['ppg_cost_ci95']:.4f} ppg** |
+| same, judged at 0-ply instead of 2-ply | {DBL['ppg_cost_0ply']:+.4f} ppg |
+
+The two engines agree on most doubles turns; the damage is concentrated in the
+{100 * DBL['disagreement_rate']:.0f}% where they do not, and there it averages
+{DBL['concession_when_disagreed']:+.3f} — blunder-sized. Set against the
+{predicted - vr_m:.3f} ppg shortfall exp019 could not explain, this accounts for
+**{100 * DBL['ppg_cost'] / (predicted - vr_m):.0f}%** of it.
+""")
+```
+
+::: {.callout-note collapse="true"}
+## The control that makes this measurable
+
+A concession this small is only worth reporting if the machinery producing it is known to be
+right. The check is built in: **non-doubles turns**. A turn that needs one OpenSpiel action
+has one leaf per legal action, so both arms enumerate the identical set and *must* agree —
+exactly, not approximately. Any non-zero concession there would be a harness bug (a bad
+resting signature, a sign error, a mis-priced terminal), and it would be indistinguishable
+from a real effect if it went unnoticed.
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"""
+Over **{ctrl_n:,}** non-doubles turns in this run: **{ctrl_bad} disagreements**, maximum
+absolute concession **{DBL['non_doubles_max_abs_concession']:.1e}**. The same property is
+pinned at the `child_values` level in `tests/test_doubles.py`, so it cannot regress silently.
+""")
+```
+
+Note also what the arithmetic does *not* depend on. Because every non-doubles turn scores
+exactly zero, the total concession per game is the same number whether or not a turn is
+classified as doubles correctly — the headline is robust to that judgement call, and only
+the per-turn averages above use it.
+:::
+
+### Does fixing it collect the points?
+
+That is a question about ppg, so it needs the tool this page is about: the same
+variance-reduced measurement as exp019, same opponent, same n, same seeds — changing only
+how the network executes a double.
+
+The baseline arm is exp019's published result rather than a fresh run, which is only
+legitimate if the refactor left the old path untouched. It did: over 277 real decisions the
+rewritten greedy path chooses the same action *index* as the pre-exp020 implementation,
+277/277 — not merely the same resulting position. The leaf deduplication that makes joint
+enumeration affordable is invisible to the arm that does not use it.
+
+```{python}
+#| echo: false
+#| output: asis
+JOINT = json.loads(
+    Path("../experiments/exp020-doubles/results/ep22_vr_joint.json").read_text())
+j_vr = (np.array(JOINT["game_pts"], dtype=np.float64)
+        - np.array(JOINT["game_luck"], dtype=np.float64))
+j_m, j_c = float(j_vr.mean()), ci95(j_vr)
+gain = j_m - vr_m
+se_gain = (VR_SD**2 / HEAD["games"] + j_vr.var(ddof=1) / len(j_vr)) ** 0.5
+z_gain = gain / se_gain
+
+print(f"""
+| engine | doubles execution | VR ppg vs GNUBG-0-ply | 95% CI |
+|---|---|---|---|
+| exp019 baseline | greedy two-step | {vr_m:+.4f} | ±{vr_c:.4f} |
+| **exp020** | **joint over four half-moves** | **{j_m:+.4f}** | **±{j_c:.4f}** |
+| | | **{gain:+.4f} gain** | z = {z_gain:+.2f} |
+
+Both arms: n = {len(j_vr):,} games, identical weights, identical seeds. The two estimates are
+independent samples, so the CI on the difference is computed unpaired — the conservative
+choice, since shared dice can only help.
+""")
+
+if z_gain > 2 and gain > 0:
+    resid = predicted - j_m
+    print(f"""
+The gain is real: executing a doubles turn jointly rather than greedily is worth
+**{gain:+.4f} ppg**, with the weights untouched. `ep22`'s PR is still {pr_net:.2f} — that
+metric scores complete moves and never enters this code path — so the network did not get
+stronger. It stopped throwing points away on 1/6 of its turns. Free, and invisible to every
+benchmark the project runs.
+
+Set against the {predicted - vr_m:.3f} ppg the benchmark seemed to promise and play did not
+deliver, this recovers **{100 * gain / (predicted - vr_m):.0f}%**.
+
+And the two halves of the experiment agree. Stage 1 added up equity conceded at individual
+decisions and predicted a cost of {DBL['ppg_cost']:+.4f} ± {DBL['ppg_cost_ci95']:.4f} ppg.
+Stage 2 measured the change in who actually won, and got {gain:+.4f}. Those are different
+quantities computed from different games by different means — a sum of per-decision GNUBG
+equity errors on one side, a difference of variance-reduced game outcomes on the other — and
+they land {abs(DBL['ppg_cost'] - gain):.4f} apart. That agreement is the strongest evidence
+on this page that both instruments are working.
+""")
+    if abs(resid) < 2 * j_c:
+        print(f"""
+What remains ({resid:+.3f} ppg) is inside the measurement noise, so benchmark and play now
+tell the same story and exp019's discrepancy is closed.
+""")
+    else:
+        print(f"""
+**{resid:+.3f} ppg still separates the two**, so this is a large part of the answer but not
+all of it. The residue is what the other exp019 explanation predicts — BGSage's positions
+come from Sage 3-ply self-play, and an error-rate advantage measured there need not
+transfer intact to the distribution `ep22` generates against GNUBG. That one is harder to
+test and remains open. Worth noting that per-decision equity error is an *upper* bound on
+realised ppg anyway: some of what you concede on one turn, the opponent hands back on the
+next, so the two quantities were never obliged to match exactly.
+""")
+elif gain > 0:
+    print(f"""
+The point estimate moves the right way ({gain:+.4f} ppg) but at z = {z_gain:.2f} this run
+does not resolve it. The stage-1 concession measurement is the sharper instrument here, and
+it is unambiguous; the ppg confirmation would need more games to match it.
+""")
+else:
+    print(f"""
+The ppg does **not** move ({gain:+.4f}, z = {z_gain:.2f}), despite stage 1 showing a clear
+per-turn concession. That combination is genuinely surprising and is not explained away
+here: the most likely reading is that the equity conceded on doubles is partly recovered
+later in the same game rather than accumulating one-for-one into the final result.
+""")
+```
+
+```{python}
+#| echo: false
+#| fig-cap: "Where the points went. The benchmark's prediction, the engine as exp019 measured it, and the same engine with doubles executed jointly — same weights, same opponent, same 6,000 seeds."
+fig, ax = plt.subplots(figsize=(7.2, 2.6))
+rows = [
+    ("BGSage prediction", predicted, None, "#9467bd"),
+    ("exp019 — greedy doubles", vr_m, vr_c, "#c44e52"),
+    ("exp020 — joint doubles", j_m, j_c, "#2e7d32"),
+]
+for i, (label, mean, err, colour) in enumerate(rows):
+    y = len(rows) - 1 - i
+    if err is None:
+        ax.plot([mean], [y], marker="D", ms=9, color=colour, zorder=3)
+    else:
+        ax.errorbar(mean, y, xerr=err, fmt="o", ms=7, capsize=5,
+                    color=colour, lw=2, zorder=3)
+    ax.text(mean, y + 0.28, f"{mean:+.4f}", ha="center", fontsize=9, color=colour)
+ax.axvline(0, color="#444", lw=1, ls="--")
+ax.set_yticks(range(len(rows)))
+ax.set_yticklabels([r[0] for r in reversed(rows)], fontsize=9)
+ax.set_xlabel("points per game vs GNUBG-0-ply (cubeless money)")
+ax.set_ylim(-0.6, len(rows) - 0.3)
+ax.margins(x=0.18)
+plt.tight_layout()
+plt.show()
+```
+
+**Conclusion.**
+
+```{python}
+#| echo: false
+#| output: asis
+verdict = "Yes" if (z_gain > 2 and gain > 0) else "No"
+print(f"""
+> Is Raccoon's two-step doubles execution a strength bug worth fixing? → **{verdict}**:
+> joint enumeration is worth **{gain:+.4f} ppg** (z = {z_gain:+.2f}), taking `ep22` from
+> {vr_m:+.4f} ± {vr_c:.4f} to **{j_m:+.4f} ± {j_c:.4f}** (variance-reduced ppg vs
+> GNUBG-0-ply, n={len(j_vr):,} each, identical weights).
+""")
+```
+
 ## What this does and does not change
 
 Variance reduction is a **measurement** tool, not a strength gain. It does not alter a single move; the network that plays is the network that plays. What it changes is the price of knowing how good that network is: the project's established rulers stay valid, but a comparison that used to need tens of thousands of games now needs a few thousand.
 
+The strength gain in [exp020](#exp020) is not an exception to that — it came from the *measuring*. A 0.05 ppg discrepancy between benchmark and play is invisible at ±0.035; it only became a question worth asking once the interval was ±0.005, and only then did anyone go looking at the code that answers it. Sharper instruments find bugs, which is a large part of why they are worth building.
+
 Two limitations worth stating. First, the estimator is unbiased but its *variance reduction* is only as good as the control variate — a position class GNUBG's 0-ply evaluator reads poorly is a class where less noise gets removed, silently. Second, none of this helps against a slow opponent: the cost of measuring GNUBG at 2-ply is dominated by GNUBG's own thinking time, not by the estimator, though the same 6,000 games would now say a great deal more than they used to.
 
-Left on the table, in rough order of value: the doubles-execution question raised above, which is the only one of these that could be a *strength* gain rather than a measurement one; the external unbiasedness control against `exp011b/ep3`; a 2-ply opponent, now finally affordable in information terms; and stratified opening rolls, an orthogonal and completely free further reduction, deliberately left out here so it would not confound the comparison.
+Left on the table, in rough order of value: the external unbiasedness control against `exp011b/ep3`; a 2-ply opponent, now finally affordable in information terms; and stratified opening rolls, an orthogonal and completely free further reduction, deliberately left out here so it would not confound the comparison. The doubles-execution question is no longer on this list — [exp020](#exp020) settles it below.
 
 ## References
 

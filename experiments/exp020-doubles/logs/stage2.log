@@ -1,0 +1,6 @@
+[ep22_vr_joint] experiments/exp018-distill/checkpoints/ep22.pt
+  vs GNUBG-0ply, n=6000 games, 3042 wins (50.7%), 176.3 min
+  raw ppg = +0.0178  (95% CI ±0.0347)
+  VR  ppg = +0.0461  (95% CI ±0.0047)   <- 7.39x tighter (= 54.7x the games)
+  mean luck = -0.0282 (t=-1.62, should be ~0)   corr(raw,luck) = 0.991   beta_hat = 1.005
+  wrote experiments/exp020-doubles/results/ep22_vr_joint.json

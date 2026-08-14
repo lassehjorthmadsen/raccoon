@@ -42,17 +42,25 @@ network**, and it has closed most of the distance to GNUBG's 2-ply search while
 doing no search at all.
 
 That now holds over the board, not just on the benchmark. The current
-cube-capable network wins **+0.013 ± 0.005 points per game** against GNUBG at
-0-ply over 6,000 cubeless money games — a small but statistically unambiguous
-edge, and the first time a Raccoon network has been shown to beat the teacher it
-was distilled from in actual play ([exp019](variance_reduction.qmd)). An earlier
-checkpoint had measured −0.053 ± 0.046 on the same yardstick, a real if small
-deficit ([exp011b](pretraining_analysis.qmd)).
+cube-capable network wins **+0.046 ± 0.005 points per game** against GNUBG at
+0-ply over 6,000 cubeless money games — the first time a Raccoon network has been
+shown to beat the teacher it was distilled from in actual play
+([exp020](variance_reduction.qmd#exp020)). An earlier checkpoint had measured
+−0.053 ± 0.046 on the same yardstick, a real if small deficit
+([exp011b](pretraining_analysis.qmd)).
 
-The plain, unadjusted average over those same 6,000 games is +0.010 ± 0.035 and
+The plain, unadjusted average over those same 6,000 games is +0.018 ± 0.035 and
 settles nothing. The edge is only visible because the games were scored with
-[variance-reduced rollouts](variance_reduction.qmd), which are worth about 42×
+[variance-reduced rollouts](variance_reduction.qmd), which are worth about 55×
 as many games — reading the same result to ±0.005 instead of ±0.035.
+
+Two thirds of that margin was found rather than trained. The first measurement
+came in at only +0.013 ± 0.005 ([exp019](variance_reduction.qmd#exp019)), well
+short of what the benchmark predicted, and chasing the gap turned up a bug: on
+doubles, the engine chose its four half-moves two at a time instead of all
+together, conceding **0.062 points** on the one doubles turn in six where that
+mattered. Fixing the search — not the network — was worth **+0.033 ppg**
+([exp020](variance_reduction.qmd#exp020)).
 
 The honest caveats: this is **checker play only, cubeless**. Raccoon does not yet
 handle the doubling cube, which is half of competitive backgammon. It is a
@@ -91,7 +99,7 @@ and conclusion — including the ones that failed.
 |---|---|
 | [Supervised & Expert Iteration](pretraining_analysis.qmd) | Distilling GNUBG, on-distribution DAgger, consolidation — the current best results |
 | [Self-Play Analysis](training_analysis.qmd) | What pure AlphaZero self-play achieved, and why it plateaued |
-| [Variance-Reduced Rollouts](variance_reduction.qmd) | Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, and the head-to-head result |
+| [Variance-Reduced Rollouts](variance_reduction.qmd) | Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, the head-to-head result, and the doubles bug it uncovered |
 | [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
 | [MCTS Explained](mcts_explained.md) | Simulations, PUCT selection, temperature, Dirichlet noise |
 | [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |

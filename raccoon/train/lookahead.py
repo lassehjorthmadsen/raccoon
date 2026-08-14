@@ -27,6 +27,7 @@ import numpy as np
 import torch
 import pyspiel
 
+from raccoon.data.bgmatch_replay import _normalize_moves, _strip_action_index_prefix
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameState
 
@@ -49,9 +50,6 @@ def state_after_apply(
         # Skip trailing no-op (forfeit / can't-play) actions so we land on the
         # resting state — same way replay_game does.
         empties = []
-        from raccoon.data.bgmatch_replay import (
-            _normalize_moves, _strip_action_index_prefix,
-        )
         for ea in sc.legal_actions():
             if _normalize_moves(
                 _strip_action_index_prefix(sc.action_to_string(ea))
@@ -133,6 +131,7 @@ def eval_values_batch(
 
 def child_values(
     state: pyspiel.BackgammonState, network, device: torch.device,
+    joint_doubles: bool = True,
 ) -> tuple[list[int], np.ndarray, float]:
     """0-ply lookahead at one decision.
 
@@ -140,41 +139,81 @@ def child_values(
     is the equity of ``legal_actions[i]`` from the to-move player's POV (V on the
     resulting pre-roll child, negated when the opponent is next; terminal children
     use the exact terminal value), and ``v_state`` is V on the current pre-roll
-    state, also from the to-move player's POV. Children and the state itself are
-    evaluated in a single batched forward pass.
+    state, also from the to-move player's POV. Every position needed is evaluated
+    in a single batched forward pass.
+
+    **Doubles (``joint_doubles``, exp020).** OpenSpiel splits a double into two
+    consecutive decisions by the same player, two of the four half-moves each. With
+    ``joint_doubles=True`` (the default) a half-1 action is scored by the *best
+    half-2 continuation*, so the whole turn is optimised jointly — exactly what
+    :func:`raccoon.eval.gnubg_adapter.candidate_equities` already does for GNUBG.
+
+    ``joint_doubles=False`` restores the older behaviour: rank half-1 by the static
+    value of the *intermediate* position and then pick half-2 greedily. That is
+    unsound, because :func:`encode_pre_roll` clears the dice and the mid-doubles
+    flag, so the value head is told "you are about to roll" about a position where
+    the mover still owes two half-moves of a known die — and it was trained on
+    pre-roll positions only, having never seen such a state (``gen_gnubg_selfplay.py``
+    emits one record per turn and skips mid-doubles states). exp020 measured what
+    that costs in play; the flag is kept so the two arms can be run from one code
+    path and so the regression stays testable.
+
+    Turn leaves are deduplicated by encoded position before evaluation: OpenSpiel
+    enumerates *ordered* half-move pairs, so a doubles turn yields ~550 paths onto
+    only ~58 distinct positions. Non-doubles decisions have one leaf per action and
+    are unaffected by ``joint_doubles`` either way.
+
+    Callers inherit the joint behaviour, :func:`process_decision` (policy
+    distillation) included — an improvement to its doubles half-1 action, and no
+    reason to regenerate any existing cache.
     """
     me = state.current_player()
     obs_state_pre_roll = encode_pre_roll(state, me)
 
+    # Distinct non-terminal leaf positions, evaluated once each. A leaf token is
+    # (is_terminal, terminal_value_or_slot, sign_for_the_mover).
+    unique_obs: list[np.ndarray] = []
+    slot_of: dict[bytes, int] = {}
+
+    def leaf_token(child, dec_player: int) -> tuple[bool, float | int, float]:
+        if child.is_terminal():
+            return True, terminal_value(child, me), 1.0
+        obs = encode_pre_roll(child, dec_player)
+        key = obs.tobytes()
+        slot = slot_of.get(key)
+        if slot is None:
+            slot = len(unique_obs)
+            slot_of[key] = slot
+            unique_obs.append(obs)
+        return False, slot, (1.0 if dec_player == me else -1.0)
+
     legal = state.legal_actions()
-    child_obs: list[np.ndarray] = []
-    child_meta: list[tuple[int, bool, float]] = []  # (dec_player, is_term, tv)
+    groups: list[list[tuple[bool, float | int, float]]] = []
     for a in legal:
         child_state, dec_player, is_term = state_after_apply(state, a)
-        if is_term:
-            child_meta.append((dec_player, True, terminal_value(child_state, me)))
-            child_obs.append(np.zeros_like(obs_state_pre_roll))
+        if joint_doubles and not is_term and dec_player == me:
+            groups.append([
+                leaf_token(*state_after_apply(child_state, a2)[:2])
+                for a2 in child_state.legal_actions()
+            ])
         else:
-            child_obs.append(encode_pre_roll(child_state, dec_player))
-            child_meta.append((dec_player, False, 0.0))
+            groups.append([leaf_token(child_state, dec_player)])
 
-    all_obs = np.stack(child_obs + [obs_state_pre_roll])
+    all_obs = np.stack(unique_obs + [obs_state_pre_roll])
     values = eval_values_batch(network, all_obs, device)
 
     cv = np.empty(len(legal), dtype=np.float32)
-    for i, (dec_player, is_term, tv) in enumerate(child_meta):
-        if is_term:
-            cv[i] = tv
-        elif dec_player == me:
-            cv[i] = values[i]
-        else:
-            cv[i] = -values[i]
+    for i, tokens in enumerate(groups):
+        cv[i] = max(
+            payload if is_term else sign * values[payload]
+            for is_term, payload, sign in tokens
+        )
     return legal, cv, float(values[-1])
 
 
 def process_decision(
     state: pyspiel.BackgammonState, network, device,
-    max_actions_per_batch: int = 64,
+    max_actions_per_batch: int = 64, joint_doubles: bool = True,
 ) -> tuple[np.ndarray, int, float]:
     """Policy-distillation view of a decision (used by synthesize_policy_dataset).
 
@@ -185,7 +224,7 @@ def process_decision(
     compatibility and unused (all children batch in one pass).
     """
     obs_state = encode_state(GameState(state).board_from_perspective())
-    legal, cv, v_state = child_values(state, network, device)
+    legal, cv, v_state = child_values(state, network, device, joint_doubles)
     best_action = legal[int(np.argmax(cv))]
     return obs_state, best_action, v_state
 
@@ -193,14 +232,16 @@ def process_decision(
 def select_move(
     state: pyspiel.BackgammonState, network, device,
     temperature: float = 0.0, rng: np.random.Generator | None = None,
+    joint_doubles: bool = True,
 ) -> tuple[int, float]:
     """Choose a move by 0-ply value lookahead. Returns ``(action, V(state))``.
 
     ``temperature == 0`` picks the argmax child (greedy, TD-Gammon style — the
     dice supply exploration). ``temperature > 0`` samples from a softmax over the
-    child equities, which requires ``rng``.
+    child equities, which requires ``rng``. See :func:`child_values` for what
+    ``joint_doubles`` controls.
     """
-    legal, cv, v_state = child_values(state, network, device)
+    legal, cv, v_state = child_values(state, network, device, joint_doubles)
     if temperature and temperature > 0.0:
         if rng is None:
             raise ValueError("select_move: temperature > 0 requires an rng")

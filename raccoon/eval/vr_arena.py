@@ -30,6 +30,7 @@ from raccoon.train.lookahead import select_move
 def gnubg_arena_vr(
     net, device, games: int, gnubg_ply: int = 0, cv_ply: int = 0,
     seed: int = 0, max_moves: int = 2000, vr: bool = True,
+    joint_doubles: bool = True,
 ) -> dict:
     """Play ``games`` net-vs-GNUBG games, returning per-game raw and VR results.
 
@@ -44,6 +45,13 @@ def gnubg_arena_vr(
     unconstrained. The two are deliberately independent — the control variate stays a
     fixed function of (position, roll) whatever the opponent does, which is what keeps
     the estimator unbiased.
+
+    ``joint_doubles`` selects how the net executes a doubles turn — jointly over all
+    four half-moves (the default, and what GNUBG's side always did) or by the older
+    greedy two-step path. It is the exp020 A/B; see
+    :func:`raccoon.train.lookahead.child_values`. The control variate is unaffected
+    either way: it is a fixed function of (position, roll) and never of the move
+    played, so both arms are measured on the same unbiased ruler.
 
     Seeds the global numpy RNG (dice), like the other arenas in this project.
     """
@@ -85,7 +93,10 @@ def gnubg_arena_vr(
                 continue
 
             if state.current_player() == net_player:
-                action, _ = select_move(state._state, net, device, temperature=0.0)
+                action, _ = select_move(
+                    state._state, net, device, temperature=0.0,
+                    joint_doubles=joint_doubles,
+                )
             else:
                 action = pick_move(state, gnubg_ply)
             state.apply_action(action)

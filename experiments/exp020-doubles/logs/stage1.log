@@ -1,0 +1,10 @@
+[ep22_concession] experiments/exp018-distill/checkpoints/ep22.pt
+  1500 games vs GNUBG-0ply, judged at 2-ply, 100.5 min
+  two-step doubles turns: 5685 (3.79/game)
+  CONTROL non-doubles turns: 35941, disagreements 0 (must be 0), max |concession| 0.0e+00
+  greedy != joint: 15.9% of them; when it differs, mean +0.0624
+  concession/doubles turn = +0.00911 (95% CI ±0.00111)
+  => ppg cost = +0.0345 (95% CI ±0.0042)
+     cross-check, judged at 0-ply: ppg cost = +0.0326
+  raw ppg on these games = +0.0253 (exp019 cross-check)
+  wrote experiments/exp020-doubles/results/ep22_concession.json
