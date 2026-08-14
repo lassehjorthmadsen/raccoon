@@ -426,7 +426,7 @@ window.Quarto = {
 <section id="how-much-does-it-buy" class="level2">
 <h2 class="anchored" data-anchor-id="how-much-does-it-buy">How much does it buy?</h2>
 <p>Two independent sets of matches, played with the same network against the same opponent: twenty matches of fifty games with variance reduction <strong>off</strong>, then twenty more with it <strong>on</strong>, on different dice. Nothing is shared between the two sets — they are separate samples of the same process, which is legitimate precisely because enabling the correction does not change how the games are played.</p>
-<div id="66010ee7" class="cell" data-execution_count="6">
+<div id="04507aed" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -466,7 +466,7 @@ window.Quarto = {
 <p>They also agree on the answer — the arm means differ by +0.0686 ± 0.0970, which is consistent with zero. That is a weak statement rather than a strong one, and worth being explicit about: the interval is wide almost entirely because of the raw arm, which is exactly the problem being solved. It rules out a gross bias, not a subtle one; the sharp unbiasedness evidence is the exact zero-mean property above.</p>
 <section id="why-it-works-this-well" class="level3">
 <h3 class="anchored" data-anchor-id="why-it-works-this-well">Why it works this well</h3>
-<div id="8b572b81" class="cell" data-execution_count="8">
+<div id="2146c8f0" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -690,19 +690,24 @@ window.Quarto = {
 </tbody>
 </table>
 <p>Both arms: n = 6,000 games, identical weights, identical seeds. The two estimates are independent samples, so the CI on the difference is computed unpaired — the conservative choice, since shared dice can only help.</p>
+<p>That table answers <em>did the fix work</em>, and it deliberately uses only the games that share exp019’s seeds so the two arms are like-for-like. It is <strong>not</strong> the sharpest estimate of how strong the engine now is. For that, those 6,000 games pool with a further 12,000 on disjoint seeds:</p>
+<blockquote class="blockquote">
+<p><strong><code>ep22</code> with joint doubles = +0.0472 ± 0.0027 ppg vs GNUBG-0-ply</strong> (variance-reduced, cubeless money, n = 18,000).</p>
+</blockquote>
+<p>Tripling the sample narrowed the interval from ±0.0047 to ±0.0027 — from 10% of the estimate down to 6%. That is the number to quote for the engine’s strength; the +0.0331 gain above is the number to quote for what the fix was worth.</p>
 <p>The gain is real: executing a doubles turn jointly rather than greedily is worth <strong>+0.0331 ppg</strong>, with the weights untouched. <code>ep22</code>’s PR is still 0.95 — that metric scores complete moves and never enters this code path — so the network did not get stronger. It stopped throwing points away on 1/6 of its turns. Free, and invisible to every benchmark the project runs.</p>
 <p>Set against the 0.054 ppg the benchmark seemed to promise and play did not deliver, this recovers <strong>61%</strong>.</p>
 <p>And the two halves of the experiment agree. Stage 1 added up equity conceded at individual decisions and predicted a cost of +0.0345 ± 0.0042 ppg. Stage 2 measured the change in who actually won, and got +0.0331. Those are different quantities computed from different games by different means — a sum of per-decision GNUBG equity errors on one side, a difference of variance-reduced game outcomes on the other — and they land 0.0014 apart. That agreement is the strongest evidence on this page that both instruments are working.</p>
-<p><strong>+0.021 ppg still separates the two.</strong> To know whether that gap is real rather than two noisy numbers disagreeing, the prediction needs an error bar of its own — which exp019 never gave it. Scoring both engines on the same 14,693 benchmark decisions and differencing them <strong>per decision</strong> (paired, so the position-to-position variation cancels) gives a predicted <strong>+0.0670 ± 0.0059</strong> against a measured +0.0461 ± 0.0047. The residual is <strong>+0.0210 ± 0.0076</strong>, z = 5.44. It is real.</p>
-<p>It is also not something more games can settle. <strong>61% of that interval’s variance comes from the benchmark prediction, not from the play measurement</strong> — tripling to n=18,000 would tighten the residual only from ±0.0076 to ±0.0065, and even <em>infinitely</em> many games would only reach ±0.0059. The bottleneck is on the benchmark’s side.</p>
+<p><strong>+0.020 ppg still separates the two.</strong> To know whether that gap is real rather than two noisy numbers disagreeing, the prediction needs an error bar of its own — which exp019 never gave it. Scoring both engines on the same 14,693 benchmark decisions and differencing them <strong>per decision</strong> (paired, so the position-to-position variation cancels) gives a predicted <strong>+0.0670 ± 0.0059</strong> against the measured +0.0472 ± 0.0027. The residual is <strong>+0.0198 ± 0.0065</strong>, z = 5.96. It is real.</p>
+<p>It is also not something more games can settle, and that is now measured rather than argued: the play sample was tripled to 18,000 games, and <strong>82% of the residual’s remaining variance comes from the benchmark prediction rather than from play</strong>. Even <em>infinitely</em> many further games would only take the interval from ±0.0065 to ±0.0059. The bottleneck is on the benchmark’s side.</p>
 <p>So the residue stands as the other exp019 explanation predicted: BGSage’s positions come from Sage 3-ply self-play, and an error-rate advantage measured there need not transfer intact to the distribution <code>ep22</code> generates against GNUBG. Testing <em>that</em> needs a different experiment — scoring both engines on positions drawn from their own head-to-head games — not a longer run of this one.</p>
 <p>One assumption underneath all of it deserves naming: converting an error <em>rate</em> into points per game assumes per-decision equity errors accumulate linearly into the final result. That is a model, not an identity. exp020 happens to calibrate it — stage 1 summed per-decision errors over real games and predicted +0.0345, stage 2 measured +0.0331 in outcomes, so the assumption is good to about 4% over this range. Applying that same correction to the benchmark’s 0.0670 would move it by under 0.003 and leave the residual intact.</p>
-<div id="37b85085" class="cell" data-execution_count="17">
+<div id="65dd88d1" class="cell" data-execution_count="17">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="variance_reduction_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
-<figcaption>Where the points went. The benchmark’s prediction, the engine as exp019 measured it, and the same engine with doubles executed jointly — same weights, same opponent, same 6,000 seeds.</figcaption>
+<figcaption>Where the points went. The benchmark’s prediction (with its own paired interval), the engine as exp019 measured it, and the same weights with doubles executed jointly over 18,000 games.</figcaption>
 </figure>
 </div>
 </div>
@@ -715,7 +720,7 @@ window.Quarto = {
 <p>The static <a href="./pretraining_analysis.html">BGSage</a> numbers are untouched. PR and value-head MSE score complete moves against fixed references and never enter this code path — which is exactly why the disagreement between the two families of metric was the clue worth chasing.</p>
 <p><strong>Conclusion.</strong></p>
 <blockquote class="blockquote">
-<p>Is Raccoon’s two-step doubles execution a strength bug worth fixing? → <strong>Yes</strong>: joint enumeration is worth <strong>+0.0331 ppg</strong> (z = +9.14), taking <code>ep22</code> from +0.0129 ± 0.0053 to <strong>+0.0461 ± 0.0047</strong> (variance-reduced ppg vs GNUBG-0-ply, n=6,000 each, identical weights).</p>
+<p>Is Raccoon’s two-step doubles execution a strength bug worth fixing? → <strong>Yes</strong>: joint enumeration is worth <strong>+0.0331 ppg</strong> (z = +9.14), lifting <code>ep22</code> from +0.0129 ± 0.0053 to +0.0461 ± 0.0047 on matched seeds (variance-reduced ppg vs GNUBG-0-ply, n=6,000 each, identical weights). Pooled over n=18,000 games, the fixed engine stands at <strong>+0.0472 ± 0.0027</strong>.</p>
 </blockquote>
 </section>
 </section>
