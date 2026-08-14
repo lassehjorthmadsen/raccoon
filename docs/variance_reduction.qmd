@@ -532,6 +532,10 @@ print(f"""
 > Does `exp018/ep22` beat GNUBG-0-ply? → **{answer}**:
 > ep22 = **{vr_m:+.4f} ± {vr_c:.4f}** (variance-reduced ppg vs GNUBG-0-ply,
 > n={HEAD['games']:,}).
+
+That number stands as measured, but it is **not** the current engine's strength.
+[exp020](#exp020) below found a bug in how it executed doubles; the same weights, playing
+correctly, score considerably higher.
 """)
 ```
 
@@ -708,14 +712,41 @@ What remains ({resid:+.3f} ppg) is inside the measurement noise, so benchmark an
 tell the same story and exp019's discrepancy is closed.
 """)
     else:
+        PRED = json.loads(
+            Path("../experiments/exp020-doubles/results/benchmark_prediction.json").read_text())
+        se_pred = PRED["predicted_ppg_ci95"] / 1.96
+        se_meas = j_c / 1.96
+        se_res = (se_pred**2 + se_meas**2) ** 0.5
+        share = 100 * se_pred**2 / (se_pred**2 + se_meas**2)
         print(f"""
-**{resid:+.3f} ppg still separates the two**, so this is a large part of the answer but not
-all of it. The residue is what the other exp019 explanation predicts — BGSage's positions
-come from Sage 3-ply self-play, and an error-rate advantage measured there need not
-transfer intact to the distribution `ep22` generates against GNUBG. That one is harder to
-test and remains open. Worth noting that per-decision equity error is an *upper* bound on
-realised ppg anyway: some of what you concede on one turn, the opponent hands back on the
-next, so the two quantities were never obliged to match exactly.
+**{resid:+.3f} ppg still separates the two.** To know whether that gap is real rather than
+two noisy numbers disagreeing, the prediction needs an error bar of its own — which exp019
+never gave it. Scoring both engines on the same {PRED['n_decisions']:,} benchmark decisions
+and differencing them **per decision** (paired, so the position-to-position variation
+cancels) gives a predicted **{PRED['predicted_ppg']:+.4f} ± {PRED['predicted_ppg_ci95']:.4f}**
+against a measured {j_m:+.4f} ± {j_c:.4f}. The residual is
+**{resid:+.4f} ± {1.96 * se_res:.4f}**, z = {resid / se_res:.2f}. It is real.
+
+It is also not something more games can settle. **{share:.0f}% of that interval's variance
+comes from the benchmark prediction, not from the play measurement** — tripling to
+n=18,000 would tighten the residual only from ±{1.96 * se_res:.4f} to
+±{1.96 * (se_pred**2 + (se_meas / 3**0.5)**2) ** 0.5:.4f}, and even *infinitely* many games
+would only reach ±{1.96 * se_pred:.4f}. The bottleneck is on the benchmark's side.
+
+So the residue stands as the other exp019 explanation predicted: BGSage's positions come
+from Sage 3-ply self-play, and an error-rate advantage measured there need not transfer
+intact to the distribution `ep22` generates against GNUBG. Testing *that* needs a different
+experiment — scoring both engines on positions drawn from their own head-to-head games —
+not a longer run of this one.
+
+One assumption underneath all of it deserves naming: converting an error *rate* into points
+per game assumes per-decision equity errors accumulate linearly into the final result. That
+is a model, not an identity. exp020 happens to calibrate it — stage 1 summed per-decision
+errors over real games and predicted {DBL['ppg_cost']:+.4f}, stage 2 measured
+{gain:+.4f} in outcomes, so the assumption is good to about
+{100 * abs(DBL['ppg_cost'] - gain) / DBL['ppg_cost']:.0f}% over this range. Applying that
+same correction to the benchmark's {PRED['predicted_ppg']:.4f} would move it by under
+0.003 and leave the residual intact.
 """)
 elif gain > 0:
     print(f"""
@@ -758,6 +789,31 @@ ax.margins(x=0.18)
 plt.tight_layout()
 plt.show()
 ```
+
+### What this means for the project's older numbers
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"""
+Every head-to-head ppg the project has ever reported was measured with the greedy path, so
+every one of them understates the network that produced it — including
+[exp019](#exp019)'s own {vr_m:+.4f} and [exp011b](pretraining_analysis.qmd)'s −0.053 ± 0.034.
+
+They are not being retroactively restated here, for two reasons. They are correct as
+*measurements of the engine at the time* — the games really were played that way — and the
+conclusions drawn from them (which checkpoint beat which) compared arms that all shared the
+handicap, so those comparisons stand. Nor is the correction a constant: it depends on how
+well a net's value function handles mid-turn positions, so `ep22`'s {gain:+.4f} cannot
+simply be added to a weaker checkpoint's score. What can be said is the direction —
+**every historical ppg is a lower bound** — and that any future comparison against one of
+them should either re-measure the baseline or note the asymmetry.
+""")
+```
+
+The static [BGSage](pretraining_analysis.qmd) numbers are untouched. PR and value-head MSE
+score complete moves against fixed references and never enter this code path — which is
+exactly why the disagreement between the two families of metric was the clue worth chasing.
 
 **Conclusion.**
 
