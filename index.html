@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-e3adbaa939bcd423dddc8c8a834270b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -264,8 +264,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <p><em>Raccoon figure: checkpoint <code>exp017-ep12</code>, the current best network — a 10-block, 256-channel ResNet trained on 40M positions distilled from GNUBG’s 2-ply search. GNUBG figures scored on the identical benchmark. Full method and per-epoch curves: <a href="./pretraining_analysis.html">Supervised &amp; Expert-Iteration Analysis</a>.</em></p>
 <p>Read plainly: <strong>at equal cost, Raccoon’s checker play is well past GNUBG’s own network</strong>, and it has closed most of the distance to GNUBG’s 2-ply search while doing no search at all.</p>
-<p>That now holds over the board, not just on the benchmark. The current cube-capable network wins <strong>+0.013 ± 0.005 points per game</strong> against GNUBG at 0-ply over 6,000 cubeless money games — a small but statistically unambiguous edge, and the first time a Raccoon network has been shown to beat the teacher it was distilled from in actual play (<a href="./variance_reduction.html">exp019</a>). An earlier checkpoint had measured −0.053 ± 0.046 on the same yardstick, a real if small deficit (<a href="./pretraining_analysis.html">exp011b</a>).</p>
-<p>The plain, unadjusted average over those same 6,000 games is +0.010 ± 0.035 and settles nothing. The edge is only visible because the games were scored with <a href="./variance_reduction.html">variance-reduced rollouts</a>, which are worth about 42× as many games — reading the same result to ±0.005 instead of ±0.035.</p>
+<p>That now holds over the board, not just on the benchmark. The current cube-capable network wins <strong>+0.046 ± 0.005 points per game</strong> against GNUBG at 0-ply over 6,000 cubeless money games — the first time a Raccoon network has been shown to beat the teacher it was distilled from in actual play (<a href="./variance_reduction.html#exp020">exp020</a>). An earlier checkpoint had measured −0.053 ± 0.046 on the same yardstick, a real if small deficit (<a href="./pretraining_analysis.html">exp011b</a>).</p>
+<p>The plain, unadjusted average over those same 6,000 games is +0.018 ± 0.035 and settles nothing. The edge is only visible because the games were scored with <a href="./variance_reduction.html">variance-reduced rollouts</a>, which are worth about 55× as many games — reading the same result to ±0.005 instead of ±0.035.</p>
+<p>Two thirds of that margin was found rather than trained. The first measurement came in at only +0.013 ± 0.005 (<a href="./variance_reduction.html#exp019">exp019</a>), well short of what the benchmark predicted, and chasing the gap turned up a bug: on doubles, the engine chose its four half-moves two at a time instead of all together, conceding <strong>0.062 points</strong> on the one doubles turn in six where that mattered. Fixing the search — not the network — was worth <strong>+0.033 ppg</strong> (<a href="./variance_reduction.html#exp020">exp020</a>).</p>
 <p>The honest caveats: this is <strong>checker play only, cubeless</strong>. Raccoon does not yet handle the doubling cube, which is half of competitive backgammon. It is a research engine, not a product.</p>
 </section>
 <section id="how-it-works" class="level2">
@@ -332,7 +333,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><a href="./variance_reduction.html">Variance-Reduced Rollouts</a></td>
-<td>Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, and the head-to-head result</td>
+<td>Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, the head-to-head result, and the doubles bug it uncovered</td>
 </tr>
 <tr class="even">
 <td><a href="./architecture.html">Architecture</a></td>

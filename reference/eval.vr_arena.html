@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e3adbaa939bcd423dddc8c8a834270b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -262,10 +262,12 @@ vr  = raw - (accumulated luck)</code></pre>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="dv">0</span>,</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    max_moves<span class="op">=</span><span class="dv">2000</span>,</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    vr<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    joint_doubles<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Play <code>games</code> net-vs-GNUBG games, returning per-game raw and VR results.</p>
 <p>Returns <code>{"games", "net_wins", "game_pts", "game_luck", "game_vr", "game_rolls"}</code>. <code>game_pts</code> is the raw result in points from the net’s POV (±1/±2/±3 under <code>full_scoring</code>); <code>game_luck</code> is the accumulated dice luck, also from the net’s POV; <code>game_vr = game_pts - game_luck</code>. With <code>vr=False</code> the luck array is all zeros and <code>game_vr</code> equals <code>game_pts</code>.</p>
 <p><code>cv_ply</code> is the ply of the control-variate evaluator and must be 0 (gnubg-nn’s <code>best_move</code> segfaults deeper); <code>gnubg_ply</code> is the <em>opponent’s</em> strength and is unconstrained. The two are deliberately independent — the control variate stays a fixed function of (position, roll) whatever the opponent does, which is what keeps the estimator unbiased.</p>
+<p><code>joint_doubles</code> selects how the net executes a doubles turn — jointly over all four half-moves (the default, and what GNUBG’s side always did) or by the older greedy two-step path. It is the exp020 A/B; see :func:<code>raccoon.train.lookahead.child_values</code>. The control variate is unaffected either way: it is a fixed function of (position, roll) and never of the move played, so both arms are measured on the same unbiased ruler.</p>
 <p>Seeds the global numpy RNG (dice), like the other arenas in this project.</p>
 
 

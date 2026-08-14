@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>env.encoder – Raccoon</title>
+<title>eval.doubles – Raccoon</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -210,16 +210,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#raccoon.env.encoder" id="toc-raccoon.env.encoder" class="nav-link active" data-scroll-target="#raccoon.env.encoder">env.encoder</a>
+  <li><a href="#raccoon.eval.doubles" id="toc-raccoon.eval.doubles" class="nav-link active" data-scroll-target="#raccoon.eval.doubles">eval.doubles</a>
   <ul class="collapse">
   <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
   <ul class="collapse">
-  <li><a href="#raccoon.env.encoder.channels_for_network" id="toc-raccoon.env.encoder.channels_for_network" class="nav-link" data-scroll-target="#raccoon.env.encoder.channels_for_network">channels_for_network</a></li>
-  <li><a href="#raccoon.env.encoder.decode_base_planes" id="toc-raccoon.env.encoder.decode_base_planes" class="nav-link" data-scroll-target="#raccoon.env.encoder.decode_base_planes">decode_base_planes</a></li>
-  <li><a href="#raccoon.env.encoder.dump_tensor" id="toc-raccoon.env.encoder.dump_tensor" class="nav-link" data-scroll-target="#raccoon.env.encoder.dump_tensor">dump_tensor</a></li>
-  <li><a href="#raccoon.env.encoder.encode_batch" id="toc-raccoon.env.encoder.encode_batch" class="nav-link" data-scroll-target="#raccoon.env.encoder.encode_batch">encode_batch</a></li>
-  <li><a href="#raccoon.env.encoder.encode_state" id="toc-raccoon.env.encoder.encode_state" class="nav-link" data-scroll-target="#raccoon.env.encoder.encode_state">encode_state</a></li>
-  <li><a href="#raccoon.env.encoder.resolve_channels" id="toc-raccoon.env.encoder.resolve_channels" class="nav-link" data-scroll-target="#raccoon.env.encoder.resolve_channels">resolve_channels</a></li>
+  <li><a href="#raccoon.eval.doubles.doubles_concession_arena" id="toc-raccoon.eval.doubles.doubles_concession_arena" class="nav-link" data-scroll-target="#raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -231,10 +226,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="raccoon.env.encoder" class="level1">
-<h1>env.encoder</h1>
-<p><code>env.encoder</code></p>
-<p>Encode a BoardView into a (26, 2, 12) tensor for the neural network.</p>
+<section id="raccoon.eval.doubles" class="level1">
+<h1>eval.doubles</h1>
+<p><code>eval.doubles</code></p>
+<p>What Raccoon’s two-step doubles execution costs in play (exp020).</p>
+<p>OpenSpiel splits a doubles turn into two consecutive decisions by the same player, two of the four half-moves each. GNUBG’s side of the arena (:func:<code>raccoon.eval.gnubg_adapter.candidate_equities</code>) recurses through both halves and optimises the turn jointly. Raccoon’s side historically did not: it ranked half 1 by the static value of the <em>intermediate</em> position — which :func:<code>encode_pre_roll</code> hands to the value head with the dice and the mid-doubles flag cleared, so the net is told “you are about to roll” about a position where the mover still owes two half-moves — and then picked half 2 greedily. On 1/6 of turns the two engines were not playing by the same rule, and only one of them was handicapped.</p>
+<p>This module measures the gap directly, on the distribution where it matters:</p>
+<pre><code>concession = eq_gnubg(final_joint) - eq_gnubg(final_greedy)</code></pre>
+<p>Both finals come from the <strong>same</strong> network, so the teacher’s own move choice never enters and this is purely a question of how the net’s value function is <em>searched</em>. The main line plays the greedy arm by default (<code>play_joint=False</code>), so the sample is the exp019 playing distribution — the one whose ppg shortfall prompted the experiment — and the joint arm is scored as a counterfactual on each turn.</p>
+<p>Two properties keep the measurement honest:</p>
+<ul>
+<li><strong>Non-doubles turns are a control, not filler.</strong> A turn that needs one OpenSpiel action has one leaf per legal action, so joint and greedy enumerate the identical set and must agree exactly. Any non-zero concession there is a harness bug — a bad resting signature, a sign error, a mis-judged terminal — not a strength difference. <code>tests/test_doubles.py</code> pins the same property at the <code>child_values</code> level.</li>
+<li><strong>Measuring does not perturb the games.</strong> Both arms are explored on clones, and neither <code>select_move</code> at temperature 0 nor <code>evaluate_equity</code> touches the RNG, so a run with the same seed visits the same positions as a plain <code>gnubg_arena</code>.</li>
+</ul>
+<p>Judged at <code>judge_ply</code> (default 2 — the strongest affordable referee, and the tier the distillation teacher used). GNUBG is only consulted when the two arms actually disagree; when they land on the same position the concession is exactly zero and no evaluation is needed, which is what keeps the run affordable.</p>
 <section id="functions" class="level2">
 <h2 class="anchored" data-anchor-id="functions">Functions</h2>
 <table class="caption-top table">
@@ -246,69 +251,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#raccoon.env.encoder.channels_for_network">channels_for_network</a></td>
-<td>Channel indices a network expects at inference, from its checkpoint config.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.env.encoder.decode_base_planes">decode_base_planes</a></td>
-<td>Invert the base planes of an encoded observation back to a <code>BoardView</code>.</td>
-</tr>
-<tr class="odd">
-<td><a href="#raccoon.env.encoder.dump_tensor">dump_tensor</a></td>
-<td>Render the encoder output for a position as a human-readable string.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.env.encoder.encode_batch">encode_batch</a></td>
-<td>Encode multiple board positions. Returns shape (N, C, 2, 12).</td>
-</tr>
-<tr class="odd">
-<td><a href="#raccoon.env.encoder.encode_state">encode_state</a></td>
-<td>Encode a board position as a (C, 2, 12) float32 tensor.</td>
-</tr>
-<tr class="even">
-<td><a href="#raccoon.env.encoder.resolve_channels">resolve_channels</a></td>
-<td>Map a list of feature-group names to sorted channel indices.</td>
+<td><a href="#raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</a></td>
+<td>Play <code>net</code> vs GNUBG and score both doubles arms at every net turn.</td>
 </tr>
 </tbody>
 </table>
-<section id="raccoon.env.encoder.channels_for_network" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.channels_for_network">channels_for_network</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>env.encoder.channels_for_network(config)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Channel indices a network expects at inference, from its checkpoint config.</p>
-<p>Newer checkpoints store <code>feature_channels</code> directly (the subset chosen at training time). Legacy checkpoints (pre Stage-6) store only <code>in_channels</code>: <code>NUM_CHANNELS</code> (26) is the full Fix-N encoder (<code>None</code> = all channels) and 17 is base-only (no handcrafted features). Any other count is ambiguous and raises. The result is in the form <code>encode_state(..., channels=...)</code> wants, so callers can encode observations that match an arbitrary checkpoint — notably the 17-channel v5/iter_0447 nets now that the encoder defaults to 26.</p>
-</section>
-<section id="raccoon.env.encoder.decode_base_planes" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.decode_base_planes">decode_base_planes</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>env.encoder.decode_base_planes(obs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Invert the base planes of an encoded observation back to a <code>BoardView</code>.</p>
-<p>The 17 base channels are lossless: exact checker counts live in the overflow plane (<code>(count-3)/2</code>), bar/off/dice in the broadcast planes. <code>obs</code> may be a base-only <code>(17, 2, 12)</code> tensor or a full <code>(26, 2, 12)</code> one — the handcrafted channels are ignored either way (they are derived quantities). This is what lets stored 17-channel caches be re-encoded to the full Fix-N encoder without re-labeling.</p>
-</section>
-<section id="raccoon.env.encoder.dump_tensor" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.dump_tensor">dump_tensor</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>env.encoder.dump_tensor(board_view, <span class="op">*</span>, precision<span class="op">=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Render the encoder output for a position as a human-readable string.</p>
-<p>Pure debug helper: encodes <code>board_view</code> and pretty-prints each of the <code>NUM_CHANNELS</code> planes alongside a short header. Planes whose 24 cells are all equal are collapsed to a single scalar with a <code>(broadcast)</code> tag — this is detected from the tensor itself, not assumed by index.</p>
-</section>
-<section id="raccoon.env.encoder.encode_batch" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.encode_batch">encode_batch</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>env.encoder.encode_batch(board_views, channels<span class="op">=</span><span class="va">None</span>, normalize<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Encode multiple board positions. Returns shape (N, C, 2, 12).</p>
-<p><code>channels</code> selects a channel subset (see <code>encode_state</code>); <code>None</code> yields the full 26-channel tensor. <code>normalize</code> (default <code>True</code>) rescales the handcrafted channels into the base planes’ range (see <code>encode_state</code>).</p>
-</section>
-<section id="raccoon.env.encoder.encode_state" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.encode_state">encode_state</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>env.encoder.encode_state(board_view, channels<span class="op">=</span><span class="va">None</span>, normalize<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Encode a board position as a (C, 2, 12) float32 tensor.</p>
-<p>Board layout: Top row (row 0): perspective points 13..24 -&gt; columns 0..11 Bottom row (row 1): perspective points 12..1 -&gt; columns 0..11</p>
-<p>Channel meanings live in <code>CHANNEL_NAMES</code> so the audit/debug tooling and the encoder can’t drift apart.</p>
-<p>All <code>NUM_CHANNELS</code> planes are always computed; <code>channels</code> (a list of channel indices, e.g.&nbsp;from <code>resolve_channels</code>) optionally selects a subset, returning a <code>(len(channels), 2, 12)</code> tensor. <code>None</code> returns the full 26-channel tensor.</p>
-<p><code>normalize</code> (default <code>True</code>, i.e.&nbsp;Fix-N) divides the handcrafted feature channels by <code>FEATURE_SCALES</code> so they share the base planes’ ~[0, 1] range; the base channels are untouched. Applied before any channel slicing. Pass <code>normalize=False</code> to recover the raw magnitudes (the pre-Stage-6 behaviour; needed for feature-math tests and for the Fix-B input-BatchNorm path, which standardises raw inputs itself).</p>
-</section>
-<section id="raccoon.env.encoder.resolve_channels" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.env.encoder.resolve_channels">resolve_channels</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>env.encoder.resolve_channels(features)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Map a list of feature-group names to sorted channel indices.</p>
-<p><code>features=None</code> (or a list containing <code>"all"</code>) selects every channel, so existing callers that pass nothing are unaffected. <code>"base"</code> is always included. An empty list selects base-only. Unknown group names raise.</p>
+<section id="raccoon.eval.doubles.doubles_concession_arena" class="level3">
+<h3 class="anchored" data-anchor-id="raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.doubles.doubles_concession_arena(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    net,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    device,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    games,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    gnubg_ply<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    judge_ply<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    max_moves<span class="op">=</span><span class="dv">2000</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    play_joint<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Play <code>net</code> vs GNUBG and score both doubles arms at every net turn.</p>
+<p>Returns per-turn arrays (<code>two_step</code>, <code>disagreed</code>, <code>concession</code>, <code>concession_0ply</code>, <code>n_paths</code>) plus per-game points, so a caller can compute an empirical CI on the concession and cross-check the raw ppg against exp019. Seats alternated; seeds the global numpy RNG (dice), matching :func:<code>raccoon.train.td_selfplay.gnubg_arena</code>.</p>
 
 
 </section>
