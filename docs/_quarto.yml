@@ -16,7 +16,7 @@ project:
 website:
   title: "Raccoon"
   description: "A modern neural engine for backgammon"
-  site-url: https://raccoonbg.com
+  site-url: https://research.raccoonbg.com
   favicon: favicon.svg
   open-graph: true
   repo-url: https://github.com/lassehjorthmadsen/raccoon
