@@ -674,6 +674,16 @@ gain = j_m - vr_m
 se_gain = (VR_SD**2 / HEAD["games"] + j_vr.var(ddof=1) / len(j_vr)) ** 0.5
 z_gain = gain / se_gain
 
+# The A/B above uses the 6,000 games that share exp019's seeds, so the two arms are
+# like-for-like. For the *level* — how strong ep22 actually is — those pool with a
+# further 12,000 games on disjoint seeds into one 18,000-game estimate.
+EXT = json.loads(
+    Path("../experiments/exp020-doubles/results/ep22_vr_joint_ext.json").read_text())
+e_vr = (np.array(EXT["game_pts"], dtype=np.float64)
+        - np.array(EXT["game_luck"], dtype=np.float64))
+pool = np.concatenate([j_vr, e_vr])
+p_m, p_c = float(pool.mean()), ci95(pool)
+
 print(f"""
 | engine | doubles execution | VR ppg vs GNUBG-0-ply | 95% CI |
 |---|---|---|---|
@@ -684,10 +694,23 @@ print(f"""
 Both arms: n = {len(j_vr):,} games, identical weights, identical seeds. The two estimates are
 independent samples, so the CI on the difference is computed unpaired — the conservative
 choice, since shared dice can only help.
+
+That table answers *did the fix work*, and it deliberately uses only the games that share
+exp019's seeds so the two arms are like-for-like. It is **not** the sharpest estimate of how
+strong the engine now is. For that, those {len(j_vr):,} games pool with a further
+{len(e_vr):,} on disjoint seeds:
+
+> **`ep22` with joint doubles = {p_m:+.4f} ± {p_c:.4f} ppg vs GNUBG-0-ply**
+> (variance-reduced, cubeless money, n = {len(pool):,}).
+
+Tripling the sample narrowed the interval from ±{j_c:.4f} to ±{p_c:.4f} — from
+{100 * j_c / j_m:.0f}% of the estimate down to {100 * p_c / p_m:.0f}%. That is the number
+to quote for the engine's strength; the {gain:+.4f} gain above is the number to quote for
+what the fix was worth.
 """)
 
 if z_gain > 2 and gain > 0:
-    resid = predicted - j_m
+    resid = predicted - p_m
     print(f"""
 The gain is real: executing a doubles turn jointly rather than greedily is worth
 **{gain:+.4f} ppg**, with the weights untouched. `ep22`'s PR is still {pr_net:.2f} — that
@@ -715,7 +738,7 @@ tell the same story and exp019's discrepancy is closed.
         PRED = json.loads(
             Path("../experiments/exp020-doubles/results/benchmark_prediction.json").read_text())
         se_pred = PRED["predicted_ppg_ci95"] / 1.96
-        se_meas = j_c / 1.96
+        se_meas = p_c / 1.96
         se_res = (se_pred**2 + se_meas**2) ** 0.5
         share = 100 * se_pred**2 / (se_pred**2 + se_meas**2)
         print(f"""
@@ -724,14 +747,14 @@ two noisy numbers disagreeing, the prediction needs an error bar of its own — 
 never gave it. Scoring both engines on the same {PRED['n_decisions']:,} benchmark decisions
 and differencing them **per decision** (paired, so the position-to-position variation
 cancels) gives a predicted **{PRED['predicted_ppg']:+.4f} ± {PRED['predicted_ppg_ci95']:.4f}**
-against a measured {j_m:+.4f} ± {j_c:.4f}. The residual is
+against the measured {p_m:+.4f} ± {p_c:.4f}. The residual is
 **{resid:+.4f} ± {1.96 * se_res:.4f}**, z = {resid / se_res:.2f}. It is real.
 
-It is also not something more games can settle. **{share:.0f}% of that interval's variance
-comes from the benchmark prediction, not from the play measurement** — tripling to
-n=18,000 would tighten the residual only from ±{1.96 * se_res:.4f} to
-±{1.96 * (se_pred**2 + (se_meas / 3**0.5)**2) ** 0.5:.4f}, and even *infinitely* many games
-would only reach ±{1.96 * se_pred:.4f}. The bottleneck is on the benchmark's side.
+It is also not something more games can settle, and that is now measured rather than
+argued: the play sample was tripled to {len(pool):,} games, and **{share:.0f}% of the
+residual's remaining variance comes from the benchmark prediction rather than from play**.
+Even *infinitely* many further games would only take the interval from
+±{1.96 * se_res:.4f} to ±{1.96 * se_pred:.4f}. The bottleneck is on the benchmark's side.
 
 So the residue stands as the other exp019 explanation predicted: BGSage's positions come
 from Sage 3-ply self-play, and an error-rate advantage measured there need not transfer
@@ -765,12 +788,12 @@ later in the same game rather than accumulating one-for-one into the final resul
 
 ```{python}
 #| echo: false
-#| fig-cap: "Where the points went. The benchmark's prediction, the engine as exp019 measured it, and the same engine with doubles executed jointly — same weights, same opponent, same 6,000 seeds."
+#| fig-cap: "Where the points went. The benchmark's prediction (with its own paired interval), the engine as exp019 measured it, and the same weights with doubles executed jointly over 18,000 games."
 fig, ax = plt.subplots(figsize=(7.2, 2.6))
 rows = [
-    ("BGSage prediction", predicted, None, "#9467bd"),
+    ("BGSage prediction", predicted, PRED["predicted_ppg_ci95"], "#9467bd"),
     ("exp019 — greedy doubles", vr_m, vr_c, "#c44e52"),
-    ("exp020 — joint doubles", j_m, j_c, "#2e7d32"),
+    ("exp020 — joint doubles", p_m, p_c, "#2e7d32"),
 ]
 for i, (label, mean, err, colour) in enumerate(rows):
     y = len(rows) - 1 - i
@@ -823,9 +846,10 @@ exactly why the disagreement between the two families of metric was the clue wor
 verdict = "Yes" if (z_gain > 2 and gain > 0) else "No"
 print(f"""
 > Is Raccoon's two-step doubles execution a strength bug worth fixing? → **{verdict}**:
-> joint enumeration is worth **{gain:+.4f} ppg** (z = {z_gain:+.2f}), taking `ep22` from
-> {vr_m:+.4f} ± {vr_c:.4f} to **{j_m:+.4f} ± {j_c:.4f}** (variance-reduced ppg vs
-> GNUBG-0-ply, n={len(j_vr):,} each, identical weights).
+> joint enumeration is worth **{gain:+.4f} ppg** (z = {z_gain:+.2f}), lifting `ep22` from
+> {vr_m:+.4f} ± {vr_c:.4f} to {j_m:+.4f} ± {j_c:.4f} on matched seeds (variance-reduced ppg
+> vs GNUBG-0-ply, n={len(j_vr):,} each, identical weights). Pooled over
+> n={len(pool):,} games, the fixed engine stands at **{p_m:+.4f} ± {p_c:.4f}**.
 """)
 ```
 

@@ -42,17 +42,18 @@ network**, and it has closed most of the distance to GNUBG's 2-ply search while
 doing no search at all.
 
 That now holds over the board, not just on the benchmark. The current
-cube-capable network wins **+0.046 ± 0.005 points per game** against GNUBG at
-0-ply over 6,000 cubeless money games — the first time a Raccoon network has been
+cube-capable network wins **+0.047 ± 0.003 points per game** against GNUBG at
+0-ply over 18,000 cubeless money games — the first time a Raccoon network has been
 shown to beat the teacher it was distilled from in actual play
 ([exp020](variance_reduction.qmd#exp020)). An earlier checkpoint had measured
-−0.053 ± 0.046 on the same yardstick, a real if small deficit
+−0.053 ± 0.034 on the same yardstick, a real if small deficit
 ([exp011b](pretraining_analysis.qmd)).
 
-The plain, unadjusted average over those same 6,000 games is +0.018 ± 0.035 and
-settles nothing. The edge is only visible because the games were scored with
-[variance-reduced rollouts](variance_reduction.qmd), which are worth about 55×
-as many games — reading the same result to ±0.005 instead of ±0.035.
+The plain, unadjusted average over those same 18,000 games is +0.048 ± 0.020 and
+would settle far less. The edge is measurable at this precision because the games
+were scored with [variance-reduced rollouts](variance_reduction.qmd), worth about
+54× as many games — reading the same result to ±0.003 instead of ±0.020. Getting
+there the ordinary way would have taken roughly **970,000 games**.
 
 Two thirds of that margin was found rather than trained. The first measurement
 came in at only +0.013 ± 0.005 ([exp019](variance_reduction.qmd#exp019)), well
