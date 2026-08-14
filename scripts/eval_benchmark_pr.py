@@ -57,6 +57,7 @@ import os
 
 os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")  # avoid CPU spin-collapse
 
+import re
 import subprocess
 import sys
 import tempfile
@@ -289,15 +290,45 @@ def score_gnubg(
 # Raccoon scoring
 # ---------------------------------------------------------------------------
 
+def _onnx_evaluator(onnx_path: str):
+    """Return ``(evaluate, channels)`` for a model exported by export_web_model.py.
+
+    Scores the exact file the browser downloads, so the PR the website quotes is
+    a property of the shipped artifact rather than of the checkpoint it came
+    from. The encoder contract is read from the sidecar ``<name>.meta.json`` —
+    the same JSON the JS engine reads — so the two can't drift apart.
+    """
+    import onnxruntime as ort
+
+    stem = re.sub(r"-(fp32|int8)$", "", Path(onnx_path).stem)
+    meta_path = Path(onnx_path).with_name(stem + ".meta.json")
+    with open(meta_path) as f:
+        meta = json.load(f)
+
+    sess = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
+
+    def evaluate(obs_batch: np.ndarray) -> np.ndarray:
+        out = sess.run(["equity"], {"obs": obs_batch.astype(np.float32)})[0]
+        return np.asarray(out).reshape(-1)
+
+    return evaluate, list(meta["channels"])
+
+
 def score_raccoon(
     decisions: list[dict],
-    checkpoint_path: str,
+    checkpoint_path: str | None,
     engine_label: str,
     device_str: str = "cpu",
     max_positions: int | None = None,
     dump_predictions: str | None = None,
+    onnx_path: str | None = None,
 ) -> dict:
-    """Score all checker decisions with a raccoon network checkpoint.
+    """Score all checker decisions with a raccoon network.
+
+    The network is either a torch checkpoint (`checkpoint_path`) or an exported
+    ONNX file (`onnx_path`, from scripts/export_web_model.py). Everything else —
+    board conversion, encoding, move selection, aggregation — is shared, so the
+    two are directly comparable and an export regression shows up as a PR change.
 
     If `dump_predictions` is given, also write a per-candidate .npz with
     aligned `pred_eq`/`ref_eq`/`tier`/`decision_key`/`game_seed`/`game_plan`
@@ -310,18 +341,29 @@ def score_raccoon(
 
     torch.set_flush_denormal(True)  # iMac CPU: avoid denormal slowdown
 
+    if (checkpoint_path is None) == (onnx_path is None):
+        raise ValueError("score_raccoon needs exactly one of checkpoint_path/onnx_path")
+
     if max_positions is not None:
         decisions = decisions[:max_positions]
 
-    # Handle GCS paths
-    local_path = _maybe_download_gcs(checkpoint_path)
+    if onnx_path is not None:
+        evaluate, channels = _onnx_evaluator(onnx_path)
+    else:
+        # Handle GCS paths
+        local_path = _maybe_download_gcs(checkpoint_path)
 
-    # Load model
-    device = torch.device(device_str)
-    network = load_model(local_path)
-    network.to(device)
-    network.eval()
-    channels = channels_for_network(network.config)
+        # Load model
+        device = torch.device(device_str)
+        network = load_model(local_path)
+        network.to(device)
+        network.eval()
+        channels = channels_for_network(network.config)
+
+        def evaluate(obs_batch: np.ndarray) -> np.ndarray:
+            with torch.no_grad():
+                x = torch.from_numpy(obs_batch).float().to(device, non_blocking=True)
+                return network.value_equity(x).cpu().numpy()
 
     n_total = len(decisions)
     all_decision_results: list[dict] = []
@@ -349,10 +391,7 @@ def score_raccoon(
             obs_list.append(obs)
 
         # Batch forward pass
-        obs_batch = np.stack(obs_list)
-        with torch.no_grad():
-            x = torch.from_numpy(obs_batch).float().to(device, non_blocking=True)
-            values = network.value_equity(x).cpu().numpy()
+        values = evaluate(np.stack(obs_list))
 
         # values[j] = V from opponent's perspective (in [-1,1], equity/3 scale)
         # Convert to mover's equity on the standard [-3,3] scale for comparison:
@@ -640,6 +679,18 @@ def main():
         help="Human label for each checkpoint (must match --checkpoint count)",
     )
     parser.add_argument(
+        "--onnx", type=str, action="append", dest="onnx_models",
+        help=(
+            "Path to an ONNX model exported by scripts/export_web_model.py "
+            "(repeatable). Scores the file the browser engine ships, using the "
+            "encoder contract in its sidecar .meta.json."
+        ),
+    )
+    parser.add_argument(
+        "--onnx-label", type=str, action="append", dest="onnx_labels",
+        help="Human label for each --onnx model (defaults to the file stem)",
+    )
+    parser.add_argument(
         "--device", type=str, default="cpu",
         help="Torch device for raccoon evaluation (default: cpu)",
     )
@@ -714,6 +765,21 @@ def main():
             device_str=args.device,
             max_positions=args.max_positions,
             dump_predictions=dump_path,
+        )
+        all_results.append(result)
+        print()
+
+    # Score exported ONNX models (what the browser engine runs)
+    onnx_models = args.onnx_models or []
+    onnx_labels = list(args.onnx_labels or [])
+    for path in onnx_models[len(onnx_labels):]:
+        onnx_labels.append(Path(path).stem)
+    for path, label in zip(onnx_models, onnx_labels):
+        print(f"Scoring raccoon (onnx): {label} ({path})...")
+        result = score_raccoon(
+            decisions, None, label,
+            max_positions=args.max_positions,
+            onnx_path=path,
         )
         all_results.append(result)
         print()

@@ -3,10 +3,13 @@ import numpy as np
 import pytest
 import torch
 
-from raccoon.env.game_wrapper import GameWrapper
+from raccoon.env.encoder import encode_state
+from raccoon.env.game_wrapper import BoardView, GameState, GameWrapper
 from raccoon.model.network import RaccoonNet
 from raccoon.search.mcts import _advance_through_chance
-from raccoon.train.lookahead import child_values, select_move
+from raccoon.train.lookahead import (
+    child_values, encode_pre_roll, select_move, state_after_apply,
+)
 from raccoon.train.td_selfplay import (
     gnubg_arena_scored, lambda_returns, net_arena, play_td_game,
 )
@@ -80,6 +83,42 @@ def test_select_move_greedy_picks_argmax_child():
     assert action == legal[int(np.argmax(cv))]
     assert v2 == pytest.approx(v_state)
     assert action in state.legal_actions()
+
+
+def test_encode_pre_roll_from_the_other_side_reverses_indices():
+    """Asking for the non-to-move side must mirror the board, not just relabel it.
+
+    ``BoardView`` indices count outwards from the to-move player's bearoff, so
+    the two sides number the same board in opposite directions. A label-only
+    swap yields a mirrored position that still looks legal — the failure mode
+    this test exists to catch.
+    """
+    wrapper = GameWrapper()
+    state = _advance_through_chance(wrapper.new_game())
+    me = state.current_player()
+    child, dec_player, _ = state_after_apply(state._state, state.legal_actions()[0])
+    assert dec_player != me, "expected the opponent to be on roll after a full turn"
+
+    resolved = child.clone()
+    if resolved.is_chance_node():
+        resolved.apply_action(0)
+    opp_view = GameState(resolved).board_from_perspective()
+
+    from_my_side = encode_pre_roll(child, me)
+    expected = encode_state(BoardView(
+        my_points=opp_view.opp_points[::-1].copy(),
+        opp_points=opp_view.my_points[::-1].copy(),
+        my_bar=opp_view.opp_bar,
+        opp_bar=opp_view.my_bar,
+        my_off=opp_view.opp_off,
+        opp_off=opp_view.my_off,
+        dice=None,
+    ))
+    np.testing.assert_allclose(from_my_side, expected)
+
+    # And the two sides disagree about who is ahead: a self-consistent encoding
+    # of the same position from opposite seats cannot be identical.
+    assert not np.allclose(from_my_side, encode_pre_roll(child, dec_player))
 
 
 # --- full tiny game -----------------------------------------------------------

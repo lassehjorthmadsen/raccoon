@@ -81,6 +81,15 @@ def encode_pre_roll(
     current player), so we advance one chance step on a clone — any chance
     outcome leaves the board untouched, only the dice differ, and we wipe those
     right after.
+
+    Changing sides costs an index reversal as well as a label swap: point
+    indices in a ``BoardView`` run from the *to-move* player's bearoff outwards,
+    so the two sides number the same board in opposite directions. Swapping the
+    labels alone leaves a mirrored position that looks legal and evaluates as
+    noise — the net scores such inputs at R^2 = -0.06 against reference equity
+    where a correctly-sided board scores 0.9964. Production callers never take
+    this path (``child_values`` asks for each child's own to-move player and
+    negates instead), but it is the natural thing for deeper search to want.
     """
     sc = state.clone()
     if sc.is_chance_node():
@@ -88,12 +97,12 @@ def encode_pre_roll(
     gs = GameState(sc)
     bv = gs.board_from_perspective()
     # If the resulting decision is not the perspective player, the BoardView is
-    # from the wrong side — flip it.
+    # from the wrong side — swap the labels *and* reverse the indexing.
     if sc.current_player() != perspective_player:
         bv = replace(
             bv,
-            my_points=bv.opp_points,
-            opp_points=bv.my_points,
+            my_points=bv.opp_points[::-1].copy(),
+            opp_points=bv.my_points[::-1].copy(),
             my_bar=bv.opp_bar,
             opp_bar=bv.my_bar,
             my_off=bv.opp_off,
