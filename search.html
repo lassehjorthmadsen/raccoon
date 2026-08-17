@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Multi-Ply Search – Raccoon</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./favicon.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-e3adbaa939bcd423dddc8c8a834270b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Multi-Ply Search – Raccoon">
+<meta property="og:description" content="How GNUBG, XG and BGSage turn one network evaluation into deep play — and the search design meant to take Raccoon past GNUBG 2-ply">
+<meta property="og:image" content="https://research.raccoonbg.com/search_files/figure-html/cell-3-output-1.png">
+<meta property="og:site_name" content="Raccoon">
+<meta property="og:image:height" content="396">
+<meta property="og:image:width" content="835">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Raccoon</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Concepts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+        <li>
+    <a class="dropdown-item" href="./mcts_explained.html">
+ <span class="dropdown-text">MCTS Explained</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./architecture.html">
+ <span class="dropdown-text">Architecture</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-training" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Training</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
+        <li>
+    <a class="dropdown-item" href="./training_parameters.html">
+ <span class="dropdown-text">Parameters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./training_analysis.html">
+ <span class="dropdown-text">Self-Play Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./pretraining_analysis.html">
+ <span class="dropdown-text">Supervised &amp; Expert Iteration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./variance_reduction.html">
+ <span class="dropdown-text">Variance-Reduced Rollouts</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./search.html">
+ <span class="dropdown-text">Multi-Ply Search</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./gcp_guide.html"> 
+<span class="menu-text">Developer</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./contact.html"> 
+<span class="menu-text">Contact</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#what-a-ply-is" id="toc-what-a-ply-is" class="nav-link active" data-scroll-target="#what-a-ply-is">What a ply is</a></li>
+  <li><a href="#how-the-strong-engines-search" id="toc-how-the-strong-engines-search" class="nav-link" data-scroll-target="#how-the-strong-engines-search">How the strong engines search</a></li>
+  <li><a href="#what-raccoon-already-has" id="toc-what-raccoon-already-has" class="nav-link" data-scroll-target="#what-raccoon-already-has">What Raccoon already has</a></li>
+  <li><a href="#the-proposed-algorithm-filtered-expectimax-batched" id="toc-the-proposed-algorithm-filtered-expectimax-batched" class="nav-link" data-scroll-target="#the-proposed-algorithm-filtered-expectimax-batched">The proposed algorithm: filtered expectimax, batched</a></li>
+  <li><a href="#what-it-costs" id="toc-what-it-costs" class="nav-link" data-scroll-target="#what-it-costs">What it costs</a></li>
+  <li><a href="#the-knobs" id="toc-the-knobs" class="nav-link" data-scroll-target="#the-knobs">The knobs</a></li>
+  <li><a href="#exp021-pre-registered" id="toc-exp021-pre-registered" class="nav-link" data-scroll-target="#exp021-pre-registered">exp021, pre-registered</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Multi-Ply Search</h1>
+<p class="subtitle lead">How GNUBG, XG and BGSage turn one network evaluation into deep play — and the search design meant to take Raccoon past GNUBG 2-ply</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Raccoon’s current best network wins <strong>+0.047 ± 0.003 points per game</strong> against GNU Backgammon over 18,000 cubeless money games (<a href="./variance_reduction.html#exp020">exp020</a>, checkpoint <code>exp018/ep22</code>, VR ppg, n=18,000) — but only when GNUBG is held at <strong>0-ply</strong>, its raw network with no lookahead. Let GNUBG search and the picture inverts: on the <a href="./pretraining_analysis.html">BGSage money benchmark</a> (PR, n=14,693), <code>ep22</code> scores <strong>0.95</strong> where GNUBG’s 0-ply network scores 2.14 — and GNUBG’s <strong>2-ply search scores 0.56</strong>. Our network is much better than GNUBG’s network; GNUBG’s <em>search</em> is still better than our nothing.</p>
+<p>That framing is the conclusion <a href="./pretraining_analysis.html#exp017">exp017</a> already reached from the training side: distilling 40M positions of GNUBG’s 2-ply play brought the network to its teacher’s evaluation quality, and the residual gap to the teacher’s <em>play</em> is search, not data. The next milestone is therefore not a better network but a search on top of the one we have — with a target fixed in advance: <strong>meet or beat GNUBG 2-ply at matched ply depth</strong>, first on the static benchmark, then head-to-head.</p>
+<p>This page is the design study for that search. It works through how the three strong engines — GNU Backgammon, eXtreme Gammon (XG), and Open Sage (BGSage) — actually implement lookahead, including the pruning machinery that makes it affordable; why all three converged on the same algorithm, and why that algorithm (and not MCTS) is the right first implementation for Raccoon; what the search will cost in network evaluations and how bundling, deduplication and batching pay most of that bill; and which parameters matter. It ends by pre-registering the experiment (exp021) that will settle the design choices empirically. Scope note: everything here is <strong>cubeless checker play</strong> — cube-aware search (Janowski interpolation and friends) is real and documented, and deferred until the cube itself is.</p>
+<section id="what-a-ply-is" class="level2">
+<h2 class="anchored" data-anchor-id="what-a-ply-is">What a ply is</h2>
+<p>Backgammon’s game tree alternates two kinds of node: <strong>decisions</strong>, where a player chooses among legal moves, and <strong>chance</strong>, where the dice choose among 21 distinct rolls — the six doubles with probability 1/36 each, the fifteen non-doubles with 2/36 each. A “ply” of lookahead means pushing the evaluation one roll deeper into that tree before asking the network what it thinks.</p>
+<p>Write <span class="math inline">\(V(x)\)</span> for the network’s value of a pre-roll position <span class="math inline">\(x\)</span> from the point of view of the player about to roll (Raccoon’s value head, equity/3 in <span class="math inline">\([-1,1]\)</span>). When it is our turn and we consider a candidate move, the position it produces — an <em>afterstate</em> — is a pre-roll position for the opponent, so its value to us is <span class="math inline">\(S_0(x) = -V(x)\)</span>. That is 0-ply move selection, exactly what <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>lookahead.py</code></a> does today: score every candidate afterstate in one batched forward pass, play the argmax.</p>
+<p>Deeper plies replace the network’s opinion of an afterstate with an average over what can actually happen next:</p>
+<p><span class="math display">\[S_n(x) \;=\; \sum_{d} p(d)\,\Big[\, -\max_{a \,\in\, A(x,\,d)} S_{n-1}(x \cdot d \cdot a) \Big]\]</span></p>
+<p>Read it inside out: for each roll <span class="math inline">\(d\)</span> the opponent might get, enumerate their legal whole-turn moves <span class="math inline">\(A(x,d)\)</span>, score each resulting afterstate one ply shallower, let the opponent take their best (their gain is our loss — the minus sign), and weight the 21 outcomes by <span class="math inline">\(p(d)\)</span>. A roll with no legal reply — a dance — simply hands the same board back with the turn passed. An <span class="math inline">\(n\)</span>-ply engine ranks its candidate moves by <span class="math inline">\(S_n\)</span>. This is <strong>expectimax</strong>: minimax with an averaging layer at every chance node.</p>
+<p>Two things follow immediately from the formula. First, cost: each added ply multiplies work by (21 rolls) × (~20 legal moves) — GNUBG’s manual puts it at “about 400 odd” per ply. Second, an asymmetry worth knowing: <span class="math inline">\(V(x) \ne -V(\text{flip}(x))\)</span>, because being on roll is worth something (the tempo). Odd and even plies therefore end the recursion on different players’ rolls and carry slightly different systematic flavours — one reason engines are usually compared at matched, even depths, as exp021 will be.</p>
+<section id="the-numbering-trap" class="level3">
+<h3 class="anchored" data-anchor-id="the-numbering-trap">The numbering trap</h3>
+<p>The engines do not agree on what to call these depths, and the offset causes real confusion:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>operation</th>
+<th>GNUBG</th>
+<th>XG / BGSage</th>
+<th>TD-Gammon papers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>static network eval of the candidate afterstates</td>
+<td>0-ply</td>
+<td>1-ply</td>
+<td>1-ply</td>
+</tr>
+<tr class="even">
+<td>+ average over the opponent’s 21 rolls, best reply each</td>
+<td>1-ply</td>
+<td>2-ply</td>
+<td>2-ply</td>
+</tr>
+<tr class="odd">
+<td>+ our best answer to each reply</td>
+<td>2-ply</td>
+<td>3-ply</td>
+<td>3-ply</td>
+</tr>
+</tbody>
+</table>
+<p>So GNUBG’s 2-ply is XG’s and BGSage’s 3-ply — confirmed both by <a href="https://www.extremegammon.com/studies.aspx">XG’s own study page</a> (“GnuBG 2-ply is equivalent to other bot 3-ply”) and by BGSage’s documentation. <strong>Raccoon uses GNUBG’s numbering throughout</strong>, because GNUBG is the benchmark (<a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>lookahead.py</code></a> states the same convention). Every ply number on this page is GNUBG-numbered unless it names another engine’s level.</p>
+</section>
+<section id="why-one-roll-of-lookahead-is-worth-so-much" class="level3">
+<h3 class="anchored" data-anchor-id="why-one-roll-of-lookahead-is-worth-so-much">Why one roll of lookahead is worth so much</h3>
+<p>The value of depth is easiest to see where static evaluation is weakest: counting shots. Suppose a candidate move leaves a blot a direct 6 away from an opponent checker. The rolls that hit are any 6 (11 rolls), plus the indirect combinations 5-1 (2), 4-2 (2), 3-3 (1) and 2-2 (1): <strong>17 rolls of 36</strong>. A 0-ply network must have <em>learned</em> to feel that 17/36 — and the wildly different equity swings of being hit in this particular position — through its input features. A 1-ply search doesn’t estimate any of it: the sum over <span class="math inline">\(d\)</span> literally contains the 17 hitting branches, each scored after the opponent’s actual best hit, and the 19 misses, each scored after the opponent’s actual best quiet play. Search converts pattern recognition into arithmetic. That is why every doubling of engine strength in the table below comes from depth, not from a bigger net — and why exp017’s distillation, which taught the network to <em>imitate</em> 2-ply values, still cannot reproduce them exactly on tactical positions: the network gets one forward pass to summarise a 400-node subtree.</p>
+</section>
+</section>
+<section id="how-the-strong-engines-search" class="level2">
+<h2 class="anchored" data-anchor-id="how-the-strong-engines-search">How the strong engines search</h2>
+<p>All three reference engines implement the same expectimax core. What distinguishes them — and what makes deep search affordable at all — is how aggressively each prunes the candidate list before recursing, and what machinery performs the pruning.</p>
+<section id="gnu-backgammon-full-width-then-filters" class="level3">
+<h3 class="anchored" data-anchor-id="gnu-backgammon-full-width-then-filters">GNU Backgammon: full width, then filters</h3>
+<p>GNUBG evaluates every legal move at 0-ply, then applies a <strong>move filter</strong> before the deeper plies: keep at most <em>N extra</em> moves whose 0-ply equity is within a <em>threshold</em> of the best (<a href="https://www.gnu.org/software/gnubg/manual/html_node/Introduction-to-move-filters.html">manual</a>). The shipped “Normal” filter keeps up to 8 moves within 0.16; the manual’s worked example is an opening 4-2 where the best move scores +0.189, so everything below +0.029 is pruned and four moves survive to be evaluated at 2-ply. The named playing levels are just (depth, filter) pairs (<a href="https://www.gnu.org/software/gnubg/manual/html_node/Predefined-settings.html">manual</a>): <strong>World Class</strong> = 2-ply with the Normal filter, <strong>Supremo</strong> = 2-ply with Large (16 within 0.32), <strong>Grandmaster</strong> = 3-ply Large.</p>
+<p>Inside the recursion GNUBG adds a second pruning device: <a href="https://www.gnu.org/software/gnubg/manual/html_node/Pruning-neural-networks.html"><strong>pruning neural networks</strong></a> — tiny nets (a handful of hidden nodes, per mailing-list history) whose only job is to rank an inner node’s candidate moves cheaply so that the full network evaluates just the survivors. The manual reports Jim Segrave’s audit: with pruning nets on, <em>less than 1% of moves change</em>, for a large speedup.</p>
+<p>One detail that matters for our benchmark: Raccoon’s harness queries <code>gnubg-nn</code> through <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/gnubg_adapter.py"><code>candidate_equities</code></a>, which enumerates <strong>all</strong> legal moves at the requested ply — no move filter, no pruning nets. The “GNUBG 2-ply” that scores 0.56 on our benchmark is therefore full-width 2-ply, if anything slightly <em>stronger</em> than the World Class setting GNUBG ships. Beating it means beating GNUBG’s search with its pruning risk removed — a conservative target.</p>
+</section>
+<section id="extreme-gammon-the-same-ladder-then-rollouts" class="level3">
+<h3 class="anchored" data-anchor-id="extreme-gammon-the-same-ladder-then-rollouts">eXtreme Gammon: the same ladder, then rollouts</h3>
+<p>XG is closed source, but its levels are documented well enough to place: its 3-ply is GNUBG-2-ply-shaped, its 4- and 5-ply extend the same recursion, and its headline strength comes from the <strong>XG Roller</strong> family, which are not deeper plies at all but <strong>truncated rollouts with variance reduction</strong>: play the position forward some turns with an n-ply policy under stratified dice, stop, evaluate the endpoint with the network, and correct the result with the accumulated dice luck — the same estimator Raccoon built in <a href="./variance_reduction.html#exp019">exp019</a>. BGSage’s engineers, replicating XG’s levels for comparison (<a href="https://github.com/markbgsage/bgsage/blob/main/ROLLOUT.md"><code>ROLLOUT.md</code></a>), put XG Roller++ at 360 trials truncated after 7 half-moves with 3-ply (XG numbering) decisions early in each trial. On XG’s own 2012 benchmark study, XG Roller++ measures <strong>PR 0.11</strong> — with the usual home-field caveat that XG graded itself (<a href="https://www.extremegammon.com/studies.aspx">studies page</a>).</p>
+</section>
+<section id="open-sage-the-same-design-fully-documented" class="level3">
+<h3 class="anchored" data-anchor-id="open-sage-the-same-design-fully-documented">Open Sage: the same design, fully documented</h3>
+<p><a href="https://github.com/markbgsage/bgsage">Open Sage</a> (BGSage) is open source, and its <a href="https://github.com/markbgsage/bgsage/blob/main/MULTI-PLY.md"><code>MULTI-PLY.md</code></a> is the most complete public specification of a modern backgammon search. The parts that transfer:</p>
+<ul>
+<li><strong>An iterative-deepening filter chain.</strong> Move selection first scores all candidates at 1-ply (their numbering; our 0-ply) and keeps the top 5 within 0.08 of the best (their default “TINY” filter), then evaluates only the survivors at full depth. At 4-ply an intermediate 3-ply step narrows 5 → 2 — but at 3-ply there is <em>no</em> intermediate step, because they found 2-ply rankings correlate too poorly with 3-ply rankings on hard positions: the intermediate filter was pruning the eventual best move. Filter chains need validating per depth, not assuming.</li>
+<li><strong>A greedy opponent model.</strong> At inner nodes the opponent’s reply is chosen by the <em>static</em> evaluation, and only that one chosen reply is evaluated deeper. An exhaustive “full-depth opponent” mode exists and is described as the most accurate and slowest path; the fast path is the default. GNUBG’s recursion makes the same choice (0-ply + pruning nets pick the reply, then the recursion descends through it).</li>
+<li><strong>Leaf reuse.</strong> At a 2-ply-deep node (their 3-ply), the batch of static evaluations used to <em>pick</em> the opponent’s reply already contains the chosen reply’s leaf value — so the deepest level of the tree costs no additional network calls beyond the pick itself. The bookkeeping trick is free depth; Raccoon’s design below inherits it.</li>
+<li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
+</ul>
+<p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
+<div id="f0bb1172" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="search_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img"></p>
+<figcaption>What search buys: PR of Open Sage and XG levels, both scored on BGSage’s rollout-truth benchmark (17,535 decisions; XG_COMPARISON.md). Levels use XG numbering: 1P = raw net (GNUBG 0-ply), each P adds a ply; T-levels are truncated variance-reduced rollouts. Lower is better. Not comparable in absolute terms with PRs quoted on Raccoon’s own benchmark.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Three readings of that figure drive the rest of this page. Each ply of depth cuts PR by a factor of two-ish while multiplying compute ~20× (BGSage’s README figure). The step from the raw net to the first searched level (2P: one opponent roll averaged) is the largest single improvement on the ladder. And the rollout levels beat the ply levels at comparable or lower cost — 3T at 0.22 versus 4P at 0.42 — which is why <em>both</em> commercial-strength engines top out with truncated VR rollouts rather than ever-deeper expectimax.</p>
+<blockquote class="blockquote">
+<p>How do the strong engines search? → <strong>All the same way</strong>: full-width expectimax over the 21 rolls, a cheap static filter keeping ~5–16 candidates, a greedy opponent inside the recursion, caches everywhere — and truncated variance-reduced rollouts above the top ply. None of them uses MCTS.</p>
+</blockquote>
+</section>
+</section>
+<section id="what-raccoon-already-has" class="level2">
+<h2 class="anchored" data-anchor-id="what-raccoon-already-has">What Raccoon already has</h2>
+<p>Less is missing than it might appear. Three of the four ingredients above exist in the repo, tested:</p>
+<ul>
+<li><strong>The 0-ply layer, batched and deduplicated.</strong> <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>child_values</code></a> enumerates whole-turn candidates (doubles optimised jointly since <a href="./variance_reduction.html#exp020">exp020</a>), deduplicates afterstates by their encoded board — a doubles turn’s ~550 ordered half-move paths collapse onto ~58 distinct boards — and evaluates everything in one forward pass.</li>
+<li><strong>The chance-node expectation.</strong> <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/luck.py"><code>luck.py</code></a> already computes <span class="math inline">\(\sum_d p(d)\,h(s,d)\)</span> — the full 21-roll pre-roll average — for the variance-reduction control variate. That sum <em>is</em> the inner loop of <span class="math inline">\(S_1\)</span>; exp019 validated its plumbing to ±0.005 ppg precision.</li>
+<li><strong>A policy head none of the reference engines has.</strong> GNUBG had to train separate pruning nets; BGSage scores every candidate with the value net (helped by PubEval pre-filters and a delta kernel). Raccoon’s network already produces a 1352-way policy distribution in the <em>same</em> forward pass as the value — a learned move filter at zero marginal cost, trained on exactly the question “which move will the search pick?”. Whether it filters better than the value-based filter (or the union of both) is a measurable question for exp021, and the natural first measurement is top-<span class="math inline">\(k\)</span> recall of the 0-ply and 2-ply best move.</li>
+<li>What exists but does <strong>not</strong> transfer: the AlphaZero-style <a href="./mcts_explained.html">MCTS</a> in <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/search/mcts.py"><code>mcts.py</code></a>. It samples one roll at each chance edge rather than enumerating them, which is the right economy for self-play training and the wrong one for strongest play — the next section takes this seriously rather than by assertion.</li>
+</ul>
+<p>Some ground-truth numbers for the cost model, measured here rather than assumed:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>quantity</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>decision nodes measured</td>
+<td>3,300 (30 uniform-random playouts, seed 0)</td>
+</tr>
+<tr class="even">
+<td>legal moves per decision</td>
+<td>mean <strong>23.3</strong>, median 14, 90th pct 60, max 160</td>
+</tr>
+<tr class="odd">
+<td><em>distinct afterstates</em> per decision</td>
+<td>mean <strong>12.9</strong> — a 1.8× reduction for free</td>
+</tr>
+<tr class="even">
+<td>forced decisions (one legal move)</td>
+<td>10%</td>
+</tr>
+</tbody>
+</table>
+<p>(OpenSpiel counts a doubles turn as two decision nodes of two half-moves each; the whole-turn joint enumeration in <code>child_values</code> sees correspondingly more paths and deduplicates correspondingly harder — ~550 → ~58 measured in exp020.)</p>
+</section>
+<section id="the-proposed-algorithm-filtered-expectimax-batched" class="level2">
+<h2 class="anchored" data-anchor-id="the-proposed-algorithm-filtered-expectimax-batched">The proposed algorithm: filtered expectimax, batched</h2>
+<p>Candidate A — the recommendation — is the convergent design of all three engines, adapted to Raccoon’s two structural advantages (a policy head, and a framework where a thousand evaluations in one tensor cost little more than a hundred).</p>
+<p>At a decision with rolled dice:</p>
+<ol type="1">
+<li><strong>Enumerate and bundle.</strong> Generate whole-turn candidate moves (joint doubles, as today), deduplicate afterstates by encoded board. Terminal children take their exact value (<a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>terminal_value</code></a>), never a network call.</li>
+<li><strong>Filter at the root.</strong> Keep <span class="math inline">\(k\)</span> candidates: top-<span class="math inline">\(k\)</span> by policy-head prior, top-<span class="math inline">\(k\)</span> by 0-ply value within an equity threshold <span class="math inline">\(t\)</span> of the best, or the union of both. This is the GNUBG/BGSage move filter with the pruning net replaced by a head we already train.</li>
+<li><strong>Recurse, greedily for the opponent.</strong> For each surviving afterstate and each of the opponent’s 21 rolls, enumerate their whole-turn replies, score them 0-ply, let the opponent take their best; at 1-ply that static score <em>is</em> the leaf (BGSage’s leaf-reuse: the pick batch and the leaf batch are the same batch). At 2-ply, the opponent’s chosen reply — one per (candidate, roll) — is evaluated at 1-ply by the same machinery one level down. A full-width opponent (evaluate their top-<span class="math inline">\(k'\)</span> replies deeper, take the worst for us) is the accuracy-checking variant, at multiplied cost.</li>
+<li><strong>Batch each level.</strong> Everything a tree level needs is known before any of it is evaluated, so each level is a handful of large forward passes rather than thousands of small ones — the PyTorch-native replacement for BGSage’s sparse-delta kernel and GNUBG’s SIMD loops. Dancing rolls bundle for free: 25 of 36 rolls against a 5-point board all map to the <em>same</em> encoded child, so deduplication reduces them to one evaluation carrying 25/36 of the weight — no special case needed, the same <code>tobytes()</code>-keyed dedup <code>child_values</code> already uses.</li>
+<li><strong>Stay deterministic.</strong> No sampling anywhere. The same position and parameters always return the same move — reproducible, benchmark-scoreable, and directly comparable config-to-config.</li>
+</ol>
+<p>The search is a strict generalisation of what ships today: depth 0 with no filter <em>is</em> <code>child_values</code>.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Three traps, all already discovered the hard way
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>Perspective flipping.</strong> The value head reads boards from the to-move player’s view, and <code>BoardView</code> indices run from that player’s bearoff outward — so viewing a board from the other side requires an index reversal <em>and</em> a label swap. Get it half right and the board still looks legal but evaluates as noise: R² against reference equity drops from 0.9964 to <strong>−0.06</strong> (<a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>encode_pre_roll</code></a> documents the measurement). The existing idiom — encode every child from <em>its own</em> to-move player and negate — sidesteps the flip entirely, and the deeper recursion should inherit it unchanged.</p>
+<p><strong>Mid-doubles states.</strong> The value net was trained on pre-roll positions only; a half-played double (“you owe two more 4s”) is outside its training distribution, which is exactly the bug exp020 fixed at 0-ply (worth <strong>+0.033 ppg</strong>). The whole-turn enumeration in step 1 keeps such states out of the tree at every depth.</p>
+<p><strong>The GNUBG-side harness.</strong> <code>gnubg-nn</code>‘s fast native <code>best_move</code> segfaults at ply ≥ 1, so a 2-ply GNUBG <em>opponent</em> must go through the slower Python-side enumeration (~0.26 s/decision, <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/gnubg_adapter.py"><code>gnubg_adapter</code></a>) — relevant for the head-to-head’s wall-clock budget, not its correctness. The luck control variate stays at native 0-ply, which remains unbiased whatever either player does: the zero-mean argument of <a href="./variance_reduction.html">the VR page</a> never references the players’ strength.</p>
+</div>
+</div>
+</div>
+<section id="why-not-mcts-candidate-b" class="level3">
+<h3 class="anchored" data-anchor-id="why-not-mcts-candidate-b">Why not MCTS (candidate B)</h3>
+<p>MCTS is the obvious modern candidate — it is what the training loop already uses, and its promise of spending simulations on <em>promising</em> branches instead of a fixed width and depth is genuinely attractive. The case against it here is arithmetic, not fashion.</p>
+<p>Consider the root of a typical decision: ~13 distinct candidate moves × 21 opponent rolls ≈ <strong>270 (move, roll) cells</strong>. Expectimax at 1-ply evaluates every cell’s consequence exactly once — ~2,200 network calls with a <span class="math inline">\(k{=}8\)</span> filter, batched — and returns the <em>exact</em> expectation under the network. MCTS with sampled dice (as <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/search/mcts.py"><code>mcts.py</code></a> does at its chance edges) instead estimates each candidate’s value as a Monte-Carlo average over whichever rolls happened to be sampled. At the simulation counts we run (100–800), most cells get zero or one visit; the value of a move whose case hinges on a 2/36 joker may not contain that joker at all. To push the sampling noise safely below the gaps that separate candidate moves (often 0.01–0.05 equity), the per-move sample counts must grow into the thousands — <em>more</em> network calls than exhaustive enumeration, to recover a noisy version of what enumeration computes exactly. Selectivity only pays once the exact tree is unaffordable, and with filters the exact tree is affordable through 2-ply — precisely our target. Beyond it, the engines’ own evidence says the next tier is rollouts, not deeper trees.</p>
+<p>Determinism compounds the problem: a dice-sampling searcher returns different rankings run to run, which poisons PR-based selection (every config comparison inherits sampling noise) and violates the reproducibility our benchmark protocol depends on.</p>
+<p>The literature is consistent with the arithmetic. MCTS was tried on backgammon early (<a href="https://www.researchgate.net/publication/228378473_Monte-Carlo_tree_search_in_backgammon">Van Lishout, Chaslot &amp; Uiterwijk 2007</a>) without threatening the TD-network lineage. The serious search-theory work on backgammon went the other way: Ballard’s *-Minimax (Star1/Star2), revived by <a href="https://link.springer.com/chapter/10.1007/11674399_3">Hauk, Buro &amp; Schaeffer (2004)</a>, prunes <em>chance</em> nodes with alpha-beta-style bounds and reached depth-5 full-width searches in tournament time. Those cutoff techniques are worth revisiting if Raccoon ever needs 3-ply+ — though they fit sequential C engines better than batched tensor evaluation, where skipping a branch saves less than filling the batch does.</p>
+<p>What survives of the MCTS instinct is its <em>principle</em>: spend compute where the decision is close. Filters implement that principle deterministically — a lopsided position with one standout move gets a tiny tree (or none: 10% of decisions are forced), a close decision keeps more candidates alive. And MCTS itself remains the right tool where it already serves: generating training targets, where sampled dice are an unbiased and cheap exploration device.</p>
+<blockquote class="blockquote">
+<p>Should Raccoon’s play search be MCTS? → <strong>No — filtered expectimax</strong>: at ≤2-ply the exact tree is affordable and deterministic; sampling adds noise and cost precisely where the benchmark needs neither. Revisit selective/cutoff methods only beyond 2-ply.</p>
+</blockquote>
+</section>
+<section id="the-tier-after-candidate-c-truncated-vr-rollouts" class="level3">
+<h3 class="anchored" data-anchor-id="the-tier-after-candidate-c-truncated-vr-rollouts">The tier after (candidate C): truncated VR rollouts</h3>
+<p>For completeness, the design space above 2-ply is already mapped: truncated rollouts with variance reduction beat deeper plies per unit compute (3T = 0.22 vs 4P = 0.42 above), XG’s Roller levels and Sage’s T-levels are both exactly this, and Raccoon already owns the hard part — the luck accumulator that exp019 built and validated. When the time comes, a “Raccoon Roller” is: play forward ~7 half-moves with the exp021 search under stratified dice, evaluate the truncation point with the net, subtract accumulated luck, average a few hundred trials. Out of scope for exp021; recorded so the roadmap doesn’t rediscover it.</p>
+</section>
+</section>
+<section id="what-it-costs" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-costs">What it costs</h2>
+<p>The cost model below counts <strong>network evaluations per decision</strong> — the currency that matters, since move generation and encoding are cheap by comparison — using the measured branching numbers above (<span class="math inline">\(u\)</span> = distinct afterstates per decision, <span class="math inline">\(b\)</span> = 21 rolls), the greedy opponent model, and leaf reuse. Times use ep22’s measured single-thread throughput on the local iMac (i5-4570 CPU, ~<strong>400 boards/s</strong> at batch 512, measured 2026-08-17); a T4 raises throughput by one to two orders of magnitude, and measuring exactly that is step 0 of exp021.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>configuration</th>
+<th>net evals per decision</th>
+<th>iMac CPU time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0-ply (today)</td>
+<td>14</td>
+<td>35 ms</td>
+</tr>
+<tr class="even">
+<td>1-ply, filter k=4</td>
+<td>1,106</td>
+<td>2.8 s</td>
+</tr>
+<tr class="odd">
+<td>1-ply, filter k=8</td>
+<td>2,198</td>
+<td>5.5 s</td>
+</tr>
+<tr class="even">
+<td>2-ply, filter k=4, greedy opponent</td>
+<td>24,038</td>
+<td>60.1 s</td>
+</tr>
+<tr class="odd">
+<td>2-ply, filter k=8, greedy opponent</td>
+<td>48,062</td>
+<td>2 min</td>
+</tr>
+<tr class="even">
+<td>2-ply, k=8, opponent full-width k′=4</td>
+<td>185,654</td>
+<td>8 min</td>
+</tr>
+</tbody>
+</table>
+<p>Formulas: 1-ply ≈ <span class="math inline">\((u{+}1) + k\,b\,u\)</span>; 2-ply (greedy) ≈ <span class="math inline">\((u{+}1) + k\,b\,(u + b\,u)\)</span>, with <span class="math inline">\(u\)</span> = 13, <span class="math inline">\(b\)</span> = 21, and the innermost <span class="math inline">\(b\,u\)</span> term shared between picking the opponent’s reply and evaluating it (leaf reuse). These are <em>upper bounds</em>: afterstate deduplication across rolls (dancing rolls collapse to one board), forced moves, and race positions all shrink real trees — the measured dedup factor at the root alone is 1.8×.</p>
+<p>Scale check: scoring the full BGSage benchmark (14,693 decisions) at 2-ply/k=8 costs ~706M evaluations — ~490 CPU-hours on this iMac, or hours on a T4. A 2,000-decision subsample is ~67 CPU-hours. That gap is why exp021 sweeps parameters on a pre-registered subsample and reserves full-n scoring for the finalists.</p>
+<p>Two engineering notes, so they are on the record before implementation rather than after profiling: CPU-bound torch scripts in this repo need <code>OMP_WAIT_POLICY=PASSIVE</code> and <code>torch.set_flush_denormal(True)</code> from day one (both bit earlier experiments); and a per-decision evaluation cache keyed by encoded board bytes (the <code>slot_of</code> idiom in <code>child_values</code>, promoted to the whole tree) captures the transpositions that different (candidate, roll) paths share.</p>
+<p>For calibration on the other side of the table: GNUBG’s full-width 2-ply costs ~<strong>1.3 s/decision</strong> through our harness, and its 0-ply ~10 ms (<a href="./index.html">index page</a> figures). A batched 2-ply Raccoon on a T4 should land in the same order of magnitude as GNUBG-2-ply-on-CPU — matched depth will also be roughly matched wall-clock, without that being the claim.</p>
+</section>
+<section id="the-knobs" class="level2">
+<h2 class="anchored" data-anchor-id="the-knobs">The knobs</h2>
+<p>Every engine above ended up with the same parameter families. Fixing names now so exp021’s configs are comparable:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>knob</th>
+<th>values</th>
+<th>affects</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>depth <span class="math inline">\(n\)</span></td>
+<td>0, 1, 2 (GNUBG numbering)</td>
+<td>strength &amp; cost</td>
+</tr>
+<tr class="even">
+<td>root filter source</td>
+<td>policy top-<span class="math inline">\(k\)</span> · value top-<span class="math inline">\(k\)</span> · union</td>
+<td>strength &amp; cost</td>
+</tr>
+<tr class="odd">
+<td>root filter size <span class="math inline">\(k\)</span> / threshold <span class="math inline">\(t\)</span></td>
+<td>e.g.&nbsp;4, 8, 16 / 0.04–0.16 equity</td>
+<td>strength &amp; cost</td>
+</tr>
+<tr class="even">
+<td>opponent model</td>
+<td>greedy (0-ply pick) · full-width top-<span class="math inline">\(k'\)</span></td>
+<td>strength &amp; cost</td>
+</tr>
+<tr class="odd">
+<td>bundling / dedup / cache</td>
+<td>on</td>
+<td>cost only — exact transforms</td>
+</tr>
+<tr class="even">
+<td>batch size, device</td>
+<td>—</td>
+<td>cost only</td>
+</tr>
+</tbody>
+</table>
+<p>The strength-affecting rows are exactly what the experiment must resolve; the cost-only rows are correctness-preserving and always on. GNUBG’s presets (Normal/Large filters) and BGSage’s (TINY…HUGE) are points in the same space, which gives us priors: both engines ship <span class="math inline">\(k\)</span> in the 5–16 range with thresholds 0.08–0.32, and both accept the greedy opponent.</p>
+</section>
+<section id="exp021-pre-registered" class="level2">
+<h2 class="anchored" data-anchor-id="exp021-pre-registered">exp021, pre-registered</h2>
+<p><strong>Hypothesis.</strong> Filtered 2-ply expectimax over <code>exp018/ep22</code>’s value head meets or beats full-width GNUBG 2-ply at matched ply depth.</p>
+<p><strong>Primary metric.</strong> PR on the BGSage money benchmark, full n=14,693, scored with <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/scripts/eval_benchmark_pr.py"><code>eval_benchmark_pr.py</code></a> extended to search configs. Fixed reference points on the identical benchmark: <code>ep22</code> 0-ply = <strong>0.950</strong>, GNUBG 0-ply = <strong>2.145</strong>, GNUBG full-width 2-ply = <strong>0.56</strong>. The experiment succeeds if the selected config’s full-n PR ≤ GNUBG 2-ply’s.</p>
+<p><strong>Protocol.</strong></p>
+<ol type="1">
+<li><em>Step 0 — instrument.</em> Measure T4 throughput for ep22 at play batch sizes; compute the subsample PR standard error from ep22’s per-decision error distribution (the benchmark files already hold per-decision errors, so this is free).</li>
+<li><em>Sweep</em> on a pre-registered subsample (2,000 decisions drawn once with a fixed seed, reused across all configs — paired comparisons): depth {1, 2} × filter source {policy, value, union} × <span class="math inline">\(k\)</span> {4, 8, 16} × opponent {greedy, full-width <span class="math inline">\(k'{=}4\)</span>}, pruned to configs the throughput measurement says are affordable. Report top-<span class="math inline">\(k\)</span> recall of the filter sources as a supporting diagnostic.</li>
+<li><em>Select and confirm at full n.</em> The top two sweep configs are re-scored at n=14,693; selection happens there, not on the subsample (winner’s-curse guard, per house rules).</li>
+<li><em>Head-to-head completion.</em> The selected config plays GNUBG at 2-ply (<code>candidate_equities</code>, full width): cubeless money, seats alternated, <strong>VR ppg, n=6,000</strong>, <code>cv_ply=0</code>, seed base pre-registered in the pipeline script. Before the run, the benchmark’s prediction is stated using exp020’s machinery: ppg ≈ ΔPR/500 × 28.0 decisions per player-game.</li>
+</ol>
+<p><strong>Power, stated honestly.</strong> At n=6,000 the VR estimator resolved ±0.005 ppg against a 0-ply opponent (exp019/exp020); against a 2-ply opponent the luck correlation may be somewhat lower, so assume ±0.005–0.010. A benchmark win of ΔPR = 0.1 predicts only ~0.006 ppg — inside the interval. The head-to-head therefore <em>confirms direction and magnitude</em> of the primary result; it is not powered to independently re-prove a small PR edge, and the write-up will say which of the two situations obtained. A clear benchmark win (ΔPR ≥ 0.2 → ~0.011+ ppg) is testable head-to-head as well.</p>
+<p><strong>Conclusion template.</strong> <em>“Does filtered 2-ply expectimax on ep22 beat full-width GNUBG 2-ply at matched depth? → [answer]: [config] = [PR ± protocol] (BGSage benchmark, n=14,693); head-to-head [ppg ± CI] (VR, n=6,000).”</em></p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>GNU Backgammon manual — <a href="https://www.gnu.org/software/gnubg/manual/html_node/Introduction-to-move-filters.html">Introduction to move filters</a>, <a href="https://www.gnu.org/software/gnubg/manual/html_node/Predefined-settings.html">Predefined settings</a>, <a href="https://www.gnu.org/software/gnubg/manual/html_node/Pruning-neural-networks.html">Pruning neural networks</a>. The evaluation-settings chapters are the primary source for filters, presets and the “×400 per ply” cost figure.</li>
+<li>Open Sage (BGSage) — <a href="https://github.com/markbgsage/bgsage/blob/main/MULTI-PLY.md"><code>MULTI-PLY.md</code></a>, <a href="https://github.com/markbgsage/bgsage/blob/main/ROLLOUT.md"><code>ROLLOUT.md</code></a>, <a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>. Complete specifications of a modern engine’s multi-ply search and VR rollouts, plus the cross-engine PR ladder used in the figure above.</li>
+<li>eXtreme Gammon — <a href="https://www.extremegammon.com/studies.aspx">studies page</a>: the 2012 cross-bot error-rate study and the GNUBG/XG ply-numbering equivalence.</li>
+<li>Hauk, T., Buro, M., Schaeffer, J. (2004) — <a href="https://link.springer.com/chapter/10.1007/11674399_3"><em>Rediscovering *-Minimax Search</em></a> and <a href="https://link.springer.com/chapter/10.1007/11674399_4"><em>*-Minimax Performance in Backgammon</em></a>: chance-node cutoffs (Ballard’s Star1/Star2) applied to backgammon.</li>
+<li>Van Lishout, F., Chaslot, G., Uiterwijk, J. (2007) — <a href="https://www.researchgate.net/publication/228378473_Monte-Carlo_tree_search_in_backgammon"><em>Monte-Carlo Tree Search in Backgammon</em></a>: the early MCTS attempt referenced in the candidate analysis.</li>
+<li>Tesauro, G., Galperin, G. (1996) — <a href="https://proceedings.neurips.cc/paper/1996/hash/996009f2374006606f4c0b0fda878af1-Abstract.html"><em>On-line Policy Improvement using Monte-Carlo Search</em></a>: the original backgammon rollout result, ancestor of every Roller/T-level.</li>
+<li>Raccoon’s own groundwork: <a href="./variance_reduction.html">variance-reduced rollouts</a> (the luck machinery candidate C reuses), <a href="./pretraining_analysis.html#exp017">exp017</a> (why the remaining gap is search), <a href="./mcts_explained.html">MCTS Explained</a> (the training-side search this page deliberately does not replace).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/research\.raccoonbg\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p><strong>Tekst og tal</strong> · CVR 34101302 · Denmark</p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="mailto:hello@raccoonbg.com">hello@raccoonbg.com</a></p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/lassehjorthmadsen/raccoon">GitHub</a> · <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE">MIT licence</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
