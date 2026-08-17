@@ -47,6 +47,8 @@ website:
             file: pretraining_analysis.qmd
           - text: "Variance-Reduced Rollouts"
             file: variance_reduction.qmd
+          - text: "Multi-Ply Search"
+            file: search.qmd
       - text: "Developer"
         file: gcp_guide.md
       - text: "Reference"

@@ -1,0 +1,594 @@
+---
+title: "Multi-Ply Search"
+subtitle: "How GNUBG, XG and BGSage turn one network evaluation into deep play — and the search design meant to take Raccoon past GNUBG 2-ply"
+toc-depth: 2
+jupyter: python3
+---
+
+Raccoon's current best network wins **+0.047 ± 0.003 points per game** against GNU Backgammon
+over 18,000 cubeless money games ([exp020](variance_reduction.qmd#exp020), checkpoint
+`exp018/ep22`, VR ppg, n=18,000) — but only when GNUBG is held at **0-ply**, its raw
+network with no lookahead. Let GNUBG search and the picture inverts: on the
+[BGSage money benchmark](pretraining_analysis.qmd) (PR, n=14,693), `ep22` scores **0.95**
+where GNUBG's 0-ply network scores 2.14 — and GNUBG's **2-ply search scores 0.56**. Our
+network is much better than GNUBG's network; GNUBG's *search* is still better than our
+nothing.
+
+That framing is the conclusion [exp017](pretraining_analysis.qmd#exp017) already reached
+from the training side: distilling 40M positions of GNUBG's 2-ply play brought the network
+to its teacher's evaluation quality, and the residual gap to the teacher's *play* is search,
+not data. The next milestone is therefore not a better network but a search on top of the
+one we have — with a target fixed in advance: **meet or beat GNUBG 2-ply at matched ply
+depth**, first on the static benchmark, then head-to-head.
+
+This page is the design study for that search. It works through how the three strong
+engines — GNU Backgammon, eXtreme Gammon (XG), and Open Sage (BGSage) — actually implement
+lookahead, including the pruning machinery that makes it affordable; why all three
+converged on the same algorithm, and why that algorithm (and not MCTS) is the right first
+implementation for Raccoon; what the search will cost in network evaluations and how
+bundling, deduplication and batching pay most of that bill; and which parameters matter.
+It ends by pre-registering the experiment (exp021) that will settle the design choices
+empirically. Scope note: everything here is **cubeless checker play** — cube-aware search
+(Janowski interpolation and friends) is real and documented, and deferred until the cube
+itself is.
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams["figure.dpi"] = 120
+```
+
+## What a ply is
+
+Backgammon's game tree alternates two kinds of node: **decisions**, where a player chooses
+among legal moves, and **chance**, where the dice choose among 21 distinct rolls — the six
+doubles with probability 1/36 each, the fifteen non-doubles with 2/36 each. A "ply" of
+lookahead means pushing the evaluation one roll deeper into that tree before asking the
+network what it thinks.
+
+Write $V(x)$ for the network's value of a pre-roll position $x$ from the point of view of
+the player about to roll (Raccoon's value head, equity/3 in $[-1,1]$). When it is our turn
+and we consider a candidate move, the position it produces — an *afterstate* — is a
+pre-roll position for the opponent, so its value to us is $S_0(x) = -V(x)$. That is 0-ply
+move selection, exactly what
+[`lookahead.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py)
+does today: score every candidate afterstate in one batched forward pass, play the argmax.
+
+Deeper plies replace the network's opinion of an afterstate with an average over what can
+actually happen next:
+
+$$S_n(x) \;=\; \sum_{d} p(d)\,\Big[\, -\max_{a \,\in\, A(x,\,d)} S_{n-1}(x \cdot d \cdot a) \Big]$$
+
+Read it inside out: for each roll $d$ the opponent might get, enumerate their legal whole-turn
+moves $A(x,d)$, score each resulting afterstate one ply shallower, let the opponent take
+their best (their gain is our loss — the minus sign), and weight the 21 outcomes by
+$p(d)$. A roll with no legal reply — a dance — simply hands the same board back with the
+turn passed. An $n$-ply engine ranks its candidate moves by $S_n$. This is **expectimax**:
+minimax with an averaging layer at every chance node.
+
+Two things follow immediately from the formula. First, cost: each added ply multiplies work
+by (21 rolls) × (~20 legal moves) — GNUBG's manual puts it at "about 400 odd" per ply.
+Second, an asymmetry worth knowing: $V(x) \ne -V(\text{flip}(x))$, because being on roll is
+worth something (the tempo). Odd and even plies therefore end the recursion on different
+players' rolls and carry slightly different systematic flavours — one reason engines are
+usually compared at matched, even depths, as exp021 will be.
+
+### The numbering trap
+
+The engines do not agree on what to call these depths, and the offset causes real
+confusion:
+
+| operation | GNUBG | XG / BGSage | TD-Gammon papers |
+|---|---|---|---|
+| static network eval of the candidate afterstates | 0-ply | 1-ply | 1-ply |
+| + average over the opponent's 21 rolls, best reply each | 1-ply | 2-ply | 2-ply |
+| + our best answer to each reply | 2-ply | 3-ply | 3-ply |
+
+So GNUBG's 2-ply is XG's and BGSage's 3-ply — confirmed both by
+[XG's own study page](https://www.extremegammon.com/studies.aspx) ("GnuBG 2-ply is
+equivalent to other bot 3-ply") and by BGSage's documentation. **Raccoon uses GNUBG's
+numbering throughout**, because GNUBG is the benchmark
+([`lookahead.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py)
+states the same convention). Every ply number on this page is GNUBG-numbered unless it
+names another engine's level.
+
+### Why one roll of lookahead is worth so much
+
+The value of depth is easiest to see where static evaluation is weakest: counting shots.
+Suppose a candidate move leaves a blot a direct 6 away from an opponent checker. The rolls
+that hit are any 6 (11 rolls), plus the indirect combinations 5-1 (2), 4-2 (2), 3-3 (1) and
+2-2 (1): **17 rolls of 36**. A 0-ply network must have *learned* to feel that 17/36 — and
+the wildly different equity swings of being hit in this particular position — through its
+input features. A 1-ply search doesn't estimate any of it: the sum over $d$ literally
+contains the 17 hitting branches, each scored after the opponent's actual best hit, and the
+19 misses, each scored after the opponent's actual best quiet play. Search converts pattern
+recognition into arithmetic. That is why every doubling of engine strength in the table
+below comes from depth, not from a bigger net — and why exp017's distillation, which taught
+the network to *imitate* 2-ply values, still cannot reproduce them exactly on tactical
+positions: the network gets one forward pass to summarise a 400-node subtree.
+
+## How the strong engines search
+
+All three reference engines implement the same expectimax core. What distinguishes them —
+and what makes deep search affordable at all — is how aggressively each prunes the
+candidate list before recursing, and what machinery performs the pruning.
+
+### GNU Backgammon: full width, then filters
+
+GNUBG evaluates every legal move at 0-ply, then applies a **move filter** before the
+deeper plies: keep at most *N extra* moves whose 0-ply equity is within a *threshold* of
+the best ([manual](https://www.gnu.org/software/gnubg/manual/html_node/Introduction-to-move-filters.html)).
+The shipped "Normal" filter keeps up to 8 moves within 0.16; the manual's worked example
+is an opening 4-2 where the best move scores +0.189, so everything below +0.029 is pruned
+and four moves survive to be evaluated at 2-ply. The named playing levels are just
+(depth, filter) pairs
+([manual](https://www.gnu.org/software/gnubg/manual/html_node/Predefined-settings.html)):
+**World Class** = 2-ply with the Normal filter, **Supremo** = 2-ply with Large (16 within
+0.32), **Grandmaster** = 3-ply Large.
+
+Inside the recursion GNUBG adds a second pruning device:
+[**pruning neural networks**](https://www.gnu.org/software/gnubg/manual/html_node/Pruning-neural-networks.html)
+— tiny nets (a handful of hidden nodes, per mailing-list history) whose only job is to
+rank an inner node's candidate moves cheaply so that the full network evaluates just the
+survivors. The manual reports Jim Segrave's audit: with pruning nets on, *less than 1% of
+moves change*, for a large speedup.
+
+One detail that matters for our benchmark: Raccoon's harness queries `gnubg-nn` through
+[`candidate_equities`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/gnubg_adapter.py),
+which enumerates **all** legal moves at the requested ply — no move filter, no pruning
+nets. The "GNUBG 2-ply" that scores 0.56 on our benchmark is therefore full-width 2-ply,
+if anything slightly *stronger* than the World Class setting GNUBG ships. Beating it means
+beating GNUBG's search with its pruning risk removed — a conservative target.
+
+### eXtreme Gammon: the same ladder, then rollouts
+
+XG is closed source, but its levels are documented well enough to place: its 3-ply is
+GNUBG-2-ply-shaped, its 4- and 5-ply extend the same recursion, and its headline strength
+comes from the **XG Roller** family, which are not deeper plies at all but **truncated
+rollouts with variance reduction**: play the position forward some turns with an n-ply
+policy under stratified dice, stop, evaluate the endpoint with the network, and correct
+the result with the accumulated dice luck — the same estimator Raccoon built in
+[exp019](variance_reduction.qmd#exp019). BGSage's engineers, replicating XG's levels for
+comparison ([`ROLLOUT.md`](https://github.com/markbgsage/bgsage/blob/main/ROLLOUT.md)),
+put XG Roller++ at 360 trials truncated after 7 half-moves with 3-ply (XG numbering)
+decisions early in each trial. On XG's own 2012 benchmark study, XG Roller++ measures
+**PR 0.11** — with the usual home-field caveat that XG graded itself
+([studies page](https://www.extremegammon.com/studies.aspx)).
+
+### Open Sage: the same design, fully documented
+
+[Open Sage](https://github.com/markbgsage/bgsage) (BGSage) is open source, and its
+[`MULTI-PLY.md`](https://github.com/markbgsage/bgsage/blob/main/MULTI-PLY.md) is the most
+complete public specification of a modern backgammon search. The parts that transfer:
+
+- **An iterative-deepening filter chain.** Move selection first scores all candidates at
+  1-ply (their numbering; our 0-ply) and keeps the top 5 within 0.08 of the best (their
+  default "TINY" filter), then evaluates only the survivors at full depth. At 4-ply an
+  intermediate 3-ply step narrows 5 → 2 — but at 3-ply there is *no* intermediate step,
+  because they found 2-ply rankings correlate too poorly with 3-ply rankings on hard
+  positions: the intermediate filter was pruning the eventual best move. Filter chains
+  need validating per depth, not assuming.
+- **A greedy opponent model.** At inner nodes the opponent's reply is chosen by the *static*
+  evaluation, and only that one chosen reply is evaluated deeper. An exhaustive
+  "full-depth opponent" mode exists and is described as the most accurate and slowest
+  path; the fast path is the default. GNUBG's recursion makes the same choice (0-ply +
+  pruning nets pick the reply, then the recursion descends through it).
+- **Leaf reuse.** At a 2-ply-deep node (their 3-ply), the batch of static evaluations used
+  to *pick* the opponent's reply already contains the chosen reply's leaf value — so the
+  deepest level of the tree costs no additional network calls beyond the pick itself. The
+  bookkeeping trick is free depth; Raccoon's design below inherits it.
+- **Aggressive caching and incremental evaluation.** Thread-local and shared position
+  caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates
+  sibling candidates by only the input columns that changed. This is C++-flavoured
+  machinery; Raccoon's equivalent is batching (below).
+
+Because BGSage published measured error rates for the whole ladder on one benchmark
+([`XG_COMPARISON.md`](https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md),
+17,535 decisions scored against rollout truth), we get the cleanest available picture of
+what search is worth:
+
+```{python}
+#| echo: false
+#| fig-cap: "What search buys: PR of Open Sage and XG levels, both scored on BGSage's rollout-truth benchmark (17,535 decisions; XG_COMPARISON.md). Levels use XG numbering: 1P = raw net (GNUBG 0-ply), each P adds a ply; T-levels are truncated variance-reduced rollouts. Lower is better. Not comparable in absolute terms with PRs quoted on Raccoon's own benchmark."
+# Data: bgsage/XG_COMPARISON.md, "Rollout PR Results" table (money games).
+levels_p = ["1P", "2P", "3P", "4P"]
+sage_p   = [2.63, 1.66, 0.60, 0.42]
+xg_p     = [None, None, 0.57, 0.46]
+levels_t = ["1T\n(Roller)", "2T\n(Roller+)", "3T\n(Roller++)"]
+sage_t   = [0.50, 0.26, 0.22]
+xg_t     = [0.53, 0.41, 0.32]
+
+C_SAGE, C_XG = "#1f77b4", "#c44e52"
+xp = np.arange(len(levels_p))
+xt = len(levels_p) + 0.8 + np.arange(len(levels_t))
+
+fig, ax = plt.subplots(figsize=(7.2, 3.4))
+ax.plot(xp, sage_p, "o-", color=C_SAGE, label="Open Sage", markersize=6)
+ax.plot(xt, sage_t, "s--", color=C_SAGE, markersize=6)
+ax.plot([x for x, v in zip(xp, xg_p) if v], [v for v in xg_p if v],
+        "o-", color=C_XG, label="XG", markersize=6)
+ax.plot(xt, xg_t, "s--", color=C_XG, markersize=6)
+ax.text(xp[-1] + 0.12, sage_p[-1] - 0.10, "eval levels", color=C_SAGE, fontsize=9)
+ax.text(xt[-1] - 1.05, sage_t[-1] - 0.16, "truncated VR rollouts", color=C_SAGE, fontsize=9)
+ax.axvline(len(levels_p) + 0.4, color="0.8", lw=1)
+ax.set_xticks(np.concatenate([xp, xt]))
+ax.set_xticklabels(levels_p + levels_t, fontsize=9)
+ax.set_ylabel("PR (lower is better)")
+ax.set_ylim(0, 2.9)
+ax.legend(frameon=False, loc="upper right")
+plt.tight_layout()
+plt.show()
+```
+
+Three readings of that figure drive the rest of this page. Each ply of depth cuts PR by a
+factor of two-ish while multiplying compute ~20× (BGSage's README figure). The step from
+the raw net to the first searched level (2P: one opponent roll averaged) is the largest
+single improvement on the ladder. And the rollout levels beat the ply levels at comparable
+or lower cost — 3T at 0.22 versus 4P at 0.42 — which is why *both* commercial-strength
+engines top out with truncated VR rollouts rather than ever-deeper expectimax.
+
+> How do the strong engines search? → **All the same way**: full-width expectimax over the
+> 21 rolls, a cheap static filter keeping ~5–16 candidates, a greedy opponent inside the
+> recursion, caches everywhere — and truncated variance-reduced rollouts above the top ply.
+> None of them uses MCTS.
+
+## What Raccoon already has
+
+Less is missing than it might appear. Three of the four ingredients above exist in the
+repo, tested:
+
+- **The 0-ply layer, batched and deduplicated.**
+  [`child_values`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py)
+  enumerates whole-turn candidates (doubles optimised jointly since
+  [exp020](variance_reduction.qmd#exp020)), deduplicates afterstates by their encoded
+  board — a doubles turn's ~550 ordered half-move paths collapse onto ~58 distinct boards
+  — and evaluates everything in one forward pass.
+- **The chance-node expectation.**
+  [`luck.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/luck.py)
+  already computes $\sum_d p(d)\,h(s,d)$ — the full 21-roll pre-roll average — for the
+  variance-reduction control variate. That sum *is* the inner loop of $S_1$; exp019
+  validated its plumbing to ±0.005 ppg precision.
+- **A policy head none of the reference engines has.** GNUBG had to train separate pruning
+  nets; BGSage scores every candidate with the value net (helped by PubEval pre-filters and
+  a delta kernel). Raccoon's network already produces a 1352-way policy distribution in the
+  *same* forward pass as the value — a learned move filter at zero marginal cost, trained on
+  exactly the question "which move will the search pick?". Whether it filters better than
+  the value-based filter (or the union of both) is a measurable question for exp021, and
+  the natural first measurement is top-$k$ recall of the 0-ply and 2-ply best move.
+- What exists but does **not** transfer: the AlphaZero-style
+  [MCTS](mcts_explained.md) in
+  [`mcts.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/search/mcts.py).
+  It samples one roll at each chance edge rather than enumerating them, which is the right
+  economy for self-play training and the wrong one for strongest play — the next section
+  takes this seriously rather than by assertion.
+
+Some ground-truth numbers for the cost model, measured here rather than assumed:
+
+```{python}
+#| echo: false
+#| output: asis
+# Branching statistics from uniform-random playouts. Random play visits messier
+# positions than skilled play (more contact, more checkers back), so these are
+# ballpark figures for the cost model, not exact constants of skilled play.
+import pyspiel
+
+game = pyspiel.load_game("backgammon(scoring_type=full_scoring)")
+rng = np.random.default_rng(0)
+
+moves, unique, forced, decisions = [], [], 0, 0
+for g in range(30):
+    state = game.new_initial_state()
+    while not state.is_terminal():
+        if state.is_chance_node():
+            acts, probs = zip(*state.chance_outcomes())
+            state.apply_action(int(rng.choice(acts, p=probs)))
+            continue
+        legal = state.legal_actions()
+        decisions += 1
+        moves.append(len(legal))
+        forced += len(legal) == 1
+        boards = set()
+        for a in legal:
+            child = state.clone()
+            child.apply_action(a)
+            boards.add(str(child))
+        unique.append(len(boards))
+        state.apply_action(int(rng.choice(legal)))
+
+m_arr, u_arr = np.array(moves), np.array(unique)
+M_MEAN, U_MEAN = m_arr.mean(), u_arr.mean()
+DEDUP = m_arr.sum() / u_arr.sum()
+FORCED = forced / decisions
+
+print(f"""
+| quantity | value |
+|---|---|
+| decision nodes measured | {decisions:,} (30 uniform-random playouts, seed 0) |
+| legal moves per decision | mean **{M_MEAN:.1f}**, median {np.median(m_arr):.0f}, 90th pct {np.percentile(m_arr, 90):.0f}, max {m_arr.max()} |
+| *distinct afterstates* per decision | mean **{U_MEAN:.1f}** — a {DEDUP:.1f}× reduction for free |
+| forced decisions (one legal move) | {FORCED:.0%} |
+
+(OpenSpiel counts a doubles turn as two decision nodes of two half-moves each; the
+whole-turn joint enumeration in `child_values` sees correspondingly more paths and
+deduplicates correspondingly harder — ~550 → ~58 measured in exp020.)
+""")
+```
+
+## The proposed algorithm: filtered expectimax, batched
+
+Candidate A — the recommendation — is the convergent design of all three engines, adapted
+to Raccoon's two structural advantages (a policy head, and a framework where a thousand
+evaluations in one tensor cost little more than a hundred).
+
+At a decision with rolled dice:
+
+1. **Enumerate and bundle.** Generate whole-turn candidate moves (joint doubles, as
+   today), deduplicate afterstates by encoded board. Terminal children take their exact
+   value ([`terminal_value`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py)),
+   never a network call.
+2. **Filter at the root.** Keep $k$ candidates: top-$k$ by policy-head prior, top-$k$ by
+   0-ply value within an equity threshold $t$ of the best, or the union of both. This is
+   the GNUBG/BGSage move filter with the pruning net replaced by a head we already train.
+3. **Recurse, greedily for the opponent.** For each surviving afterstate and each of the
+   opponent's 21 rolls, enumerate their whole-turn replies, score them 0-ply, let the
+   opponent take their best; at 1-ply that static score *is* the leaf (BGSage's leaf-reuse:
+   the pick batch and the leaf batch are the same batch). At 2-ply, the opponent's chosen
+   reply — one per (candidate, roll) — is evaluated at 1-ply by the same machinery one
+   level down. A full-width opponent (evaluate their top-$k'$ replies deeper, take the
+   worst for us) is the accuracy-checking variant, at multiplied cost.
+4. **Batch each level.** Everything a tree level needs is known before any of it is
+   evaluated, so each level is a handful of large forward passes rather than thousands of
+   small ones — the PyTorch-native replacement for BGSage's sparse-delta kernel and
+   GNUBG's SIMD loops. Dancing rolls bundle for free: 25 of 36 rolls against a 5-point
+   board all map to the *same* encoded child, so deduplication reduces them to one
+   evaluation carrying 25/36 of the weight — no special case needed, the same
+   `tobytes()`-keyed dedup `child_values` already uses.
+5. **Stay deterministic.** No sampling anywhere. The same position and parameters always
+   return the same move — reproducible, benchmark-scoreable, and directly comparable
+   config-to-config.
+
+The search is a strict generalisation of what ships today: depth 0 with no filter *is*
+`child_values`.
+
+::: {.callout-warning collapse="true"}
+## Three traps, all already discovered the hard way
+
+**Perspective flipping.** The value head reads boards from the to-move player's view, and
+`BoardView` indices run from that player's bearoff outward — so viewing a board from the
+other side requires an index reversal *and* a label swap. Get it half right and the board
+still looks legal but evaluates as noise: R² against reference equity drops from 0.9964 to
+**−0.06** ([`encode_pre_roll`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py)
+documents the measurement). The existing idiom — encode every child from *its own* to-move
+player and negate — sidesteps the flip entirely, and the deeper recursion should inherit it
+unchanged.
+
+**Mid-doubles states.** The value net was trained on pre-roll positions only; a
+half-played double ("you owe two more 4s") is outside its training distribution, which is
+exactly the bug exp020 fixed at 0-ply (worth **+0.033 ppg**). The whole-turn enumeration
+in step 1 keeps such states out of the tree at every depth.
+
+**The GNUBG-side harness.** `gnubg-nn`'s fast native `best_move` segfaults at ply ≥ 1, so
+a 2-ply GNUBG *opponent* must go through the slower Python-side enumeration
+(~0.26 s/decision, [`gnubg_adapter`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/eval/gnubg_adapter.py)) —
+relevant for the head-to-head's wall-clock budget, not its correctness. The luck control
+variate stays at native 0-ply, which remains unbiased whatever either player does: the
+zero-mean argument of [the VR page](variance_reduction.qmd) never references the players'
+strength.
+:::
+
+### Why not MCTS (candidate B)
+
+MCTS is the obvious modern candidate — it is what the training loop already uses, and its
+promise of spending simulations on *promising* branches instead of a fixed width and depth
+is genuinely attractive. The case against it here is arithmetic, not fashion.
+
+Consider the root of a typical decision: ~13 distinct candidate moves × 21 opponent rolls
+≈ **270 (move, roll) cells**. Expectimax at 1-ply evaluates every cell's consequence
+exactly once — ~2,200 network calls with a $k{=}8$ filter, batched — and returns the
+*exact* expectation under the network. MCTS with sampled dice (as
+[`mcts.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/search/mcts.py)
+does at its chance edges) instead estimates each candidate's value as a Monte-Carlo
+average over whichever rolls happened to be sampled. At the simulation counts we run
+(100–800), most cells get zero or one visit; the value of a move whose case hinges on a
+2/36 joker may not contain that joker at all. To push the sampling noise safely below the
+gaps that separate candidate moves (often 0.01–0.05 equity), the per-move sample counts
+must grow into the thousands — *more* network calls than exhaustive enumeration, to
+recover a noisy version of what enumeration computes exactly. Selectivity only pays once
+the exact tree is unaffordable, and with filters the exact tree is affordable through
+2-ply — precisely our target. Beyond it, the engines' own evidence says the next tier is
+rollouts, not deeper trees.
+
+Determinism compounds the problem: a dice-sampling searcher returns different rankings run
+to run, which poisons PR-based selection (every config comparison inherits sampling noise)
+and violates the reproducibility our benchmark protocol depends on.
+
+The literature is consistent with the arithmetic. MCTS was tried on backgammon early
+([Van Lishout, Chaslot & Uiterwijk 2007](https://www.researchgate.net/publication/228378473_Monte-Carlo_tree_search_in_backgammon))
+without threatening the TD-network lineage. The serious search-theory work on backgammon
+went the other way: Ballard's \*-Minimax (Star1/Star2), revived by
+[Hauk, Buro & Schaeffer (2004)](https://link.springer.com/chapter/10.1007/11674399_3),
+prunes *chance* nodes with alpha-beta-style bounds and reached depth-5 full-width searches
+in tournament time. Those cutoff techniques are worth revisiting if Raccoon ever needs
+3-ply+ — though they fit sequential C engines better than batched tensor evaluation, where
+skipping a branch saves less than filling the batch does.
+
+What survives of the MCTS instinct is its *principle*: spend compute where the decision is
+close. Filters implement that principle deterministically — a lopsided position with one
+standout move gets a tiny tree (or none: 10% of decisions are forced), a close decision
+keeps more candidates alive. And MCTS itself remains the right tool where it already
+serves: generating training targets, where sampled dice are an unbiased and cheap
+exploration device.
+
+> Should Raccoon's play search be MCTS? → **No — filtered expectimax**: at ≤2-ply the
+> exact tree is affordable and deterministic; sampling adds noise and cost precisely where
+> the benchmark needs neither. Revisit selective/cutoff methods only beyond 2-ply.
+
+### The tier after (candidate C): truncated VR rollouts
+
+For completeness, the design space above 2-ply is already mapped: truncated rollouts with
+variance reduction beat deeper plies per unit compute (3T = 0.22 vs 4P = 0.42 above), XG's
+Roller levels and Sage's T-levels are both exactly this, and Raccoon already owns the
+hard part — the luck accumulator that exp019 built and validated. When the time comes, a
+"Raccoon Roller" is: play forward ~7 half-moves with the exp021 search under stratified
+dice, evaluate the truncation point with the net, subtract accumulated luck, average a few
+hundred trials. Out of scope for exp021; recorded so the roadmap doesn't rediscover it.
+
+## What it costs
+
+The cost model below counts **network evaluations per decision** — the currency that
+matters, since move generation and encoding are cheap by comparison — using the measured
+branching numbers above ($u$ = distinct afterstates per decision, $b$ = 21 rolls), the
+greedy opponent model, and leaf reuse. Times use ep22's measured single-thread throughput
+on the local iMac (i5-4570 CPU, ~**400 boards/s** at batch 512, measured 2026-08-17); a
+T4 raises throughput by one to two orders of magnitude, and measuring exactly that is
+step 0 of exp021.
+
+```{python}
+#| echo: false
+#| output: asis
+b = 21
+u = round(U_MEAN)          # distinct afterstates per decision (measured above)
+CPU_RATE = 400             # boards/s, ep22 on iMac i5-4570, batch 512
+
+def fmt_t(sec):
+    return f"{sec*1000:.0f} ms" if sec < 1 else (f"{sec:.1f} s" if sec < 90 else f"{sec/60:.0f} min")
+
+rows = []
+def add(name, boards):
+    rows.append((name, boards, fmt_t(boards / CPU_RATE)))
+
+add("0-ply (today)", u + 1)
+for k in (4, 8):
+    add(f"1-ply, filter k={k}", (u + 1) + k * b * u)
+for k in (4, 8):
+    add(f"2-ply, filter k={k}, greedy opponent", (u + 1) + k * b * (u + b * u))
+add("2-ply, k=8, opponent full-width k′=4", (u + 1) + 8 * b * (u + 4 * b * u))
+
+print(f"""
+| configuration | net evals per decision | iMac CPU time |
+|---|---|---|""")
+for name, boards, t in rows:
+    print(f"| {name} | {boards:,} | {t} |")
+
+full_bench = rows[4][1] * 14_693 / CPU_RATE / 3600
+sub_bench = rows[4][1] * 2_000 / CPU_RATE / 3600
+print(f"""
+Formulas: 1-ply ≈ $(u{{+}}1) + k\\,b\\,u$; 2-ply (greedy) ≈ $(u{{+}}1) + k\\,b\\,(u + b\\,u)$,
+with $u$ = {u}, $b$ = {b}, and the innermost $b\\,u$ term shared between picking the
+opponent's reply and evaluating it (leaf reuse). These are *upper bounds*: afterstate
+deduplication across rolls (dancing rolls collapse to one board), forced moves, and
+race positions all shrink real trees — the measured dedup factor at the root alone is
+{DEDUP:.1f}×.
+
+Scale check: scoring the full BGSage benchmark (14,693 decisions) at 2-ply/k=8 costs
+~{rows[4][1] * 14_693 / 1e6:,.0f}M evaluations — ~{full_bench:,.0f} CPU-hours on this iMac,
+or hours on a T4. A 2,000-decision subsample is ~{sub_bench:.0f} CPU-hours. That gap is why
+exp021 sweeps parameters on a pre-registered subsample and reserves full-n scoring for the
+finalists.
+""")
+```
+
+Two engineering notes, so they are on the record before implementation rather than after
+profiling: CPU-bound torch scripts in this repo need `OMP_WAIT_POLICY=PASSIVE` and
+`torch.set_flush_denormal(True)` from day one (both bit earlier experiments); and a
+per-decision evaluation cache keyed by encoded board bytes (the `slot_of` idiom in
+`child_values`, promoted to the whole tree) captures the transpositions that different
+(candidate, roll) paths share.
+
+For calibration on the other side of the table: GNUBG's full-width 2-ply costs
+~**1.3 s/decision** through our harness, and its 0-ply ~10 ms
+([index page](index.qmd) figures). A batched 2-ply Raccoon on a T4 should land in the
+same order of magnitude as GNUBG-2-ply-on-CPU — matched depth will also be roughly
+matched wall-clock, without that being the claim.
+
+## The knobs
+
+Every engine above ended up with the same parameter families. Fixing names now so exp021's
+configs are comparable:
+
+| knob | values | affects |
+|---|---|---|
+| depth $n$ | 0, 1, 2 (GNUBG numbering) | strength & cost |
+| root filter source | policy top-$k$ · value top-$k$ · union | strength & cost |
+| root filter size $k$ / threshold $t$ | e.g. 4, 8, 16 / 0.04–0.16 equity | strength & cost |
+| opponent model | greedy (0-ply pick) · full-width top-$k'$ | strength & cost |
+| bundling / dedup / cache | on | cost only — exact transforms |
+| batch size, device | — | cost only |
+
+The strength-affecting rows are exactly what the experiment must resolve; the cost-only
+rows are correctness-preserving and always on. GNUBG's presets (Normal/Large filters) and
+BGSage's (TINY…HUGE) are points in the same space, which gives us priors: both engines
+ship $k$ in the 5–16 range with thresholds 0.08–0.32, and both accept the greedy opponent.
+
+## exp021, pre-registered
+
+**Hypothesis.** Filtered 2-ply expectimax over `exp018/ep22`'s value head meets or beats
+full-width GNUBG 2-ply at matched ply depth.
+
+**Primary metric.** PR on the BGSage money benchmark, full n=14,693, scored with
+[`eval_benchmark_pr.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/scripts/eval_benchmark_pr.py)
+extended to search configs. Fixed reference points on the identical benchmark: `ep22`
+0-ply = **0.950**, GNUBG 0-ply = **2.145**, GNUBG full-width 2-ply = **0.56**. The
+experiment succeeds if the selected config's full-n PR ≤ GNUBG 2-ply's.
+
+**Protocol.**
+
+1. *Step 0 — instrument.* Measure T4 throughput for ep22 at play batch sizes; compute the
+   subsample PR standard error from ep22's per-decision error distribution (the benchmark
+   files already hold per-decision errors, so this is free).
+2. *Sweep* on a pre-registered subsample (2,000 decisions drawn once with a fixed seed,
+   reused across all configs — paired comparisons): depth {1, 2} × filter source
+   {policy, value, union} × $k$ {4, 8, 16} × opponent {greedy, full-width $k'{=}4$},
+   pruned to configs the throughput measurement says are affordable. Report top-$k$
+   recall of the filter sources as a supporting diagnostic.
+3. *Select and confirm at full n.* The top two sweep configs are re-scored at n=14,693;
+   selection happens there, not on the subsample (winner's-curse guard, per house rules).
+4. *Head-to-head completion.* The selected config plays GNUBG at 2-ply
+   (`candidate_equities`, full width): cubeless money, seats alternated, **VR ppg,
+   n=6,000**, `cv_ply=0`, seed base pre-registered in the pipeline script. Before the run,
+   the benchmark's prediction is stated using exp020's machinery: ppg ≈ ΔPR/500 × 28.0
+   decisions per player-game.
+
+**Power, stated honestly.** At n=6,000 the VR estimator resolved ±0.005 ppg against a
+0-ply opponent (exp019/exp020); against a 2-ply opponent the luck correlation may be
+somewhat lower, so assume ±0.005–0.010. A benchmark win of ΔPR = 0.1 predicts only
+~0.006 ppg — inside the interval. The head-to-head therefore *confirms direction and
+magnitude* of the primary result; it is not powered to independently re-prove a small PR
+edge, and the write-up will say which of the two situations obtained. A clear benchmark
+win (ΔPR ≥ 0.2 → ~0.011+ ppg) is testable head-to-head as well.
+
+**Conclusion template.** *"Does filtered 2-ply expectimax on ep22 beat full-width GNUBG
+2-ply at matched depth? → [answer]: [config] = [PR ± protocol] (BGSage benchmark,
+n=14,693); head-to-head [ppg ± CI] (VR, n=6,000)."*
+
+## References
+
+- GNU Backgammon manual — [Introduction to move filters](https://www.gnu.org/software/gnubg/manual/html_node/Introduction-to-move-filters.html),
+  [Predefined settings](https://www.gnu.org/software/gnubg/manual/html_node/Predefined-settings.html),
+  [Pruning neural networks](https://www.gnu.org/software/gnubg/manual/html_node/Pruning-neural-networks.html).
+  The evaluation-settings chapters are the primary source for filters, presets and the
+  "×400 per ply" cost figure.
+- Open Sage (BGSage) — [`MULTI-PLY.md`](https://github.com/markbgsage/bgsage/blob/main/MULTI-PLY.md),
+  [`ROLLOUT.md`](https://github.com/markbgsage/bgsage/blob/main/ROLLOUT.md),
+  [`XG_COMPARISON.md`](https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md).
+  Complete specifications of a modern engine's multi-ply search and VR rollouts, plus the
+  cross-engine PR ladder used in the figure above.
+- eXtreme Gammon — [studies page](https://www.extremegammon.com/studies.aspx): the 2012
+  cross-bot error-rate study and the GNUBG/XG ply-numbering equivalence.
+- Hauk, T., Buro, M., Schaeffer, J. (2004) —
+  [*Rediscovering \*-Minimax Search*](https://link.springer.com/chapter/10.1007/11674399_3) and
+  [*\*-Minimax Performance in Backgammon*](https://link.springer.com/chapter/10.1007/11674399_4):
+  chance-node cutoffs (Ballard's Star1/Star2) applied to backgammon.
+- Van Lishout, F., Chaslot, G., Uiterwijk, J. (2007) —
+  [*Monte-Carlo Tree Search in Backgammon*](https://www.researchgate.net/publication/228378473_Monte-Carlo_tree_search_in_backgammon):
+  the early MCTS attempt referenced in the candidate analysis.
+- Tesauro, G., Galperin, G. (1996) —
+  [*On-line Policy Improvement using Monte-Carlo Search*](https://proceedings.neurips.cc/paper/1996/hash/996009f2374006606f4c0b0fda878af1-Abstract.html):
+  the original backgammon rollout result, ancestor of every Roller/T-level.
+- Raccoon's own groundwork: [variance-reduced rollouts](variance_reduction.qmd) (the luck
+  machinery candidate C reuses), [exp017](pretraining_analysis.qmd#exp017) (why the
+  remaining gap is search), [MCTS Explained](mcts_explained.md) (the training-side search
+  this page deliberately does not replace).
