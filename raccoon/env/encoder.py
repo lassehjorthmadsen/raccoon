@@ -120,6 +120,44 @@ def channels_for_network(config: dict) -> list[int] | None:
     )
 
 
+def contact_pips(board_view: BoardView) -> tuple[float, float]:
+    """Pips each side must travel before contact is impossible.
+
+    ``my_contact = Σ my_pts[i] × max(0, i - min_opp + 1) + my_bar × (25 - min_opp)``
+    and symmetrically for the opponent, where ``min_opp`` is the opponent's
+    least-advanced position and ``max_my`` my most-advanced one. Checkers on the
+    bar re-enter in the far home board, so they count as maximally contacted:
+    ``opp_bar > 0`` forces ``min_opp = 0`` and ``my_bar > 0`` forces ``max_my = 23``.
+
+    Both values are 0.0 exactly once the sides have passed each other — a pure
+    race. The opening position gives ``my_contact = 167``, the full pip count,
+    which is where the /167 normalisation in :data:`FEATURE_SCALES` comes from; a
+    position with checkers on the bar can exceed it, so callers using this as a
+    [0, 1] dial should clip.
+
+    Feeds channels 24/25 of :func:`encode_state`, and is public so that search can
+    read contact without building a whole (26, 2, 12) tensor
+    (``raccoon/search/expectimax.py`` sizes its filter window from it).
+    """
+    my_pts = board_view.my_points
+    opp_pts = board_view.opp_points
+    opp_occupied = np.flatnonzero(opp_pts)
+    my_occupied = np.flatnonzero(my_pts)
+    have_opp = len(opp_occupied) > 0 or board_view.opp_bar > 0
+    have_my = len(my_occupied) > 0 or board_view.my_bar > 0
+    if not (have_opp and have_my):
+        return 0.0, 0.0
+
+    min_opp = 0 if board_view.opp_bar > 0 else int(opp_occupied[0])
+    max_my = 23 if board_view.my_bar > 0 else int(my_occupied[-1])
+
+    my_contact = float(np.dot(my_pts, np.maximum(0, np.arange(24) - min_opp + 1)))
+    my_contact += board_view.my_bar * (25 - min_opp)
+    opp_contact = float(np.dot(opp_pts, np.maximum(0, max_my - np.arange(24) + 1)))
+    opp_contact += board_view.opp_bar * (max_my + 2)
+    return my_contact, opp_contact
+
+
 def encode_state(
     board_view: BoardView,
     channels: list[int] | None = None,
@@ -211,34 +249,7 @@ def encode_state(
     tensor[23, :, :] = float(np.sum(opp_pts[0:6] >= 2))
 
     # Contact pressure: pips needed to fully break contact.
-    # my_contact = Σ my_pts[i] × max(0, i - min_opp + 1)
-    #   + my_bar × (25 - min_opp)   (bar re-enters at index 24, must clear min_opp)
-    # opp_contact = Σ opp_pts[j] × max(0, max_my - j + 1)
-    #   + opp_bar × (max_my + 2)    (bar re-enters at index -1, must clear max_my)
-    # min_opp: opp's least-advanced position. If opp has bar checkers, they will
-    #   re-enter on my home board (indices 0-5), so min_opp = 0.
-    # max_my: my most-advanced position. If I have bar checkers, they will
-    #   re-enter on opp's home board (indices 18-23), so max_my = 23.
-    opp_occupied = np.flatnonzero(opp_pts)
-    my_occupied = np.flatnonzero(my_pts)
-    have_opp = len(opp_occupied) > 0 or board_view.opp_bar > 0
-    have_my = len(my_occupied) > 0 or board_view.my_bar > 0
-    if have_opp and have_my:
-        if board_view.opp_bar > 0:
-            min_opp = 0  # bar checkers re-enter on my home board
-        else:
-            min_opp = int(opp_occupied[0])
-        if board_view.my_bar > 0:
-            max_my = 23  # bar checkers re-enter on opp's home board
-        else:
-            max_my = int(my_occupied[-1])
-        my_contact = float(np.dot(my_pts, np.maximum(0, np.arange(24) - min_opp + 1)))
-        my_contact += board_view.my_bar * (25 - min_opp)
-        opp_contact = float(np.dot(opp_pts, np.maximum(0, max_my - np.arange(24) + 1)))
-        opp_contact += board_view.opp_bar * (max_my + 2)
-    else:
-        my_contact = 0.0
-        opp_contact = 0.0
+    my_contact, opp_contact = contact_pips(board_view)
     tensor[24, :, :] = my_contact
     tensor[25, :, :] = opp_contact
 

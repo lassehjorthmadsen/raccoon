@@ -29,7 +29,8 @@ from raccoon.env.game_wrapper import GameState
 from raccoon.eval.gnubg_adapter import board_from_view, board_to_view
 from raccoon.search.expectimax import (
     ROLLS, SearchConfig, _children, _Evaluator, _terminal_value,
-    board26_to_slots, gate_skips, pass_turn, search_values,
+    board26_to_slots, contact_fraction, gate_skips, pass_turn, search_values,
+    window_for_contact,
 )
 from raccoon.train.lookahead import child_values
 
@@ -344,3 +345,87 @@ def test_board26_conversion_matches_benchmark_encoder():
             [list(s) for s in pass_turn(board26_to_slots(board26))]
         ))
         np.testing.assert_array_equal(ours, theirs)
+
+
+# --- exp022: contact-dependent filter window ---------------------------------
+
+def _race_board():
+    """A pure race: my checkers all past the opponent's, so contact is 0."""
+    me = [0] * 25
+    opp = [0] * 25
+    me[0] = 15          # all mine on my ace point
+    opp[0] = 15         # all theirs on their ace point (past each other)
+    return (tuple(opp), tuple(me))
+
+
+def test_contact_fraction_spans_race_to_opening():
+    """The dial reads 0 in a pure race and 1 at the opening."""
+    import gnubg_nn
+    b = gnubg_nn.board_from_position_id("4HPwATDgc/ABMA")
+    opening = (tuple(b[0]), tuple(b[1]))
+    assert contact_fraction(opening) == pytest.approx(1.0)
+    assert contact_fraction(_race_board()) == pytest.approx(0.0)
+
+
+def test_window_interpolates_with_contact():
+    """Window is window_lo in a race, window_hi at the opening, linear between."""
+    import gnubg_nn
+    b = gnubg_nn.board_from_position_id("4HPwATDgc/ABMA")
+    opening = (tuple(b[0]), tuple(b[1]))
+    cfg = SearchConfig(window_lo=0.04, window_hi=0.32)
+    assert window_for_contact(cfg, _race_board()) == pytest.approx(0.04)
+    assert window_for_contact(cfg, opening) == pytest.approx(0.32)
+    # A fixed config ignores the position entirely.
+    fixed = SearchConfig(threshold=0.16)
+    assert window_for_contact(fixed, opening) == pytest.approx(0.16)
+    assert window_for_contact(fixed, None) == pytest.approx(0.16)
+
+
+def test_smooth_window_requires_the_root():
+    """Falling back to the fixed threshold would be invisible in the results."""
+    cfg = SearchConfig(window_lo=0.04, window_hi=0.32)
+    with pytest.raises(ValueError, match="root position"):
+        window_for_contact(cfg, None)
+
+
+def test_window_endpoints_must_be_set_together():
+    with pytest.raises(ValueError, match="together"):
+        SearchConfig(window_lo=0.04)
+
+
+def test_fixed_window_is_unchanged_bit_for_bit():
+    """The exp022 plumbing must be inert unless a smooth window is requested."""
+    net = _HashNet()
+    state = _random_states(1, seed=33, skip=9)[0]
+    dice = state.board_from_perspective().dice
+    root = _state_to_board(state)
+    candidates = _children(root, *sorted(dice, reverse=True))
+    without_root, n1 = search_values(candidates, net, CPU, SearchConfig(depth=1))
+    with_root, n2 = search_values(
+        candidates, net, CPU, SearchConfig(depth=1), root=root,
+    )
+    np.testing.assert_array_equal(without_root, with_root)
+    assert n1 == n2
+
+
+def test_narrow_window_searches_only_the_static_best():
+    """As the window closes, the filter keeps one move and the search degenerates.
+
+    This is how "spend nothing on races" falls out of the same dial, so it needs
+    to hold exactly rather than approximately.
+    """
+    net = _HashNet()
+    state = _random_states(1, seed=41, skip=11)[0]
+    dice = state.board_from_perspective().dice
+    root = _state_to_board(state)
+    candidates = _children(root, *sorted(dice, reverse=True))
+    if len(candidates) < 3:
+        pytest.skip("need a decision with several candidates")
+    narrow = SearchConfig(depth=1, window_lo=0.0, window_hi=0.0, gate=0.0)
+    values, _ = search_values(candidates, net, CPU, narrow, root=root)
+    static, _ = search_values(candidates, net, CPU, SearchConfig(depth=0), root=root)
+    # Exactly one candidate -- the static best -- may differ from its static value.
+    changed = np.flatnonzero(values != static)
+    assert len(changed) <= 1
+    if len(changed) == 1:
+        assert changed[0] == int(np.argmax(static))

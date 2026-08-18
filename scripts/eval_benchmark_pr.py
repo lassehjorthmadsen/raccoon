@@ -419,6 +419,7 @@ def score_raccoon(
             candidates = [pass_turn(board26_to_slots(m["board"])) for m in dec["moves"]]
             values, n_evals = search_values(
                 candidates, network, device, search_cfg, channels=channels,
+                root=board26_to_slots(dec["board"]),
             )
             total_evals += n_evals
             predicted_eqs = [float(v * 3.0) for v in values]
@@ -500,6 +501,8 @@ def score_raccoon(
             "k": search_cfg.k,
             "k2": search_cfg.k2,
             "threshold": search_cfg.threshold,
+            "window_lo": search_cfg.window_lo,
+            "window_hi": search_cfg.window_hi,
             "gate": search_cfg.gate,
             "tag": search_cfg.tag(),
             "evals_per_decision": total_evals / n_total if n_total else 0.0,
@@ -779,6 +782,15 @@ def main():
         help="skip the search when the static top-2 gap exceeds this (0 disables)",
     )
     parser.add_argument(
+        "--window-lo", type=float, default=None,
+        help="exp022: equity window in a pure race; with --window-hi this replaces the "
+             "constant --search-threshold by one that scales with contact",
+    )
+    parser.add_argument(
+        "--window-hi", type=float, default=None,
+        help="exp022: equity window at full contact (opening position)",
+    )
+    parser.add_argument(
         "--max-positions", type=int, default=None,
         help="Limit number of decisions scored (for quick testing)",
     )
@@ -826,6 +838,7 @@ def main():
         search_cfg = SearchConfig(
             depth=args.search_depth, k=args.search_k, k2=args.search_k2,
             threshold=args.search_threshold, gate=args.search_gate,
+            window_lo=args.window_lo, window_hi=args.window_hi,
         )
         print(f"Search: {search_cfg.tag()}\n")
 

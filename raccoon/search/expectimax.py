@@ -39,7 +39,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from raccoon.env.encoder import encode_state
+from raccoon.env.encoder import contact_pips, encode_state
 from raccoon.eval.gnubg_adapter import board_to_view, terminal_equity_after_move
 
 import gnubg_nn
@@ -74,6 +74,16 @@ class SearchConfig:
     the scale the gate's cost bound was derived on. Internally the search works in
     equity/3, so both are divided by 3 at the point of comparison rather than
     being silently three times wider than they read.
+
+    ``window_lo``/``window_hi`` (exp022) make the window a function of how much
+    contact the position still has instead of a constant: ``window_lo`` applies in
+    a pure race, ``window_hi`` at full contact, interpolated linearly in between
+    (see :func:`window_for_contact`). Leaving ``window_lo`` as ``None`` — the
+    default — keeps the constant ``threshold``, unchanged to the last bit.
+
+    The window is the knob worth varying: measured on the exp018/ep22 benchmark
+    dump it admits a median of 5 candidates at ``threshold=0.16``, and is what
+    binds rather than ``k`` in 72% of decisions, so ``k`` mostly acts as a cap.
     """
 
     depth: int = 1
@@ -82,16 +92,25 @@ class SearchConfig:
     threshold: float = 0.16
     gate: float = 0.08
     batch_size: int = 512
+    window_lo: float | None = None
+    window_hi: float | None = None
 
     def __post_init__(self) -> None:
         if self.depth < 0:
             raise ValueError(f"depth must be >= 0, got {self.depth}")
         if self.k < 1 or self.k2 < 1:
             raise ValueError(f"k and k2 must be >= 1, got k={self.k}, k2={self.k2}")
+        if (self.window_lo is None) != (self.window_hi is None):
+            raise ValueError("window_lo and window_hi must be set together")
 
     def tag(self) -> str:
         """Short identifier for filenames and result records."""
-        return f"d{self.depth}_k{self.k}_k2{self.k2}_t{self.threshold}_g{self.gate}"
+        base = f"d{self.depth}_k{self.k}_k2{self.k2}"
+        window = (
+            f"_t{self.threshold}" if self.window_lo is None
+            else f"_w{self.window_lo}-{self.window_hi}"
+        )
+        return f"{base}{window}_g{self.gate}"
 
 
 def board26_to_slots(board26: list[int]) -> Board:
@@ -281,8 +300,40 @@ def gate_skips(static_values: np.ndarray, gate: float) -> bool:
     return bool(abs(top2[1] - top2[0]) > gate / 3.0)
 
 
+def contact_fraction(board: Board) -> float:
+    """How much contact the position still has, in [0, 1].
+
+    1.0 at the opening, 0.0 once the sides have passed each other. Averages the
+    two sides' :func:`~raccoon.env.encoder.contact_pips` (one side can be free
+    while the other is not) and clips, since checkers on the bar can push the raw
+    pip count above the 167 the opening scores.
+    """
+    my_contact, opp_contact = contact_pips(board_to_view([list(board[0]), list(board[1])]))
+    return min(1.0, (my_contact + opp_contact) / 2.0 / 167.0)
+
+
+def window_for_contact(cfg: SearchConfig, board: Board | None) -> float:
+    """The filter's equity window for this position.
+
+    Constant ``cfg.threshold`` unless ``window_lo``/``window_hi`` are set, in which
+    case it interpolates linearly with contact: narrow in a race, wide in a
+    tactical position. As the window approaches zero only the static-best move
+    clears it, so "spend nothing on races" is the same dial rather than a special
+    case.
+    """
+    if cfg.window_lo is None:
+        return cfg.threshold
+    if board is None:
+        # Silently falling back to the fixed threshold would make a smooth config
+        # score as the fixed one, which is indistinguishable in the results.
+        raise ValueError("a contact-dependent window needs the root position")
+    c = contact_fraction(board)
+    return cfg.window_lo + (cfg.window_hi - cfg.window_lo) * c
+
+
 def search_values(
     candidates: list[Board], network, device, cfg: SearchConfig, channels=None,
+    root: Board | None = None,
 ) -> tuple[np.ndarray, int]:
     """Rank one decision's candidate afterstates. Returns ``(values, n_evals)``.
 
@@ -295,6 +346,11 @@ def search_values(
     Candidates that survive neither filter keep their static value, which is
     sound because the filters only ever drop moves that are already behind: a
     dropped move cannot win the argmax either way.
+
+    ``root`` is the pre-move position, needed only when the window is
+    contact-dependent. It must be passed rather than inferred: an afterstate's
+    contact is *close* to the root's but not equal, and a filter width that
+    depends on which candidate happens to be first is not reproducible.
     """
     ev = _Evaluator(network, device, channels, cfg.batch_size)
 
@@ -313,7 +369,8 @@ def search_values(
     values = static.copy()
     order = np.argsort(-static)
     best = static[order[0]]
-    keep = [i for i in order[:cfg.k] if best - static[i] <= cfg.threshold / 3.0]
+    window = window_for_contact(cfg, root)
+    keep = [i for i in order[:cfg.k] if best - static[i] <= window / 3.0]
     # Terminal candidates are already exact; searching them would be wasted work.
     keep = [i for i in keep if terminal[i] is None]
 
