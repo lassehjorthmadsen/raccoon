@@ -1,0 +1,35 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 2000 decisions, seed 21)
+
+Scoring raccoon: ep22_d0_subsample_baseline (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_d0_subsample_baseline] 500/2000 (94s, ~282s remaining)
+  [ep22_d0_subsample_baseline] 1000/2000 (189s, ~189s remaining)
+  [ep22_d0_subsample_baseline] 1500/2000 (287s, ~96s remaining)
+  [ep22_d0_subsample_baseline] 2000/2000 (387s, ~0s remaining)
+  [ep22_d0_subsample_baseline] Done: 2000 decisions in 387.1s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 2000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_d0_subsample_baseline         1.03   2000      5    0.10    1.43    0.87    0.87    1.48
+
+  (N per plan)                                              236     401     573     350     440
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_d0_subsample_baseline              0.9968   0.0019    22397        0.9939   0.0019     7695        0.9948   0.0014    15763        0.9961   0.0017    45855
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/ep22_d0_subsample_baseline.json
+  Saved: experiments/exp021-search/results/summary.json

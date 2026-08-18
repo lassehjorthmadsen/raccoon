@@ -1,0 +1,45 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 2000 decisions, seed 21)
+
+Scoring GNUBG 1-ply...
+  [GNUBG 1-ply] 500/2000 (30s, ~91s remaining)
+  [GNUBG 1-ply] 1000/2000 (59s, ~59s remaining)
+  [GNUBG 1-ply] 1500/2000 (89s, ~30s remaining)
+  [GNUBG 1-ply] 2000/2000 (118s, ~0s remaining)
+  [GNUBG 1-ply] Done: 2000 decisions in 117.9s
+
+Scoring GNUBG 2-ply...
+  [GNUBG 2-ply] 500/2000 (155s, ~466s remaining)
+  [GNUBG 2-ply] 1000/2000 (359s, ~359s remaining)
+  [GNUBG 2-ply] 1500/2000 (558s, ~186s remaining)
+  [GNUBG 2-ply] 2000/2000 (730s, ~0s remaining)
+  [GNUBG 2-ply] Done: 2000 decisions in 729.6s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 2000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  GNUBG 1-ply                        1.18   2000      4    0.17    1.84    1.06    1.24    1.22
+  GNUBG 2-ply                        0.59   2000      3    0.04    0.96    0.45    0.42    0.85
+
+  (N per plan)                                              236     401     573     350     440
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  GNUBG 1-ply                             0.9968   0.0019    22397        0.9936   0.0020     7695        0.9964   0.0010    15763        0.9964   0.0016    45855
+  GNUBG 2-ply                             0.9967   0.0019    22397        0.9946   0.0017     7695        0.9988   0.0003    15763        0.9970   0.0013    45855
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/gnubg_1_ply.json
+  Saved: experiments/exp021-search/results/gnubg_2_ply.json
+  Saved: experiments/exp021-search/results/summary.json

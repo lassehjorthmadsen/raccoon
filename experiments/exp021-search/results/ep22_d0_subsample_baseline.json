@@ -1,0 +1,62 @@
+{
+  "engine_label": "ep22_d0_subsample_baseline",
+  "pr": 1.0263386181449268,
+  "n": 2000,
+  "total_error": 4.105354472579707,
+  "blunders": 5,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.10102131336239614,
+      "n": 236,
+      "total_error": 0.047682059907050975,
+      "blunders": 0
+    },
+    "racing": {
+      "pr": 1.4288644216113555,
+      "n": 401,
+      "total_error": 1.1459492661323072,
+      "blunders": 1
+    },
+    "attacking": {
+      "pr": 0.8693499337506602,
+      "n": 573,
+      "total_error": 0.9962750240782565,
+      "blunders": 2
+    },
+    "priming": {
+      "pr": 0.8730005631620594,
+      "n": 350,
+      "total_error": 0.6111003942134415,
+      "blunders": 0
+    },
+    "anchoring": {
+      "pr": 1.4822133275552847,
+      "n": 440,
+      "total_error": 1.3043477282486506,
+      "blunders": 2
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9967757671281405,
+      "mse": 0.0018989518110142968,
+      "n_positions": 22397
+    },
+    "3T": {
+      "r2": 0.9938569364605707,
+      "mse": 0.0019201855545838652,
+      "n_positions": 7695
+    },
+    "3P": {
+      "r2": 0.994754614483597,
+      "mse": 0.0014133669820599651,
+      "n_positions": 15763
+    },
+    "all": {
+      "r2": 0.9960684260166618,
+      "mse": 0.0017355916539531406,
+      "n_positions": 45855
+    }
+  },
+  "checkpoint": "experiments/exp018-distill/checkpoints/ep22.pt"
+}

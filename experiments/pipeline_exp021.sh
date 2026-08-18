@@ -131,6 +131,20 @@ fi
 
 # --- stage 3: sweep on the fixed subsample ----------------------------------
 echo "=== stage 3: config sweep (subsample n=$SUB, seed $SUB_SEED) ===" | tee -a "$LOG"
+# Paired baselines on the SAME subsample. Comparing a subsampled search config
+# against the full-n static number would confound the search effect with
+# subsample difficulty (this subsample runs harder than average: ep22 static
+# scores 1.026 here vs 0.950 at full n). Every arm below is scored on identical
+# decisions, so the comparison is paired and most position-difficulty variance
+# cancels.
+run "$PY" scripts/eval_benchmark_pr.py \
+    --benchmark "$BENCH" --checkpoint "$CKPT" \
+    --engine-label "ep22_d0_subsample_baseline" --search-depth 0 \
+    --subsample "$SUB" --subsample-seed "$SUB_SEED" --output "$EXP/results"
+run "$PY" scripts/eval_benchmark_pr.py \
+    --benchmark "$BENCH" --gnubg-ply 1 --gnubg-ply 2 --workers "$WORKERS" \
+    --subsample "$SUB" --subsample-seed "$SUB_SEED" --output "$EXP/results"
+
 sweep() {  # depth k k2 threshold gate
     run "$PY" scripts/eval_benchmark_pr.py \
         --benchmark "$BENCH" --checkpoint "$CKPT" \
