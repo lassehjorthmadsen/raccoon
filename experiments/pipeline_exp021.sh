@@ -27,9 +27,10 @@
 #     ep22 0-ply      0.950     (experiments/exp018-benchmark/results/)
 #     GNUBG 0-ply     2.145
 #     GNUBG 2-ply     0.56
-# GNUBG 1-ply is the matched-depth opponent and is UNMEASURED — stage 2 measures
-# it before any Raccoon search config is scored, so the bar is set independently
-# of our own result.
+# GNUBG 1-ply is the matched-depth opponent. Stage 2 measured it at **1.206**
+# (n=14,693) BEFORE any Raccoon search config was scored, so the bar was set
+# independently of our own result. Note what that already implies: ep22 with no
+# search (0.950) is ahead of GNUBG with a full ply of it.
 # SE(PR) from the exp018/ep22 per-decision error distribution: +/-0.032 at
 # n=14,693, +/-0.087 at n=2,000. The subsample therefore resolves config gaps of
 # ~0.25 PR and no finer; close calls go to full n by construction.
@@ -66,9 +67,23 @@
 #   * The full-width opponent arm is likewise deferred: ~13x the cost of greedy at
 #     depth 2, which local compute cannot absorb.
 #
-# COST, measured (stage 0), on lasse-iMac14-2, ep22 at ~400 boards/s:
-#   see experiments/exp021-search/logs/stage0_spike.log for the table this run
-#   was budgeted from.
+# COST, measured (stage 0) on lasse-iMac14-2, ep22 at ~360 boards/s effective
+# (400 raw; the search adds ~10% for generation, encoding and bookkeeping):
+#
+#   config                      evals/dec   s/dec   full-n h   n=2000 h
+#   depth 0 (today)                    26    0.09        0.4        0.1
+#   d1 k=4  t=0.16 gate=0.08        1,604    4.35       17.8        2.4
+#   d1 k=8  t=0.16 gate=0.08        2,314    6.19       25.3        3.4
+#   d2 k=8  k2=2   gate=0.08       10,077   26.88      109.7       14.9
+#
+# The gate was verified empirically, not just derived: over 400 random decisions
+# it skipped 26.0% at gate 0.08, against 26.3% predicted from the exp018 dump.
+# NOTE both --search-threshold and --search-gate are in EQUITY units (the +/-3
+# scale), matching how GNUBG and BGSage quote their filters and how the gate
+# bound was derived. The search works internally in equity/3.
+#
+# Sweep total ~29 h; full-n 1-ply ~25 h; full-n 2-ply ~110 h (4.6 days), which is
+# why stage 4's 2-ply leg is run once, for the selected config only.
 #
 # OUTPUTS. experiments/exp021-search/{logs,results}/ — both committed with the
 # write-up (docs/search.qmd, section exp021), since the qmd computes its tables
@@ -91,35 +106,49 @@ mkdir -p "$EXP/logs" "$EXP/results"
 LOG="$EXP/logs/exp021.log"
 run() { echo "=== $* ===" | tee -a "$LOG"; "$@" 2>&1 | tee -a "$LOG"; }
 
-echo "exp021 started $(date -Is) on $(hostname)" | tee -a "$LOG"
+# STAGES selects which stages to run (default all), so a completed stage is not
+# repeated on a resume: STAGES=3 ./experiments/pipeline_exp021.sh
+STAGES="${STAGES:-1 2 3}"
+stage_wanted() { [[ " $STAGES " == *" $1 "* ]]; }
+
+echo "exp021 started $(date -Is) on $(hostname), stages: $STAGES" | tee -a "$LOG"
 
 # --- stage 1: harness-correctness control (gates everything below) -----------
+if stage_wanted 1; then
 echo "=== stage 1: depth-0 regression, must reproduce PR 0.9498 ===" | tee -a "$LOG"
 run "$PY" scripts/eval_benchmark_pr.py \
     --benchmark "$BENCH" --checkpoint "$CKPT" --engine-label "ep22_depth0_control" \
     --search-depth 0 --output "$EXP/results"
+fi
 
 # --- stage 2: the matched-depth bar, measured before our own configs ---------
+if stage_wanted 2; then
 echo "=== stage 2: GNUBG 1-ply reference (full n) ===" | tee -a "$LOG"
 run "$PY" scripts/eval_benchmark_pr.py \
     --benchmark "$BENCH" --gnubg-ply 1 --workers "$WORKERS" \
     --output "$EXP/results"
+fi
 
 # --- stage 3: sweep on the fixed subsample ----------------------------------
 echo "=== stage 3: config sweep (subsample n=$SUB, seed $SUB_SEED) ===" | tee -a "$LOG"
-sweep() {  # depth k k2 gate
+sweep() {  # depth k k2 threshold gate
     run "$PY" scripts/eval_benchmark_pr.py \
         --benchmark "$BENCH" --checkpoint "$CKPT" \
-        --engine-label "ep22_d$1_k$2_k2$3_g$4" \
-        --search-depth "$1" --search-k "$2" --search-k2 "$3" --search-gate "$4" \
+        --engine-label "ep22_d$1_k$2_k2$3_t$4_g$5" \
+        --search-depth "$1" --search-k "$2" --search-k2 "$3" \
+        --search-threshold "$4" --search-gate "$5" \
         --subsample "$SUB" --subsample-seed "$SUB_SEED" \
         --output "$EXP/results"
 }
-sweep 1 4 2 0.08
-sweep 1 8 2 0.08
-sweep 1 8 2 0.05
-sweep 1 16 2 0.08
-sweep 2 8 2 0.08
+# The first three are this project's analogues of the filters the reference
+# engines ship, so the sweep answers "which published filter setting suits our
+# network" rather than exploring an arbitrary grid. k is swept with the
+# threshold because the threshold binds first at these widths.
+sweep 1 8  2 0.16 0.08     # GNUBG Normal — run first, it is the canonical setting
+sweep 1 5  2 0.08 0.08     # BGSage TINY
+sweep 1 16 2 0.32 0.08     # GNUBG Large
+sweep 1 8  2 0.16 0.05     # gate sensitivity, same filter as GNUBG Normal
+sweep 2 8  2 0.16 0.08     # the depth question, at the middle filter
 
 echo "exp021 sweep finished $(date -Is)" | tee -a "$LOG"
 echo "Select the best config, then run stage 4 (full n) explicitly:" | tee -a "$LOG"

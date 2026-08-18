@@ -294,11 +294,20 @@ def test_dedup_actually_fires():
 
 
 def test_gate_skips_lopsided_decisions():
-    """The gate fires only when the static pick is already clear."""
+    """The gate fires only when the static pick is already clear.
+
+    The gate is quoted in equity (+/-3) while the values are equity/3, so a gate
+    of 0.08 is a gap of 0.0267 in value units. Getting that conversion wrong
+    would make the gate three times more aggressive than the bound it was
+    derived under, silently discarding real PR.
+    """
     assert gate_skips(np.array([0.5, 0.1, 0.0]), gate=0.08)
     assert not gate_skips(np.array([0.5, 0.49, 0.0]), gate=0.08)
     assert not gate_skips(np.array([0.5, 0.1]), gate=0.0)
     assert not gate_skips(np.array([0.5]), gate=0.08)
+    # 0.03 in value units is 0.09 equity: inside a 0.10 gate, outside a 0.08 one.
+    assert not gate_skips(np.array([0.50, 0.47]), gate=0.10)
+    assert gate_skips(np.array([0.50, 0.47]), gate=0.08)
 
 
 def test_gate_short_circuits_to_static_values():

@@ -1,0 +1,59 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ep22_depth0_control (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_depth0_control] 500/14693 (42s, ~1180s remaining)
+  [ep22_depth0_control] 1000/14693 (80s, ~1099s remaining)
+  [ep22_depth0_control] 1500/14693 (119s, ~1048s remaining)
+  [ep22_depth0_control] 2000/14693 (158s, ~1004s remaining)
+  [ep22_depth0_control] 2500/14693 (197s, ~961s remaining)
+  [ep22_depth0_control] 3000/14693 (237s, ~922s remaining)
+  [ep22_depth0_control] 3500/14693 (275s, ~880s remaining)
+  [ep22_depth0_control] 4000/14693 (314s, ~839s remaining)
+  [ep22_depth0_control] 4500/14693 (353s, ~799s remaining)
+  [ep22_depth0_control] 5000/14693 (392s, ~760s remaining)
+  [ep22_depth0_control] 5500/14693 (428s, ~715s remaining)
+  [ep22_depth0_control] 6000/14693 (465s, ~674s remaining)
+  [ep22_depth0_control] 6500/14693 (504s, ~635s remaining)
+  [ep22_depth0_control] 7000/14693 (545s, ~599s remaining)
+  [ep22_depth0_control] 7500/14693 (588s, ~564s remaining)
+  [ep22_depth0_control] 8000/14693 (632s, ~529s remaining)
+  [ep22_depth0_control] 8500/14693 (674s, ~491s remaining)
+  [ep22_depth0_control] 9000/14693 (718s, ~454s remaining)
+  [ep22_depth0_control] 9500/14693 (758s, ~414s remaining)
+  [ep22_depth0_control] 10000/14693 (797s, ~374s remaining)
+  [ep22_depth0_control] 10500/14693 (837s, ~334s remaining)
+  [ep22_depth0_control] 11000/14693 (878s, ~295s remaining)
+  [ep22_depth0_control] 11500/14693 (916s, ~254s remaining)
+  [ep22_depth0_control] 12000/14693 (957s, ~215s remaining)
+  [ep22_depth0_control] 12500/14693 (998s, ~175s remaining)
+  [ep22_depth0_control] 13000/14693 (1036s, ~135s remaining)
+  [ep22_depth0_control] 13500/14693 (1078s, ~95s remaining)
+  [ep22_depth0_control] 14000/14693 (1119s, ~55s remaining)
+  [ep22_depth0_control] 14500/14693 (1159s, ~15s remaining)
+  [ep22_depth0_control] Done: 14693 decisions in 1174.1s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_depth0_control                0.95  14693     19    0.13    1.09    0.95    1.03    1.22
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_depth0_control                     0.9968   0.0019   149113        0.9941   0.0019    61917        0.9950   0.0014   116421        0.9961   0.0017   327451
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/ep22_depth0_control.json
+  Saved: experiments/exp021-search/results/summary.json

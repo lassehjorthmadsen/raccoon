@@ -67,6 +67,13 @@ class SearchConfig:
     the best ``k2`` of those are then searched at the full ``depth`` (BGSage's
     iterative-deepening filter chain, MULTI-PLY.md section 8). ``k2`` is unused
     at ``depth <= 1``, where one pass answers the question.
+
+    ``threshold`` and ``gate`` are in **equity units** (the +/-3 scale a plain win
+    is 1 on), because that is the scale GNUBG and BGSage quote their filters on —
+    GNUBG's "Normal" keeps 8 moves within 0.16, BGSage's TINY 5 within 0.08 — and
+    the scale the gate's cost bound was derived on. Internally the search works in
+    equity/3, so both are divided by 3 at the point of comparison rather than
+    being silently three times wider than they read.
     """
 
     depth: int = 1
@@ -258,16 +265,20 @@ def _search(boards: list[Board], depth: int, ev: _Evaluator) -> np.ndarray:
 def gate_skips(static_values: np.ndarray, gate: float) -> bool:
     """Whether a decision is lopsided enough that searching cannot change it.
 
-    ``static_values`` are the candidates' values to the *mover* (higher is
-    better). When the best candidate leads the runner-up by more than ``gate``
-    the search is skipped and the static pick stands. The cost of this is
-    bounded in advance: on the exp018/ep22 benchmark dump, a gate of 0.08 skips
-    26% of decisions while capping the PR sacrificed at 0.002.
+    ``static_values`` are the candidates' values to the *mover* in [-1, 1]
+    (higher is better); ``gate`` is in equity units, so it is scaled to match.
+    When the best candidate leads the runner-up by more than the gate, the
+    search is skipped and the static pick stands.
+
+    The cost of this is bounded in advance rather than hoped for: on the
+    committed exp018/ep22 benchmark dump, a gate of 0.08 skips 26% of decisions
+    while sacrificing at most 0.002 PR, and a gate of 0.05 skips 36% for at most
+    0.027 PR.
     """
     if gate <= 0.0 or len(static_values) < 2:
         return False
     top2 = np.partition(static_values, -2)[-2:]
-    return bool(abs(top2[1] - top2[0]) > gate)
+    return bool(abs(top2[1] - top2[0]) > gate / 3.0)
 
 
 def search_values(
@@ -278,7 +289,8 @@ def search_values(
     ``candidates`` are the positions *after* each legal move, with the opponent
     on roll. The returned values are from the **mover's** point of view in
     [-1, 1] (higher is better), directly comparable with the static values
-    ``lookahead.child_values`` produces.
+    ``lookahead.child_values`` produces. Note the asymmetry with ``cfg``: values
+    are in equity/3, while ``cfg.threshold`` and ``cfg.gate`` are in equity.
 
     Candidates that survive neither filter keep their static value, which is
     sound because the filters only ever drop moves that are already behind: a
@@ -301,7 +313,7 @@ def search_values(
     values = static.copy()
     order = np.argsort(-static)
     best = static[order[0]]
-    keep = [i for i in order[:cfg.k] if best - static[i] <= cfg.threshold]
+    keep = [i for i in order[:cfg.k] if best - static[i] <= cfg.threshold / 3.0]
     # Terminal candidates are already exact; searching them would be wasted work.
     keep = [i for i in keep if terminal[i] is None]
 

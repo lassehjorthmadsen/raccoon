@@ -1,0 +1,14 @@
+config                           n  evals/dec   s/dec  full-n h  n=2000 h
+d0_k8_k22_t0.16_g0.08           40         26    0.09       0.4       0.1
+d1_k4_k22_t0.16_g0.08           20       1328    3.67      15.0       2.0
+d1_k8_k22_t0.16_g0.08           20       2472    6.81      27.8       3.8
+d1_k8_k22_t0.16_g0.0            10       3146    8.69      35.5       4.8
+d2_k8_k22_t0.16_g0.08            5       9305   25.67     104.8      14.3
+gate skip rates (predicted from the exp018/ep22 dump in brackets):
+  gate 0.05: 32.2% skipped  [36.5%]
+  gate 0.08: 26.0% skipped  [26.3%]
+
+config                           n  evals/dec   s/dec  full-n h  n=2000 h
+d1_k4_k22_t0.16_g0.08           15       1604    4.35      17.8       2.4
+d1_k8_k22_t0.16_g0.08           15       2314    6.19      25.3       3.4
+d2_k8_k22_t0.16_g0.08            5      10077   26.88     109.7      14.9

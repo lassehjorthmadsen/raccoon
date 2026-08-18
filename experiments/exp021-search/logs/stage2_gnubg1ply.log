@@ -1,0 +1,59 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring GNUBG 1-ply...
+  [GNUBG 1-ply] 500/14693 (27s, ~775s remaining)
+  [GNUBG 1-ply] 1000/14693 (54s, ~746s remaining)
+  [GNUBG 1-ply] 1500/14693 (77s, ~682s remaining)
+  [GNUBG 1-ply] 2000/14693 (102s, ~647s remaining)
+  [GNUBG 1-ply] 2500/14693 (128s, ~626s remaining)
+  [GNUBG 1-ply] 3000/14693 (153s, ~597s remaining)
+  [GNUBG 1-ply] 3500/14693 (175s, ~559s remaining)
+  [GNUBG 1-ply] 4000/14693 (193s, ~516s remaining)
+  [GNUBG 1-ply] 4500/14693 (217s, ~492s remaining)
+  [GNUBG 1-ply] 5000/14693 (242s, ~469s remaining)
+  [GNUBG 1-ply] 5500/14693 (263s, ~440s remaining)
+  [GNUBG 1-ply] 6000/14693 (286s, ~414s remaining)
+  [GNUBG 1-ply] 6500/14693 (307s, ~387s remaining)
+  [GNUBG 1-ply] 7000/14693 (332s, ~365s remaining)
+  [GNUBG 1-ply] 7500/14693 (359s, ~344s remaining)
+  [GNUBG 1-ply] 8000/14693 (383s, ~320s remaining)
+  [GNUBG 1-ply] 8500/14693 (408s, ~297s remaining)
+  [GNUBG 1-ply] 9000/14693 (432s, ~273s remaining)
+  [GNUBG 1-ply] 9500/14693 (456s, ~250s remaining)
+  [GNUBG 1-ply] 10000/14693 (480s, ~225s remaining)
+  [GNUBG 1-ply] 10500/14693 (500s, ~200s remaining)
+  [GNUBG 1-ply] 11000/14693 (525s, ~176s remaining)
+  [GNUBG 1-ply] 11500/14693 (544s, ~151s remaining)
+  [GNUBG 1-ply] 12000/14693 (567s, ~127s remaining)
+  [GNUBG 1-ply] 12500/14693 (588s, ~103s remaining)
+  [GNUBG 1-ply] 13000/14693 (616s, ~80s remaining)
+  [GNUBG 1-ply] 13500/14693 (640s, ~57s remaining)
+  [GNUBG 1-ply] 14000/14693 (666s, ~33s remaining)
+  [GNUBG 1-ply] 14500/14693 (689s, ~9s remaining)
+  [GNUBG 1-ply] Done: 14693 decisions in 696.2s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  GNUBG 1-ply                        1.21  14693     25    0.17    1.57    1.16    1.40    1.35
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  GNUBG 1-ply                             0.9968   0.0019   149113        0.9940   0.0019    61917        0.9965   0.0010   116421        0.9964   0.0016   327451
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/gnubg_1_ply.json
+  Saved: experiments/exp021-search/results/summary.json
