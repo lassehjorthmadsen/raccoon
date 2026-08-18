@@ -5,32 +5,27 @@ toc-depth: 2
 jupyter: python3
 ---
 
-Raccoon's current best network wins **+0.047 ± 0.003 points per game** against GNU Backgammon
-over 18,000 cubeless money games ([exp020](variance_reduction.qmd#exp020), checkpoint
-`exp018/ep22`, VR ppg, n=18,000) — but only when GNUBG is held at **0-ply**, its raw
-network with no lookahead. Let GNUBG search and the picture inverts: on the
-[BGSage money benchmark](pretraining_analysis.qmd) (PR, n=14,693), `ep22` scores **0.95**
-where GNUBG's 0-ply network scores 2.14 — and GNUBG's **2-ply search scores 0.56**. Our
-network is much better than GNUBG's network; GNUBG's *search* is still better than our
-nothing.
+Raccoon's current best network (`exp018/ep22`) wins **+0.047 ± 0.003 points per game**
+against GNU Backgammon at 0-ply ([exp020](variance_reduction.qmd#exp020), VR ppg,
+n=18,000). However, on the [BGSage money benchmark](pretraining_analysis.qmd) (PR,
+n=14,693), Raccoon currently scores **0.95** vs 2.14 for GNUBG 0-ply — but **0.56** for
+GNUBG 2-ply. So: our network is much better than GNUBG's network; GNUBG's *search* is
+still better than our nothing.
 
-That framing is the conclusion [exp017](pretraining_analysis.qmd#exp017) already reached
-from the training side: distilling 40M positions of GNUBG's 2-ply play brought the network
-to its teacher's evaluation quality, and the residual gap to the teacher's *play* is search,
-not data. The next milestone is therefore not a better network but a search on top of the
-one we have — with a target fixed in advance: **meet or beat GNUBG 2-ply at matched ply
-depth**, first on the static benchmark, then head-to-head.
+The next milestone is therefore not a better network but a search on top of the one we
+have ([exp017](pretraining_analysis.qmd#exp017) reached the same conclusion from the
+training side) — with the goal of **beating GNUBG 2-ply at matched ply depth**, first on
+the static benchmark, then head-to-head.
 
 This page is the design study for that search. It works through how the three strong
 engines — GNU Backgammon, eXtreme Gammon (XG), and Open Sage (BGSage) — actually implement
-lookahead, including the pruning machinery that makes it affordable; why all three
-converged on the same algorithm, and why that algorithm (and not MCTS) is the right first
-implementation for Raccoon; what the search will cost in network evaluations and how
-bundling, deduplication and batching pay most of that bill; and which parameters matter.
+lookahead. This includes the pruning machinery that makes it affordable; why all three
+converged on the same algorithm, and why that algorithm (not MCTS) is the right first
+implementation for Raccoon. We also investigate the search cost in network evaluations and
+how bundling, deduplication and batching pay most of that bill, and which parameters matter.
+
 It ends by pre-registering the experiment (exp021) that will settle the design choices
-empirically. Scope note: everything here is **cubeless checker play** — cube-aware search
-(Janowski interpolation and friends) is real and documented, and deferred until the cube
-itself is.
+empirically. Everything here is still cubeless checker play.
 
 ```{python}
 #| echo: false
@@ -61,6 +56,12 @@ Deeper plies replace the network's opinion of an afterstate with an average over
 actually happen next:
 
 $$S_n(x) \;=\; \sum_{d} p(d)\,\Big[\, -\max_{a \,\in\, A(x,\,d)} S_{n-1}(x \cdot d \cdot a) \Big]$$
+
+The dot is state transition, not multiplication: $x \cdot d \cdot a$ reads "position $x$, then
+dice $d$, then move $a$" — in OpenSpiel terms, two `apply_action` calls on a clone. And
+$S_n(y)$ always means *the value of afterstate $y$ to the player who just moved into it*,
+which is why the base case negates the network ($S_0(x) = -V(x)$: $V$ speaks for whoever is
+on roll, and that is now the other player).
 
 Read it inside out: for each roll $d$ the opponent might get, enumerate their legal whole-turn
 moves $A(x,d)$, score each resulting afterstate one ply shallower, let the opponent take
@@ -525,14 +526,27 @@ ship $k$ in the 5–16 range with thresholds 0.08–0.32, and both accept the gr
 
 ## exp021, pre-registered
 
-**Hypothesis.** Filtered 2-ply expectimax over `exp018/ep22`'s value head meets or beats
+**Hypothesis.** Filtered 2-ply expectimax over `exp018/ep22`'s value head **beats**
 full-width GNUBG 2-ply at matched ply depth.
 
 **Primary metric.** PR on the BGSage money benchmark, full n=14,693, scored with
 [`eval_benchmark_pr.py`](https://github.com/lassehjorthmadsen/raccoon/blob/main/scripts/eval_benchmark_pr.py)
 extended to search configs. Fixed reference points on the identical benchmark: `ep22`
 0-ply = **0.950**, GNUBG 0-ply = **2.145**, GNUBG full-width 2-ply = **0.56**. The
-experiment succeeds if the selected config's full-n PR ≤ GNUBG 2-ply's.
+experiment succeeds if the selected config's full-n PR < GNUBG 2-ply's.
+
+**Prior, stated before the 2-ply run.** ep22's 0-ply PR is 2.3× better than GNUBG's 0-ply net
+(0.95 vs 2.14), and search compounds multiplicatively on both published ladders (GNUBG
+2.14 → 0.56, ×3.8 over two plies; Sage 1P → 3P, 2.63 → 0.60, ×4.4). Applying that factor
+to 0.95 gives a point prediction of **PR ≈ 0.25**, with **0.25–0.40** the expected range —
+so the success bar above is a floor, not the target. Landing near 0.50, while technically
+a pass, would be the more interesting result: evidence that a net distilled from GNUBG's
+2-ply labels ([exp017](pretraining_analysis.qmd#exp017)) gains *less* from search than a
+search-naive net does, because it has already absorbed much of what the search would tell
+it. Two further effects push the same way and are worth naming in advance: the argmax over
+noisy leaves systematically selects favourable evaluation error (ep22 has never been used
+as a leaf evaluator, unlike GNUBG's net, which co-evolved with its own search), and our
+root filter is a haircut GNUBG's full-width 0.56 does not pay.
 
 **Protocol.**
 
