@@ -95,6 +95,21 @@ def load_benchmark(path: str) -> tuple[list[dict], dict]:
     return decisions, meta
 
 
+def subsample(decisions: list[dict], n: int, seed: int) -> list[dict]:
+    """A reproducible random subset of decisions, kept in benchmark order.
+
+    ``--max-positions`` takes a prefix, and the benchmark is stored in game-seed
+    order, so a prefix is a handful of whole games with a skewed game-plan mix. A
+    sweep needs a sample representative of the full set, and every config must see
+    the *same* sample, hence a fixed seed rather than a fresh draw per run.
+    """
+    if n >= len(decisions):
+        return decisions
+    rng = np.random.default_rng(seed)
+    idx = np.sort(rng.choice(len(decisions), size=n, replace=False))
+    return [decisions[i] for i in idx]
+
+
 # ---------------------------------------------------------------------------
 # Board conversion utilities
 # ---------------------------------------------------------------------------
@@ -322,6 +337,7 @@ def score_raccoon(
     max_positions: int | None = None,
     dump_predictions: str | None = None,
     onnx_path: str | None = None,
+    search_cfg=None,
 ) -> dict:
     """Score all checker decisions with a raccoon network.
 
@@ -329,6 +345,13 @@ def score_raccoon(
     ONNX file (`onnx_path`, from scripts/export_web_model.py). Everything else —
     board conversion, encoding, move selection, aggregation — is shared, so the
     two are directly comparable and an export regression shows up as a PR change.
+
+    `search_cfg` is an optional :class:`raccoon.search.expectimax.SearchConfig`.
+    With none (or depth 0) each candidate is ranked by a single static evaluation
+    of its afterstate — the 0-ply rule this script has always used. With a deeper
+    config the same candidates are ranked by expectimax search instead; only the
+    ranking rule changes, so PR stays comparable across depths. Search needs the
+    torch path (it calls the network directly), not ONNX.
 
     If `dump_predictions` is given, also write a per-candidate .npz with
     aligned `pred_eq`/`ref_eq`/`tier`/`decision_key`/`game_seed`/`game_plan`
@@ -343,6 +366,14 @@ def score_raccoon(
 
     if (checkpoint_path is None) == (onnx_path is None):
         raise ValueError("score_raccoon needs exactly one of checkpoint_path/onnx_path")
+
+    searching = search_cfg is not None and search_cfg.depth > 0
+    if searching and onnx_path is not None:
+        raise ValueError("search requires a torch checkpoint, not an ONNX model")
+    if searching:
+        from raccoon.search.expectimax import (
+            board26_to_slots, pass_turn, search_values,
+        )
 
     if max_positions is not None:
         decisions = decisions[:max_positions]
@@ -377,26 +408,36 @@ def score_raccoon(
     dump_plan: list[str] = []
 
     t0 = time.perf_counter()
+    total_evals = 0
 
     for i, dec in enumerate(decisions):
         # Reference best cubeless equity
         best_cl = max(m["cubeless_equity"] for m in dec["moves"])
 
-        # Encode all candidates (flipped to opponent POV)
-        obs_list = []
-        for move in dec["moves"]:
-            flipped = flip_board_to_opp(move["board"])
-            bv = flipped_to_board_view(flipped)
-            obs = encode_state(bv, channels=channels)
-            obs_list.append(obs)
+        if searching:
+            # search_values already returns the mover's value in [-1,1].
+            candidates = [pass_turn(board26_to_slots(m["board"])) for m in dec["moves"]]
+            values, n_evals = search_values(
+                candidates, network, device, search_cfg, channels=channels,
+            )
+            total_evals += n_evals
+            predicted_eqs = [float(v * 3.0) for v in values]
+        else:
+            # Encode all candidates (flipped to opponent POV)
+            obs_list = []
+            for move in dec["moves"]:
+                flipped = flip_board_to_opp(move["board"])
+                bv = flipped_to_board_view(flipped)
+                obs = encode_state(bv, channels=channels)
+                obs_list.append(obs)
 
-        # Batch forward pass
-        values = evaluate(np.stack(obs_list))
+            # Batch forward pass
+            values = evaluate(np.stack(obs_list))
 
-        # values[j] = V from opponent's perspective (in [-1,1], equity/3 scale)
-        # Convert to mover's equity on the standard [-3,3] scale for comparison:
-        # mover_equity = -(opponent_value * 3)
-        predicted_eqs = [float(-v * 3.0) for v in values]
+            # values[j] = V from opponent's perspective (in [-1,1], equity/3 scale)
+            # Convert to mover's equity on the standard [-3,3] scale for comparison:
+            # mover_equity = -(opponent_value * 3)
+            predicted_eqs = [float(-v * 3.0) for v in values]
 
         # Engine picks the move with highest predicted mover equity
         best_idx = int(np.argmax(predicted_eqs))
@@ -451,7 +492,20 @@ def score_raccoon(
         )
         print(f"  [{engine_label}] Saved predictions: {dump_predictions}", flush=True)
 
-    return aggregate(all_decision_results, engine_label)
+    result = aggregate(all_decision_results, engine_label)
+    result["checkpoint"] = checkpoint_path or onnx_path
+    if searching:
+        result["search"] = {
+            "depth": search_cfg.depth,
+            "k": search_cfg.k,
+            "k2": search_cfg.k2,
+            "threshold": search_cfg.threshold,
+            "gate": search_cfg.gate,
+            "tag": search_cfg.tag(),
+            "evals_per_decision": total_evals / n_total if n_total else 0.0,
+            "sec_per_decision": elapsed / n_total if n_total else 0.0,
+        }
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -699,6 +753,32 @@ def main():
         help="Processes for GNUBG 2-ply (0 = cpu_count)",
     )
     parser.add_argument(
+        "--subsample", type=int, default=None,
+        help="score a reproducible random subset of N decisions (see --subsample-seed); "
+             "unlike --max-positions this is not a game-ordered prefix",
+    )
+    parser.add_argument(
+        "--subsample-seed", type=int, default=21,
+        help="seed for --subsample; keep fixed so every config sees the same sample",
+    )
+    parser.add_argument(
+        "--search-depth", type=int, default=0,
+        help="plies of expectimax lookahead, GNUBG numbering (0 = static, the default)",
+    )
+    parser.add_argument("--search-k", type=int, default=8, help="root filter width")
+    parser.add_argument(
+        "--search-k2", type=int, default=2,
+        help="candidates kept for the full-depth pass (filter chain, depth > 1 only)",
+    )
+    parser.add_argument(
+        "--search-threshold", type=float, default=0.16,
+        help="equity window for the root filter, in [-1,1] value units",
+    )
+    parser.add_argument(
+        "--search-gate", type=float, default=0.08,
+        help="skip the search when the static top-2 gap exceeds this (0 disables)",
+    )
+    parser.add_argument(
         "--max-positions", type=int, default=None,
         help="Limit number of decisions scored (for quick testing)",
     )
@@ -735,7 +815,19 @@ def main():
     print(f"  {len(decisions)} checker decisions from {meta['n_games']} games")
     if args.max_positions:
         print(f"  (limiting to first {args.max_positions} decisions)")
+    if args.subsample:
+        decisions = subsample(decisions, args.subsample, args.subsample_seed)
+        print(f"  (random subsample: {len(decisions)} decisions, seed {args.subsample_seed})")
     print()
+
+    search_cfg = None
+    if args.search_depth > 0:
+        from raccoon.search.expectimax import SearchConfig
+        search_cfg = SearchConfig(
+            depth=args.search_depth, k=args.search_k, k2=args.search_k2,
+            threshold=args.search_threshold, gate=args.search_gate,
+        )
+        print(f"Search: {search_cfg.tag()}\n")
 
     all_results: list[dict] = []
 
@@ -765,6 +857,7 @@ def main():
             device_str=args.device,
             max_positions=args.max_positions,
             dump_predictions=dump_path,
+            search_cfg=search_cfg,
         )
         all_results.append(result)
         print()

@@ -13,6 +13,8 @@ board — gnubg infers them from the sum).
 
 from __future__ import annotations
 
+import numpy as np
+
 from raccoon.env.game_wrapper import BoardView, GameState
 from raccoon.search.mcts import _advance_through_chance
 
@@ -47,6 +49,48 @@ def board_from_view(view: BoardView) -> list[list[int]]:
 
     # Slot 1 is on-roll → current player goes there.
     return [opp_25, me_25]
+
+
+def board_to_view(board: list[list[int]]) -> BoardView:
+    """Inverse of :func:`board_from_view`: gnubg-nn board → ``BoardView``.
+
+    ``board`` is ``[opponent_25, current_player_25]`` with **slot 1 on roll**,
+    each 25-list holding that player's own points 1..24 then their bar. The
+    returned view is pre-roll (``dice=None, mid_doubles=False``) from the
+    side-to-move's perspective, which is what the value head was trained on.
+
+    The opponent's 24 points are reversed back into the current player's
+    numbering (their point ``i+1`` is our point ``24-i``) — the same index
+    reversal :func:`board_from_view` applies in the other direction, and the
+    one that scores R^2 = -0.06 instead of 0.9964 when omitted. Borne-off
+    counts are implicit in the gnubg format and recovered as ``15 - points -
+    bar``.
+    """
+    opp_25, me_25 = board
+
+    my_points = np.array(me_25[:24], dtype=np.float32)
+    opp_points = np.array(opp_25[:24][::-1], dtype=np.float32)
+    my_bar = int(me_25[24])
+    opp_bar = int(opp_25[24])
+    my_off = 15 - int(my_points.sum()) - my_bar
+    opp_off = 15 - int(opp_points.sum()) - opp_bar
+
+    if my_off < 0 or opp_off < 0:
+        raise ValueError(
+            f"board has more than 15 checkers per side "
+            f"(my_off={my_off}, opp_off={opp_off})"
+        )
+
+    return BoardView(
+        my_points=my_points,
+        opp_points=opp_points,
+        my_bar=my_bar,
+        opp_bar=opp_bar,
+        my_off=my_off,
+        opp_off=opp_off,
+        dice=None,
+        mid_doubles=False,
+    )
 
 
 def evaluate_equity(board: list[list[int]], ply: int = 0) -> float:
