@@ -6,3 +6,4 @@ Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchma
 Search: d2_k8_k22_t0.16_g0.08
 
 Scoring raccoon: ep22_d2_fulln_s0 (experiments/exp018-distill/checkpoints/ep22.pt)...
+/tmp/claude-1000/-home-lasse-python-projects-raccoon/52466f2a-297c-4ffc-8b6a-62208c4a63a0/scratchpad/exp021_d2_fulln.sh: line 16: 572148 Killed                  .venv/bin/python -u scripts/eval_benchmark_pr.py --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --engine-label "ep22_d2_fulln_s${i}" --search-depth 2 --search-k 8 --search-k2 2 --search-threshold 0.16 --search-gate 0.08 --shard "${i}/8" --output "$EXP/results" --dump-dir "$EXP/dumps"

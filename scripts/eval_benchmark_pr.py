@@ -253,6 +253,8 @@ def _eval_gnubg_decision(args: tuple) -> dict:
         "tier": decision["tier"],
         "predicted": predicted_eqs,
         "reference": reference_eqs,
+        "key": decision["key"],
+        "seed": decision["seed"],
     }
 
 
@@ -261,8 +263,15 @@ def score_gnubg(
     ply: int,
     workers: int = 1,
     max_positions: int | None = None,
+    dump_predictions: str | None = None,
 ) -> dict:
-    """Score all checker decisions with gnubg-nn at given ply."""
+    """Score all checker decisions with gnubg-nn at given ply.
+
+    ``dump_predictions`` writes the same per-candidate npz layout the raccoon
+    path writes, so the two engines' per-decision errors can be lined up and
+    compared **paired** on identical positions. Without it only summary PR
+    survives, and a summary cannot be un-averaged back into per-decision errors.
+    """
     if max_positions is not None:
         decisions = decisions[:max_positions]
 
@@ -315,6 +324,30 @@ def score_gnubg(
 
     elapsed = time.perf_counter() - t0
     print(f"  [{label}] Done: {n_total} decisions in {elapsed:.1f}s", flush=True)
+
+    if dump_predictions:
+        os.makedirs(os.path.dirname(dump_predictions) or ".", exist_ok=True)
+        np.savez_compressed(
+            dump_predictions,
+            pred_eq=np.array(
+                [p for r in all_decision_results for p in r["predicted"]], dtype=np.float64),
+            ref_eq=np.array(
+                [x for r in all_decision_results for x in r["reference"]], dtype=np.float64),
+            tier=np.array(
+                [r["tier"] for r in all_decision_results
+                 for _ in r["predicted"]], dtype=object),
+            decision_key=np.array(
+                [r["key"] for r in all_decision_results
+                 for _ in r["predicted"]], dtype=object),
+            game_seed=np.array(
+                [r["seed"] for r in all_decision_results
+                 for _ in r["predicted"]], dtype=np.int64),
+            game_plan=np.array(
+                [r["game_plan"] for r in all_decision_results
+                 for _ in r["predicted"]], dtype=object),
+        )
+        print(f"  [{label}] Saved predictions: {dump_predictions}", flush=True)
+
     return aggregate(all_decision_results, label)
 
 
@@ -878,6 +911,10 @@ def main():
                 decisions, ply,
                 workers=args.workers if ply >= 2 else 1,
                 max_positions=args.max_positions,
+                dump_predictions=(
+                    os.path.join(args.dump_dir, f"gnubg_{ply}ply.npz")
+                    if args.dump_dir else None
+                ),
             )
             all_results.append(result)
             print()

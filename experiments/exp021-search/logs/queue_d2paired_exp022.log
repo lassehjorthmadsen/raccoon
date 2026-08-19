@@ -1,0 +1,8 @@
+=== exp021: 2-ply subsample with dumps, started 2026-08-19T20:48:56+02:00 ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 2000 decisions, seed 21)
+
+Search: d2_k8_k22_t0.16_g0.08
+
+Scoring raccoon: ep22_d2_paired (experiments/exp018-distill/checkpoints/ep22.pt)...
