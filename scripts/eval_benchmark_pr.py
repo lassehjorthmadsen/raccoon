@@ -95,6 +95,23 @@ def load_benchmark(path: str) -> tuple[list[dict], dict]:
     return decisions, meta
 
 
+def shard(decisions: list[dict], index: int, count: int) -> list[dict]:
+    """Every ``count``-th decision starting at ``index`` — a disjoint slice.
+
+    A multi-day full-benchmark run writes nothing until it finishes, so an
+    interrupted one loses everything. Splitting it into shards makes each piece
+    land on disk as it completes, and the pieces recombine exactly: PR over the
+    union is the summed error over the summed count, since PR is a plain mean.
+
+    Striding rather than slicing a contiguous block matters because decisions are
+    stored in game order — a contiguous block would be a handful of whole games
+    with a skewed position mix, while every stride sees the whole benchmark.
+    """
+    if not 0 <= index < count:
+        raise ValueError(f"shard index {index} out of range for count {count}")
+    return decisions[index::count]
+
+
 def subsample(decisions: list[dict], n: int, seed: int) -> list[dict]:
     """A reproducible random subset of decisions, kept in benchmark order.
 
@@ -756,6 +773,11 @@ def main():
         help="Processes for GNUBG 2-ply (0 = cpu_count)",
     )
     parser.add_argument(
+        "--shard", type=str, default=None, metavar="I/N",
+        help="score only shard I of N (e.g. 3/8) so a long full-benchmark run "
+             "lands partial results as it goes; shards recombine exactly",
+    )
+    parser.add_argument(
         "--subsample", type=int, default=None,
         help="score a reproducible random subset of N decisions (see --subsample-seed); "
              "unlike --max-positions this is not a game-ordered prefix",
@@ -830,6 +852,10 @@ def main():
     if args.subsample:
         decisions = subsample(decisions, args.subsample, args.subsample_seed)
         print(f"  (random subsample: {len(decisions)} decisions, seed {args.subsample_seed})")
+    if args.shard:
+        i, n = (int(x) for x in args.shard.split("/"))
+        decisions = shard(decisions, i, n)
+        print(f"  (shard {i} of {n}: {len(decisions)} decisions)")
     print()
 
     search_cfg = None
