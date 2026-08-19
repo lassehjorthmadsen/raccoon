@@ -1,81 +1,3 @@
-exp021 started 2026-08-18T08:32:48+02:00 on lasse-iMac14-2, stages: 3
-=== stage 3: config sweep (subsample n=2000, seed 21) ===
-=== .venv/bin/python scripts/eval_benchmark_pr.py --benchmark data/bgsage/money_benchmark/benchmark.json.gz --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --engine-label ep22_d1_k8_k22_t0.16_g0.08 --search-depth 1 --search-k 8 --search-k2 2 --search-threshold 0.16 --search-gate 0.08 --subsample 2000 --subsample-seed 21 --output experiments/exp021-search/results ===
-Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
-  14693 checker decisions from 500 games
-  (random subsample: 2000 decisions, seed 21)
-
-Search: d1_k8_k22_t0.16_g0.08
-
-Scoring raccoon: ep22_d1_k8_k22_t0.16_g0.08 (experiments/exp018-distill/checkpoints/ep22.pt)...
-  [ep22_d1_k8_k22_t0.16_g0.08] 500/2000 (1988s, ~5964s remaining)
-  [ep22_d1_k8_k22_t0.16_g0.08] 1000/2000 (4023s, ~4023s remaining)
-  [ep22_d1_k8_k22_t0.16_g0.08] 1500/2000 (6324s, ~2108s remaining)
-  [ep22_d1_k8_k22_t0.16_g0.08] 2000/2000 (8502s, ~0s remaining)
-  [ep22_d1_k8_k22_t0.16_g0.08] Done: 2000 decisions in 8502.2s
-
-
-==========================================================================================
-BGSage Money Benchmark - Checker-only, cubeless reference
-Positions: 2000 checker decisions from 500 games
-Reference: cubeless_equity (Sage 3P / 3T / Rollout)
-==========================================================================================
-
-MOVE SELECTION (PR = mean error x 500, lower is better)
-
-  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
-  --------------------------------------------------------------------------------------
-  ep22_d1_k8_k22_t0.16_g0.08         0.73   2000      4    0.07    1.39    0.40    0.67    0.98
-
-  (N per plan)                                              236     401     573     350     440
-
-EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
-
-  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
-  --------------------------------------------------------------------------------------------------------------
-  ep22_d1_k8_k22_t0.16_g0.08              0.9969   0.0018    22397        0.9940   0.0019     7695        0.9948   0.0014    15763        0.9962   0.0017    45855
-
-Saving results to experiments/exp021-search/results/
-  Saved: experiments/exp021-search/results/ep22_d1_k8_k22_t0_16_g0_08.json
-  Saved: experiments/exp021-search/results/summary.json
-=== .venv/bin/python scripts/eval_benchmark_pr.py --benchmark data/bgsage/money_benchmark/benchmark.json.gz --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --engine-label ep22_d1_k5_k22_t0.08_g0.08 --search-depth 1 --search-k 5 --search-k2 2 --search-threshold 0.08 --search-gate 0.08 --subsample 2000 --subsample-seed 21 --output experiments/exp021-search/results ===
-Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
-  14693 checker decisions from 500 games
-  (random subsample: 2000 decisions, seed 21)
-
-Search: d1_k5_k22_t0.08_g0.08
-
-Scoring raccoon: ep22_d1_k5_k22_t0.08_g0.08 (experiments/exp018-distill/checkpoints/ep22.pt)...
-  [ep22_d1_k5_k22_t0.08_g0.08] 500/2000 (1898s, ~5695s remaining)
-  [ep22_d1_k5_k22_t0.08_g0.08] 1000/2000 (3140s, ~3140s remaining)
-  [ep22_d1_k5_k22_t0.08_g0.08] 1500/2000 (4511s, ~1504s remaining)
-  [ep22_d1_k5_k22_t0.08_g0.08] 2000/2000 (5796s, ~0s remaining)
-  [ep22_d1_k5_k22_t0.08_g0.08] Done: 2000 decisions in 5795.6s
-
-
-==========================================================================================
-BGSage Money Benchmark - Checker-only, cubeless reference
-Positions: 2000 checker decisions from 500 games
-Reference: cubeless_equity (Sage 3P / 3T / Rollout)
-==========================================================================================
-
-MOVE SELECTION (PR = mean error x 500, lower is better)
-
-  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
-  --------------------------------------------------------------------------------------
-  ep22_d1_k5_k22_t0.08_g0.08         0.82   2000      5    0.11    1.47    0.50    0.66    1.15
-
-  (N per plan)                                              236     401     573     350     440
-
-EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
-
-  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
-  --------------------------------------------------------------------------------------------------------------
-  ep22_d1_k5_k22_t0.08_g0.08              0.9969   0.0018    22397        0.9940   0.0019     7695        0.9948   0.0014    15763        0.9961   0.0017    45855
-
-Saving results to experiments/exp021-search/results/
-  Saved: experiments/exp021-search/results/ep22_d1_k5_k22_t0_08_g0_08.json
-  Saved: experiments/exp021-search/results/summary.json
 === d2 k8 k22 t0.16 g0.08 started 2026-08-18T14:50:15+02:00 ===
 Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
   14693 checker decisions from 500 games
@@ -84,6 +6,36 @@ Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchma
 Search: d2_k8_k22_t0.16_g0.08
 
 Scoring raccoon: ep22_d2_k8_k22_t0.16_g0.08 (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_d2_k8_k22_t0.16_g0.08] 500/2000 (14527s, ~43581s remaining)
+  [ep22_d2_k8_k22_t0.16_g0.08] 1000/2000 (29106s, ~29106s remaining)
+  [ep22_d2_k8_k22_t0.16_g0.08] 1500/2000 (44112s, ~14704s remaining)
+  [ep22_d2_k8_k22_t0.16_g0.08] 2000/2000 (58577s, ~0s remaining)
+  [ep22_d2_k8_k22_t0.16_g0.08] Done: 2000 decisions in 58577.3s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 2000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_d2_k8_k22_t0.16_g0.08         0.43   2000      2    0.18    0.53    0.16    0.40    0.83
+
+  (N per plan)                                              236     401     573     350     440
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_d2_k8_k22_t0.16_g0.08              0.9969   0.0018    22397        0.9940   0.0019     7695        0.9948   0.0014    15763        0.9962   0.0017    45855
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/ep22_d2_k8_k22_t0_16_g0_08.json
+  Saved: experiments/exp021-search/results/summary.json
 === d1 k16 k22 t0.32 g0.08 started 2026-08-19T07:06:37+02:00 ===
 Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
   14693 checker decisions from 500 games
