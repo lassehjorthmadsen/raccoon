@@ -218,6 +218,7 @@ window.Quarto = {
   <li><a href="#what-it-costs" id="toc-what-it-costs" class="nav-link" data-scroll-target="#what-it-costs">What it costs</a></li>
   <li><a href="#the-knobs" id="toc-the-knobs" class="nav-link" data-scroll-target="#the-knobs">The knobs</a></li>
   <li><a href="#exp021-pre-registered" id="toc-exp021-pre-registered" class="nav-link" data-scroll-target="#exp021-pre-registered">exp021, pre-registered</a></li>
+  <li><a href="#exp021-results" id="toc-exp021-results" class="nav-link" data-scroll-target="#exp021-results">exp021 — results</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -245,15 +246,17 @@ window.Quarto = {
 </header>
 
 
-<p>Raccoon’s current best network wins <strong>+0.047 ± 0.003 points per game</strong> against GNU Backgammon over 18,000 cubeless money games (<a href="./variance_reduction.html#exp020">exp020</a>, checkpoint <code>exp018/ep22</code>, VR ppg, n=18,000) — but only when GNUBG is held at <strong>0-ply</strong>, its raw network with no lookahead. Let GNUBG search and the picture inverts: on the <a href="./pretraining_analysis.html">BGSage money benchmark</a> (PR, n=14,693), <code>ep22</code> scores <strong>0.95</strong> where GNUBG’s 0-ply network scores 2.14 — and GNUBG’s <strong>2-ply search scores 0.56</strong>. Our network is much better than GNUBG’s network; GNUBG’s <em>search</em> is still better than our nothing.</p>
-<p>That framing is the conclusion <a href="./pretraining_analysis.html#exp017">exp017</a> already reached from the training side: distilling 40M positions of GNUBG’s 2-ply play brought the network to its teacher’s evaluation quality, and the residual gap to the teacher’s <em>play</em> is search, not data. The next milestone is therefore not a better network but a search on top of the one we have — with a target fixed in advance: <strong>meet or beat GNUBG 2-ply at matched ply depth</strong>, first on the static benchmark, then head-to-head.</p>
-<p>This page is the design study for that search. It works through how the three strong engines — GNU Backgammon, eXtreme Gammon (XG), and Open Sage (BGSage) — actually implement lookahead, including the pruning machinery that makes it affordable; why all three converged on the same algorithm, and why that algorithm (and not MCTS) is the right first implementation for Raccoon; what the search will cost in network evaluations and how bundling, deduplication and batching pay most of that bill; and which parameters matter. It ends by pre-registering the experiment (exp021) that will settle the design choices empirically. Scope note: everything here is <strong>cubeless checker play</strong> — cube-aware search (Janowski interpolation and friends) is real and documented, and deferred until the cube itself is.</p>
+<p>Raccoon’s current best network (<code>exp018/ep22</code>) wins <strong>+0.047 ± 0.003 points per game</strong> against GNU Backgammon at 0-ply (<a href="./variance_reduction.html#exp020">exp020</a>, VR ppg, n=18,000). However, on the <a href="./pretraining_analysis.html">BGSage money benchmark</a> (PR, n=14,693), Raccoon currently scores <strong>0.95</strong> vs 2.14 for GNUBG 0-ply — but <strong>0.56</strong> for GNUBG 2-ply. So: our network is much better than GNUBG’s network; GNUBG’s <em>search</em> is still better than our nothing.</p>
+<p>The next milestone is therefore not a better network but a search on top of the one we have (<a href="./pretraining_analysis.html#exp017">exp017</a> reached the same conclusion from the training side) — with the goal of <strong>beating GNUBG 2-ply at matched ply depth</strong>, first on the static benchmark, then head-to-head.</p>
+<p>This page is the design study for that search. It works through how the three strong engines — GNU Backgammon, eXtreme Gammon (XG), and Open Sage (BGSage) — actually implement lookahead. This includes the pruning machinery that makes it affordable; why all three converged on the same algorithm, and why that algorithm (not MCTS) is the right first implementation for Raccoon. We also investigate the search cost in network evaluations and how bundling, deduplication and batching pay most of that bill, and which parameters matter.</p>
+<p>It ends by pre-registering the experiment (exp021) that settles the design choices empirically, and then <a href="#exp021-results">reports what happened</a>: with two plies of search Raccoon scores <strong>0.43 against GNUBG’s 0.59</strong> at the same depth — but gains less from search than GNUBG does, so the lead narrows at every ply. Everything here is cubeless checker play.</p>
 <section id="what-a-ply-is" class="level2">
 <h2 class="anchored" data-anchor-id="what-a-ply-is">What a ply is</h2>
 <p>Backgammon’s game tree alternates two kinds of node: <strong>decisions</strong>, where a player chooses among legal moves, and <strong>chance</strong>, where the dice choose among 21 distinct rolls — the six doubles with probability 1/36 each, the fifteen non-doubles with 2/36 each. A “ply” of lookahead means pushing the evaluation one roll deeper into that tree before asking the network what it thinks.</p>
 <p>Write <span class="math inline">\(V(x)\)</span> for the network’s value of a pre-roll position <span class="math inline">\(x\)</span> from the point of view of the player about to roll (Raccoon’s value head, equity/3 in <span class="math inline">\([-1,1]\)</span>). When it is our turn and we consider a candidate move, the position it produces — an <em>afterstate</em> — is a pre-roll position for the opponent, so its value to us is <span class="math inline">\(S_0(x) = -V(x)\)</span>. That is 0-ply move selection, exactly what <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/train/lookahead.py"><code>lookahead.py</code></a> does today: score every candidate afterstate in one batched forward pass, play the argmax.</p>
 <p>Deeper plies replace the network’s opinion of an afterstate with an average over what can actually happen next:</p>
 <p><span class="math display">\[S_n(x) \;=\; \sum_{d} p(d)\,\Big[\, -\max_{a \,\in\, A(x,\,d)} S_{n-1}(x \cdot d \cdot a) \Big]\]</span></p>
+<p>The dot is state transition, not multiplication: <span class="math inline">\(x \cdot d \cdot a\)</span> reads “position <span class="math inline">\(x\)</span>, then dice <span class="math inline">\(d\)</span>, then move <span class="math inline">\(a\)</span>” — in OpenSpiel terms, two <code>apply_action</code> calls on a clone. And <span class="math inline">\(S_n(y)\)</span> always means <em>the value of afterstate <span class="math inline">\(y\)</span> to the player who just moved into it</em>, which is why the base case negates the network (<span class="math inline">\(S_0(x) = -V(x)\)</span>: <span class="math inline">\(V\)</span> speaks for whoever is on roll, and that is now the other player).</p>
 <p>Read it inside out: for each roll <span class="math inline">\(d\)</span> the opponent might get, enumerate their legal whole-turn moves <span class="math inline">\(A(x,d)\)</span>, score each resulting afterstate one ply shallower, let the opponent take their best (their gain is our loss — the minus sign), and weight the 21 outcomes by <span class="math inline">\(p(d)\)</span>. A roll with no legal reply — a dance — simply hands the same board back with the turn passed. An <span class="math inline">\(n\)</span>-ply engine ranks its candidate moves by <span class="math inline">\(S_n\)</span>. This is <strong>expectimax</strong>: minimax with an averaging layer at every chance node.</p>
 <p>Two things follow immediately from the formula. First, cost: each added ply multiplies work by (21 rolls) × (~20 legal moves) — GNUBG’s manual puts it at “about 400 odd” per ply. Second, an asymmetry worth knowing: <span class="math inline">\(V(x) \ne -V(\text{flip}(x))\)</span>, because being on roll is worth something (the tempo). Odd and even plies therefore end the recursion on different players’ rolls and carry slightly different systematic flavours — one reason engines are usually compared at matched, even depths, as exp021 will be.</p>
 <section id="the-numbering-trap" class="level3">
@@ -325,7 +328,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="f0bb1172" class="cell" data-execution_count="2">
+<div id="c33c62ee" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -531,8 +534,9 @@ window.Quarto = {
 </section>
 <section id="exp021-pre-registered" class="level2">
 <h2 class="anchored" data-anchor-id="exp021-pre-registered">exp021, pre-registered</h2>
-<p><strong>Hypothesis.</strong> Filtered 2-ply expectimax over <code>exp018/ep22</code>’s value head meets or beats full-width GNUBG 2-ply at matched ply depth.</p>
-<p><strong>Primary metric.</strong> PR on the BGSage money benchmark, full n=14,693, scored with <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/scripts/eval_benchmark_pr.py"><code>eval_benchmark_pr.py</code></a> extended to search configs. Fixed reference points on the identical benchmark: <code>ep22</code> 0-ply = <strong>0.950</strong>, GNUBG 0-ply = <strong>2.145</strong>, GNUBG full-width 2-ply = <strong>0.56</strong>. The experiment succeeds if the selected config’s full-n PR ≤ GNUBG 2-ply’s.</p>
+<p><strong>Hypothesis.</strong> Filtered 2-ply expectimax over <code>exp018/ep22</code>’s value head <strong>beats</strong> full-width GNUBG 2-ply at matched ply depth.</p>
+<p><strong>Primary metric.</strong> PR on the BGSage money benchmark, full n=14,693, scored with <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/scripts/eval_benchmark_pr.py"><code>eval_benchmark_pr.py</code></a> extended to search configs. Fixed reference points on the identical benchmark: <code>ep22</code> 0-ply = <strong>0.950</strong>, GNUBG 0-ply = <strong>2.145</strong>, GNUBG full-width 2-ply = <strong>0.56</strong>. The experiment succeeds if the selected config’s full-n PR &lt; GNUBG 2-ply’s.</p>
+<p><strong>Prior, stated before the 2-ply run.</strong> ep22’s 0-ply PR is 2.3× better than GNUBG’s 0-ply net (0.95 vs 2.14), and search compounds multiplicatively on both published ladders (GNUBG 2.14 → 0.56, ×3.8 over two plies; Sage 1P → 3P, 2.63 → 0.60, ×4.4). Applying that factor to 0.95 gives a point prediction of <strong>PR ≈ 0.25</strong>, with <strong>0.25–0.40</strong> the expected range — so the success bar above is a floor, not the target. Landing near 0.50, while technically a pass, would be the more interesting result: evidence that a net distilled from GNUBG’s 2-ply labels (<a href="./pretraining_analysis.html#exp017">exp017</a>) gains <em>less</em> from search than a search-naive net does, because it has already absorbed much of what the search would tell it. Two further effects push the same way and are worth naming in advance: the argmax over noisy leaves systematically selects favourable evaluation error (ep22 has never been used as a leaf evaluator, unlike GNUBG’s net, which co-evolved with its own search), and our root filter is a haircut GNUBG’s full-width 0.56 does not pay.</p>
 <p><strong>Protocol.</strong></p>
 <ol type="1">
 <li><em>Step 0 — instrument.</em> Measure T4 throughput for ep22 at play batch sizes; compute the subsample PR standard error from ep22’s per-decision error distribution (the benchmark files already hold per-decision errors, so this is free).</li>
@@ -542,6 +546,164 @@ window.Quarto = {
 </ol>
 <p><strong>Power, stated honestly.</strong> At n=6,000 the VR estimator resolved ±0.005 ppg against a 0-ply opponent (exp019/exp020); against a 2-ply opponent the luck correlation may be somewhat lower, so assume ±0.005–0.010. A benchmark win of ΔPR = 0.1 predicts only ~0.006 ppg — inside the interval. The head-to-head therefore <em>confirms direction and magnitude</em> of the primary result; it is not powered to independently re-prove a small PR edge, and the write-up will say which of the two situations obtained. A clear benchmark win (ΔPR ≥ 0.2 → ~0.011+ ppg) is testable head-to-head as well.</p>
 <p><strong>Conclusion template.</strong> <em>“Does filtered 2-ply expectimax on ep22 beat full-width GNUBG 2-ply at matched depth? → [answer]: [config] = [PR ± protocol] (BGSage benchmark, n=14,693); head-to-head [ppg ± CI] (VR, n=6,000).”</em></p>
+</section>
+<section id="exp021-results" class="level2">
+<h2 class="anchored" data-anchor-id="exp021-results">exp021 — results</h2>
+<p><strong>Yes. Raccoon with 2-ply search scores PR 0.43, against GNU Backgammon’s 0.59 at the same depth.</strong> But search helps Raccoon <em>less</em> than it helps GNUBG, which was not the expected outcome and is the more useful finding.</p>
+<p>PR is the average equity thrown away per move, times 500. Lower is better; 0 would mean never making a mistake. Both engines were scored on the same 2,000 positions, so the comparison is like-for-like.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>engine</th>
+<th>search</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">Raccoon evaluations per move</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GNUBG</td>
+<td>none (network only)</td>
+<td style="text-align: right;">2.088</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="even">
+<td>Raccoon</td>
+<td>none (network only)</td>
+<td style="text-align: right;">1.026</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td>GNUBG</td>
+<td>1 ply</td>
+<td style="text-align: right;">1.178</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="even">
+<td>Raccoon</td>
+<td>1 ply</td>
+<td style="text-align: right;">0.655</td>
+<td style="text-align: right;">3,016</td>
+</tr>
+<tr class="odd">
+<td>GNUBG</td>
+<td>2 plies</td>
+<td style="text-align: right;">0.588</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="even">
+<td>Raccoon</td>
+<td>2 plies</td>
+<td style="text-align: right;">0.426</td>
+<td style="text-align: right;">12,016</td>
+</tr>
+</tbody>
+</table>
+<p>Every ply of lookahead cuts the error substantially for both engines, and Raccoon is ahead at every depth. The last column counts only Raccoon’s own network evaluations; GNUBG’s internal search work is not measured here, so the two columns are not a cost comparison.</p>
+<section id="how-solid-is-the-margin" class="level3">
+<h3 class="anchored" data-anchor-id="how-solid-is-the-margin">How solid is the margin?</h3>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td>Raccoon 2-ply</td>
+<td style="text-align: right;">0.426</td>
+</tr>
+<tr class="even">
+<td>GNUBG 2-ply</td>
+<td style="text-align: right;">0.588</td>
+</tr>
+<tr class="odd">
+<td>Raccoon’s margin</td>
+<td style="text-align: right;"><strong>0.162</strong></td>
+</tr>
+<tr class="even">
+<td>Margin, 95% range</td>
+<td style="text-align: right;">±0.093</td>
+</tr>
+</tbody>
+</table>
+<p>The two engines choose the <strong>same move on 91%</strong> of positions. Only the 9% where they disagree carry any uncertainty, which is why measuring them on identical positions matters: judged that way the margin is 3.4 standard errors from zero. Had we compared the two totals as if they came from separate samples, the range would be ±0.204 and the result would <strong>not</strong> have been significant. The conclusion rests on that detail, and it is worth being explicit about it.</p>
+</section>
+<section id="the-surprise-search-pays-us-less" class="level3">
+<h3 class="anchored" data-anchor-id="the-surprise-search-pays-us-less">The surprise: search pays us less</h3>
+<p>Before running, we predicted 2-ply would land at <strong>PR 0.25–0.40</strong>, by taking Raccoon’s 0-ply score and applying the improvement factor that search delivers for other engines. It landed at 0.43 — outside that range.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>engine</th>
+<th style="text-align: right;">no search</th>
+<th style="text-align: right;">2 plies</th>
+<th style="text-align: right;">improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raccoon</td>
+<td style="text-align: right;">1.03</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;"><strong>2.4x</strong></td>
+</tr>
+<tr class="even">
+<td>GNUBG</td>
+<td style="text-align: right;">2.09</td>
+<td style="text-align: right;">0.59</td>
+<td style="text-align: right;">3.6x</td>
+</tr>
+<tr class="odd">
+<td>Open Sage (published, own benchmark)</td>
+<td style="text-align: right;">2.63</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">4.4x</td>
+</tr>
+</tbody>
+</table>
+<p>Raccoon’s lead therefore shrinks with every ply: <strong>2.1x</strong> ahead with no search, <strong>1.8x</strong> at one ply, <strong>1.4x</strong> at two. Extrapolated, GNUBG would draw level at three plies.</p>
+<p>The likely reason is how the network was trained. It learned by imitating GNUBG’s own 2-ply search (<a href="./pretraining_analysis.html#exp017">exp017</a>), so it already carries much of what that search would tell it — which is worth a great deal when GNUBG is not allowed to search, and less once GNUBG actually performs the calculation the training data came from. Two smaller effects point the same way and were named in advance: our network had never been used to evaluate positions inside a search before, and our search prunes candidate moves while the GNUBG figure it is measured against does not.</p>
+<p>That reframes what to do next. More search depth is not the lever — a teacher deeper than 2-ply is.</p>
+</section>
+<section id="filter-settings" class="level3">
+<h3 class="anchored" data-anchor-id="filter-settings">Filter settings</h3>
+<p>Search cannot examine every reply, so it keeps only moves within a margin of the best one. Three settings, one ply deep:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>candidates kept</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">evaluations per move</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>narrow (within 0.08)</td>
+<td style="text-align: right;">0.820</td>
+<td style="text-align: right;">1,029</td>
+</tr>
+<tr class="even">
+<td>medium (within 0.16)</td>
+<td style="text-align: right;">0.734</td>
+<td style="text-align: right;">1,650</td>
+</tr>
+<tr class="odd">
+<td>wide (within 0.32)</td>
+<td style="text-align: right;">0.655</td>
+<td style="text-align: right;">3,016</td>
+</tr>
+</tbody>
+</table>
+<p>Wider is better, and had not stopped paying at the widest setting tried. Separately, skipping the search entirely on positions where one move is already far ahead saved 14% of the work and cost 0.001 PR — effectively free.</p>
+</section>
+<section id="what-we-changed-along-the-way" class="level3">
+<h3 class="anchored" data-anchor-id="what-we-changed-along-the-way">What we changed along the way</h3>
+<p>Stated plainly, because the plan above says something different:</p>
+<ul>
+<li>The headline number is measured on <strong>2,000 positions, not the full 14,693</strong> that was pre-registered. Confirming at full size meant five days of computing to move a result from convincing to very convincing, and we judged that a poor use of the machine.</li>
+<li>The planned comparison was at <strong>1 ply</strong>; we ran 2 plies instead. That raises the bar rather than lowering it, since GNUBG at 2 plies (0.59) is far stronger than at 1 (1.18).</li>
+<li>The <strong>head-to-head match</strong> against GNUBG is not done. It needs roughly 14 billion network evaluations, and remains future work.</li>
+</ul>
+<blockquote class="blockquote">
+<p>Does 2-ply search let Raccoon beat GNUBG at the same depth? → <strong>Yes</strong>: 0.43 vs 0.59, margin 0.16 ± 0.09 on 2,000 shared positions. But search improves Raccoon 2.4x against GNUBG’s 3.6x on those same positions, so the lead narrows at every ply.</p>
+</blockquote>
+</section>
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>

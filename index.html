@@ -244,30 +244,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th>Engine</th>
-<th>Compute per decision</th>
-<th>PR (n = 14,693)</th>
+<th>Search</th>
+<th>PR</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>GNUBG, 2-ply full-width search</td>
-<td>~1.3 s</td>
-<td><strong>0.56</strong></td>
+<td><strong>Raccoon, with 2-ply search</strong></td>
+<td>2 plies</td>
+<td><strong>0.43</strong></td>
 </tr>
 <tr class="even">
-<td><strong>Raccoon, single network evaluation</strong></td>
-<td>~10 ms</td>
-<td><strong>0.93</strong></td>
+<td>GNUBG, 2-ply full-width search</td>
+<td>2 plies</td>
+<td><strong>0.56</strong></td>
 </tr>
 <tr class="odd">
-<td>GNUBG, single network evaluation (0-ply)</td>
-<td>~10 ms</td>
+<td><strong>Raccoon, single network evaluation</strong></td>
+<td>none</td>
+<td><strong>0.93</strong></td>
+</tr>
+<tr class="even">
+<td>GNUBG, single network evaluation</td>
+<td>none</td>
 <td><strong>2.14</strong></td>
 </tr>
 </tbody>
 </table>
-<p><em>Raccoon figure: checkpoint <code>exp017-ep12</code>, the current best network — a 10-block, 256-channel ResNet trained on 40M positions distilled from GNUBG’s 2-ply search. GNUBG figures scored on the identical benchmark. Full method and per-epoch curves: <a href="./pretraining_analysis.html">Supervised &amp; Expert-Iteration Analysis</a>.</em></p>
-<p>Read plainly: <strong>at equal cost, Raccoon’s checker play is well past GNUBG’s own network</strong>, and it has closed most of the distance to GNUBG’s 2-ply search while doing no search at all.</p>
+<p><em>Raccoon network: checkpoint <code>exp018/ep22</code> — a 10-block, 256-channel ResNet trained on 40M positions distilled from GNUBG’s 2-ply search. GNUBG figures scored on the identical benchmark. The two searched rows are measured on a 2,000-decision sample of it, the unsearched rows on all 14,693; method and full results: <a href="./search.html#exp021-results">Multi-Ply Search</a> and <a href="./pretraining_analysis.html">Supervised &amp; Expert-Iteration Analysis</a>.</em></p>
+<p>Read plainly: <strong>Raccoon’s checker play beats GNU Backgammon’s, both with and without search.</strong> Without search the margin is large (0.93 vs 2.14). Give both engines two plies of lookahead and Raccoon still leads, 0.43 to 0.56 — but by less, because search helps Raccoon roughly 2.4x where it helps GNUBG 3.6x. Our network was trained by imitating GNUBG’s 2-ply search, so it already knows much of what that search computes; that is worth most when the opponent cannot search.</p>
 <p>That now holds over the board, not just on the benchmark. The current cube-capable network wins <strong>+0.047 ± 0.003 points per game</strong> against GNUBG at 0-ply over 18,000 cubeless money games — the first time a Raccoon network has been shown to beat the teacher it was distilled from in actual play (<a href="./variance_reduction.html#exp020">exp020</a>). An earlier checkpoint had measured −0.053 ± 0.034 on the same yardstick, a real if small deficit (<a href="./pretraining_analysis.html">exp011b</a>).</p>
 <p>The plain, unadjusted average over those same 18,000 games is +0.048 ± 0.020 and would settle far less. The edge is measurable at this precision because the games were scored with <a href="./variance_reduction.html">variance-reduced rollouts</a>, worth about 54× as many games — reading the same result to ±0.003 instead of ±0.020. Getting there the ordinary way would have taken roughly <strong>970,000 games</strong>.</p>
 <p>Two thirds of that margin was found rather than trained. The first measurement came in at only +0.013 ± 0.005 (<a href="./variance_reduction.html#exp019">exp019</a>), well short of what the benchmark predicted, and chasing the gap turned up a bug: on doubles, the engine chose its four half-moves two at a time instead of all together, conceding <strong>0.062 points</strong> on the one doubles turn in six where that mattered. Fixing the search — not the network — was worth <strong>+0.033 ppg</strong> (<a href="./variance_reduction.html#exp020">exp020</a>).</p>
