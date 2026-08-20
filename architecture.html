@@ -182,9 +182,13 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#architecture" id="toc-architecture" class="nav-link active" data-scroll-target="#architecture">Architecture</a>
   <ul class="collapse">
   <li><a href="#board-encoding" id="toc-board-encoding" class="nav-link" data-scroll-target="#board-encoding">Board Encoding</a></li>
-  <li><a href="#neural-network" id="toc-neural-network" class="nav-link" data-scroll-target="#neural-network">Neural Network</a></li>
-  <li><a href="#mcts" id="toc-mcts" class="nav-link" data-scroll-target="#mcts">MCTS</a></li>
-  <li><a href="#training-loop" id="toc-training-loop" class="nav-link" data-scroll-target="#training-loop">Training Loop</a></li>
+  <li><a href="#neural-network" id="toc-neural-network" class="nav-link" data-scroll-target="#neural-network">Neural Network</a>
+  <ul class="collapse">
+  <li><a href="#the-value-convention" id="toc-the-value-convention" class="nav-link" data-scroll-target="#the-value-convention">The value convention</a></li>
+  </ul></li>
+  <li><a href="#move-selection-0-ply-lookahead" id="toc-move-selection-0-ply-lookahead" class="nav-link" data-scroll-target="#move-selection-0-ply-lookahead">Move Selection: 0-ply Lookahead</a></li>
+  <li><a href="#search" id="toc-search" class="nav-link" data-scroll-target="#search">Search</a></li>
+  <li><a href="#training" id="toc-training" class="nav-link" data-scroll-target="#training">Training</a></li>
   <li><a href="#action-space" id="toc-action-space" class="nav-link" data-scroll-target="#action-space">Action Space</a></li>
   <li><a href="#evaluation" id="toc-evaluation" class="nav-link" data-scroll-target="#evaluation">Evaluation</a></li>
   </ul></li>
@@ -199,11 +203,12 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="architecture" class="level1">
 <h1>Architecture</h1>
-<p>Raccoon follows the standard AlphaZero pipeline: a ResNet policy-value network guides Monte Carlo Tree Search, with self-play generating the training data. OpenSpiel provides game logic; all ML and search code is written from scratch in Python/PyTorch.</p>
+<p>Raccoon started as a straight AlphaZero pipeline: a ResNet policy-value network guiding Monte Carlo Tree Search, trained by self-play. That machinery is all still here and still runnable — but it is <strong>not</strong> what the current engine does. The net that plays on raccoonbg.com and gets scored on the benchmark was trained by distilling GNUBG, and it picks moves by 0-ply value lookahead with no search at all.</p>
+<p>Both paths are described below, because the repository supports both and the distinction decides which parts of the network are even used. OpenSpiel provides game logic; all ML and search code is written from scratch in Python/PyTorch.</p>
 <section id="board-encoding" class="level2">
 <h2 class="anchored" data-anchor-id="board-encoding">Board Encoding</h2>
-<p>States are encoded as <strong>(17, 2, 12)</strong> float32 tensors — 17 channels, 2 rows (board halves), 12 columns (points per half).</p>
-<p>The 2D layout mirrors the physical board: points 13–24 on the top row (left to right), points 12–1 on the bottom row. Channels:</p>
+<p>States are encoded as <strong>(26, 2, 12)</strong> float32 tensors — 26 channels, 2 rows (board halves), 12 columns (points per half).</p>
+<p>The 2D layout mirrors the physical board: points 13–24 on the top row (left to right), points 12–1 on the bottom row. Channels 0–16 are the lossless base planes; 17–25 are handcrafted features layered on top.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -214,27 +219,27 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td>0–3</td>
-<td>Current player checkers: ≥1, ≥2, ≥3, overflow</td>
+<td>Current player checkers: ≥1, ≥2, ≥3, overflow <code>(count−3)/2</code></td>
 </tr>
 <tr class="even">
 <td>4–7</td>
 <td>Opponent checkers: ≥1, ≥2, ≥3, overflow</td>
 </tr>
 <tr class="odd">
-<td>8–9</td>
-<td>Bar counts (current player, opponent) broadcast</td>
-</tr>
-<tr class="even">
-<td>10–11</td>
-<td>Borne-off counts (current player, opponent) broadcast</td>
-</tr>
-<tr class="odd">
-<td>12</td>
+<td>8</td>
 <td>Side-to-move flag</td>
 </tr>
 <tr class="even">
+<td>9–10</td>
+<td>Bar counts / 15 (current player, opponent)</td>
+</tr>
+<tr class="odd">
+<td>11–12</td>
+<td>Borne-off counts / 15 (current player, opponent)</td>
+</tr>
+<tr class="even">
 <td>13–14</td>
-<td>Dice values broadcast across columns</td>
+<td>Dice values / 6</td>
 </tr>
 <tr class="odd">
 <td>15</td>
@@ -244,49 +249,86 @@ ul.task-list li input[type="checkbox"] {
 <td>16</td>
 <td>Mid-doubles flag (one die already used in a doubles move)</td>
 </tr>
+<tr class="odd">
+<td>17–19</td>
+<td>Pip counts / 167 (mine, opponent) and pip ratio</td>
+</tr>
+<tr class="even">
+<td>20–21</td>
+<td>Blots / 15 (mine, opponent)</td>
+</tr>
+<tr class="odd">
+<td>22–23</td>
+<td>Anchors / 6 (mine, opponent)</td>
+</tr>
+<tr class="even">
+<td>24–25</td>
+<td>Contact / 167 (mine, opponent)</td>
+</tr>
 </tbody>
 </table>
+<p><code>CHANNEL_NAMES</code> in <code>raccoon/env/encoder.py</code> is the authoritative registry — the divisor is baked into each name (<code>"my bar / 15"</code>), so the normalisation is visible at the point of definition. <code>dump_tensor()</code> pretty-prints all planes for debugging.</p>
+<p><strong>The handcrafted features are normalised by default, and this matters.</strong> Raw pip (~95) and contact (~52) values are about 100× the scale of the base planes, which lets them dominate the input convolution and destabilises value-head training. The divisors in <code>FEATURE_SCALES</code> bring them into the ~[0,1] range the base planes already occupy; see Stage 6 of the pretraining analysis for the measurement. Pass <code>normalize=False</code> only to recover raw magnitudes for feature-math tests.</p>
+<p><code>FEATURE_GROUPS</code> splits the channels into <code>base</code> (0–16) plus four toggleable groups — <code>pip</code>, <code>blots</code>, <code>anchors</code>, <code>contact</code> — so ablations can train on a subset. Checkpoints record which subset they used in <code>feature_channels</code>, and the exported web model carries the same list in its <code>.meta.json</code>, so a net can never be fed an encoding it was not trained on.</p>
 <p>All encoding is from the <strong>current player’s perspective</strong> — the network always sees “my checkers” and “their checkers” in fixed channels, regardless of which physical side is moving. The wrapper applies a perspective flip when it is the second player’s turn.</p>
-<p><code>CHANNEL_NAMES</code> in <code>raccoon/env/encoder.py</code> is the authoritative registry. <code>dump_tensor()</code> pretty-prints all planes for debugging.</p>
 </section>
 <section id="neural-network" class="level2">
 <h2 class="anchored" data-anchor-id="neural-network">Neural Network</h2>
 <p>PyTorch ResNet in <code>raccoon/model/network.py</code> with a shared convolutional trunk and two heads:</p>
 <ul>
-<li><strong>Policy head</strong>: 1352 logits (one per OpenSpiel action). Masked softmax over legal moves gives move probabilities for MCTS.</li>
-<li><strong>Value head</strong>: scalar via tanh, in [−1, 1]. Positive means the current player is winning.</li>
+<li><strong>Policy head</strong>: 1352 logits (one per OpenSpiel action). Masked softmax over legal moves gives move probabilities. Read only by MCTS.</li>
+<li><strong>Value head</strong>: either <code>"scalar"</code> or <code>"outcomes6"</code>, chosen at construction.</li>
 </ul>
-<p>Default size: <strong>6 residual blocks, 128 channels</strong> — tuned for CPU training. Scale depth/width when GPU is available. Architecture is saved in checkpoints, so <code>--resume</code> automatically picks up the correct shape.</p>
+<p>Default size is <strong>6 residual blocks, 128 channels</strong> — small enough to train on a laptop CPU. The shipped net is much larger: <strong>10 blocks, 256 channels, 11.9M parameters</strong>. Architecture is saved in checkpoints, so <code>--resume</code> picks up the correct shape automatically.</p>
+<section id="the-value-convention" class="level3">
+<h3 class="anchored" data-anchor-id="the-value-convention">The value convention</h3>
+<p>Every value in this codebase is <strong>money equity / 3, in [−1, 1], from the to-move player’s point of view</strong> — win = ±1/3, gammon = ±2/3, backgammon = ±1. Multiply by 3 for money-game points. The value head is trained on <strong>pre-roll</strong> positions (dice cleared).</p>
+<p>The two head types differ only in how they get there:</p>
+<ul>
+<li><code>scalar</code> — a single tanh output that <em>is</em> equity/3, regressed with MSE.</li>
+<li><code>outcomes6</code> — six logits over <code>[win, win_g, win_bg, lose, lose_g, lose_bg]</code>, trained with cross-entropy against the outcome distribution. Equity is recovered by dotting the softmax with the outcome points <code>(1, 2, 3, −1, −2, −3)</code> and dividing by 3.</li>
+</ul>
+<p><code>value_equity()</code> applies whichever conversion the head needs, so <strong>a scalar net and an outcomes6 net are interchangeable at play time</strong>. Everything downstream — move selection, search, evaluation — goes through it and never branches on head type.</p>
+<p>The shipped net is <code>outcomes6</code>, which is why the site can show a win/gammon/backgammon breakdown and not just a number.</p>
 </section>
-<section id="mcts" class="level2">
-<h2 class="anchored" data-anchor-id="mcts">MCTS</h2>
-<p>AlphaZero-style MCTS in <code>raccoon/search/mcts.py</code> with PUCT selection. Key design choices:</p>
-<p><strong>Chance node sampling.</strong> Dice rolls are sampled and skipped — the tree contains only decision and terminal nodes. The network is never evaluated at chance nodes. With 100+ simulations, the various dice outcomes are explored naturally through repeated sampling.</p>
-<p><strong>Temperature.</strong> Controls exploitation vs exploration when selecting a move from visit counts. High temperature (early training) selects near-uniformly; low temperature (late training / evaluation) selects the most-visited move.</p>
-<p><strong>Batched inference.</strong> Leaf positions collected during a simulation round are evaluated in a single network forward pass, amortizing the GPU overhead.</p>
-<p>See <a href="./mcts_explained.html">MCTS Explained</a> for a deep dive into simulations, PUCT, Dirichlet noise, and the plateau problem.</p>
 </section>
-<section id="training-loop" class="level2">
-<h2 class="anchored" data-anchor-id="training-loop">Training Loop</h2>
-<p>Implemented in <code>raccoon/train/</code>:</p>
-<ol type="1">
-<li><strong>Self-play</strong> (<code>self_play.py</code>): play N games using current network + MCTS. Record <code>(observation, MCTS policy, outcome)</code> tuples.</li>
-<li><strong>Replay buffer</strong> (<code>replay_buffer.py</code>): circular buffer keeps recent positions. New games overwrite the oldest.</li>
-<li><strong>SGD</strong> (<code>coach.py</code>): sample mini-batches; minimize cross-entropy(policy) + MSE(value) + L2 (via <code>weight_decay</code>).</li>
-<li><strong>Checkpoint</strong>: save network weights; optionally evaluate vs previous checkpoint.</li>
-</ol>
-<p>Value targets blend the terminal game outcome and MCTS root Q-value. <code>--value-bootstrap-alpha</code> controls the mix (1.0 = pure outcome, 0.0 = pure Q).</p>
+<section id="move-selection-0-ply-lookahead" class="level2">
+<h2 class="anchored" data-anchor-id="move-selection-0-ply-lookahead">Move Selection: 0-ply Lookahead</h2>
+<p>This is what actually picks moves, in <code>raccoon/train/lookahead.py</code>. Given a decision state, enumerate the legal moves, evaluate the value head on each resulting pre-roll child, negate when the child is the opponent’s to move, and rank.</p>
+<p><strong>“0-ply” is GNUBG’s numbering, used throughout this project.</strong> It means static evaluation of the candidate afterstates with no further lookahead, which is exactly what GNUBG does at ply 0 — so a net playing this way is directly comparable to <code>gnubg</code> at ply 0. TD-Gammon’s papers call the same operation “1-ply”; we use GNUBG’s convention because GNUBG is the benchmark.</p>
+<p>The negation is the subtle part, and it is why these helpers live in one shared module rather than being reimplemented per caller: TD(λ) self-play, policy-dataset synthesis, and the browser port all reuse the same perspective logic.</p>
+<p>Note what this does <strong>not</strong> use: no policy head, no tree, no simulations. The exported web model omits the policy head entirely for that reason.</p>
+</section>
+<section id="search" class="level2">
+<h2 class="anchored" data-anchor-id="search">Search</h2>
+<p>Two independent searches exist. Neither is used by the shipped 0-ply engine.</p>
+<p><strong>MCTS</strong> (<code>raccoon/search/mcts.py</code>) — AlphaZero-style, PUCT selection, used by self-play training. Dice rolls are sampled and skipped, so the tree contains only decision and terminal nodes and the network is never evaluated at a chance node; with 100+ simulations the dice outcomes are covered by repeated sampling. Temperature controls exploitation vs exploration when converting visit counts into a move. Leaf positions from a simulation round are evaluated in one batched forward pass. See <a href="./mcts_explained.html">MCTS Explained</a>.</p>
+<p><strong>Filtered expectimax</strong> (<code>raccoon/search/expectimax.py</code>, exp021) — ranks moves by pushing evaluation <em>n</em> rolls deeper instead of asking the value head about the afterstate directly. Chance nodes are expanded <strong>full width</strong> over the 21 distinct rolls (doubles weighted 1/36, non-doubles 2/36), the opponent replies greedily, and each tree level is one batched forward pass. <code>depth=0</code> reduces to exactly the 0-ply static evaluation above.</p>
+<p>Expectimax operates on <strong>gnubg-nn’s 2×25 board layout, not OpenSpiel states</strong> — the BGSage benchmark stores raw boards and OpenSpiel cannot construct a state from a board, so moves come from <code>gnubg_nn.moves()</code> (whole-turn, already deduplicated to distinct resulting positions). Two slot-orientation conventions are easy to get backwards and are pinned by tests; see the module docstring. The design study is <a href="./search.html">Multi-Ply Search</a>.</p>
+</section>
+<section id="training" class="level2">
+<h2 class="anchored" data-anchor-id="training">Training</h2>
+<p>Three routes, all writing to <code>experiments/&lt;name&gt;/</code>:</p>
+<p><strong>Self-play + MCTS</strong> (<code>raccoon/train/</code>, driven by <code>scripts/train.py</code>) — the original AlphaZero loop. <code>self_play.py</code> plays games recording <code>(observation, MCTS policy, outcome)</code>; <code>replay_buffer.py</code> keeps a circular buffer of recent positions; <code>coach.py</code> samples mini-batches and minimises cross-entropy(policy) + MSE(value) + L2. Value targets blend the terminal outcome with the MCTS root Q-value, mixed by <code>--value-bootstrap-alpha</code> (1.0 = pure outcome, 0.0 = pure Q).</p>
+<p><strong>TD(λ) self-play</strong> (<code>raccoon/train/td_selfplay.py</code>, <code>scripts/train_td.py</code>) — plays by 0-ply lookahead with the dice supplying exploration, TD-Gammon style, and regresses the value head toward forward-view TD(λ) targets. No policy head, no tree.</p>
+<p><strong>Distillation</strong> (<code>scripts/train_distill.py</code>) — regresses the value head against cached GNUBG evaluations. This is where the shipped net comes from. One arm per invocation so that <code>scalar</code> vs <code>outcomes6</code> is a clean A/B on the target definition: arm A minimises MSE against equity/3, arm B cross-entropy against the six-outcome distribution.</p>
+<p>Supervised pretraining on wildbg positions (<code>scripts/pretrain.py</code>) and policy pretraining by 1-ply lookahead on match archives (<code>scripts/pretrain_policy.py</code>) can seed any of these.</p>
 </section>
 <section id="action-space" class="level2">
 <h2 class="anchored" data-anchor-id="action-space">Action Space</h2>
-<p>OpenSpiel encodes 1352 distinct backgammon actions (base-26 packed checker moves). The policy head outputs a logit for each; illegal moves are masked to −∞ before softmax in <code>raccoon/env/actions.py</code>.</p>
+<p>OpenSpiel encodes 1352 distinct backgammon actions (base-26 packed checker moves). The policy head outputs a logit per action; illegal moves are masked to −∞ before softmax in <code>raccoon/env/actions.py</code>.</p>
+<p>This indexing matters only where the policy head does — MCTS and policy pretraining. 0-ply lookahead compares <em>resulting positions</em>, so two actions reaching the same board are the same move to it, and the browser port deliberately does not implement the action indices at all.</p>
 </section>
 <section id="evaluation" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
 <ul>
-<li><strong>Checkpoint vs checkpoint</strong> (<code>raccoon/eval/arena.py</code>): tracks whether new iterations improve on old ones.</li>
-<li><strong>GNUBG benchmark</strong> (<code>raccoon/eval/gnubg_harness.py</code>): automated money game matches against the GNUBG CLI. The primary success metric.</li>
+<li><strong>BGSage money benchmark</strong> (<code>scripts/eval_benchmark_pr.py</code>) — the primary metric. 14,693 checker decisions with cubeless-equity references at three quality tiers. PR is mean move-selection error × 500 over all tiers; value-head MSE/R² is reported on the rollout tier. Static, so it costs no play time and has far more statistical power than raw ppg near parity.</li>
+<li><strong>GNUBG benchmark</strong> (<code>raccoon/eval/gnubg_harness.py</code>) — automated cubeless money sessions against GNUBG’s real nets via the <code>gnubg-nn</code> package.</li>
+<li><strong>Variance-reduced arena</strong> (<code>raccoon/eval/vr_arena.py</code>) — the same net-vs-GNUBG games with a variance-reduced ppg estimator, using the dice-luck control variate in <code>raccoon/eval/luck.py</code>.</li>
+<li><strong>Checkpoint vs checkpoint</strong> (<code>raccoon/eval/arena.py</code>) — tracks whether new iterations improve on old ones.</li>
+<li><strong>Doubles execution cost</strong> (<code>raccoon/eval/doubles.py</code>, exp020) — measures what OpenSpiel’s two-step doubles decision costs in play.</li>
 </ul>
+<p>Every reported number carries its provenance: checkpoint, metric, and n.</p>
 
 
 </section>
