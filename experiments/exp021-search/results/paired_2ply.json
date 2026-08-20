@@ -1,0 +1,12 @@
+{
+  "comparison": "ep22 2-ply search vs GNUBG 2-ply, cubeless checker play",
+  "n_decisions": 2000,
+  "note": "Both engines scored on identical positions, so the margin is measured decision by decision. Computed from the per-move dumps, which are not committed; this file is the committed conclusion.",
+  "pr_raccoon": 0.42582033697952143,
+  "pr_gnubg": 0.5876986216947773,
+  "margin_pr": 0.16187828471525592,
+  "ci95_same_positions": 0.09260884322934784,
+  "ci95_if_treated_as_separate_samples": 0.20391282355822865,
+  "sigma_same_positions": 3.4260382375811247,
+  "same_move_fraction": 0.9105
+}

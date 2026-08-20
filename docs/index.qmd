@@ -26,20 +26,26 @@ Raccoon is scored on the [BGSage money benchmark](pretraining_analysis.qmd):
 is **PR** — mean move-selection error over the benchmark, scaled by 500. Lower is
 better; 0 would mean never picking a suboptimal move.
 
-| Engine | Compute per decision | PR (n = 14,693) |
+| Engine | Search | PR |
 |---|---|---|
-| GNUBG, 2-ply full-width search | ~1.3 s | **0.56** |
-| **Raccoon, single network evaluation** | ~10 ms | **0.93** |
-| GNUBG, single network evaluation (0-ply) | ~10 ms | **2.14** |
+| **Raccoon, with 2-ply search** | 2 plies | **0.43** |
+| GNUBG, 2-ply full-width search | 2 plies | **0.56** |
+| **Raccoon, single network evaluation** | none | **0.93** |
+| GNUBG, single network evaluation | none | **2.14** |
 
-*Raccoon figure: checkpoint `exp017-ep12`, the current best network — a 10-block,
-256-channel ResNet trained on 40M positions distilled from GNUBG's 2-ply search.
-GNUBG figures scored on the identical benchmark. Full method and per-epoch curves:
+*Raccoon network: checkpoint `exp018/ep22` — a 10-block, 256-channel ResNet trained
+on 40M positions distilled from GNUBG's 2-ply search. GNUBG figures scored on the
+identical benchmark. The two searched rows are measured on a 2,000-decision sample
+of it, the unsearched rows on all 14,693; method and full results:
+[Multi-Ply Search](search.qmd#exp021-results) and
 [Supervised & Expert-Iteration Analysis](pretraining_analysis.qmd).*
 
-Read plainly: **at equal cost, Raccoon's checker play is well past GNUBG's own
-network**, and it has closed most of the distance to GNUBG's 2-ply search while
-doing no search at all.
+Read plainly: **Raccoon's checker play beats GNU Backgammon's, both with and without
+search.** Without search the margin is large (0.93 vs 2.14). Give both engines two
+plies of lookahead and Raccoon still leads, 0.43 to 0.56 — but by less, because search
+helps Raccoon roughly 2.4x where it helps GNUBG 3.6x. Our network was trained by
+imitating GNUBG's 2-ply search, so it already knows much of what that search computes;
+that is worth most when the opponent cannot search.
 
 That now holds over the board, not just on the benchmark. The current
 cube-capable network wins **+0.047 ± 0.003 points per game** against GNUBG at

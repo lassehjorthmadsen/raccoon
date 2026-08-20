@@ -6,3 +6,83 @@ Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchma
 Search: d2_k8_k22_t0.16_g0.08
 
 Scoring raccoon: ep22_d2_paired (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_d2_paired] 500/2000 (13244s, ~39731s remaining)
+  [ep22_d2_paired] 1000/2000 (27732s, ~27732s remaining)
+  [ep22_d2_paired] 1500/2000 (42611s, ~14204s remaining)
+  [ep22_d2_paired] 2000/2000 (56906s, ~0s remaining)
+  [ep22_d2_paired] Done: 2000 decisions in 56906.2s
+  [ep22_d2_paired] Saved predictions: experiments/exp021-search/dumps/ep22_d2_paired.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 2000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_d2_paired                     0.43   2000      2    0.18    0.53    0.16    0.40    0.83
+
+  (N per plan)                                              236     401     573     350     440
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_d2_paired                          0.9969   0.0018    22397        0.9940   0.0019     7695        0.9948   0.0014    15763        0.9962   0.0017    45855
+
+Saving results to experiments/exp021-search/results/
+  Saved: experiments/exp021-search/results/ep22_d2_paired.json
+  Saved: experiments/exp021-search/results/summary.json
+=== exp022 rows, started 2026-08-20T12:37:27+02:00 ===
+exp022 started 2026-08-20T12:37:27+02:00 on lasse-iMac14-2
+=== .venv/bin/python -u scripts/eval_benchmark_pr.py --benchmark data/bgsage/money_benchmark/benchmark.json.gz --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --engine-label ep22_smooth_isocost --search-depth 1 --search-k 16 --search-gate 0.08 --window-lo 0.02 --window-hi 0.36 --subsample 2000 --subsample-seed 21 --output experiments/exp022-contact/results ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 2000 decisions, seed 21)
+
+Search: d1_k16_k22_w0.02-0.36_g0.08
+
+Scoring raccoon: ep22_smooth_isocost (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_smooth_isocost] 500/2000 (2909s, ~8726s remaining)
+  [ep22_smooth_isocost] 1000/2000 (5815s, ~5815s remaining)
+  [ep22_smooth_isocost] 1500/2000 (9027s, ~3009s remaining)
+  [ep22_smooth_isocost] 2000/2000 (11900s, ~0s remaining)
+  [ep22_smooth_isocost] Done: 2000 decisions in 11900.4s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 2000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_smooth_isocost                0.66   2000      4    0.07    1.18    0.40    0.56    0.92
+
+  (N per plan)                                              236     401     573     350     440
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_smooth_isocost                     0.9970   0.0018    22397        0.9941   0.0019     7695        0.9948   0.0014    15763        0.9962   0.0017    45855
+
+Saving results to experiments/exp022-contact/results/
+  Saved: experiments/exp022-contact/results/ep22_smooth_isocost.json
+  Saved: experiments/exp022-contact/results/summary.json
+=== .venv/bin/python -u scripts/eval_benchmark_pr.py --benchmark data/bgsage/money_benchmark/benchmark.json.gz --checkpoint experiments/exp018-distill/checkpoints/ep22.pt --engine-label ep22_smooth_cheap --search-depth 1 --search-k 16 --search-gate 0.08 --window-lo 0.00 --window-hi 0.24 --subsample 2000 --subsample-seed 21 --output experiments/exp022-contact/results ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 2000 decisions, seed 21)
+
+Search: d1_k16_k22_w0.0-0.24_g0.08
+
+Scoring raccoon: ep22_smooth_cheap (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_smooth_cheap] 500/2000 (2052s, ~6156s remaining)
