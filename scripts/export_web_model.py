@@ -15,11 +15,15 @@ provenance of the weights. Both the JS engine and
 ``scripts/eval_benchmark_pr.py --onnx`` read it, so the browser can never drift
 from the encoder the weights were trained with.
 
+``--out-dir`` points into the separate raccoon-website checkout. It defaults to
+the sibling layout (``../raccoon-website/app/models``) and honours
+``$RACCOON_WEBSITE``; where neither fits, pass it explicitly. A wrong guess is
+refused rather than created — see ``raccoon/web_export.py``.
+
 Usage:
     # fp32 (~48 MB for a 10x256 net), verified against torch:
     python scripts/export_web_model.py \\
-        --checkpoint experiments/exp018-distill/checkpoints/ep22.pt \\
-        --out-dir ../raccoon-website/app/models
+        --checkpoint experiments/exp018-distill/checkpoints/ep22.pt
 
     # also emit a statically-quantised int8 copy (~4x smaller):
     python scripts/export_web_model.py ... --quantize
@@ -55,6 +59,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from raccoon.env.encoder import channels_for_network, encode_state  # noqa: E402
 from raccoon.model.network import RaccoonNet, load_model  # noqa: E402
+from raccoon.web_export import ensure_out_dir, website_path  # noqa: E402
 
 OPSET = 17
 
@@ -190,7 +195,9 @@ def quantize(src: Path, dst: Path, calib: np.ndarray) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--checkpoint", required=True)
-    ap.add_argument("--out-dir", default="../raccoon-website/app/models")
+    # Defaults to the sibling layout; $RACCOON_WEBSITE overrides. ensure_out_dir
+    # below refuses to invent the path if that guess is wrong on this machine.
+    ap.add_argument("--out-dir", default=website_path("app/models"))
     ap.add_argument("--name", default=None, help="basename; default from checkpoint")
     ap.add_argument("--quantize", action="store_true", help="also emit an int8 copy")
     ap.add_argument("--verify-n", type=int, default=2000)
@@ -199,14 +206,16 @@ def main() -> None:
 
     torch.set_flush_denormal(True)
 
+    # Before the checkpoint load: a bad --out-dir should not cost 47 MB of
+    # deserialisation to discover.
+    out_dir = ensure_out_dir(args.out_dir)
+
     ckpt_path = Path(args.checkpoint)
     net = load_model(str(ckpt_path))
     net.eval()
     channels = channels_for_network(net.config)
     model = WebValueModel(net).eval()
 
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
     name = args.name or f"{ckpt_path.parent.parent.name.split('-')[0]}-{ckpt_path.stem}"
     fp32_path = out_dir / f"{name}-fp32.onnx"
 

@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Raccoon is a backgammon AI using AlphaZero-style self-play training (ResNet policy-value network + MCTS) to beat GNUBG at money game. OpenSpiel provides game logic; all ML/search code is written from scratch in Python/PyTorch.
+Raccoon is a backgammon AI aiming to beat GNUBG at cubeless money game. OpenSpiel provides game logic; all ML/search code is written from scratch in Python/PyTorch.
+
+**The project began as AlphaZero (ResNet policy-value net + MCTS self-play) and that machinery is still here and runnable — but it is not what the current engine does.** The shipped net was trained by distilling GNUBG onto the value head (`scripts/train_distill.py`), and it selects moves by **0-ply value lookahead** (`raccoon/train/lookahead.py`): evaluate the value head on every legal afterstate, no tree, no policy head. Read `docs/architecture.md` before assuming which path a change affects. When editing that file or this one, keep the two in step — they contradicting each other is the failure mode this note exists to prevent.
 
 ## Commands
 
@@ -50,7 +52,49 @@ python3 scripts/synthesize_policy_dataset.py \
 python3 scripts/pretrain_policy.py --experiment-name pretrain-wildbg-v2 \
   --base-checkpoint experiments/pretrain-wildbg-v1/checkpoints/pretrained.pt \
   --cache data/bglab/cache/policy_cache.npz --epochs 10
+
+# Value-only distillation of GNUBG onto a fresh net — this is where the shipped
+# net came from. One arm per invocation (--value-head scalar|outcomes6).
+python3 scripts/train_distill.py --cache-dir data/distill/0ply/run1 \
+  --experiment-name exp011-distill/scalar --value-head scalar --epochs 2
+
+# TD(lambda) self-play: value head only, moves chosen by 0-ply lookahead
+python3 scripts/train_td.py --experiment-name exp010-td --batches 100
+
+# Score any checkpoint or exported ONNX on the BGSage benchmark (the primary metric)
+python3 scripts/eval_benchmark_pr.py --checkpoint experiments/<name>/checkpoints/<ep>.pt
 ```
+
+### Exporting to the browser engine
+
+The site at raccoonbg.com lives in a **separate repo, `raccoon-website`**, whose
+position relative to this one is a per-machine fact: siblings on the Linux dev box,
+opposite sides of the WSL boundary on the Windows ones. `--out-dir` defaults to the
+sibling layout, so on a sibling checkout this needs no flags at all:
+
+```bash
+python3 scripts/export_web_model.py --checkpoint experiments/exp018-distill/checkpoints/ep22.pt
+python3 scripts/export_web_fixtures.py
+python3 scripts/eval_benchmark_pr.py --onnx ../raccoon-website/app/models/exp018-ep22-fp32.onnx
+```
+
+Where the repos are not siblings, export `RACCOON_WEBSITE=/path/to/raccoon-website`
+once (e.g. in `.bashrc`) and the same commands work unchanged; `--out-dir` still
+overrides both.
+
+**A wrong guess is refused, not created.** Both exporters used to `mkdir -p` their
+output, so a default that was wrong on this machine produced a plausible-looking
+empty tree, reported success, and left the site shipping the previous weights.
+`raccoon/web_export.py` now creates the leaf directory but never its ancestry: if the
+parent is missing the run aborts immediately, before the checkpoint load, naming the
+resolved absolute path. That catches a wrong default, a moved checkout, and a typo'd
+`--out-dir` alike.
+
+The exported graph carries the **value head only** — nothing in the web engine reads
+the policy head, since it plays 0-ply. The fixtures are the contract its JS ports of
+movegen and the encoder are tested against, so a divergence fails that repo's CI
+instead of quietly making the demo play a different game from the one benchmarked.
+The last command re-scores the exported file; the site quotes *that* number.
 
 ## Architecture
 
@@ -63,18 +107,27 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
    - `encoder.py`: Converts board state to **(26, 2, 12)** float32 tensor (26 channels, 2 rows, 12 columns). Channels: 4 checker planes per player, bar/borne-off/dice broadcast planes, mid-doubles flag, plus handcrafted features (pip count, blots, anchors, contact pressure). `CHANNEL_NAMES` is the authoritative registry of channel meanings; `dump_tensor()` pretty-prints the planes for debugging.
    - `actions.py`: Legal action masking over OpenSpiel's 1352 action space
 
-2. **`raccoon/model/network.py`** — `RaccoonNet`: ResNet with shared trunk → policy head (1352 logits) + value head (scalar in [-1,1] via tanh). Default: 6 residual blocks, 128 channels. `predict()` method handles masking + softmax for MCTS inference.
+2. **`raccoon/model/network.py`** — `RaccoonNet`: ResNet with shared trunk → policy head (1352 logits) + value head. Default: 6 residual blocks, 128 channels; the shipped net is 10 blocks, 256 channels. `predict()` handles masking + softmax for MCTS inference.
+   - The value head is `"scalar"` (one tanh output) **or** `"outcomes6"` (six logits over `[win, win_g, win_bg, lose, lose_g, lose_bg]`), fixed at construction and recorded in the checkpoint. The shipped net is `outcomes6`.
+   - **Every value in this codebase is money-equity/3 in [-1, 1] from the to-move player's POV** (win = ±1/3, gammon = ±2/3, backgammon = ±1), trained on **pre-roll** positions. `value_equity()` applies whichever conversion the head needs, so the two head types are interchangeable at play time — downstream code must go through it and never branch on head type.
 
-3. **`raccoon/search/mcts.py`** — AlphaZero MCTS with PUCT selection. Chance nodes (dice rolls) are sampled and skipped — the tree only contains decision/terminal nodes. Temperature controls exploration vs exploitation.
+3. **`raccoon/search/`** — two independent searches; **neither is used by the shipped 0-ply engine**
+   - `mcts.py`: AlphaZero MCTS with PUCT selection, used by self-play training. Chance nodes (dice rolls) are sampled and skipped — the tree only contains decision/terminal nodes. Temperature controls exploration vs exploitation.
+   - `expectimax.py`: filtered expectimax (exp021). Chance nodes expanded **full width** over the 21 distinct rolls (doubles 1/36, non-doubles 2/36), opponent replies greedily, one batched forward pass per level. `depth=0` reduces to plain 0-ply. Operates on **gnubg-nn 2x25 boards, not OpenSpiel states** — two slot-orientation conventions are easy to get backwards and are pinned by tests. Design study: `docs/search.qmd`.
 
-4. **`raccoon/train/`** — Self-play loop
-   - `self_play.py`: Plays games, records (observation, MCTS policy, outcome) tuples
-   - `replay_buffer.py`: Circular buffer of training positions
-   - `coach.py`: Orchestrates self-play → replay buffer → SGD training → checkpoint. Logs full config (network architecture, hyperparams, system info) to JSONL.
+4. **`raccoon/train/`** — move selection and three training routes
+   - `lookahead.py`: **0-ply value lookahead — this is what picks moves.** Enumerate legal moves, evaluate V on each pre-roll child, negate when the child is the opponent's to move, rank. "0-ply" is GNUBG's numbering (static eval, no further search), so a net playing this way is directly comparable to `gnubg` at ply 0; TD-Gammon's papers call this "1-ply". The perspective/negation logic is subtle and lives here once — TD self-play, policy synthesis, and the browser port all reuse it.
+   - `self_play.py` / `replay_buffer.py` / `coach.py`: the AlphaZero loop. Plays games recording (observation, MCTS policy, outcome); circular buffer of recent positions; SGD + checkpointing. `coach.py` logs full config (architecture, hyperparams, system info) to JSONL.
+   - `td_selfplay.py`: TD(λ) self-play (exp010). Plays by 0-ply lookahead with dice supplying exploration, regresses the value head toward forward-view TD(λ) targets. No policy head, no tree. Loop lives in `scripts/train_td.py`.
+   - `parallel_self_play.py`, `inference_server.py`: throughput plumbing for the above.
 
 5. **`raccoon/eval/`** — Evaluation infrastructure
    - `arena.py`: Checkpoint vs checkpoint matches
    - `gnubg_harness.py`: Automated cubeless money game matches against GNUBG's evaluation engine (the `gnubg-nn` library — GNUBG's real nets, programmatically queryable; default `level=world` → full-width 2-ply)
+   - `vr_arena.py`: the same net-vs-GNUBG games with a variance-reduced ppg estimator
+   - `luck.py`: dice-luck control variate (XG/GNUBG/BGSage style) that `vr_arena` builds on
+   - `doubles.py`: what Raccoon's two-step doubles execution costs in play (exp020)
+   - `gnubg_adapter.py`, `game_log.py`, `match_log.py`: gnubg-nn bridging and match/game recording
 
 6. **`raccoon/protocol/rgp.py`** — Raccoon Game Protocol: text-based stdin/stdout protocol inspired by UCI for future GUI frontends
 
@@ -83,9 +136,12 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
 ### Key Design Details
 
 - Board encoding is always from the **current player's perspective** (perspective flip applied in the wrapper)
+- Handcrafted channels are **normalised by default**. Raw pip (~95) and contact (~52) are ~100x the scale of the base planes, which lets them dominate the input convolution and destabilises value-head training (Stage 6 of `docs/pretraining_analysis.qmd`). `FEATURE_SCALES` holds the divisors; `normalize=False` only for feature-math tests.
 - MCTS never evaluates the network at chance nodes — it samples dice and advances to the next decision node
-- Loss = cross-entropy(policy) + MSE(value) + L2 regularization (via optimizer weight_decay)
-- Training examples store a value target blended from the terminal game outcome and MCTS root Q (`--value-bootstrap-alpha` controls the mix; 1.0 = pure outcome, 0.0 = pure Q)
+- The loss depends on which route you are running, and they are not interchangeable:
+  - **AlphaZero self-play** (`scripts/train.py`): cross-entropy(policy) + MSE(value) + L2 (via optimizer weight_decay). Value target blends the terminal outcome with MCTS root Q — `--value-bootstrap-alpha` controls the mix (1.0 = pure outcome, 0.0 = pure Q).
+  - **TD(λ)** (`scripts/train_td.py`): value head only, regressed toward forward-view TD(λ) targets.
+  - **Distillation** (`scripts/train_distill.py`): value head only. `scalar` arm minimises MSE against equity/3; `outcomes6` arm minimises cross-entropy against the six-outcome distribution. One arm per invocation so the A/B isolates the target definition.
 
 ## Experiment Conventions
 

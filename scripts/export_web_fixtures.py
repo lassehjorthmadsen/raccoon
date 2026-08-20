@@ -23,10 +23,14 @@ Cases are stratified so the awkward paths — checkers on the bar, bear-off,
 doubles, and the second half of a doubles turn — are all covered rather than
 left to chance.
 
+``--out-dir`` points into the separate raccoon-website checkout. It defaults to
+the sibling layout (``../raccoon-website/test/fixtures``) and honours
+``$RACCOON_WEBSITE``; where neither fits, pass it explicitly. A wrong guess is
+refused rather than created — see ``raccoon/web_export.py``.
+
 Usage:
     python scripts/export_web_fixtures.py \\
-        --checkpoint experiments/exp018-distill/checkpoints/ep22.pt \\
-        --out-dir ../raccoon-website/test/fixtures
+        --checkpoint experiments/exp018-distill/checkpoints/ep22.pt
 """
 from __future__ import annotations
 
@@ -45,6 +49,7 @@ import pyspiel
 
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import BoardView, GameState, GameWrapper
+from raccoon.web_export import ensure_out_dir, website_path
 
 # Per-bucket quotas for the movegen fixture. "plain" is ordinary contact play;
 # the rest are the cases a hand-written move generator gets wrong.
@@ -248,7 +253,8 @@ def collect_engine_cases(seed: int, n: int, checkpoint: str) -> list[dict]:
 
 
 def write_gz(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    # No mkdir here: main() has already validated out_dir. Recreating it would
+    # reintroduce exactly the silent-success path ensure_out_dir exists to close.
     with gzip.open(path, "wt", compresslevel=9) as f:
         json.dump(payload, f, separators=(",", ":"))
     print(f"  wrote {path} ({path.stat().st_size / 1e6:.1f} MB)")
@@ -257,13 +263,15 @@ def write_gz(path: Path, payload: dict) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--checkpoint", default="experiments/exp018-distill/checkpoints/ep22.pt")
-    ap.add_argument("--out-dir", default="../raccoon-website/test/fixtures")
+    # Defaults to the sibling layout; $RACCOON_WEBSITE overrides. See
+    # raccoon/web_export.py for why the guess is validated rather than mkdir -p'd.
+    ap.add_argument("--out-dir", default=website_path("test/fixtures"))
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--encoder-n", type=int, default=300)
     ap.add_argument("--engine-n", type=int, default=1000)
     args = ap.parse_args()
 
-    out_dir = Path(args.out_dir)
+    out_dir = ensure_out_dir(args.out_dir)
     provenance = {
         "generator": "scripts/export_web_fixtures.py",
         "checkpoint": args.checkpoint,
