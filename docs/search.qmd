@@ -603,23 +603,47 @@ def load(name):
 ladder = [
     ("GNUBG", "none (network only)", "gnubg_0_ply"),
     ("Raccoon", "none (network only)", "ep22_d0_subsample_baseline"),
+    ("Raccoon", "none (network only)", "ep22_depth0_control"),
     ("GNUBG", "1 ply", "gnubg_1_ply"),
+    ("GNUBG", "1 ply", "gnubg_1_ply_full"),
     ("Raccoon", "1 ply", "ep22_d1_k16_k22_t0_32_g0_08"),
     ("GNUBG", "2 plies", "gnubg_2_ply"),
     ("Raccoon", "2 plies", "ep22_d2_paired"),
 ]
-print("| engine | search | PR | Raccoon evaluations per move |")
-print("|---|---|---:|---:|")
+print("| engine | search | positions scored | PR | Raccoon evaluations per move |")
+print("|---|---|---:|---:|---:|")
 for engine, depth, key in ladder:
     d = load(key)
     s = d.get("search")
     cost = f"{s['evals_per_decision']:,.0f}" if s else ("1" if engine == "Raccoon" else "—")
-    print(f"| {engine} | {depth} | {d['pr']:.3f} | {cost} |")
+    print(f"| {engine} | {depth} | {d['n']:,} | {d['pr']:.3f} | {cost} |")
 ```
 
 Every ply of lookahead cuts the error substantially for both engines, and Raccoon is ahead
 at every depth. The last column counts only Raccoon's own network evaluations; GNUBG's
 internal search work is not measured here, so the two columns are not a cost comparison.
+
+Two measurements were also run on the **full** benchmark of 14,693 positions, as a check
+that the 2,000-position sample is representative. They agree closely, and the two
+differences fall on opposite sides, so the sample is not systematically easier or harder:
+
+```{python}
+#| echo: false
+#| output: asis
+checks = [
+    ("Raccoon, no search", "ep22_d0_subsample_baseline", "ep22_depth0_control"),
+    ("GNUBG, 1 ply", "gnubg_1_ply", "gnubg_1_ply_full"),
+]
+print("| measurement | PR on 2,000 | PR on 14,693 | difference |")
+print("|---|---:|---:|---:|")
+for label, sub, full in checks:
+    a, b = load(sub)["pr"], load(full)["pr"]
+    print(f"| {label} | {a:.3f} | {b:.3f} | {a-b:+.3f} |")
+```
+
+Both gaps are inside the expected sampling range, so the ordering of engines — which is
+what the experiment is about — is unaffected. Every comparison below is made between
+engines scored on the *same* positions, which removes this source of variation entirely.
 
 ### How solid is the margin?
 
@@ -628,9 +652,9 @@ internal search work is not measured here, so the two columns are not a cost com
 #| output: asis
 pd = load("paired_2ply")
 print(f"""
-| Raccoon 2-ply | GNUBG 2-ply | Raccoon's margin |
-|---:|---:|---:|
-| {pd['pr_raccoon']:.3f} | {pd['pr_gnubg']:.3f} | **{pd['margin_pr']:.3f} ± {pd['ci95_same_positions']:.3f}** |
+| positions scored | Raccoon 2-ply | GNUBG 2-ply | Raccoon's margin |
+|---:|---:|---:|---:|
+| {pd['n_decisions']:,} | {pd['pr_raccoon']:.3f} | {pd['pr_gnubg']:.3f} | **{pd['margin_pr']:.3f} ± {pd['ci95_same_positions']:.3f}** |
 
 The two engines choose the **same move on {100*pd['same_move_fraction']:.0f}%** of positions.
 Only the {100*(1-pd['same_move_fraction']):.0f}% where they disagree carry any uncertainty,
