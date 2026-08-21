@@ -219,6 +219,7 @@ window.Quarto = {
   <li><a href="#the-knobs" id="toc-the-knobs" class="nav-link" data-scroll-target="#the-knobs">The knobs</a></li>
   <li><a href="#exp021-pre-registered" id="toc-exp021-pre-registered" class="nav-link" data-scroll-target="#exp021-pre-registered">exp021, pre-registered</a></li>
   <li><a href="#exp021-results" id="toc-exp021-results" class="nav-link" data-scroll-target="#exp021-results">exp021 — results</a></li>
+  <li><a href="#exp022" id="toc-exp022" class="nav-link" data-scroll-target="#exp022">exp022 — should search be wider in complicated positions?</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -328,7 +329,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="a98252f1" class="cell" data-execution_count="2">
+<div id="0fe14747" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -697,7 +698,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>Wider is better, and had not stopped paying at the widest setting tried. Separately, skipping the search entirely on positions where one move is already far ahead saved 14% of the work and cost 0.001 PR — effectively free.</p>
+<p>Wider is better across this range. It later turned out that the widest row is wider than it needs to be: the same 0.655 is reached at a window of 0.18 for 22% less work, and nothing past that point changes a single move (<a href="#exp022">exp022</a>). Separately, skipping the search entirely on positions where one move is already far ahead saved 14% of the work and cost 0.001 PR — effectively free.</p>
 </section>
 <section id="what-we-changed-along-the-way" class="level3">
 <h3 class="anchored" data-anchor-id="what-we-changed-along-the-way">What we changed along the way</h3>
@@ -709,6 +710,128 @@ window.Quarto = {
 </ul>
 <blockquote class="blockquote">
 <p>Does 2-ply search let Raccoon beat GNUBG at the same depth? → <strong>Yes</strong>: 0.43 vs 0.59, margin 0.16 ± 0.09 on 2,000 shared positions. But search improves Raccoon 2.4x against GNUBG’s 3.6x on those same positions, so the lead narrows at every ply.</p>
+</blockquote>
+</section>
+</section>
+<section id="exp022" class="level2">
+<h2 class="anchored" data-anchor-id="exp022">exp022 — should search be wider in complicated positions?</h2>
+<p>exp021 spends the same effort on every position, and the payoff is wildly uneven. One ply of search cut the error by 0.50 in anchoring positions and by 0.04 in races. Races are a fifth of all decisions, so a fifth of the work buys almost nothing. The obvious fix is to look narrowly where lookahead does not help and widely where it does.</p>
+<p><strong>It does not work.</strong> The two rules pick the same move on 1,999 of 2,000 positions.</p>
+<section id="the-rule" class="level3">
+<h3 class="anchored" data-anchor-id="the-rule">The rule</h3>
+<p>Search keeps only candidate moves whose static equity is within a window of the best one. exp021 uses one fixed window everywhere. exp022 scales it with how much <em>contact</em> a position has — how far the two sides still have to travel to get past each other, a quantity the network already computes as one of its inputs. It is 1 at the opening and 0 in a pure race.</p>
+<p><span class="math display">\[\text{window} = w_0 + (w_1 - w_0) \times \text{contact}\]</span></p>
+<p>Both ends mean something concrete: <span class="math inline">\(w_0\)</span> is how wide to look in a pure race, <span class="math inline">\(w_1\)</span> at full contact. They were not tuned against PR. They were fixed in advance by arithmetic, so that the rule would examine about as many moves as the fixed window it is measured against — making the comparison equal-cost by construction rather than by tuning. With <span class="math inline">\(w_0 = 0.02\)</span> and <span class="math inline">\(w_1 = 0.36\)</span> it works out, on the benchmark’s own positions, as:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>position type</th>
+<th style="text-align: right;">average contact</th>
+<th style="text-align: right;">window it gets</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>pure race</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.02</td>
+</tr>
+<tr class="even">
+<td>racing</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.12</td>
+</tr>
+<tr class="odd">
+<td>anchoring</td>
+<td style="text-align: right;">0.52</td>
+<td style="text-align: right;">0.20</td>
+</tr>
+<tr class="even">
+<td>priming</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">0.23</td>
+</tr>
+<tr class="odd">
+<td>attacking</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.25</td>
+</tr>
+<tr class="even">
+<td><strong>all positions</strong></td>
+<td style="text-align: right;"><strong>0.47</strong></td>
+<td style="text-align: right;"><strong>0.18</strong></td>
+</tr>
+</tbody>
+</table>
+<p>So it does what was intended: races get a window a fifth as wide as attacking positions, and the average across the benchmark lands on 0.18 — which is exactly the fixed window it is compared against.</p>
+</section>
+<section id="result" class="level3">
+<h3 class="anchored" data-anchor-id="result">Result</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>window</th>
+<th style="text-align: right;">most moves kept</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">evaluations per move</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>fixed at 0.18</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0.655</td>
+<td style="text-align: right;">2,345</td>
+</tr>
+<tr class="even">
+<td>scaled with contact, 0.02–0.36</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0.659</td>
+<td style="text-align: right;">2,476</td>
+</tr>
+<tr class="odd">
+<td>fixed at 0.16</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.734</td>
+<td style="text-align: right;">1,650</td>
+</tr>
+<tr class="even">
+<td>scaled with contact, 0.00–0.24</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0.748</td>
+<td style="text-align: right;">1,777</td>
+</tr>
+</tbody>
+</table>
+<p>The first two rows are the comparison the experiment was built for: same cap on how many moves survive, same amount of work, differing only in whether the window varies. The contact-scaled one is very slightly worse and very slightly dearer.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">positions scored</th>
+<th style="text-align: right;">fixed window</th>
+<th style="text-align: right;">scaled with contact</th>
+<th style="text-align: right;">difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2,000</td>
+<td style="text-align: right;">0.655</td>
+<td style="text-align: right;">0.659</td>
+<td style="text-align: right;">0.004 ± 0.008</td>
+</tr>
+</tbody>
+</table>
+<p>The two rules choose a different move in <strong>1 of 2,000 positions</strong>, and on that one the contact-scaled window picks the worse move. The whole difference above comes from that single position. (Compared as separate samples the range would be ±0.24 — sixty times wider, and useless. Scoring both rules on identical positions is what makes a difference this small legible at all.)</p>
+<p>The last two rows of the first table are the cheaper version of the same idea, and point the same way: it costs 8% more than exp021’s setting and scores 0.014 worse. That pair is not a controlled comparison — the cap differs too — so it is supporting evidence, not the result.</p>
+</section>
+<section id="why-there-was-nothing-to-reallocate" class="level3">
+<h3 class="anchored" data-anchor-id="why-there-was-nothing-to-reallocate">Why there was nothing to reallocate</h3>
+<p>The reason turned up in exp021’s own numbers. Widening the fixed window from 0.18 to 0.32 requires 29% more evaluations and changes <strong>not one move out of 2,000</strong> — the two runs produce byte-identical scores. Beyond a window of roughly 0.18, extra candidates are examined and never win.</p>
+<p>That settles it. There is no gain sitting in the wide end waiting to be funded, so narrowing races frees a budget with nothing to spend it on, and occasionally drops a move that would have won. It also explains the cost going the wrong way: races are cheap to search to begin with — few legal moves, few close contenders — so the work saved there is small, while the positions the rule widens are the ones where moves are plentiful and each extra point of window is expensive.</p>
+<p>The honest reading is that the fixed window was already at the efficient setting, and this was a search for slack that isn’t there. A gain in racing positions, if there is one, has to come from somewhere other than looking at more moves.</p>
+<blockquote class="blockquote">
+<p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move), a difference of one move in two thousand. The window saturates at 0.18, so there is no slack to reallocate.</p>
 </blockquote>
 </section>
 </section>
