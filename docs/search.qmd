@@ -600,46 +600,38 @@ R = Path("../experiments/exp021-search/results")
 def load(name):
     return json.loads((R / f"{name}.json").read_text())
 
-ladder = [
-    ("GNUBG", "none (network only)", "gnubg_0_ply"),
-    ("Raccoon", "none (network only)", "ep22_d0_subsample_baseline"),
-    ("Raccoon", "none (network only)", "ep22_depth0_control"),
-    ("GNUBG", "1 ply", "gnubg_1_ply"),
-    ("GNUBG", "1 ply", "gnubg_1_ply_full"),
-    ("Raccoon", "1 ply", "ep22_d1_k16_k22_t0_32_g0_08"),
-    ("GNUBG", "2 plies", "gnubg_2_ply"),
-    ("Raccoon", "2 plies", "ep22_d2_paired"),
+rows = [
+    ("None", "gnubg_0_ply", "ep22_d0_subsample_baseline"),
+    ("None", None, "ep22_depth0_control"),
+    ("1 ply", "gnubg_1_ply", "ep22_d1_k16_k22_t0_32_g0_08"),
+    ("1 ply", "gnubg_1_ply_full", None),
+    ("2 plies", "gnubg_2_ply", "ep22_d2_paired"),
 ]
-print("| engine | search | positions scored | PR | Raccoon evaluations per move |")
-print("|---|---|---:|---:|---:|")
-for engine, depth, key in ladder:
-    d = load(key)
-    s = d.get("search")
-    cost = f"{s['evals_per_decision']:,.0f}" if s else ("1" if engine == "Raccoon" else "—")
-    print(f"| {engine} | {depth} | {d['n']:,} | {d['pr']:.3f} | {cost} |")
+print("| search | positions scored | Raccoon | GNUBG | Raccoon evaluations per move |")
+print("|---|---:|---:|---:|---:|")
+for depth, gnubg_key, rac_key in rows:
+    ref = load(rac_key or gnubg_key)
+    rac = f"{load(rac_key)['pr']:.3f}" if rac_key else "—"
+    gnu = f"{load(gnubg_key)['pr']:.3f}" if gnubg_key else "—"
+    if rac_key:
+        s = load(rac_key).get("search")
+        cost = f"{s['evals_per_decision']:,.0f}" if s else "1"
+    else:
+        cost = "—"
+    print(f"| {depth} | {ref['n']:,} | {rac} | {gnu} | {cost} |")
 ```
 
 Every ply of lookahead cuts the error substantially for both engines, and Raccoon is ahead
-at every depth. The last column counts only Raccoon's own network evaluations; GNUBG's
-internal search work is not measured here, so the two columns are not a cost comparison.
+at every depth — read across a row to compare them. The last column counts only Raccoon's
+own network evaluations; GNUBG's internal search work is not measured here, so it is not a
+cost comparison between the two.
 
-Two measurements were also run on the **full** benchmark of 14,693 positions, as a check
-that the 2,000-position sample is representative. They agree closely, and the two
-differences fall on opposite sides, so the sample is not systematically easier or harder:
-
-```{python}
-#| echo: false
-#| output: asis
-checks = [
-    ("Raccoon, no search", "ep22_d0_subsample_baseline", "ep22_depth0_control"),
-    ("GNUBG, 1 ply", "gnubg_1_ply", "gnubg_1_ply_full"),
-]
-print("| measurement | PR on 2,000 | PR on 14,693 | difference |")
-print("|---|---:|---:|---:|")
-for label, sub, full in checks:
-    a, b = load(sub)["pr"], load(full)["pr"]
-    print(f"| {label} | {a:.3f} | {b:.3f} | {a-b:+.3f} |")
-```
+Most rows are scored on a 2,000-position sample. Two measurements were also run on the
+**full** benchmark of 14,693 positions, as a check that the sample is representative: read
+down the two `None` rows and the two `1 ply` rows. Raccoon without search scores 1.026 on
+the sample against 0.950 on the full benchmark, and GNUBG at 1 ply scores 1.178 against
+1.206 — differences of +0.077 and −0.028, falling on opposite sides, so the sample is not
+systematically easier or harder.
 
 Both gaps are inside the expected sampling range, so the ordering of engines — which is
 what the experiment is about — is unaffected. Every comparison below is made between
