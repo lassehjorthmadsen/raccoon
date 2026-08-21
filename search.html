@@ -328,7 +328,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="07252388" class="cell" data-execution_count="2">
+<div id="4b5f8e8e" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -552,10 +552,18 @@ window.Quarto = {
 <p><strong>Yes. Raccoon with 2-ply search scores PR 0.43, against GNU Backgammon’s 0.59 at the same depth.</strong> But search helps Raccoon <em>less</em> than it helps GNUBG, which was not the expected outcome and is the more useful finding.</p>
 <p>PR is the average equity thrown away per move, times 500. Lower is better; 0 would mean never making a mistake. Both engines were scored on the same 2,000 positions, so the comparison is like-for-like.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 22%">
+<col style="width: 22%">
+<col style="width: 22%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>engine</th>
 <th>search</th>
+<th style="text-align: right;">positions scored</th>
 <th style="text-align: right;">PR</th>
 <th style="text-align: right;">Raccoon evaluations per move</th>
 </tr>
@@ -564,47 +572,94 @@ window.Quarto = {
 <tr class="odd">
 <td>GNUBG</td>
 <td>none (network only)</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">2.088</td>
 <td style="text-align: right;">—</td>
 </tr>
 <tr class="even">
 <td>Raccoon</td>
 <td>none (network only)</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">1.026</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr class="odd">
+<td>Raccoon</td>
+<td>none (network only)</td>
+<td style="text-align: right;">14,693</td>
+<td style="text-align: right;">0.950</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
 <td>GNUBG</td>
 <td>1 ply</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">1.178</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="odd">
+<td>GNUBG</td>
+<td>1 ply</td>
+<td style="text-align: right;">14,693</td>
+<td style="text-align: right;">1.206</td>
 <td style="text-align: right;">—</td>
 </tr>
 <tr class="even">
 <td>Raccoon</td>
 <td>1 ply</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">0.655</td>
 <td style="text-align: right;">3,016</td>
 </tr>
 <tr class="odd">
 <td>GNUBG</td>
 <td>2 plies</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">0.588</td>
 <td style="text-align: right;">—</td>
 </tr>
 <tr class="even">
 <td>Raccoon</td>
 <td>2 plies</td>
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">0.426</td>
 <td style="text-align: right;">12,016</td>
 </tr>
 </tbody>
 </table>
 <p>Every ply of lookahead cuts the error substantially for both engines, and Raccoon is ahead at every depth. The last column counts only Raccoon’s own network evaluations; GNUBG’s internal search work is not measured here, so the two columns are not a cost comparison.</p>
+<p>Two measurements were also run on the <strong>full</strong> benchmark of 14,693 positions, as a check that the 2,000-position sample is representative. They agree closely, and the two differences fall on opposite sides, so the sample is not systematically easier or harder:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>measurement</th>
+<th style="text-align: right;">PR on 2,000</th>
+<th style="text-align: right;">PR on 14,693</th>
+<th style="text-align: right;">difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raccoon, no search</td>
+<td style="text-align: right;">1.026</td>
+<td style="text-align: right;">0.950</td>
+<td style="text-align: right;">+0.077</td>
+</tr>
+<tr class="even">
+<td>GNUBG, 1 ply</td>
+<td style="text-align: right;">1.178</td>
+<td style="text-align: right;">1.206</td>
+<td style="text-align: right;">-0.028</td>
+</tr>
+</tbody>
+</table>
+<p>Both gaps are inside the expected sampling range, so the ordering of engines — which is what the experiment is about — is unaffected. Every comparison below is made between engines scored on the <em>same</em> positions, which removes this source of variation entirely.</p>
 <section id="how-solid-is-the-margin" class="level3">
 <h3 class="anchored" data-anchor-id="how-solid-is-the-margin">How solid is the margin?</h3>
 <table class="caption-top table">
 <thead>
 <tr class="header">
+<th style="text-align: right;">positions scored</th>
 <th style="text-align: right;">Raccoon 2-ply</th>
 <th style="text-align: right;">GNUBG 2-ply</th>
 <th style="text-align: right;">Raccoon’s margin</th>
@@ -612,6 +667,7 @@ window.Quarto = {
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: right;">2,000</td>
 <td style="text-align: right;">0.426</td>
 <td style="text-align: right;">0.588</td>
 <td style="text-align: right;"><strong>0.162 ± 0.093</strong></td>
