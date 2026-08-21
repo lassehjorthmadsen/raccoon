@@ -708,13 +708,71 @@ def sanitize_label(label: str) -> str:
     return fname.strip("_")
 
 
-def save_results(results: list[dict], output_dir: str) -> None:
+# What makes two results the *same measurement*, so that re-scoring is idempotent
+# rather than destructive. Anything outside this list (PR, R^2, timings) is an
+# outcome and may legitimately change on a re-run.
+IDENTITY_FIELDS = ("n", "checkpoint", "search")
+
+
+def _describe(value: object) -> str:
+    """Render an identity field compactly for an error message."""
+    if isinstance(value, dict):
+        skip = {"evals_per_decision", "sec_per_decision"}
+        inner = ", ".join(f"{k}={v}" for k, v in value.items() if k not in skip)
+        return f"{{{inner}}}"
+    return repr(value)
+
+
+def check_no_clobber(result: dict, path: str) -> None:
+    """Refuse to overwrite a result file that measured something else.
+
+    Results are keyed by engine label alone, so reusing a label for a different
+    measurement silently destroys the old one -- which is how a full-benchmark
+    GNUBG 1-ply number was lost to a 2,000-position re-score. Re-writing the
+    *same* measurement stays idempotent; a different n, checkpoint or search
+    configuration is an error the caller has to resolve.
+    """
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path) as f:
+            existing = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return  # unreadable or hand-edited: nothing to protect
+
+    clashes = [
+        (field, existing.get(field), result.get(field))
+        for field in IDENTITY_FIELDS
+        if existing.get(field) != result.get(field)
+    ]
+    if not clashes:
+        return
+
+    lines = [
+        f"refusing to overwrite {path}",
+        f"  engine label {result['engine_label']!r} already names a different measurement:",
+    ]
+    for field, was, now in clashes:
+        lines.append(f"    {field}: on disk {_describe(was)} -> incoming {_describe(now)}")
+    lines.append("  Use a different --engine-label, or --overwrite to replace it.")
+    raise SystemExit("\n".join(lines))
+
+
+def save_results(results: list[dict], output_dir: str, overwrite: bool = False) -> None:
     """Save per-engine JSON files and summary.json."""
     os.makedirs(output_dir, exist_ok=True)
 
-    for r in results:
-        fname = sanitize_label(r["engine_label"]) + ".json"
-        path = os.path.join(output_dir, fname)
+    paths = [
+        (r, os.path.join(output_dir, sanitize_label(r["engine_label"]) + ".json"))
+        for r in results
+    ]
+    if not overwrite:
+        # Check every file before writing any, so a clash cannot leave the
+        # directory half-updated.
+        for r, path in paths:
+            check_no_clobber(r, path)
+
+    for r, path in paths:
         with open(path, "w") as f:
             json.dump(r, f, indent=2)
         print(f"  Saved: {path}")
@@ -861,6 +919,15 @@ def main():
             "--engine-label), for downstream paired analysis (exp016)."
         ),
     )
+    parser.add_argument(
+        "--overwrite", action="store_true",
+        help=(
+            "Allow a result file to be replaced even when its engine label "
+            "already names a different measurement (different n, checkpoint or "
+            "search configuration). Off by default: reusing a label is how "
+            "results get lost."
+        ),
+    )
     args = parser.parse_args()
 
     if args.workers <= 0:
@@ -958,7 +1025,7 @@ def main():
         print_table(all_results)
         if args.output:
             print(f"Saving results to {args.output}/")
-            save_results(all_results, args.output)
+            save_results(all_results, args.output, overwrite=args.overwrite)
 
 
 if __name__ == "__main__":

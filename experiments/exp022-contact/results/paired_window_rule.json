@@ -1,0 +1,18 @@
+{
+  "comparison": "ep22 1-ply search, contact-scaled equity window (0.02->0.36) vs a fixed window (0.18), same k=16 cap, same positions",
+  "n_decisions": 2000,
+  "note": "Both arms scored on identical positions, so the margin is measured decision by decision. Computed from the per-move dumps, which are not committed; this file is the committed conclusion.",
+  "pr_fixed_window": 0.6549775774548623,
+  "pr_contact_scaled_window": 0.6590462668756816,
+  "margin_pr": 0.0040686894208192825,
+  "margin_sign": "positive means the contact-scaled window is worse",
+  "ci95_same_positions": 0.007974631264805791,
+  "ci95_if_treated_as_separate_samples": 0.23997536429055152,
+  "same_move_fraction": 0.9995,
+  "decisions_where_they_differ": 1,
+  "evals_per_decision": {
+    "fixed_window": 2345.1175,
+    "contact_scaled_window": 2475.6305,
+    "ratio": 1.0556530749525346
+  }
+}

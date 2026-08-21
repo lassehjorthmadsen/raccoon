@@ -714,9 +714,11 @@ for label, key in rows:
     print(f"| {label} | {d['pr']:.3f} | {d['search']['evals_per_decision']:,.0f} |")
 ```
 
-Wider is better, and had not stopped paying at the widest setting tried. Separately,
-skipping the search entirely on positions where one move is already far ahead saved 14% of
-the work and cost 0.001 PR — effectively free.
+Wider is better across this range. It later turned out that the widest row is wider than it
+needs to be: the same 0.655 is reached at a window of 0.18 for 22% less work, and nothing
+past that point changes a single move ([exp022](#exp022)). Separately, skipping the search
+entirely on positions where one move is already far ahead saved 14% of the work and cost
+0.001 PR — effectively free.
 
 ### What we changed along the way
 
@@ -733,6 +735,123 @@ Stated plainly, because the plan above says something different:
 > Does 2-ply search let Raccoon beat GNUBG at the same depth? → **Yes**: 0.43 vs 0.59,
 > margin 0.16 ± 0.09 on 2,000 shared positions. But search improves Raccoon 2.4x against
 > GNUBG's 3.6x on those same positions, so the lead narrows at every ply.
+
+
+## exp022 — should search be wider in complicated positions? {#exp022}
+
+exp021 spends the same effort on every position, and the payoff is wildly uneven. One ply
+of search cut the error by 0.50 in anchoring positions and by 0.04 in races. Races are a
+fifth of all decisions, so a fifth of the work buys almost nothing. The obvious fix is to
+look narrowly where lookahead does not help and widely where it does.
+
+**It does not work.** The two rules pick the same move on 1,999 of 2,000 positions.
+
+### The rule
+
+Search keeps only candidate moves whose static equity is within a window of the best one.
+exp021 uses one fixed window everywhere. exp022 scales it with how much *contact* a
+position has — how far the two sides still have to travel to get past each other, a
+quantity the network already computes as one of its inputs. It is 1 at the opening and 0
+in a pure race.
+
+$$\text{window} = w_0 + (w_1 - w_0) \times \text{contact}$$
+
+Both ends mean something concrete: $w_0$ is how wide to look in a pure race, $w_1$ at full
+contact. They were not tuned against PR. They were fixed in advance by arithmetic, so that
+the rule would examine about as many moves as the fixed window it is measured against —
+making the comparison equal-cost by construction rather than by tuning. With
+$w_0 = 0.02$ and $w_1 = 0.36$ it works out, on the benchmark's own positions, as:
+
+| position type | average contact | window it gets |
+|---|---:|---:|
+| pure race | 0.00 | 0.02 |
+| racing | 0.29 | 0.12 |
+| anchoring | 0.52 | 0.20 |
+| priming | 0.60 | 0.23 |
+| attacking | 0.68 | 0.25 |
+| **all positions** | **0.47** | **0.18** |
+
+So it does what was intended: races get a window a fifth as wide as attacking positions,
+and the average across the benchmark lands on 0.18 — which is exactly the fixed window it
+is compared against.
+
+### Result
+
+```{python}
+#| echo: false
+#| output: asis
+import json
+from pathlib import Path
+
+R21 = Path("../experiments/exp021-search/results")
+R22 = Path("../experiments/exp022-contact/results")
+
+def read(base, name):
+    return json.loads((base / f"{name}.json").read_text())
+
+rows = [
+    ("fixed at 0.18", 16, R22, "ep22_fixed_w018_k16"),
+    ("scaled with contact, 0.02–0.36", 16, R22, "ep22_smooth_isocost"),
+    ("fixed at 0.16", 8, R21, "ep22_d1_k8_k22_t0_16_g0_08"),
+    ("scaled with contact, 0.00–0.24", 16, R22, "ep22_smooth_cheap"),
+]
+print("| window | most moves kept | PR | evaluations per move |")
+print("|---|---:|---:|---:|")
+for label, cap, base, key in rows:
+    d = read(base, key)
+    print(f"| {label} | {cap} | {d['pr']:.3f} | {d['search']['evals_per_decision']:,.0f} |")
+```
+
+The first two rows are the comparison the experiment was built for: same cap on how many
+moves survive, same amount of work, differing only in whether the window varies. The
+contact-scaled one is very slightly worse and very slightly dearer.
+
+```{python}
+#| echo: false
+#| output: asis
+pd = read(R22, "paired_window_rule")
+print(f"""
+| positions scored | fixed window | scaled with contact | difference |
+|---:|---:|---:|---:|
+| {pd['n_decisions']:,} | {pd['pr_fixed_window']:.3f} | {pd['pr_contact_scaled_window']:.3f} | {pd['margin_pr']:.3f} ± {pd['ci95_same_positions']:.3f} |
+
+The two rules choose a different move in **{pd['decisions_where_they_differ']} of
+{pd['n_decisions']:,} positions**, and on that one the contact-scaled window picks the worse
+move. The whole difference above comes from that single position. (Compared as separate
+samples the range would be ±{pd['ci95_if_treated_as_separate_samples']:.2f} — sixty times
+wider, and useless. Scoring both rules on identical positions is what makes a difference
+this small legible at all.)
+""")
+```
+
+The last two rows of the first table are the cheaper version of the same idea, and point
+the same way: it costs 8% more than exp021's setting and scores 0.014 worse. That pair is
+not a controlled comparison — the cap differs too — so it is supporting evidence, not the
+result.
+
+### Why there was nothing to reallocate
+
+The reason turned up in exp021's own numbers. Widening the fixed window from 0.18 to 0.32
+requires 29% more evaluations and changes **not one move out of 2,000** — the two runs
+produce byte-identical scores. Beyond a window of roughly 0.18, extra candidates are
+examined and never win.
+
+That settles it. There is no gain sitting in the wide end waiting to be funded, so
+narrowing races frees a budget with nothing to spend it on, and occasionally drops a move
+that would have won. It also explains the cost going the wrong way: races are cheap to
+search to begin with — few legal moves, few close contenders — so the work saved there is
+small, while the positions the rule widens are the ones where moves are plentiful and each
+extra point of window is expensive.
+
+The honest reading is that the fixed window was already at the efficient setting, and this
+was a search for slack that isn't there. A gain in racing positions, if there is one, has
+to come from somewhere other than looking at more moves.
+
+> Does scaling search width with contact beat a fixed width at equal cost? → **No**:
+> 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per
+> move), a difference of one move in two thousand. The window saturates at 0.18, so there
+> is no slack to reallocate.
+
 
 
 ## References

@@ -56,8 +56,19 @@
 # scope -- head-to-head play vs GNUBG 2-ply, the policy-head filter, adapting depth
 # rather than width, and learned allocation policies. Local CPU only, no GCP spend.
 #
+# ROW C, ADDED AFTER THE FIRST TWO RAN. Rows A and B were calibrated against
+# exp021's fixed row, which used k=8 -- so they differed from it in TWO ways (the
+# window rule AND the cap) and their cost landed 1.50x the baseline rather than the
+# predicted 1.02x, because the prediction counted candidates clearing the window
+# while ignoring that the baseline also caps at k=8. Row C is the missing control:
+# the SAME k=16 cap as rows A and B, with a plain fixed window at 0.18 -- the mean
+# of row A's window over the benchmark's contact distribution. That makes A vs C a
+# genuine equal-compute pair differing only in whether the window varies.
+#     row C  fixed threshold 0.18, k=16
+#
 # COST, from exp021's measured 4.25 s/dec at the fixed window: row A ~5 h, row B
-# ~3 h on the n=2,000 subsample.
+# ~3 h on the n=2,000 subsample. (Measured: A 6.0 s/dec ~3.3 h, B 4.4 s/dec, C 5.8
+# s/dec -- the k=16 cap costs more than the calibration assumed.)
 #
 # SCHEDULING. Runs nothing until exp021 is off the shared iMac -- CPU contention
 # would corrupt the sec_per_decision figures both experiments rely on.
@@ -83,18 +94,34 @@ run() { echo "=== $* ===" | tee -a "$LOG"; "$@" 2>&1 | tee -a "$LOG"; }
 
 echo "exp022 started $(date -Is) on $(hostname)" | tee -a "$LOG"
 
-row() {  # w0 w1 label
+# --dump-dir is what makes the A-vs-C comparison possible: the two rows agree on
+# almost every decision, so only a per-decision difference has any power. Without
+# the dumps the margin is buried under between-position variance.
+smooth() {  # w0 w1 label
     run "$PY" -u scripts/eval_benchmark_pr.py \
         --benchmark "$BENCH" --checkpoint "$CKPT" \
         --engine-label "ep22_$3" \
         --search-depth 1 --search-k 16 --search-gate 0.08 \
         --window-lo "$1" --window-hi "$2" \
         --subsample "$SUB" --subsample-seed "$SUB_SEED" \
-        --output "$EXP/results"
+        --output "$EXP/results" --dump-dir "$EXP/dumps"
 }
 
-row 0.02 0.36 "smooth_isocost"
-row 0.00 0.24 "smooth_cheap"
+fixed() {  # window label
+    run "$PY" -u scripts/eval_benchmark_pr.py \
+        --benchmark "$BENCH" --checkpoint "$CKPT" \
+        --engine-label "ep22_$2" \
+        --search-depth 1 --search-k 16 --search-gate 0.08 \
+        --search-threshold "$1" \
+        --subsample "$SUB" --subsample-seed "$SUB_SEED" \
+        --output "$EXP/results" --dump-dir "$EXP/dumps"
+}
+
+smooth 0.02 0.36 "smooth_isocost"
+smooth 0.00 0.24 "smooth_cheap"
+fixed  0.18      "fixed_w018_k16"
+
+run "$PY" scripts/exp022_paired.py
 
 echo "exp022 finished $(date -Is)" | tee -a "$LOG"
-echo "Compare against exp021's fixed row (PR 0.734, 1650 evals/dec) on PR *and* cost." | tee -a "$LOG"
+echo "Read rows A and C together: same cap, same cost, only the window rule differs." | tee -a "$LOG"
