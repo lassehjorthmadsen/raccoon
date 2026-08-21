@@ -328,7 +328,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="c33c62ee" class="cell" data-execution_count="2">
+<div id="07252388" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -603,22 +603,18 @@ window.Quarto = {
 <section id="how-solid-is-the-margin" class="level3">
 <h3 class="anchored" data-anchor-id="how-solid-is-the-margin">How solid is the margin?</h3>
 <table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Raccoon 2-ply</th>
+<th style="text-align: right;">GNUBG 2-ply</th>
+<th style="text-align: right;">Raccoon’s margin</th>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
-<td>Raccoon 2-ply</td>
 <td style="text-align: right;">0.426</td>
-</tr>
-<tr class="even">
-<td>GNUBG 2-ply</td>
 <td style="text-align: right;">0.588</td>
-</tr>
-<tr class="odd">
-<td>Raccoon’s margin</td>
-<td style="text-align: right;"><strong>0.162</strong></td>
-</tr>
-<tr class="even">
-<td>Margin, 95% range</td>
-<td style="text-align: right;">±0.093</td>
+<td style="text-align: right;"><strong>0.162 ± 0.093</strong></td>
 </tr>
 </tbody>
 </table>
