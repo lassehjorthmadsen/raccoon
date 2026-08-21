@@ -628,12 +628,9 @@ internal search work is not measured here, so the two columns are not a cost com
 #| output: asis
 pd = load("paired_2ply")
 print(f"""
-| | |
-|---|---:|
-| Raccoon 2-ply | {pd['pr_raccoon']:.3f} |
-| GNUBG 2-ply | {pd['pr_gnubg']:.3f} |
-| Raccoon's margin | **{pd['margin_pr']:.3f}** |
-| Margin, 95% range | ±{pd['ci95_same_positions']:.3f} |
+| Raccoon 2-ply | GNUBG 2-ply | Raccoon's margin |
+|---:|---:|---:|
+| {pd['pr_raccoon']:.3f} | {pd['pr_gnubg']:.3f} | **{pd['margin_pr']:.3f} ± {pd['ci95_same_positions']:.3f}** |
 
 The two engines choose the **same move on {100*pd['same_move_fraction']:.0f}%** of positions.
 Only the {100*(1-pd['same_move_fraction']):.0f}% where they disagree carry any uncertainty,
