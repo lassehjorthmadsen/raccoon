@@ -111,11 +111,12 @@ def build():
     return out
 
 
-def score(decisions):
+def score(decisions, configs=None):
     """(error, evaluations) of every decision under every (window, cap)."""
-    n, m = len(decisions), len(CONFIGS)
+    configs = CONFIGS if configs is None else configs
+    n, m = len(decisions), len(configs)
     err, evals = np.zeros((n, m)), np.zeros((n, m))
-    for j, (window, cap) in enumerate(CONFIGS):
+    for j, (window, cap) in enumerate(configs):
         for i, d in enumerate(decisions):
             static, ref = d["static"], d["ref"]
             evals[i, j] = len(d["roots"])

@@ -823,11 +823,23 @@ print("|---|---:|---:|---:|")
 for label, cap, base, key in rows:
     d = read(base, key)
     print(f"| {label} | {cap} | {d['pr']:.3f} | {d['search']['evals_per_decision']:,.0f} |")
+
+bf = read(R22, "budget_frontier")
+i = bf["frontier"]["budgets"].index(1600)
+print(f"| *three contact buckets, best settings each* | *2–16* "
+      f"| *{bf['frontier']['three_contact_buckets'][i]:.3f}* | *1,510* |")
 ```
 
 The first two rows are the comparison the experiment was built for: same cap on how many
 moves survive, same amount of work, differing only in whether the window varies. The
 contact-scaled one is very slightly worse and very slightly dearer.
+
+The italic row is a later addition and is not a measured run: it splits positions into
+three groups by contact and gives each group its own settings. It is computed by replaying
+the stored values rather than by playing the search again, and its per-group settings were
+chosen on these same 2,000 positions — so read it as the best case for the idea, not as a
+result. [Why it does not settle anything](#what-a-position-aware-rule-is-worth-at-a-budget)
+is the more interesting part.
 
 ```{python}
 #| echo: false
@@ -992,6 +1004,78 @@ Confirming it needs a run on positions this sample does not contain — the benc
 The immediate, unselected win is simpler: **(window 0.10, cap 12) scores 0.635 at 1,592
 evaluations against 0.655 at 2,345 for the setting exp021 and exp022 both ran** — the same
 PR to within noise, for a third less computing.
+
+### What shape the rule should have
+
+A hard cut at contact 0.6 is arbitrary, and the natural instinct is to smooth it. The
+measurement says the fix is a different shape, not a smoother one — and that the *other*
+end is where smoothing belongs.
+
+Take each band of contact and ask what extra search buys there:
+
+```{python}
+#| echo: false
+#| output: asis
+es = read(R22, "effort_shape")
+print("| contact | decisions | PR searching little | PR searching hard | gain per 1,000 extra evaluations |")
+print("|---|---:|---:|---:|---:|")
+for r in es["value_of_search_by_contact_band"]:
+    print(f"| {r['band']} | {r['n']} | {r['pr_lean']:.3f} | {r['pr_rich']:.3f} "
+          f"| {r['gain_per_1000_evals']:.3f} |")
+```
+
+Search is worth almost nothing at **both** ends. A pure race has no interaction left to
+look for. A near-opening position — contact above 0.85 — is one the network already judges
+well, having seen a great many of them; extra search changes nothing. Everything worth
+buying sits in between, where the game is actually being decided.
+
+So the right shape is a **bump, not a ramp**. Our rule ran the dial the one way that is
+wrong at both ends at once: least effort where the payoff is highest, most effort where the
+payoff is zero.
+
+The two ends are also different in kind, which decides where smoothing belongs. Contact
+reaching exactly zero is a real discontinuity — contact can never come back, the position
+is a different game from then on, and 12% of decisions sit exactly there. A hard test is
+right at that end; smoothing it would blur a real boundary. The taper at the top is
+gradual, so that end wants a soft shoulder. One expression does both:
+
+$$\text{effort}(c) = \tanh\!\left(\frac{c}{0.03}\right) \cdot
+\tanh\!\left(\frac{1-c}{0.25}\right)$$
+
+and one number then drives both filters together — window from 0.02 to 0.10, cap from 2 to
+16 — since a move must clear both and the cap is the stronger of the two.
+
+Sweeping each shape over an overall effort multiplier, so they are compared at matched
+compute rather than at matched settings:
+
+```{python}
+#| echo: false
+#| output: asis
+print("| evaluations per decision | one rule everywhere | rising with contact | bump |")
+print("|---:|---:|---:|---:|")
+for i, b in enumerate(es["budgets"]):
+    if b in (900, 1000, 1100, 1300, 1600, 1800):
+        row = [es["by_shape"][k][i] for k in ("flat", "rising_ramp", "bump")]
+        print(f"| {b:,} | " + " | ".join(f"{v:.3f}" if v else "—" for v in row) + " |")
+```
+
+The bump is ahead wherever compute is scarce and level once it is not — the same pattern as
+before, for the same reason. The rising ramp is worst of the three at the tight end, which
+is what the band table predicts.
+
+```{python}
+#| echo: false
+#| output: asis
+q = es["paired_at_1000"]
+print(f"""
+At 1,000 evaluations per decision the bump scores {q['pr_bump']:.3f} against
+{q['pr_flat']:.3f} for the best single rule — a margin of {abs(q['margin']):.3f} ±
+{q['ci95_same_positions']:.3f} on 2,000 shared positions, or **{abs(q['margin'])/(q['ci95_same_positions']/1.96):.1f}
+standard errors**. Suggestive, not established, and its two time constants were picked
+after looking at these same positions. It is a hypothesis to test on fresh positions, not
+a setting to adopt.
+""")
+```
 
 ### Where the compute actually goes
 

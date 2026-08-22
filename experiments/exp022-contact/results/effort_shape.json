@@ -1,0 +1,123 @@
+{
+  "note": "Replayed offline from the measured fixed-0.18/k=16 run. One effort number drives both filters: window 0.02-0.1, cap 2-16. Each shape is swept over an overall multiplier, so shapes are compared at matched compute rather than matched settings.",
+  "selection_caveat": "The bump's two time constants were chosen after looking at these same 2,000 positions. Its margin over the flat rule is 1.1-1.2 standard errors, so it is suggestive, not established; confirming needs positions outside this sample.",
+  "subsample": {
+    "n": 2000,
+    "seed": 21
+  },
+  "effort_to_settings": {
+    "window": [
+      0.02,
+      0.1
+    ],
+    "cap": [
+      2,
+      16
+    ],
+    "bump": "tanh(contact / 0.03) * tanh((1 - contact) / 0.25)"
+  },
+  "value_of_search_by_contact_band": [
+    {
+      "band": "exactly 0",
+      "n": 236,
+      "pr_lean": 0.07626432883863814,
+      "pr_rich": 0.07201599551591198,
+      "gain": 0.004248333322726155,
+      "extra_evals": 607.8177966101694,
+      "gain_per_1000_evals": 0.006989484918703146
+    },
+    {
+      "band": "0\u20130.25",
+      "n": 398,
+      "pr_lean": 1.305793216409104,
+      "pr_rich": 1.023256683878165,
+      "gain": 0.28253653253093897,
+      "extra_evals": 719.2336683417086,
+      "gain_per_1000_evals": 0.3928299591179672
+    },
+    {
+      "band": "0.25\u20130.45",
+      "n": 364,
+      "pr_lean": 1.385939708283019,
+      "pr_rich": 1.0511690157376754,
+      "gain": 0.3347706925453434,
+      "extra_evals": 697.4587912087911,
+      "gain_per_1000_evals": 0.47998634007485974
+    },
+    {
+      "band": "0.45\u20130.65",
+      "n": 298,
+      "pr_lean": 0.9835962404244393,
+      "pr_rich": 0.6783652722760631,
+      "gain": 0.30523096814837614,
+      "extra_evals": 572.4630872483222,
+      "gain_per_1000_evals": 0.5331889076299055
+    },
+    {
+      "band": "0.65\u20130.85",
+      "n": 337,
+      "pr_lean": 0.8765272234628964,
+      "pr_rich": 0.5268472691520238,
+      "gain": 0.3496799543108726,
+      "extra_evals": 477.88427299703255,
+      "gain_per_1000_evals": 0.7317251771393699
+    },
+    {
+      "band": "above 0.85",
+      "n": 367,
+      "pr_lean": 0.22718085434424748,
+      "pr_rich": 0.22718085434424748,
+      "gain": 0.0,
+      "extra_evals": 586.8119891008174,
+      "gain_per_1000_evals": 0.0
+    }
+  ],
+  "budgets": [
+    900,
+    1000,
+    1100,
+    1200,
+    1300,
+    1400,
+    1600,
+    1800
+  ],
+  "by_shape": {
+    "flat": [
+      0.9215,
+      0.8496,
+      0.7851,
+      0.7499,
+      0.7353,
+      0.6699,
+      0.6567,
+      0.655
+    ],
+    "rising_ramp": [
+      0.8799,
+      0.8799,
+      0.8251,
+      0.7163,
+      0.7163,
+      0.7163,
+      0.7163,
+      0.7163
+    ],
+    "bump": [
+      0.8166,
+      0.7889,
+      0.7427,
+      0.7282,
+      0.7213,
+      0.6596,
+      0.6596,
+      0.6596
+    ]
+  },
+  "paired_at_1000": {
+    "pr_flat": 0.8496160985675966,
+    "pr_bump": 0.7888726408082617,
+    "margin": -0.06074345775933483,
+    "ci95_same_positions": 0.09837063943605905
+  }
+}
