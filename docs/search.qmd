@@ -762,7 +762,7 @@ the rule would examine about as many moves as the fixed window it is measured ag
 making the comparison equal-cost by construction rather than by tuning. With
 $w_0 = 0.02$ and $w_1 = 0.36$ it works out, on the benchmark's own positions, as:
 
-| position type | average contact | window it gets |
+| position type | average contact | window this rule gives it |
 |---|---:|---:|
 | pure race | 0.00 | 0.02 |
 | racing | 0.29 | 0.12 |
@@ -858,7 +858,7 @@ That is the honest reason the experiment came out a tie.
 ### Width does vary by position type — contact is just the wrong dial
 
 Which makes the underlying idea worth a second look, because the sweep says each position
-type has its own requirement:
+type has its own requirement — the narrowest window at which that type stops improving:
 
 ```{python}
 #| echo: false
@@ -866,21 +866,28 @@ type has its own requirement:
 labels = {"purerace": "pure race", "racing": "racing", "anchoring": "anchoring",
           "priming": "priming", "attacking": "attacking"}
 need, mc = sw["saturation_window_by_plan"], sw["mean_contact_by_plan"]
-print("| position type | average contact | window it needs | what a straight line in contact gives it |")
-print("|---|---:|---:|---:|")
+print("| position type | average contact | window it needs |")
+print("|---|---:|---:|")
 for plan in sorted(labels, key=lambda x: mc[x]):
-    print(f"| {labels[plan]} | {mc[plan]:.2f} | {need[plan]:.2f} | {0.02 + 0.08*mc[plan]:.3f} |")
+    print(f"| {labels[plan]} | {mc[plan]:.2f} | {need[plan]:.2f} |")
 ```
 
-The requirement runs from 0.02 to 0.10 — a fivefold spread, so there is genuinely
-something to allocate. But it is **not monotone in contact**. Racing has less contact than
-anchoring or priming and needs a *wider* window than either, while attacking needs the
-widest of all. No straight line through contact can produce that shape, and the line we
-ran underfeeds racing — the type where a too-narrow window does the most damage, because
-that is where the most moves are nearly tied.
+The requirement runs from 0.02 to 0.10, a fivefold spread, so there is genuinely something
+to allocate. But read the table top to bottom, in rising order of contact, and the window
+needed goes **0.02, 0.08, 0.06, 0.06, 0.10** — up, down, flat, up.
 
-Set the two rules to a width where the difference can actually show, and contact-scaling
-loses plainly:
+That shape is the problem. Any rule that widens the window as contact rises must rank the
+five types in contact's order; the requirement doesn't follow that order. Racing has less
+contact than anchoring or priming yet needs a wider window than either, and attacking needs
+the widest of all. Whatever endpoints are chosen, a straight line in contact cannot serve
+racing and attacking without massively over-serving everything between them.
+
+The rule we ran resolved that by over-serving *everything* — recall it handed attacking
+0.25 against a requirement of 0.10, and racing 0.12 against 0.08. That is why it neither
+gained nor lost: every type got more than it needed, which is another way of saying the run
+sat in the flat region.
+
+Bring the endpoints down until the difference can show, and contact-scaling loses plainly:
 
 ```{python}
 #| echo: false
@@ -890,17 +897,17 @@ scaled = {(r["w0"], r["w1"]): r for r in sw["contact_scaled"]}
 print("| rule | PR | evaluations per decision |")
 print("|---|---:|---:|")
 for label, row in [
-    ("scaled with contact, 0.02–0.10", scaled[(0.02, 0.10)]),
+    ("scaled with contact, 0.02 → 0.10", scaled[(0.02, 0.10)]),
     ("fixed at 0.06", fixed[0.06]),
-    ("scaled with contact, 0.02–0.12", scaled[(0.02, 0.12)]),
+    ("scaled with contact, 0.02 → 0.12", scaled[(0.02, 0.12)]),
     ("fixed at 0.08", fixed[0.08]),
 ]:
     print(f"| {label} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
 ```
 
 Each contact-scaled rule is beaten by a plain fixed window costing about the same or less.
-The tie at 0.18 was an artefact of both arms sitting in the flat region; where width
-matters, scaling it by contact is actively worse.
+The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters,
+scaling it by contact is actively worse than not scaling it at all.
 
 ### What a perfect signal would be worth
 
