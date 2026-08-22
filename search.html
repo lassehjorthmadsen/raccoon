@@ -329,7 +329,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="b2d14d43" class="cell" data-execution_count="2">
+<div id="cea830e7" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -716,54 +716,13 @@ window.Quarto = {
 <section id="exp022" class="level2">
 <h2 class="anchored" data-anchor-id="exp022">exp022 — should search be wider in complicated positions?</h2>
 <p>exp021 spends the same effort on every position, and the payoff is wildly uneven. One ply of search cut the error by 0.50 in anchoring positions and by 0.04 in races. Races are a fifth of all decisions, so a fifth of the work buys almost nothing. The obvious fix is to look narrowly where lookahead does not help and widely where it does.</p>
-<p><strong>It does not work.</strong> The two rules pick the same move on 1,999 of 2,000 positions.</p>
+<p><strong>As tested, it does not work</strong> — the two rules pick the same move on 1,999 of 2,000 positions. But the reason turned out to be worth more than the result.</p>
 <section id="the-rule" class="level3">
 <h3 class="anchored" data-anchor-id="the-rule">The rule</h3>
 <p>Search keeps only candidate moves whose static equity is within a window of the best one. exp021 uses one fixed window everywhere. exp022 scales it with how much <em>contact</em> a position has — how far the two sides still have to travel to get past each other, a quantity the network already computes as one of its inputs. It is 1 at the opening and 0 in a pure race.</p>
 <p><span class="math display">\[\text{window} = w_0 + (w_1 - w_0) \times \text{contact}\]</span></p>
-<p>Both ends mean something concrete: <span class="math inline">\(w_0\)</span> is how wide to look in a pure race, <span class="math inline">\(w_1\)</span> at full contact. They were not tuned against PR. They were fixed in advance by arithmetic, so that the rule would examine about as many moves as the fixed window it is measured against — making the comparison equal-cost by construction rather than by tuning. With <span class="math inline">\(w_0 = 0.02\)</span> and <span class="math inline">\(w_1 = 0.36\)</span> it works out, on the benchmark’s own positions, as:</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>position type</th>
-<th style="text-align: right;">average contact</th>
-<th style="text-align: right;">window this rule gives it</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>pure race</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.02</td>
-</tr>
-<tr class="even">
-<td>racing</td>
-<td style="text-align: right;">0.29</td>
-<td style="text-align: right;">0.12</td>
-</tr>
-<tr class="odd">
-<td>anchoring</td>
-<td style="text-align: right;">0.52</td>
-<td style="text-align: right;">0.20</td>
-</tr>
-<tr class="even">
-<td>priming</td>
-<td style="text-align: right;">0.60</td>
-<td style="text-align: right;">0.23</td>
-</tr>
-<tr class="odd">
-<td>attacking</td>
-<td style="text-align: right;">0.68</td>
-<td style="text-align: right;">0.25</td>
-</tr>
-<tr class="even">
-<td><strong>all positions</strong></td>
-<td style="text-align: right;"><strong>0.47</strong></td>
-<td style="text-align: right;"><strong>0.18</strong></td>
-</tr>
-</tbody>
-</table>
-<p>So it does what was intended: the window runs from <strong>0.02</strong> in a pure race to <strong>0.25</strong> in an attacking position, and the average across the benchmark lands on 0.18 — exactly the fixed window it is compared against.</p>
+<p>The endpoints were not tuned against PR. They were fixed in advance by arithmetic, so the rule would examine about as many moves as the fixed window it is measured against.</p>
+<p>With <span class="math inline">\(w_0 = 0.02\)</span> and <span class="math inline">\(w_1 = 0.36\)</span> that runs from 0.02 in a pure race to 0.25 in an attacking position, averaging 0.18 across the benchmark — exactly the fixed window it is compared against.</p>
 </section>
 <section id="result" class="level3">
 <h3 class="anchored" data-anchor-id="result">Result</h3>
@@ -815,8 +774,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The first two rows are the comparison the experiment was built for: same cap on how many moves survive, same amount of work, differing only in whether the window varies. The contact-scaled one is very slightly worse and very slightly dearer.</p>
-<p>The italic row is a later addition and is not a measured run: it splits positions into three groups by contact and gives each group its own settings. It is computed by replaying the stored values rather than by playing the search again, and its per-group settings were chosen on these same 2,000 positions — so read it as the best case for the idea, not as a result. <a href="#what-a-position-aware-rule-is-worth-at-a-budget">Why it does not settle anything</a> is the more interesting part.</p>
+<p>The first two rows are the comparison the experiment was built for: same cap on surviving moves, same work, differing only in whether the window varies. The last two are a cheaper version of the same idea and point the same way, though the cap differs too, so they are supporting rather than controlled. The italic row is a later addition and <strong>not a measured run</strong> — it splits positions into three groups by contact and gives each its own settings, computed by replaying stored values, with per-group settings chosen on these same positions. Read it as the best case for the idea, not a result.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -835,12 +793,11 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The two rules choose a different move in <strong>1 of 2,000 positions</strong>, and on that one the contact-scaled window picks the worse move. The whole difference above comes from that single position. (Compared as separate samples the range would be ±0.24 — sixty times wider, and useless. Scoring both rules on identical positions is what makes a difference this small legible at all.)</p>
-<p>The last two rows of the first table are the cheaper version of the same idea, and point the same way: it costs 8% more than exp021’s setting and scores 0.014 worse. That pair is not a controlled comparison — the cap differs too — so it is supporting evidence, not the result.</p>
+<p>The two rules choose a different move in <strong>1 of 2,000 positions</strong>, and there the contact-scaled window picks the worse one. The whole difference comes from that single position.</p>
 </section>
-<section id="why-both-arms-were-set-far-too-wide" class="level3">
-<h3 class="anchored" data-anchor-id="why-both-arms-were-set-far-too-wide">Why: both arms were set far too wide</h3>
-<p>Every window rule can be replayed exactly, without running the network. At one ply a move’s searched value does not depend on which <em>other</em> moves were searched, so any rule narrower than a run we already have can be recomputed from that run’s stored values. The replay reproduces both measured arms to the digit, which is what makes the sweep below a measurement rather than a model.</p>
+<section id="why-it-was-a-tie-both-filters-were-already-saturated" class="level3">
+<h3 class="anchored" data-anchor-id="why-it-was-a-tie-both-filters-were-already-saturated">Why it was a tie: both filters were already saturated</h3>
+<p>Any window rule can be replayed exactly without running the network. At one ply a move’s searched value does not depend on which <em>other</em> moves were searched, so a rule narrower than a run we already have is recomputable from that run’s stored values. The replay reproduces both measured arms to the digit, so what follows is measurement, not modelling.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -851,129 +808,49 @@ window.Quarto = {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">1.360</td>
-<td style="text-align: right;">294</td>
-</tr>
-<tr class="even">
 <td style="text-align: right;">0.02</td>
 <td style="text-align: right;">1.191</td>
 <td style="text-align: right;">721</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: right;">0.04</td>
 <td style="text-align: right;">0.860</td>
 <td style="text-align: right;">1,035</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: right;">0.06</td>
 <td style="text-align: right;">0.705</td>
 <td style="text-align: right;">1,294</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: right;">0.08</td>
 <td style="text-align: right;">0.677</td>
 <td style="text-align: right;">1,520</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">0.655</td>
 <td style="text-align: right;">1,720</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: right;">0.14</td>
 <td style="text-align: right;">0.655</td>
 <td style="text-align: right;">2,057</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: right;">0.18</td>
 <td style="text-align: right;">0.655</td>
 <td style="text-align: right;">2,345</td>
 </tr>
 </tbody>
 </table>
-<p><strong>The window stops paying at 0.10.</strong> Everything from there to 0.18 costs 36% more and changes nothing at all. Both exp022 arms averaged 0.18 — the contact-scaled one by construction, since it was calibrated against the fixed one — so both were operating deep in the flat region, where no width rule can distinguish itself from any other.</p>
-<p>That is the honest reason the experiment came out a tie.</p>
+<p><strong>The window stops paying at 0.10.</strong> Everything above that costs more and changes nothing. Both arms averaged 0.18 — the contact-scaled one by construction, having been calibrated against the fixed one — so both sat deep in the flat region, where no width rule can distinguish itself from any other.</p>
+<p>The calibration is the trap worth remembering: it equalised <em>moves searched</em>, but work per searched move varies more than twofold across position types, so equal moves is not equal compute. Both arms landed at 1.5x the intended cost, and both above the point where extra width buys anything.</p>
 </section>
-<section id="width-does-vary-by-position-type-contact-is-just-the-wrong-dial" class="level3">
-<h3 class="anchored" data-anchor-id="width-does-vary-by-position-type-contact-is-just-the-wrong-dial">Width does vary by position type — contact is just the wrong dial</h3>
-<p>Which makes the underlying idea worth a second look, because the sweep says each position type has its own requirement — the narrowest window at which that type stops improving:</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>position type</th>
-<th style="text-align: right;">average contact</th>
-<th style="text-align: right;">window it needs</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>pure race</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.02</td>
-</tr>
-<tr class="even">
-<td>racing</td>
-<td style="text-align: right;">0.29</td>
-<td style="text-align: right;">0.08</td>
-</tr>
-<tr class="odd">
-<td>anchoring</td>
-<td style="text-align: right;">0.52</td>
-<td style="text-align: right;">0.06</td>
-</tr>
-<tr class="even">
-<td>priming</td>
-<td style="text-align: right;">0.60</td>
-<td style="text-align: right;">0.06</td>
-</tr>
-<tr class="odd">
-<td>attacking</td>
-<td style="text-align: right;">0.68</td>
-<td style="text-align: right;">0.10</td>
-</tr>
-</tbody>
-</table>
-<p>The requirement runs from 0.02 to 0.10, a fivefold spread, so there is genuinely something to allocate. But read the table top to bottom, in rising order of contact, and the window needed goes <strong>0.02, 0.08, 0.06, 0.06, 0.10</strong> — up, down, flat, up.</p>
-<p>That shape is the problem. Any rule that widens the window as contact rises must rank the five types in contact’s order; the requirement doesn’t follow that order. Racing has less contact than anchoring or priming yet needs a wider window than either, and attacking needs the widest of all. Whatever endpoints are chosen, a straight line in contact cannot serve racing and attacking without massively over-serving everything between them.</p>
-<p>The rule we ran resolved that by over-serving <em>everything</em> — recall it handed attacking 0.25 against a requirement of 0.10, and racing 0.12 against 0.08. That is why it neither gained nor lost: every type got more than it needed, which is another way of saying the run sat in the flat region.</p>
-<p>Bring the endpoints down until the difference can show, and contact-scaling loses plainly:</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>rule</th>
-<th style="text-align: right;">PR</th>
-<th style="text-align: right;">evaluations per decision</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>scaled with contact, 0.02 → 0.10</td>
-<td style="text-align: right;">0.846</td>
-<td style="text-align: right;">1,241</td>
-</tr>
-<tr class="even">
-<td>fixed at 0.06</td>
-<td style="text-align: right;">0.705</td>
-<td style="text-align: right;">1,294</td>
-</tr>
-<tr class="odd">
-<td>scaled with contact, 0.02 → 0.12</td>
-<td style="text-align: right;">0.795</td>
-<td style="text-align: right;">1,373</td>
-</tr>
-<tr class="even">
-<td>fixed at 0.08</td>
-<td style="text-align: right;">0.677</td>
-<td style="text-align: right;">1,520</td>
-</tr>
-</tbody>
-</table>
-<p>Each contact-scaled rule is beaten by a plain fixed window costing about the same or less. The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters, scaling it by contact is actively worse than not scaling it at all.</p>
-</section>
-<section id="what-a-position-aware-rule-is-worth-at-a-budget" class="level3">
-<h3 class="anchored" data-anchor-id="what-a-position-aware-rule-is-worth-at-a-budget">What a position-aware rule is worth, at a budget</h3>
-<p>The sweep above moved the window with the cap pinned at 16. That understates the question, because a move must clear <strong>both</strong> filters, and the cap turns out to be the stronger of the two. At a window of 0.10, tightening the cap from 12 to 2 costs 0.43 PR — four times the entire range the window commands:</p>
+<section id="what-actually-governs-search-effort" class="level3">
+<h3 class="anchored" data-anchor-id="what-actually-governs-search-effort">What actually governs search effort</h3>
+<p>Three things the replay settled, none of which the original experiment could have seen.</p>
+<p><strong>The cap matters more than the window.</strong> A move must clear both filters, and at a window of 0.10 tightening the cap from 12 to 2 costs 0.43 PR — four times the range the window commands over its whole span:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -1009,16 +886,6 @@ window.Quarto = {
 <td style="text-align: right;">0.705</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.08</td>
-<td style="text-align: right;">1.065</td>
-<td style="text-align: right;">0.970</td>
-<td style="text-align: right;">0.829</td>
-<td style="text-align: right;">0.757</td>
-<td style="text-align: right;">0.722</td>
-<td style="text-align: right;">0.657</td>
-<td style="text-align: right;">0.677</td>
-</tr>
-<tr class="even">
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">1.065</td>
 <td style="text-align: right;">0.949</td>
@@ -1028,7 +895,7 @@ window.Quarto = {
 <td style="text-align: right;">0.635</td>
 <td style="text-align: right;">0.655</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: right;">0.18</td>
 <td style="text-align: right;">1.065</td>
 <td style="text-align: right;">0.949</td>
@@ -1040,79 +907,12 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>So “how wide to search” is really two numbers, and the interesting question is what the best pair is <strong>for a given amount of computing</strong> — not what the best pair is outright. Framed that way, position-awareness stops looking worthless:</p>
+<p><strong>Search is worth nothing at <em>both</em> ends of the contact range.</strong> A pure race has no interaction left to look for; a near-opening position is one the network already judges well. Everything worth buying sits in between:</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: right;">evaluations per decision</th>
-<th style="text-align: right;">one rule everywhere</th>
-<th style="text-align: right;">three contact buckets</th>
-<th style="text-align: right;">perfect position type</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1,000</td>
-<td style="text-align: right;">0.845</td>
-<td style="text-align: right;">0.753</td>
-<td style="text-align: right;">0.707</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1,200</td>
-<td style="text-align: right;">0.750</td>
-<td style="text-align: right;">0.662</td>
-<td style="text-align: right;">0.658</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1,400</td>
-<td style="text-align: right;">0.684</td>
-<td style="text-align: right;">0.640</td>
-<td style="text-align: right;">0.633</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1,600</td>
-<td style="text-align: right;">0.635</td>
-<td style="text-align: right;">0.622</td>
-<td style="text-align: right;">0.633</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">2,400</td>
-<td style="text-align: right;">0.635</td>
-<td style="text-align: right;">0.622</td>
-<td style="text-align: right;">0.633</td>
-</tr>
-</tbody>
-</table>
-<p>The three buckets are: a pure race (contact exactly 0), a complicated position (contact 0.6 or more), and everything else — a coarse split rather than a straight line, which is what the non-monotone requirement above calls for. The last column is the oracle again: perfect knowledge of the position type, which an engine does not have.</p>
-<p><strong>When compute is tight the split is worth having, and it captures almost all of what perfect type knowledge would give.</strong> At 1,200 evaluations per decision, three contact buckets score 0.662 against 0.750 for the best single rule — and the oracle only reaches 0.658. At 2,400 the same comparison is 0.622 against 0.635, because everything has saturated and there is nothing left to allocate.</p>
-<p>That is the real lesson of exp022. The experiment was run at 2,345 evaluations per decision, at the far right of this table, where no allocation scheme can separate itself from any other. Its conclusion — that contact-scaling buys nothing — is correct <strong>there</strong> and does not generalise to the budgets that matter for play.</p>
-<p>Two cautions before anyone spends compute on this. The margin at 1,200 is 2.0 standard errors on 2,000 shared positions, and the three-bucket rule was chosen as the best of 250,047 combinations on those same positions, so the true margin is smaller than 0.088. Confirming it needs a run on positions this sample does not contain — the benchmark has 12,693 of them going spare.</p>
-<p>The immediate, unselected win is simpler: <strong>(window 0.10, cap 12) scores 0.635 at 1,592 evaluations against 0.655 at 2,345 for the setting exp021 and exp022 both ran</strong> — the same PR to within noise, for a third less computing.</p>
-</section>
-<section id="what-shape-the-rule-should-have" class="level3">
-<h3 class="anchored" data-anchor-id="what-shape-the-rule-should-have">What shape the rule should have</h3>
-<p>A hard cut at contact 0.6 is arbitrary, and the natural instinct is to smooth it. The measurement says the fix is a different shape, not a smoother one — and that the <em>other</em> end is where smoothing belongs.</p>
-<p>Take each band of contact and ask what extra search buys there:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 15%">
-<col style="width: 21%">
-<col style="width: 21%">
-<col style="width: 21%">
-<col style="width: 21%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>contact</th>
 <th style="text-align: right;">decisions</th>
-<th style="text-align: right;">PR searching little</th>
-<th style="text-align: right;">PR searching hard</th>
 <th style="text-align: right;">gain per 1,000 extra evaluations</th>
 </tr>
 </thead>
@@ -1120,54 +920,39 @@ window.Quarto = {
 <tr class="odd">
 <td>exactly 0</td>
 <td style="text-align: right;">236</td>
-<td style="text-align: right;">0.076</td>
-<td style="text-align: right;">0.072</td>
 <td style="text-align: right;">0.007</td>
 </tr>
 <tr class="even">
 <td>0–0.25</td>
 <td style="text-align: right;">398</td>
-<td style="text-align: right;">1.306</td>
-<td style="text-align: right;">1.023</td>
 <td style="text-align: right;">0.393</td>
 </tr>
 <tr class="odd">
 <td>0.25–0.45</td>
 <td style="text-align: right;">364</td>
-<td style="text-align: right;">1.386</td>
-<td style="text-align: right;">1.051</td>
 <td style="text-align: right;">0.480</td>
 </tr>
 <tr class="even">
 <td>0.45–0.65</td>
 <td style="text-align: right;">298</td>
-<td style="text-align: right;">0.984</td>
-<td style="text-align: right;">0.678</td>
 <td style="text-align: right;">0.533</td>
 </tr>
 <tr class="odd">
 <td>0.65–0.85</td>
 <td style="text-align: right;">337</td>
-<td style="text-align: right;">0.877</td>
-<td style="text-align: right;">0.527</td>
 <td style="text-align: right;">0.732</td>
 </tr>
 <tr class="even">
 <td>above 0.85</td>
 <td style="text-align: right;">367</td>
-<td style="text-align: right;">0.227</td>
-<td style="text-align: right;">0.227</td>
 <td style="text-align: right;">0.000</td>
 </tr>
 </tbody>
 </table>
-<p>Search is worth almost nothing at <strong>both</strong> ends. A pure race has no interaction left to look for. A near-opening position — contact above 0.85 — is one the network already judges well, having seen a great many of them; extra search changes nothing. Everything worth buying sits in between, where the game is actually being decided.</p>
-<p>So the right shape is a <strong>bump, not a ramp</strong>. Our rule ran the dial the one way that is wrong at both ends at once: least effort where the payoff is highest, most effort where the payoff is zero.</p>
-<p>The two ends are also different in kind, which decides where smoothing belongs. Contact reaching exactly zero is a real discontinuity — contact can never come back, the position is a different game from then on, and 12% of decisions sit exactly there. A hard test is right at that end; smoothing it would blur a real boundary. The taper at the top is gradual, so that end wants a soft shoulder. One expression does both:</p>
+<p>So effort should follow a <strong>bump, not a ramp</strong> — and our rule ran the dial the one way that is wrong at both ends at once. The two ends differ in kind, which decides where smoothing belongs: contact reaching exactly zero is a real discontinuity, since contact never comes back and 12% of decisions sit exactly there, so a hard test is right; the taper at the top is gradual and wants a soft shoulder. One expression does both, driving window and cap together:</p>
 <p><span class="math display">\[\text{effort}(c) = \tanh\!\left(\frac{c}{0.03}\right) \cdot
 \tanh\!\left(\frac{1-c}{0.25}\right)\]</span></p>
-<p>and one number then drives both filters together — window from 0.02 to 0.10, cap from 2 to 16 — since a move must clear both and the cap is the stronger of the two.</p>
-<p>Sweeping each shape over an overall effort multiplier, so they are compared at matched compute rather than at matched settings:</p>
+<p><strong>Position-awareness pays only when compute is tight.</strong> Comparing shapes at matched compute rather than matched settings:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1179,116 +964,46 @@ window.Quarto = {
 <tr class="header">
 <th style="text-align: right;">evaluations per decision</th>
 <th style="text-align: right;">one rule everywhere</th>
-<th style="text-align: right;">rising with contact</th>
 <th style="text-align: right;">bump</th>
+<th style="text-align: right;">perfect position type</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">900</td>
-<td style="text-align: right;">0.921</td>
-<td style="text-align: right;">0.880</td>
-<td style="text-align: right;">0.817</td>
-</tr>
-<tr class="even">
 <td style="text-align: right;">1,000</td>
 <td style="text-align: right;">0.850</td>
-<td style="text-align: right;">0.880</td>
 <td style="text-align: right;">0.789</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1,100</td>
-<td style="text-align: right;">0.785</td>
-<td style="text-align: right;">0.825</td>
-<td style="text-align: right;">0.743</td>
+<td style="text-align: right;">0.707</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">1,300</td>
-<td style="text-align: right;">0.735</td>
-<td style="text-align: right;">0.716</td>
-<td style="text-align: right;">0.721</td>
+<td style="text-align: right;">1,200</td>
+<td style="text-align: right;">0.750</td>
+<td style="text-align: right;">0.728</td>
+<td style="text-align: right;">0.658</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">1,600</td>
-<td style="text-align: right;">0.657</td>
-<td style="text-align: right;">0.716</td>
+<td style="text-align: right;">1,400</td>
+<td style="text-align: right;">0.670</td>
 <td style="text-align: right;">0.660</td>
+<td style="text-align: right;">0.633</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1,800</td>
 <td style="text-align: right;">0.655</td>
-<td style="text-align: right;">0.716</td>
 <td style="text-align: right;">0.660</td>
+<td style="text-align: right;">0.633</td>
 </tr>
 </tbody>
 </table>
-<p>The bump is ahead wherever compute is scarce and level once it is not — the same pattern as before, for the same reason. The rising ramp is worst of the three at the tight end, which is what the band table predicts.</p>
-<p>At 1,000 evaluations per decision the bump scores 0.789 against 0.850 for the best single rule — a margin of 0.061 ± 0.098 on 2,000 shared positions, or <strong>1.2 standard errors</strong>. Suggestive, not established, and its two time constants were picked after looking at these same positions. It is a hypothesis to test on fresh positions, not a setting to adopt.</p>
+<p>At a tight budget the bump leads and comes close to what perfect knowledge of the position type would give; by 1,800 everything has saturated and no scheme separates from any other. exp022 ran at 2,345 evaluations per decision — off the right-hand end of that table. Its null is correct there and does not generalise to the budgets that matter for play.</p>
 </section>
-<section id="where-the-compute-actually-goes" class="level3">
-<h3 class="anchored" data-anchor-id="where-the-compute-actually-goes">Where the compute actually goes</h3>
-<p>The cost also moved the wrong way — the contact-scaled rule was 5.6% dearer despite being calibrated to cost the same. The calibration matched the number of <em>moves searched</em>, and that turns out to be the wrong unit.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 15%">
-<col style="width: 21%">
-<col style="width: 21%">
-<col style="width: 21%">
-<col style="width: 21%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>position type</th>
-<th style="text-align: right;">share of decisions</th>
-<th style="text-align: right;">legal moves</th>
-<th style="text-align: right;">moves inside the window</th>
-<th style="text-align: right;">evaluations per move searched</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>pure race</td>
-<td style="text-align: right;">12%</td>
-<td style="text-align: right;">19.4</td>
-<td style="text-align: right;">8.3</td>
-<td style="text-align: right;">241</td>
-</tr>
-<tr class="even">
-<td>racing</td>
-<td style="text-align: right;">20%</td>
-<td style="text-align: right;">18.4</td>
-<td style="text-align: right;">5.5</td>
-<td style="text-align: right;">549</td>
-</tr>
-<tr class="odd">
-<td>attacking</td>
-<td style="text-align: right;">29%</td>
-<td style="text-align: right;">24.6</td>
-<td style="text-align: right;">4.8</td>
-<td style="text-align: right;">372</td>
-</tr>
-<tr class="even">
-<td>priming</td>
-<td style="text-align: right;">18%</td>
-<td style="text-align: right;">28.1</td>
-<td style="text-align: right;">4.2</td>
-<td style="text-align: right;">354</td>
-</tr>
-<tr class="odd">
-<td>anchoring</td>
-<td style="text-align: right;">22%</td>
-<td style="text-align: right;">22.7</td>
-<td style="text-align: right;">8.4</td>
-<td style="text-align: right;">397</td>
-</tr>
-</tbody>
-</table>
-<p>Two things in that table are the opposite of what you would guess. <strong>Races have the most near-ties, not the fewest</strong>: a pure race offers 19 legal moves and 8.3 of them sit within the window, against 4.2 out of 28 in a priming position. Many race plays really are almost interchangeable, which is exactly why so many survive a filter based on equity. And <strong>a race is not cheap to search</strong> — a racing position costs 549 evaluations per move searched, the highest of any type, because its replies fan out and rarely repeat. Only <em>pure</em> races are cheap (241), where checkers bear off and many move orders reach the same position.</p>
-<p>So work per move searched varies more than twofold across position types, and the calibration held the wrong quantity fixed. The contact-scaled rule searches 3% <em>fewer</em> moves overall (11,712 against 12,073) but places them in dearer positions, because it narrows the window in the third of decisions that are races and widens it in the two thirds that have contact. Net effect: fewer moves, more work.</p>
-<p>These counts are reconstructed rather than logged. At one ply the number of evaluations depends only on move generation, the filter and the removal of duplicate positions — never on what the network says — so it can be recomputed exactly from the stored 0-ply predictions. It reproduces both arms’ measured cost to the digit (2,345 and 2,476 evaluations per decision), which is why it is quoted as fact rather than as a model.</p>
-<p>The honest reading of the whole experiment: the hypothesis was reasonable, the rule’s shape was wrong, and the test was run where nothing could show. Width does need to vary by position type — but as a coarse split rather than a straight line in contact, and it only pays when the budget is tight enough to force a choice.</p>
+<section id="what-to-carry-forward" class="level3">
+<h3 class="anchored" data-anchor-id="what-to-carry-forward">What to carry forward</h3>
+<p><strong>One setting, available now and not selected:</strong> (window 0.10, cap 12) scores 0.635 at 1,592 evaluations against 0.655 at 2,345 for what exp021 and exp022 both ran — the same PR to within noise, for a third less computing.</p>
+<p><strong>One hypothesis, not yet earned.</strong> The bump’s margin is 1.2 standard errors and its two constants were fitted on these same 2,000 positions. That is a lead, not a finding. exp023 tests it on the 12,693 benchmark decisions this sample excludes.</p>
+<p><strong>One method.</strong> Check where a comparison sits on the cost curve before running it. Both arms here were past the point where the thing under test could have any effect, which no amount of care in the rest of the design could have rescued.</p>
 <blockquote class="blockquote">
-<p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No, as tested</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move) — but both arms ran at a budget where both filters are saturated, so no allocation rule could have separated itself. A straight line in contact is the wrong shape and loses to a fixed window wherever width matters, because the width a position needs is not monotone in contact. A coarse three-way split by contact does pay under a tight budget — 0.662 against 0.750 for the best single rule at 1,200 evaluations per decision, close to what perfect position-type knowledge would give — though at 2.0 standard errors and selected in-sample, so unconfirmed.</p>
+<p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No, as tested</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move), one move different in two thousand — but both arms ran where both filters are saturated, so the test had no room to show anything. A straight line in contact is the wrong shape regardless; effort should be a bump, low at both ends. Whether that beats a single well-chosen setting is exp023’s question.</p>
 </blockquote>
 </section>
 </section>
