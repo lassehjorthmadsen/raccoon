@@ -744,7 +744,8 @@ of search cut the error by 0.50 in anchoring positions and by 0.04 in races. Rac
 fifth of all decisions, so a fifth of the work buys almost nothing. The obvious fix is to
 look narrowly where lookahead does not help and widely where it does.
 
-**It does not work.** The two rules pick the same move on 1,999 of 2,000 positions.
+**As tested, it does not work** — the two rules pick the same move on 1,999 of 2,000
+positions. But the reason turned out to be worth more than the result.
 
 ### The rule
 
@@ -756,11 +757,8 @@ in a pure race.
 
 $$\text{window} = w_0 + (w_1 - w_0) \times \text{contact}$$
 
-Both ends mean something concrete: $w_0$ is how wide to look in a pure race, $w_1$ at full
-contact. They were not tuned against PR. They were fixed in advance by arithmetic, so that
-the rule would examine about as many moves as the fixed window it is measured against —
-making the comparison equal-cost by construction rather than by tuning. With
-$w_0 = 0.02$ and $w_1 = 0.36$ it works out, on the benchmark's own positions, as:
+The endpoints were not tuned against PR. They were fixed in advance by arithmetic, so the
+rule would examine about as many moves as the fixed window it is measured against.
 
 ```{python}
 #| echo: false
@@ -774,27 +772,14 @@ R22 = Path("../experiments/exp022-contact/results")
 def read(base, name):
     return json.loads((base / f"{name}.json").read_text())
 
-W0, W1 = 0.02, 0.36
-def window(contact):
-    return W0 + (W1 - W0) * contact
-
-labels = {"purerace": "pure race", "racing": "racing", "anchoring": "anchoring",
-          "priming": "priming", "attacking": "attacking"}
 plans = read(R22, "cost_by_plan")["by_plan"]
 contact = {p: d["mean_contact"] for p, d in plans.items()}
 mean_all = sum(contact[p] * plans[p]["n"] for p in plans) / sum(plans[p]["n"] for p in plans)
-
-print("| position type | average contact | window this rule gives it |")
-print("|---|---:|---:|")
-for p in sorted(labels, key=lambda x: contact[x]):
-    print(f"| {labels[p]} | {contact[p]:.2f} | {window(contact[p]):.2f} |")
-print(f"| **all positions** | **{mean_all:.2f}** | **{window(mean_all):.2f}** |")
-
+w = lambda c: 0.02 + 0.34 * c
 print(f"""
-So it does what was intended: the window runs from **{window(contact["purerace"]):.2f}** in a
-pure race to **{window(contact["attacking"]):.2f}** in an attacking position, and the average
-across the benchmark lands on {window(mean_all):.2f} — exactly the fixed window it is
-compared against.
+With $w_0 = 0.02$ and $w_1 = 0.36$ that runs from {w(contact['purerace']):.2f} in a pure race
+to {w(contact['attacking']):.2f} in an attacking position, averaging {w(mean_all):.2f} across
+the benchmark — exactly the fixed window it is compared against.
 """)
 ```
 
@@ -803,15 +788,6 @@ compared against.
 ```{python}
 #| echo: false
 #| output: asis
-import json
-from pathlib import Path
-
-R21 = Path("../experiments/exp021-search/results")
-R22 = Path("../experiments/exp022-contact/results")
-
-def read(base, name):
-    return json.loads((base / f"{name}.json").read_text())
-
 rows = [
     ("fixed at 0.18", 16, R22, "ep22_fixed_w018_k16"),
     ("scaled with contact, 0.02–0.36", 16, R22, "ep22_smooth_isocost"),
@@ -830,16 +806,13 @@ print(f"| *three contact buckets, best settings each* | *2–16* "
       f"| *{bf['frontier']['three_contact_buckets'][i]:.3f}* | *1,510* |")
 ```
 
-The first two rows are the comparison the experiment was built for: same cap on how many
-moves survive, same amount of work, differing only in whether the window varies. The
-contact-scaled one is very slightly worse and very slightly dearer.
-
-The italic row is a later addition and is not a measured run: it splits positions into
-three groups by contact and gives each group its own settings. It is computed by replaying
-the stored values rather than by playing the search again, and its per-group settings were
-chosen on these same 2,000 positions — so read it as the best case for the idea, not as a
-result. [Why it does not settle anything](#what-a-position-aware-rule-is-worth-at-a-budget)
-is the more interesting part.
+The first two rows are the comparison the experiment was built for: same cap on surviving
+moves, same work, differing only in whether the window varies. The last two are a cheaper
+version of the same idea and point the same way, though the cap differs too, so they are
+supporting rather than controlled. The italic row is a later addition and **not a measured
+run** — it splits positions into three groups by contact and gives each its own settings,
+computed by replaying stored values, with per-group settings chosen on these same
+positions. Read it as the best case for the idea, not a result.
 
 ```{python}
 #| echo: false
@@ -851,26 +824,17 @@ print(f"""
 | {pd['n_decisions']:,} | {pd['pr_fixed_window']:.3f} | {pd['pr_contact_scaled_window']:.3f} | {pd['margin_pr']:.3f} ± {pd['ci95_same_positions']:.3f} |
 
 The two rules choose a different move in **{pd['decisions_where_they_differ']} of
-{pd['n_decisions']:,} positions**, and on that one the contact-scaled window picks the worse
-move. The whole difference above comes from that single position. (Compared as separate
-samples the range would be ±{pd['ci95_if_treated_as_separate_samples']:.2f} — sixty times
-wider, and useless. Scoring both rules on identical positions is what makes a difference
-this small legible at all.)
+{pd['n_decisions']:,} positions**, and there the contact-scaled window picks the worse one.
+The whole difference comes from that single position.
 """)
 ```
 
-The last two rows of the first table are the cheaper version of the same idea, and point
-the same way: it costs 8% more than exp021's setting and scores 0.014 worse. That pair is
-not a controlled comparison — the cap differs too — so it is supporting evidence, not the
-result.
+### Why it was a tie: both filters were already saturated
 
-### Why: both arms were set far too wide
-
-Every window rule can be replayed exactly, without running the network. At one ply a
-move's searched value does not depend on which *other* moves were searched, so any rule
-narrower than a run we already have can be recomputed from that run's stored values. The
-replay reproduces both measured arms to the digit, which is what makes the sweep below a
-measurement rather than a model.
+Any window rule can be replayed exactly without running the network. At one ply a move's
+searched value does not depend on which *other* moves were searched, so a rule narrower
+than a run we already have is recomputable from that run's stored values. The replay
+reproduces both measured arms to the digit, so what follows is measurement, not modelling.
 
 ```{python}
 #| echo: false
@@ -879,261 +843,105 @@ sw = read(R22, "window_sweep")
 print("| window | PR | evaluations per decision |")
 print("|---:|---:|---:|")
 for row in sw["fixed_sweep"]:
-    if row["window"] in (0.0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.14, 0.18):
+    if row["window"] in (0.02, 0.04, 0.06, 0.08, 0.10, 0.14, 0.18):
         print(f"| {row['window']:.2f} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
 ```
 
-**The window stops paying at 0.10.** Everything from there to 0.18 costs 36% more and
-changes nothing at all. Both exp022 arms averaged 0.18 — the contact-scaled one by
-construction, since it was calibrated against the fixed one — so both were operating deep
-in the flat region, where no width rule can distinguish itself from any other.
+**The window stops paying at 0.10.** Everything above that costs more and changes nothing.
+Both arms averaged 0.18 — the contact-scaled one by construction, having been calibrated
+against the fixed one — so both sat deep in the flat region, where no width rule can
+distinguish itself from any other.
 
-That is the honest reason the experiment came out a tie.
+The calibration is the trap worth remembering: it equalised *moves searched*, but work per
+searched move varies more than twofold across position types, so equal moves is not equal
+compute. Both arms landed at 1.5x the intended cost, and both above the point where extra
+width buys anything.
 
-### Width does vary by position type — contact is just the wrong dial
+### What actually governs search effort
 
-Which makes the underlying idea worth a second look, because the sweep says each position
-type has its own requirement — the narrowest window at which that type stops improving:
+Three things the replay settled, none of which the original experiment could have seen.
 
-```{python}
-#| echo: false
-#| output: asis
-labels = {"purerace": "pure race", "racing": "racing", "anchoring": "anchoring",
-          "priming": "priming", "attacking": "attacking"}
-need, mc = sw["saturation_window_by_plan"], sw["mean_contact_by_plan"]
-print("| position type | average contact | window it needs |")
-print("|---|---:|---:|")
-for plan in sorted(labels, key=lambda x: mc[x]):
-    print(f"| {labels[plan]} | {mc[plan]:.2f} | {need[plan]:.2f} |")
-```
-
-The requirement runs from 0.02 to 0.10, a fivefold spread, so there is genuinely something
-to allocate. But read the table top to bottom, in rising order of contact, and the window
-needed goes **0.02, 0.08, 0.06, 0.06, 0.10** — up, down, flat, up.
-
-That shape is the problem. Any rule that widens the window as contact rises must rank the
-five types in contact's order; the requirement doesn't follow that order. Racing has less
-contact than anchoring or priming yet needs a wider window than either, and attacking needs
-the widest of all. Whatever endpoints are chosen, a straight line in contact cannot serve
-racing and attacking without massively over-serving everything between them.
-
-The rule we ran resolved that by over-serving *everything* — recall it handed attacking
-0.25 against a requirement of 0.10, and racing 0.12 against 0.08. That is why it neither
-gained nor lost: every type got more than it needed, which is another way of saying the run
-sat in the flat region.
-
-Bring the endpoints down until the difference can show, and contact-scaling loses plainly:
+**The cap matters more than the window.** A move must clear both filters, and at a window
+of 0.10 tightening the cap from 12 to 2 costs 0.43 PR — four times the range the window
+commands over its whole span:
 
 ```{python}
 #| echo: false
 #| output: asis
-fixed = {r["window"]: r for r in sw["fixed_sweep"]}
-scaled = {(r["w0"], r["w1"]): r for r in sw["contact_scaled"]}
-print("| rule | PR | evaluations per decision |")
-print("|---|---:|---:|")
-for label, row in [
-    ("scaled with contact, 0.02 → 0.10", scaled[(0.02, 0.10)]),
-    ("fixed at 0.06", fixed[0.06]),
-    ("scaled with contact, 0.02 → 0.12", scaled[(0.02, 0.12)]),
-    ("fixed at 0.08", fixed[0.08]),
-]:
-    print(f"| {label} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
-```
-
-Each contact-scaled rule is beaten by a plain fixed window costing about the same or less.
-The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters,
-scaling it by contact is actively worse than not scaling it at all.
-
-### What a position-aware rule is worth, at a budget
-
-The sweep above moved the window with the cap pinned at 16. That understates the
-question, because a move must clear **both** filters, and the cap turns out to be the
-stronger of the two. At a window of 0.10, tightening the cap from 12 to 2 costs 0.43 PR —
-four times the entire range the window commands:
-
-```{python}
-#| echo: false
-#| output: asis
-bf = read(R22, "budget_frontier")
 grid = {(g["window"], g["cap"]): g for g in bf["grid"]}
 caps = [2, 4, 6, 8, 10, 12, 16]
 print("| window | " + " | ".join(f"cap {c}" for c in caps) + " |")
 print("|---:|" + "---:|" * len(caps))
-for w in [0.04, 0.06, 0.08, 0.10, 0.18]:
-    print(f"| {w:.2f} | " + " | ".join(f"{grid[(w, c)]['pr']:.3f}" for c in caps) + " |")
+for wd in [0.04, 0.06, 0.10, 0.18]:
+    print(f"| {wd:.2f} | " + " | ".join(f"{grid[(wd, c)]['pr']:.3f}" for c in caps) + " |")
 ```
 
-So "how wide to search" is really two numbers, and the interesting question is what the
-best pair is **for a given amount of computing** — not what the best pair is outright.
-Framed that way, position-awareness stops looking worthless:
-
-```{python}
-#| echo: false
-#| output: asis
-f = bf["frontier"]
-print("| evaluations per decision | one rule everywhere | three contact buckets | perfect position type |")
-print("|---:|---:|---:|---:|")
-for i, b in enumerate(f["budgets"]):
-    if b in (1000, 1200, 1400, 1600, 2400):
-        print(f"| {b:,} | {f['one_rule'][i]:.3f} | {f['three_contact_buckets'][i]:.3f} "
-              f"| {f['position_type_oracle'][i]:.3f} |")
-```
-
-The three buckets are: a pure race (contact exactly 0), a complicated position (contact
-0.6 or more), and everything else — a coarse split rather than a straight line, which is
-what the non-monotone requirement above calls for. The last column is the oracle again:
-perfect knowledge of the position type, which an engine does not have.
-
-**When compute is tight the split is worth having, and it captures almost all of what
-perfect type knowledge would give.** At 1,200 evaluations per decision, three contact
-buckets score 0.662 against 0.750 for the best single rule — and the oracle only reaches
-0.658. At 2,400 the same comparison is 0.622 against 0.635, because everything has
-saturated and there is nothing left to allocate.
-
-That is the real lesson of exp022. The experiment was run at 2,345 evaluations per
-decision, at the far right of this table, where no allocation scheme can separate itself
-from any other. Its conclusion — that contact-scaling buys nothing — is correct **there**
-and does not generalise to the budgets that matter for play.
-
-Two cautions before anyone spends compute on this. The margin at 1,200 is 2.0 standard
-errors on 2,000 shared positions, and the three-bucket rule was chosen as the best of
-250,047 combinations on those same positions, so the true margin is smaller than 0.088.
-Confirming it needs a run on positions this sample does not contain — the benchmark has
-12,693 of them going spare.
-
-The immediate, unselected win is simpler: **(window 0.10, cap 12) scores 0.635 at 1,592
-evaluations against 0.655 at 2,345 for the setting exp021 and exp022 both ran** — the same
-PR to within noise, for a third less computing.
-
-### What shape the rule should have
-
-A hard cut at contact 0.6 is arbitrary, and the natural instinct is to smooth it. The
-measurement says the fix is a different shape, not a smoother one — and that the *other*
-end is where smoothing belongs.
-
-Take each band of contact and ask what extra search buys there:
+**Search is worth nothing at *both* ends of the contact range.** A pure race has no
+interaction left to look for; a near-opening position is one the network already judges
+well. Everything worth buying sits in between:
 
 ```{python}
 #| echo: false
 #| output: asis
 es = read(R22, "effort_shape")
-print("| contact | decisions | PR searching little | PR searching hard | gain per 1,000 extra evaluations |")
-print("|---|---:|---:|---:|---:|")
+print("| contact | decisions | gain per 1,000 extra evaluations |")
+print("|---|---:|---:|")
 for r in es["value_of_search_by_contact_band"]:
-    print(f"| {r['band']} | {r['n']} | {r['pr_lean']:.3f} | {r['pr_rich']:.3f} "
-          f"| {r['gain_per_1000_evals']:.3f} |")
+    print(f"| {r['band']} | {r['n']} | {r['gain_per_1000_evals']:.3f} |")
 ```
 
-Search is worth almost nothing at **both** ends. A pure race has no interaction left to
-look for. A near-opening position — contact above 0.85 — is one the network already judges
-well, having seen a great many of them; extra search changes nothing. Everything worth
-buying sits in between, where the game is actually being decided.
-
-So the right shape is a **bump, not a ramp**. Our rule ran the dial the one way that is
-wrong at both ends at once: least effort where the payoff is highest, most effort where the
-payoff is zero.
-
-The two ends are also different in kind, which decides where smoothing belongs. Contact
-reaching exactly zero is a real discontinuity — contact can never come back, the position
-is a different game from then on, and 12% of decisions sit exactly there. A hard test is
-right at that end; smoothing it would blur a real boundary. The taper at the top is
-gradual, so that end wants a soft shoulder. One expression does both:
+So effort should follow a **bump, not a ramp** — and our rule ran the dial the one way that
+is wrong at both ends at once. The two ends differ in kind, which decides where smoothing
+belongs: contact reaching exactly zero is a real discontinuity, since contact never comes
+back and 12% of decisions sit exactly there, so a hard test is right; the taper at the top
+is gradual and wants a soft shoulder. One expression does both, driving window and cap
+together:
 
 $$\text{effort}(c) = \tanh\!\left(\frac{c}{0.03}\right) \cdot
 \tanh\!\left(\frac{1-c}{0.25}\right)$$
 
-and one number then drives both filters together — window from 0.02 to 0.10, cap from 2 to
-16 — since a move must clear both and the cap is the stronger of the two.
-
-Sweeping each shape over an overall effort multiplier, so they are compared at matched
-compute rather than at matched settings:
+**Position-awareness pays only when compute is tight.** Comparing shapes at matched
+compute rather than matched settings:
 
 ```{python}
 #| echo: false
 #| output: asis
-print("| evaluations per decision | one rule everywhere | rising with contact | bump |")
+print("| evaluations per decision | one rule everywhere | bump | perfect position type |")
 print("|---:|---:|---:|---:|")
+f = bf["frontier"]
 for i, b in enumerate(es["budgets"]):
-    if b in (900, 1000, 1100, 1300, 1600, 1800):
-        row = [es["by_shape"][k][i] for k in ("flat", "rising_ramp", "bump")]
-        print(f"| {b:,} | " + " | ".join(f"{v:.3f}" if v else "—" for v in row) + " |")
+    if b in (1000, 1200, 1400, 1800):
+        j = f["budgets"].index(b) if b in f["budgets"] else None
+        oracle = f"{f['position_type_oracle'][j]:.3f}" if j is not None else "—"
+        print(f"| {b:,} | {es['by_shape']['flat'][i]:.3f} | {es['by_shape']['bump'][i]:.3f} "
+              f"| {oracle} |")
 ```
 
-The bump is ahead wherever compute is scarce and level once it is not — the same pattern as
-before, for the same reason. The rising ramp is worst of the three at the tight end, which
-is what the band table predicts.
+At a tight budget the bump leads and comes close to what perfect knowledge of the position
+type would give; by 1,800 everything has saturated and no scheme separates from any other.
+exp022 ran at 2,345 evaluations per decision — off the right-hand end of that table. Its
+null is correct there and does not generalise to the budgets that matter for play.
 
-```{python}
-#| echo: false
-#| output: asis
-q = es["paired_at_1000"]
-print(f"""
-At 1,000 evaluations per decision the bump scores {q['pr_bump']:.3f} against
-{q['pr_flat']:.3f} for the best single rule — a margin of {abs(q['margin']):.3f} ±
-{q['ci95_same_positions']:.3f} on 2,000 shared positions, or **{abs(q['margin'])/(q['ci95_same_positions']/1.96):.1f}
-standard errors**. Suggestive, not established, and its two time constants were picked
-after looking at these same positions. It is a hypothesis to test on fresh positions, not
-a setting to adopt.
-""")
-```
+### What to carry forward
 
-### Where the compute actually goes
+**One setting, available now and not selected:** (window 0.10, cap 12) scores 0.635 at
+1,592 evaluations against 0.655 at 2,345 for what exp021 and exp022 both ran — the same PR
+to within noise, for a third less computing.
 
-The cost also moved the wrong way — the contact-scaled rule was 5.6% dearer despite being
-calibrated to cost the same. The calibration matched the number of *moves searched*, and
-that turns out to be the wrong unit.
+**One hypothesis, not yet earned.** The bump's margin is 1.2 standard errors and its two
+constants were fitted on these same 2,000 positions. That is a lead, not a finding. exp023
+tests it on the 12,693 benchmark decisions this sample excludes.
 
-```{python}
-#| echo: false
-#| output: asis
-c = read(R22, "cost_by_plan")
-names = {"purerace": "pure race", "racing": "racing", "attacking": "attacking",
-         "priming": "priming", "anchoring": "anchoring"}
-print("| position type | share of decisions | legal moves | moves inside the window | evaluations per move searched |")
-print("|---|---:|---:|---:|---:|")
-for plan, label in names.items():
-    d = c["by_plan"][plan]
-    print(f"| {label} | {100*d['n']/c['n_decisions']:.0f}% | {d['mean_legal_moves']:.1f} | "
-          f"{d['fixed']['moves_searched_per_decision']:.1f} | "
-          f"{d['fixed']['evals_per_searched_move']:,.0f} |")
-```
-
-Two things in that table are the opposite of what you would guess. **Races have the most
-near-ties, not the fewest**: a pure race offers 19 legal moves and 8.3 of them sit within
-the window, against 4.2 out of 28 in a priming position. Many race plays really are
-almost interchangeable, which is exactly why so many survive a filter based on equity.
-And **a race is not cheap to search** — a racing position costs 549 evaluations per move
-searched, the highest of any type, because its replies fan out and rarely repeat. Only
-*pure* races are cheap (241), where checkers bear off and many move orders reach the same
-position.
-
-So work per move searched varies more than twofold across position types, and the
-calibration held the wrong quantity fixed. The contact-scaled rule searches 3% *fewer*
-moves overall (11,712 against 12,073) but places them in dearer positions, because it
-narrows the window in the third of decisions that are races and widens it in the two
-thirds that have contact. Net effect: fewer moves, more work.
-
-These counts are reconstructed rather than logged. At one ply the number of evaluations
-depends only on move generation, the filter and the removal of duplicate positions — never
-on what the network says — so it can be recomputed exactly from the stored 0-ply
-predictions. It reproduces both arms' measured cost to the digit (2,345 and 2,476
-evaluations per decision), which is why it is quoted as fact rather than as a model.
-
-The honest reading of the whole experiment: the hypothesis was reasonable, the rule's shape
-was wrong, and the test was run where nothing could show. Width does need to vary by
-position type — but as a coarse split rather than a straight line in contact, and it only
-pays when the budget is tight enough to force a choice.
+**One method.** Check where a comparison sits on the cost curve before running it. Both
+arms here were past the point where the thing under test could have any effect, which no
+amount of care in the rest of the design could have rescued.
 
 > Does scaling search width with contact beat a fixed width at equal cost? → **No, as
 > tested**: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345
-> evaluations per move) — but both arms ran at a budget where both filters are saturated,
-> so no allocation rule could have separated itself. A straight line in contact is the
-> wrong shape and loses to a fixed window wherever width matters, because the width a
-> position needs is not monotone in contact. A coarse three-way split by contact does
-> pay under a tight budget — 0.662 against 0.750 for the best single rule at 1,200
-> evaluations per decision, close to what perfect position-type knowledge would give —
-> though at 2.0 standard errors and selected in-sample, so unconfirmed.
-
+> evaluations per move), one move different in two thousand — but both arms ran where both
+> filters are saturated, so the test had no room to show anything. A straight line in
+> contact is the wrong shape regardless; effort should be a bump, low at both ends. Whether
+> that beats a single well-chosen setting is exp023's question.
 
 
 ## References
