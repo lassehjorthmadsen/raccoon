@@ -329,7 +329,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="0fe14747" class="cell" data-execution_count="2">
+<div id="c3155269" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -828,8 +828,70 @@ window.Quarto = {
 <section id="why-there-was-nothing-to-reallocate" class="level3">
 <h3 class="anchored" data-anchor-id="why-there-was-nothing-to-reallocate">Why there was nothing to reallocate</h3>
 <p>The reason turned up in exp021’s own numbers. Widening the fixed window from 0.18 to 0.32 requires 29% more evaluations and changes <strong>not one move out of 2,000</strong> — the two runs produce byte-identical scores. Beyond a window of roughly 0.18, extra candidates are examined and never win.</p>
-<p>That settles it. There is no gain sitting in the wide end waiting to be funded, so narrowing races frees a budget with nothing to spend it on, and occasionally drops a move that would have won. It also explains the cost going the wrong way: races are cheap to search to begin with — few legal moves, few close contenders — so the work saved there is small, while the positions the rule widens are the ones where moves are plentiful and each extra point of window is expensive.</p>
-<p>The honest reading is that the fixed window was already at the efficient setting, and this was a search for slack that isn’t there. A gain in racing positions, if there is one, has to come from somewhere other than looking at more moves.</p>
+<p>That settles the accuracy side. There is no gain sitting in the wide end waiting to be funded, so narrowing races frees a budget with nothing to spend it on, and occasionally drops a move that would have won.</p>
+</section>
+<section id="where-the-compute-actually-goes" class="level3">
+<h3 class="anchored" data-anchor-id="where-the-compute-actually-goes">Where the compute actually goes</h3>
+<p>The cost also moved the wrong way — the contact-scaled rule was 5.6% dearer despite being calibrated to cost the same. The calibration matched the number of <em>moves searched</em>, and that turns out to be the wrong unit.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>position type</th>
+<th style="text-align: right;">share of decisions</th>
+<th style="text-align: right;">legal moves</th>
+<th style="text-align: right;">moves inside the window</th>
+<th style="text-align: right;">evaluations per move searched</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>pure race</td>
+<td style="text-align: right;">12%</td>
+<td style="text-align: right;">19.4</td>
+<td style="text-align: right;">8.3</td>
+<td style="text-align: right;">241</td>
+</tr>
+<tr class="even">
+<td>racing</td>
+<td style="text-align: right;">20%</td>
+<td style="text-align: right;">18.4</td>
+<td style="text-align: right;">5.5</td>
+<td style="text-align: right;">549</td>
+</tr>
+<tr class="odd">
+<td>attacking</td>
+<td style="text-align: right;">29%</td>
+<td style="text-align: right;">24.6</td>
+<td style="text-align: right;">4.8</td>
+<td style="text-align: right;">372</td>
+</tr>
+<tr class="even">
+<td>priming</td>
+<td style="text-align: right;">18%</td>
+<td style="text-align: right;">28.1</td>
+<td style="text-align: right;">4.2</td>
+<td style="text-align: right;">354</td>
+</tr>
+<tr class="odd">
+<td>anchoring</td>
+<td style="text-align: right;">22%</td>
+<td style="text-align: right;">22.7</td>
+<td style="text-align: right;">8.4</td>
+<td style="text-align: right;">397</td>
+</tr>
+</tbody>
+</table>
+<p>Two things in that table are the opposite of what you would guess. <strong>Races have the most near-ties, not the fewest</strong>: a pure race offers 19 legal moves and 8.3 of them sit within the window, against 4.2 out of 28 in a priming position. Many race plays really are almost interchangeable, which is exactly why so many survive a filter based on equity. And <strong>a race is not cheap to search</strong> — a racing position costs 549 evaluations per move searched, the highest of any type, because its replies fan out and rarely repeat. Only <em>pure</em> races are cheap (241), where checkers bear off and many move orders reach the same position.</p>
+<p>So work per move searched varies more than twofold across position types, and the calibration held the wrong quantity fixed. The contact-scaled rule searches 3% <em>fewer</em> moves overall (11,712 against 12,073) but places them in dearer positions, because it narrows the window in the third of decisions that are races and widens it in the two thirds that have contact. Net effect: fewer moves, more work.</p>
+<p>These counts are reconstructed rather than logged. At one ply the number of evaluations depends only on move generation, the filter and the removal of duplicate positions — never on what the network says — so it can be recomputed exactly from the stored 0-ply predictions. It reproduces both arms’ measured cost to the digit (2,345 and 2,476 evaluations per decision), which is why it is quoted as fact rather than as a model.</p>
+<p>The honest reading of the whole experiment is that the fixed window was already at the efficient setting, and this was a search for slack that isn’t there. A gain in racing positions, if there is one, has to come from somewhere other than looking at more moves.</p>
 <blockquote class="blockquote">
 <p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move), a difference of one move in two thousand. The window saturates at 0.18, so there is no slack to reallocate.</p>
 </blockquote>
