@@ -836,16 +836,55 @@ requires 29% more evaluations and changes **not one move out of 2,000** — the 
 produce byte-identical scores. Beyond a window of roughly 0.18, extra candidates are
 examined and never win.
 
-That settles it. There is no gain sitting in the wide end waiting to be funded, so
-narrowing races frees a budget with nothing to spend it on, and occasionally drops a move
-that would have won. It also explains the cost going the wrong way: races are cheap to
-search to begin with — few legal moves, few close contenders — so the work saved there is
-small, while the positions the rule widens are the ones where moves are plentiful and each
-extra point of window is expensive.
+That settles the accuracy side. There is no gain sitting in the wide end waiting to be
+funded, so narrowing races frees a budget with nothing to spend it on, and occasionally
+drops a move that would have won.
 
-The honest reading is that the fixed window was already at the efficient setting, and this
-was a search for slack that isn't there. A gain in racing positions, if there is one, has
-to come from somewhere other than looking at more moves.
+### Where the compute actually goes
+
+The cost also moved the wrong way — the contact-scaled rule was 5.6% dearer despite being
+calibrated to cost the same. The calibration matched the number of *moves searched*, and
+that turns out to be the wrong unit.
+
+```{python}
+#| echo: false
+#| output: asis
+c = read(R22, "cost_by_plan")
+names = {"purerace": "pure race", "racing": "racing", "attacking": "attacking",
+         "priming": "priming", "anchoring": "anchoring"}
+print("| position type | share of decisions | legal moves | moves inside the window | evaluations per move searched |")
+print("|---|---:|---:|---:|---:|")
+for plan, label in names.items():
+    d = c["by_plan"][plan]
+    print(f"| {label} | {100*d['n']/c['n_decisions']:.0f}% | {d['mean_legal_moves']:.1f} | "
+          f"{d['fixed']['moves_searched_per_decision']:.1f} | "
+          f"{d['fixed']['evals_per_searched_move']:,.0f} |")
+```
+
+Two things in that table are the opposite of what you would guess. **Races have the most
+near-ties, not the fewest**: a pure race offers 19 legal moves and 8.3 of them sit within
+the window, against 4.2 out of 28 in a priming position. Many race plays really are
+almost interchangeable, which is exactly why so many survive a filter based on equity.
+And **a race is not cheap to search** — a racing position costs 549 evaluations per move
+searched, the highest of any type, because its replies fan out and rarely repeat. Only
+*pure* races are cheap (241), where checkers bear off and many move orders reach the same
+position.
+
+So work per move searched varies more than twofold across position types, and the
+calibration held the wrong quantity fixed. The contact-scaled rule searches 3% *fewer*
+moves overall (11,712 against 12,073) but places them in dearer positions, because it
+narrows the window in the third of decisions that are races and widens it in the two
+thirds that have contact. Net effect: fewer moves, more work.
+
+These counts are reconstructed rather than logged. At one ply the number of evaluations
+depends only on move generation, the filter and the removal of duplicate positions — never
+on what the network says — so it can be recomputed exactly from the stored 0-ply
+predictions. It reproduces both arms' measured cost to the digit (2,345 and 2,476
+evaluations per decision), which is why it is quoted as fact rather than as a model.
+
+The honest reading of the whole experiment is that the fixed window was already at the
+efficient setting, and this was a search for slack that isn't there. A gain in racing
+positions, if there is one, has to come from somewhere other than looking at more moves.
 
 > Does scaling search width with contact beat a fixed width at equal cost? → **No**:
 > 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per

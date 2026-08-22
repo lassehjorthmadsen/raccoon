@@ -1,0 +1,104 @@
+{
+  "note": "Depth-1 evaluation counts reconstructed from the committed 0-ply dump. At depth 1 the count depends only on move generation, the root filter and deduplication, never on the network's values, so this is exact rather than a model -- it reproduces both arms' measured evals_per_decision to the digit.",
+  "n_decisions": 2000,
+  "subsample": {
+    "n": 2000,
+    "seed": 21
+  },
+  "fixed_window": 0.18,
+  "contact_scaled_window": {
+    "w0": 0.02,
+    "w1": 0.36
+  },
+  "cap": 16,
+  "gate": 0.08,
+  "by_plan": {
+    "purerace": {
+      "n": 236,
+      "mean_contact": 0.0,
+      "mean_legal_moves": 19.449152542372882,
+      "fixed": {
+        "evals_per_decision": 2006.1610169491526,
+        "moves_searched_per_decision": 8.322033898305085,
+        "evals_per_searched_move": 241.0661914460285
+      },
+      "contact_scaled": {
+        "evals_per_decision": 1228.9194915254238,
+        "moves_searched_per_decision": 4.830508474576271,
+        "evals_per_searched_move": 254.4078947368421
+      }
+    },
+    "racing": {
+      "n": 401,
+      "mean_contact": 0.2884704406648051,
+      "mean_legal_moves": 18.359102244389028,
+      "fixed": {
+        "evals_per_decision": 3034.0573566084786,
+        "moves_searched_per_decision": 5.523690773067331,
+        "evals_per_searched_move": 549.2808126410836
+      },
+      "contact_scaled": {
+        "evals_per_decision": 2627.997506234414,
+        "moves_searched_per_decision": 4.600997506234414,
+        "evals_per_searched_move": 571.179945799458
+      }
+    },
+    "attacking": {
+      "n": 573,
+      "mean_contact": 0.6778066902843528,
+      "mean_legal_moves": 24.581151832460733,
+      "fixed": {
+        "evals_per_decision": 1768.7888307155322,
+        "moves_searched_per_decision": 4.760907504363002,
+        "evals_per_searched_move": 371.52346041055716
+      },
+      "contact_scaled": {
+        "evals_per_decision": 2422.2443280977313,
+        "moves_searched_per_decision": 5.849912739965096,
+        "evals_per_searched_move": 414.06503579952266
+      }
+    },
+    "priming": {
+      "n": 350,
+      "mean_contact": 0.6043627031650983,
+      "mean_legal_moves": 28.088571428571427,
+      "fixed": {
+        "evals_per_decision": 1487.6714285714286,
+        "moves_searched_per_decision": 4.1971428571428575,
+        "evals_per_searched_move": 354.44860449285227
+      },
+      "contact_scaled": {
+        "evals_per_decision": 1980.8714285714286,
+        "moves_searched_per_decision": 5.02,
+        "evals_per_searched_move": 394.59590210586225
+      }
+    },
+    "anchoring": {
+      "n": 440,
+      "mean_contact": 0.5198693522046814,
+      "mean_legal_moves": 22.697727272727274,
+      "fixed": {
+        "evals_per_decision": 3331.643181818182,
+        "moves_searched_per_decision": 8.402272727272727,
+        "evals_per_searched_move": 396.5169055991344
+      },
+      "contact_scaled": {
+        "evals_per_decision": 3468.5409090909093,
+        "moves_searched_per_decision": 8.222727272727273,
+        "evals_per_searched_move": 421.8236594803759
+      }
+    }
+  },
+  "overall": {
+    "fixed": {
+      "evals_per_decision": 2345.1175,
+      "moves_searched": 12073
+    },
+    "contact_scaled": {
+      "evals_per_decision": 2475.6305,
+      "moves_searched": 11712
+    },
+    "evals_ratio": 1.0556530749525344,
+    "moves_searched_ratio": 0.9700985670504432
+  }
+}
