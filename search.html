@@ -329,7 +329,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="9dd5b127" class="cell" data-execution_count="2">
+<div id="bd15573b" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -958,36 +958,129 @@ window.Quarto = {
 </table>
 <p>Each contact-scaled rule is beaten by a plain fixed window costing about the same or less. The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters, scaling it by contact is actively worse than not scaling it at all.</p>
 </section>
-<section id="what-a-perfect-signal-would-be-worth" class="level3">
-<h3 class="anchored" data-anchor-id="what-a-perfect-signal-would-be-worth">What a perfect signal would be worth</h3>
-<p>Suppose we could identify position types exactly and give each one its own window. That is not a playable setting — the benchmark’s type labels are annotations in the data file, not something an engine has over the board — but it bounds the whole idea:</p>
+<section id="what-a-position-aware-rule-is-worth-at-a-budget" class="level3">
+<h3 class="anchored" data-anchor-id="what-a-position-aware-rule-is-worth-at-a-budget">What a position-aware rule is worth, at a budget</h3>
+<p>The sweep above moved the window with the cap pinned at 16. That understates the question, because a move must clear <strong>both</strong> filters, and the cap turns out to be the stronger of the two. At a window of 0.10, tightening the cap from 12 to 2 costs 0.43 PR — four times the entire range the window commands:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>rule</th>
-<th style="text-align: right;">PR</th>
-<th style="text-align: right;">evaluations per decision</th>
+<th style="text-align: right;">window</th>
+<th style="text-align: right;">cap 2</th>
+<th style="text-align: right;">cap 4</th>
+<th style="text-align: right;">cap 6</th>
+<th style="text-align: right;">cap 8</th>
+<th style="text-align: right;">cap 10</th>
+<th style="text-align: right;">cap 12</th>
+<th style="text-align: right;">cap 16</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>fixed at 0.18 (what exp021 and exp022 ran)</td>
-<td style="text-align: right;">0.655</td>
-<td style="text-align: right;">2,345</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">1.089</td>
+<td style="text-align: right;">1.043</td>
+<td style="text-align: right;">0.968</td>
+<td style="text-align: right;">0.925</td>
+<td style="text-align: right;">0.897</td>
+<td style="text-align: right;">0.845</td>
+<td style="text-align: right;">0.860</td>
 </tr>
 <tr class="even">
-<td>fixed at 0.10</td>
-<td style="text-align: right;">0.655</td>
-<td style="text-align: right;">1,720</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">1.074</td>
+<td style="text-align: right;">0.998</td>
+<td style="text-align: right;">0.857</td>
+<td style="text-align: right;">0.785</td>
+<td style="text-align: right;">0.750</td>
+<td style="text-align: right;">0.684</td>
+<td style="text-align: right;">0.705</td>
 </tr>
 <tr class="odd">
-<td>perfect position-type allocation (not playable)</td>
-<td style="text-align: right;">0.654</td>
-<td style="text-align: right;">1,394</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">1.065</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">0.829</td>
+<td style="text-align: right;">0.757</td>
+<td style="text-align: right;">0.722</td>
+<td style="text-align: right;">0.657</td>
+<td style="text-align: right;">0.677</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">1.065</td>
+<td style="text-align: right;">0.949</td>
+<td style="text-align: right;">0.808</td>
+<td style="text-align: right;">0.736</td>
+<td style="text-align: right;">0.700</td>
+<td style="text-align: right;">0.635</td>
+<td style="text-align: right;">0.655</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">1.065</td>
+<td style="text-align: right;">0.949</td>
+<td style="text-align: right;">0.808</td>
+<td style="text-align: right;">0.736</td>
+<td style="text-align: right;">0.700</td>
+<td style="text-align: right;">0.635</td>
+<td style="text-align: right;">0.655</td>
 </tr>
 </tbody>
 </table>
-<p>So the entire prize for a perfect position-aware width rule is <strong>19% of search compute at unchanged accuracy</strong> — while simply moving the fixed window from 0.18 to 0.10 banks 27% for nothing. A better signal than contact would be chasing the smaller half of an already small saving.</p>
+<p>So “how wide to search” is really two numbers, and the interesting question is what the best pair is <strong>for a given amount of computing</strong> — not what the best pair is outright. Framed that way, position-awareness stops looking worthless:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">evaluations per decision</th>
+<th style="text-align: right;">one rule everywhere</th>
+<th style="text-align: right;">three contact buckets</th>
+<th style="text-align: right;">perfect position type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1,000</td>
+<td style="text-align: right;">0.845</td>
+<td style="text-align: right;">0.753</td>
+<td style="text-align: right;">0.707</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1,200</td>
+<td style="text-align: right;">0.750</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">0.658</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1,400</td>
+<td style="text-align: right;">0.684</td>
+<td style="text-align: right;">0.640</td>
+<td style="text-align: right;">0.633</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1,600</td>
+<td style="text-align: right;">0.635</td>
+<td style="text-align: right;">0.622</td>
+<td style="text-align: right;">0.633</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2,400</td>
+<td style="text-align: right;">0.635</td>
+<td style="text-align: right;">0.622</td>
+<td style="text-align: right;">0.633</td>
+</tr>
+</tbody>
+</table>
+<p>The three buckets are: a pure race (contact exactly 0), a complicated position (contact 0.6 or more), and everything else — a coarse split rather than a straight line, which is what the non-monotone requirement above calls for. The last column is the oracle again: perfect knowledge of the position type, which an engine does not have.</p>
+<p><strong>When compute is tight the split is worth having, and it captures almost all of what perfect type knowledge would give.</strong> At 1,200 evaluations per decision, three contact buckets score 0.662 against 0.750 for the best single rule — and the oracle only reaches 0.658. At 2,400 the same comparison is 0.622 against 0.635, because everything has saturated and there is nothing left to allocate.</p>
+<p>That is the real lesson of exp022. The experiment was run at 2,345 evaluations per decision, at the far right of this table, where no allocation scheme can separate itself from any other. Its conclusion — that contact-scaling buys nothing — is correct <strong>there</strong> and does not generalise to the budgets that matter for play.</p>
+<p>Two cautions before anyone spends compute on this. The margin at 1,200 is 2.0 standard errors on 2,000 shared positions, and the three-bucket rule was chosen as the best of 250,047 combinations on those same positions, so the true margin is smaller than 0.088. Confirming it needs a run on positions this sample does not contain — the benchmark has 12,693 of them going spare.</p>
+<p>The immediate, unselected win is simpler: <strong>(window 0.10, cap 12) scores 0.635 at 1,592 evaluations against 0.655 at 2,345 for the setting exp021 and exp022 both ran</strong> — the same PR to within noise, for a third less computing.</p>
 </section>
 <section id="where-the-compute-actually-goes" class="level3">
 <h3 class="anchored" data-anchor-id="where-the-compute-actually-goes">Where the compute actually goes</h3>
@@ -1050,9 +1143,9 @@ window.Quarto = {
 <p>Two things in that table are the opposite of what you would guess. <strong>Races have the most near-ties, not the fewest</strong>: a pure race offers 19 legal moves and 8.3 of them sit within the window, against 4.2 out of 28 in a priming position. Many race plays really are almost interchangeable, which is exactly why so many survive a filter based on equity. And <strong>a race is not cheap to search</strong> — a racing position costs 549 evaluations per move searched, the highest of any type, because its replies fan out and rarely repeat. Only <em>pure</em> races are cheap (241), where checkers bear off and many move orders reach the same position.</p>
 <p>So work per move searched varies more than twofold across position types, and the calibration held the wrong quantity fixed. The contact-scaled rule searches 3% <em>fewer</em> moves overall (11,712 against 12,073) but places them in dearer positions, because it narrows the window in the third of decisions that are races and widens it in the two thirds that have contact. Net effect: fewer moves, more work.</p>
 <p>These counts are reconstructed rather than logged. At one ply the number of evaluations depends only on move generation, the filter and the removal of duplicate positions — never on what the network says — so it can be recomputed exactly from the stored 0-ply predictions. It reproduces both arms’ measured cost to the digit (2,345 and 2,476 evaluations per decision), which is why it is quoted as fact rather than as a model.</p>
-<p>The honest reading of the whole experiment: the hypothesis was reasonable and the test was run at the wrong operating point. Width really does need to vary by position type, but by a factor of five rather than the eighteen our rule imposed, and along an axis that contact does not track. The saving on offer, even with a perfect signal, is a fifth of search compute — against the 5.5x that a second ply of depth costs, which is where the interesting allocation question actually lives.</p>
+<p>The honest reading of the whole experiment: the hypothesis was reasonable, the rule’s shape was wrong, and the test was run where nothing could show. Width does need to vary by position type — but as a coarse split rather than a straight line in contact, and it only pays when the budget is tight enough to force a choice.</p>
 <blockquote class="blockquote">
-<p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move), a difference of one move in two thousand — because both arms ran at a width where the window has stopped paying. Replayed at widths where it has not, contact-scaling is clearly worse than a fixed window at equal cost (0.846 against 0.705 at ~1,270 evaluations), because the width a position needs is not monotone in its contact. A perfect position-type rule would save 19% of search compute at unchanged accuracy; moving the fixed window from 0.18 to 0.10 saves 27% on its own.</p>
+<p>Does scaling search width with contact beat a fixed width at equal cost? → <strong>No, as tested</strong>: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per move) — but both arms ran at a budget where both filters are saturated, so no allocation rule could have separated itself. A straight line in contact is the wrong shape and loses to a fixed window wherever width matters, because the width a position needs is not monotone in contact. A coarse three-way split by contact does pay under a tight budget — 0.662 against 0.750 for the best single rule at 1,200 evaluations per decision, close to what perfect position-type knowledge would give — though at 2.0 standard errors and selected in-sample, so unconfirmed.</p>
 </blockquote>
 </section>
 </section>
