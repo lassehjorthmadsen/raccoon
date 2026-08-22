@@ -112,6 +112,18 @@ def shard(decisions: list[dict], index: int, count: int) -> list[dict]:
     return decisions[index::count]
 
 
+def subsample_complement(decisions: list[dict], n: int, seed: int) -> list[dict]:
+    """Everything ``subsample(decisions, n, seed)`` leaves out, in benchmark order.
+
+    A rule tuned on one sample cannot be tested on that sample, so a confirmation
+    run needs the positions the tuning never saw. Deriving the holdout from the
+    same (n, seed) that defined the sample keeps the two provably disjoint,
+    rather than relying on a second seed to miss by luck.
+    """
+    keep = {id(d) for d in subsample(decisions, n, seed)}
+    return [d for d in decisions if id(d) not in keep]
+
+
 def subsample(decisions: list[dict], n: int, seed: int) -> list[dict]:
     """A reproducible random subset of decisions, kept in benchmark order.
 
@@ -878,6 +890,11 @@ def main():
         help="seed for --subsample; keep fixed so every config sees the same sample",
     )
     parser.add_argument(
+        "--subsample-complement", action="store_true",
+        help="score everything --subsample would EXCLUDE -- the holdout for a rule "
+             "that was tuned on that sample. Provably disjoint from it.",
+    )
+    parser.add_argument(
         "--search-depth", type=int, default=0,
         help="plies of expectimax lookahead, GNUBG numbering (0 = static, the default)",
     )
@@ -950,8 +967,16 @@ def main():
     if args.max_positions:
         print(f"  (limiting to first {args.max_positions} decisions)")
     if args.subsample:
-        decisions = subsample(decisions, args.subsample, args.subsample_seed)
-        print(f"  (random subsample: {len(decisions)} decisions, seed {args.subsample_seed})")
+        if args.subsample_complement:
+            decisions = subsample_complement(decisions, args.subsample, args.subsample_seed)
+            print(f"  (holdout: the {len(decisions)} decisions NOT in the "
+                  f"{args.subsample}-decision seed-{args.subsample_seed} sample)")
+        else:
+            decisions = subsample(decisions, args.subsample, args.subsample_seed)
+            print(f"  (random subsample: {len(decisions)} decisions, "
+                  f"seed {args.subsample_seed})")
+    elif args.subsample_complement:
+        raise SystemExit("--subsample-complement needs --subsample to say what to exclude")
     if args.shard:
         i, n = (int(x) for x in args.shard.split("/"))
         decisions = shard(decisions, i, n)

@@ -86,3 +86,20 @@ def test_a_clash_in_one_file_blocks_the_whole_batch(tmp_path):
 
     assert json.loads((tmp_path / "a.json").read_text())["pr"] == 1.0
     assert (tmp_path / "b.json").read_text() == b_before
+
+
+def test_holdout_is_disjoint_from_the_sample_and_covers_the_rest():
+    """A rule tuned on the sample must be confirmed on positions it never saw."""
+    from eval_benchmark_pr import subsample, subsample_complement
+
+    decisions = [{"i": i} for i in range(500)]
+    sample = subsample(decisions, 120, 21)
+    holdout = subsample_complement(decisions, 120, 21)
+
+    assert len(sample) == 120
+    assert len(holdout) == 380
+    ids = {id(d) for d in sample}
+    assert not any(id(d) in ids for d in holdout), "holdout overlaps the sample"
+    assert len(ids | {id(d) for d in holdout}) == len(decisions), "together they must cover it"
+    # Benchmark order is preserved, so shards of the holdout stay representative.
+    assert [d["i"] for d in holdout] == sorted(d["i"] for d in holdout)
