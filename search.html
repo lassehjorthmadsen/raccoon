@@ -329,7 +329,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="b82fbff4" class="cell" data-execution_count="2">
+<div id="59547318" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -727,7 +727,7 @@ window.Quarto = {
 <tr class="header">
 <th>position type</th>
 <th style="text-align: right;">average contact</th>
-<th style="text-align: right;">window it gets</th>
+<th style="text-align: right;">window this rule gives it</th>
 </tr>
 </thead>
 <tbody>
@@ -884,20 +884,13 @@ window.Quarto = {
 </section>
 <section id="width-does-vary-by-position-type-contact-is-just-the-wrong-dial" class="level3">
 <h3 class="anchored" data-anchor-id="width-does-vary-by-position-type-contact-is-just-the-wrong-dial">Width does vary by position type — contact is just the wrong dial</h3>
-<p>Which makes the underlying idea worth a second look, because the sweep says each position type has its own requirement:</p>
+<p>Which makes the underlying idea worth a second look, because the sweep says each position type has its own requirement — the narrowest window at which that type stops improving:</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 26%">
-<col style="width: 26%">
-<col style="width: 26%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>position type</th>
 <th style="text-align: right;">average contact</th>
 <th style="text-align: right;">window it needs</th>
-<th style="text-align: right;">what a straight line in contact gives it</th>
 </tr>
 </thead>
 <tbody>
@@ -905,36 +898,33 @@ window.Quarto = {
 <td>pure race</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.020</td>
 </tr>
 <tr class="even">
 <td>racing</td>
 <td style="text-align: right;">0.29</td>
 <td style="text-align: right;">0.08</td>
-<td style="text-align: right;">0.043</td>
 </tr>
 <tr class="odd">
 <td>anchoring</td>
 <td style="text-align: right;">0.52</td>
 <td style="text-align: right;">0.06</td>
-<td style="text-align: right;">0.062</td>
 </tr>
 <tr class="even">
 <td>priming</td>
 <td style="text-align: right;">0.60</td>
 <td style="text-align: right;">0.06</td>
-<td style="text-align: right;">0.068</td>
 </tr>
 <tr class="odd">
 <td>attacking</td>
 <td style="text-align: right;">0.68</td>
 <td style="text-align: right;">0.10</td>
-<td style="text-align: right;">0.074</td>
 </tr>
 </tbody>
 </table>
-<p>The requirement runs from 0.02 to 0.10 — a fivefold spread, so there is genuinely something to allocate. But it is <strong>not monotone in contact</strong>. Racing has less contact than anchoring or priming and needs a <em>wider</em> window than either, while attacking needs the widest of all. No straight line through contact can produce that shape, and the line we ran underfeeds racing — the type where a too-narrow window does the most damage, because that is where the most moves are nearly tied.</p>
-<p>Set the two rules to a width where the difference can actually show, and contact-scaling loses plainly:</p>
+<p>The requirement runs from 0.02 to 0.10, a fivefold spread, so there is genuinely something to allocate. But read the table top to bottom, in rising order of contact, and the window needed goes <strong>0.02, 0.08, 0.06, 0.06, 0.10</strong> — up, down, flat, up.</p>
+<p>That shape is the problem. Any rule that widens the window as contact rises must rank the five types in contact’s order; the requirement doesn’t follow that order. Racing has less contact than anchoring or priming yet needs a wider window than either, and attacking needs the widest of all. Whatever endpoints are chosen, a straight line in contact cannot serve racing and attacking without massively over-serving everything between them.</p>
+<p>The rule we ran resolved that by over-serving <em>everything</em> — recall it handed attacking 0.25 against a requirement of 0.10, and racing 0.12 against 0.08. That is why it neither gained nor lost: every type got more than it needed, which is another way of saying the run sat in the flat region.</p>
+<p>Bring the endpoints down until the difference can show, and contact-scaling loses plainly:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -945,7 +935,7 @@ window.Quarto = {
 </thead>
 <tbody>
 <tr class="odd">
-<td>scaled with contact, 0.02–0.10</td>
+<td>scaled with contact, 0.02 → 0.10</td>
 <td style="text-align: right;">0.846</td>
 <td style="text-align: right;">1,241</td>
 </tr>
@@ -955,7 +945,7 @@ window.Quarto = {
 <td style="text-align: right;">1,294</td>
 </tr>
 <tr class="odd">
-<td>scaled with contact, 0.02–0.12</td>
+<td>scaled with contact, 0.02 → 0.12</td>
 <td style="text-align: right;">0.795</td>
 <td style="text-align: right;">1,373</td>
 </tr>
@@ -966,7 +956,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>Each contact-scaled rule is beaten by a plain fixed window costing about the same or less. The tie at 0.18 was an artefact of both arms sitting in the flat region; where width matters, scaling it by contact is actively worse.</p>
+<p>Each contact-scaled rule is beaten by a plain fixed window costing about the same or less. The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters, scaling it by contact is actively worse than not scaling it at all.</p>
 </section>
 <section id="what-a-perfect-signal-would-be-worth" class="level3">
 <h3 class="anchored" data-anchor-id="what-a-perfect-signal-would-be-worth">What a perfect signal would be worth</h3>
