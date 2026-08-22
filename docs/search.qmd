@@ -932,30 +932,66 @@ Each contact-scaled rule is beaten by a plain fixed window costing about the sam
 The tie at 0.02 → 0.36 was an artefact of sitting in the flat region; where width matters,
 scaling it by contact is actively worse than not scaling it at all.
 
-### What a perfect signal would be worth
+### What a position-aware rule is worth, at a budget
 
-Suppose we could identify position types exactly and give each one its own window. That is
-not a playable setting — the benchmark's type labels are annotations in the data file, not
-something an engine has over the board — but it bounds the whole idea:
+The sweep above moved the window with the cap pinned at 16. That understates the
+question, because a move must clear **both** filters, and the cap turns out to be the
+stronger of the two. At a window of 0.10, tightening the cap from 12 to 2 costs 0.43 PR —
+four times the entire range the window commands:
 
 ```{python}
 #| echo: false
 #| output: asis
-o = sw["plan_oracle"]
-print("| rule | PR | evaluations per decision |")
-print("|---|---:|---:|")
-for label, row in [
-    ("fixed at 0.18 (what exp021 and exp022 ran)", fixed[0.18]),
-    ("fixed at 0.10", fixed[0.10]),
-    ("perfect position-type allocation (not playable)", o),
-]:
-    print(f"| {label} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
+bf = read(R22, "budget_frontier")
+grid = {(g["window"], g["cap"]): g for g in bf["grid"]}
+caps = [2, 4, 6, 8, 10, 12, 16]
+print("| window | " + " | ".join(f"cap {c}" for c in caps) + " |")
+print("|---:|" + "---:|" * len(caps))
+for w in [0.04, 0.06, 0.08, 0.10, 0.18]:
+    print(f"| {w:.2f} | " + " | ".join(f"{grid[(w, c)]['pr']:.3f}" for c in caps) + " |")
 ```
 
-So the entire prize for a perfect position-aware width rule is **19% of search compute at
-unchanged accuracy** — while simply moving the fixed window from 0.18 to 0.10 banks 27%
-for nothing. A better signal than contact would be chasing the smaller half of an already
-small saving.
+So "how wide to search" is really two numbers, and the interesting question is what the
+best pair is **for a given amount of computing** — not what the best pair is outright.
+Framed that way, position-awareness stops looking worthless:
+
+```{python}
+#| echo: false
+#| output: asis
+f = bf["frontier"]
+print("| evaluations per decision | one rule everywhere | three contact buckets | perfect position type |")
+print("|---:|---:|---:|---:|")
+for i, b in enumerate(f["budgets"]):
+    if b in (1000, 1200, 1400, 1600, 2400):
+        print(f"| {b:,} | {f['one_rule'][i]:.3f} | {f['three_contact_buckets'][i]:.3f} "
+              f"| {f['position_type_oracle'][i]:.3f} |")
+```
+
+The three buckets are: a pure race (contact exactly 0), a complicated position (contact
+0.6 or more), and everything else — a coarse split rather than a straight line, which is
+what the non-monotone requirement above calls for. The last column is the oracle again:
+perfect knowledge of the position type, which an engine does not have.
+
+**When compute is tight the split is worth having, and it captures almost all of what
+perfect type knowledge would give.** At 1,200 evaluations per decision, three contact
+buckets score 0.662 against 0.750 for the best single rule — and the oracle only reaches
+0.658. At 2,400 the same comparison is 0.622 against 0.635, because everything has
+saturated and there is nothing left to allocate.
+
+That is the real lesson of exp022. The experiment was run at 2,345 evaluations per
+decision, at the far right of this table, where no allocation scheme can separate itself
+from any other. Its conclusion — that contact-scaling buys nothing — is correct **there**
+and does not generalise to the budgets that matter for play.
+
+Two cautions before anyone spends compute on this. The margin at 1,200 is 2.0 standard
+errors on 2,000 shared positions, and the three-bucket rule was chosen as the best of
+250,047 combinations on those same positions, so the true margin is smaller than 0.088.
+Confirming it needs a run on positions this sample does not contain — the benchmark has
+12,693 of them going spare.
+
+The immediate, unselected win is simpler: **(window 0.10, cap 12) scores 0.635 at 1,592
+evaluations against 0.655 at 2,345 for the setting exp021 and exp022 both ran** — the same
+PR to within noise, for a third less computing.
 
 ### Where the compute actually goes
 
@@ -999,21 +1035,20 @@ on what the network says — so it can be recomputed exactly from the stored 0-p
 predictions. It reproduces both arms' measured cost to the digit (2,345 and 2,476
 evaluations per decision), which is why it is quoted as fact rather than as a model.
 
-The honest reading of the whole experiment: the hypothesis was reasonable and the test was
-run at the wrong operating point. Width really does need to vary by position type, but by
-a factor of five rather than the eighteen our rule imposed, and along an axis that contact
-does not track. The saving on offer, even with a perfect signal, is a fifth of search
-compute — against the 5.5x that a second ply of depth costs, which is where the interesting
-allocation question actually lives.
+The honest reading of the whole experiment: the hypothesis was reasonable, the rule's shape
+was wrong, and the test was run where nothing could show. Width does need to vary by
+position type — but as a coarse split rather than a straight line in contact, and it only
+pays when the budget is tight enough to force a choice.
 
-> Does scaling search width with contact beat a fixed width at equal cost? → **No**:
-> 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per
-> move), a difference of one move in two thousand — because both arms ran at a width where
-> the window has stopped paying. Replayed at widths where it has not, contact-scaling is
-> clearly worse than a fixed window at equal cost (0.846 against 0.705 at ~1,270
-> evaluations), because the width a position needs is not monotone in its contact. A
-> perfect position-type rule would save 19% of search compute at unchanged accuracy;
-> moving the fixed window from 0.18 to 0.10 saves 27% on its own.
+> Does scaling search width with contact beat a fixed width at equal cost? → **No, as
+> tested**: 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345
+> evaluations per move) — but both arms ran at a budget where both filters are saturated,
+> so no allocation rule could have separated itself. A straight line in contact is the
+> wrong shape and loses to a fixed window wherever width matters, because the width a
+> position needs is not monotone in contact. A coarse three-way split by contact does
+> pay under a tight budget — 0.662 against 0.750 for the best single rule at 1,200
+> evaluations per decision, close to what perfect position-type knowledge would give —
+> though at 2.0 standard errors and selected in-sample, so unconfirmed.
 
 
 
