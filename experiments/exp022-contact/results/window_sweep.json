@@ -1,0 +1,218 @@
+{
+  "note": "Window rules replayed exactly from the measured fixed-0.18 run: at depth 1 a candidate's searched value is independent of which other candidates were searched, so any rule no wider than 0.18 can be scored without running the network. Validated against the two measured arms, which it reproduces to the digit.",
+  "subsample": {
+    "n": 2000,
+    "seed": 21
+  },
+  "cap": 16,
+  "gate": 0.08,
+  "mean_contact_by_plan": {
+    "purerace": 0.0,
+    "racing": 0.2884704406648051,
+    "attacking": 0.6778066902843528,
+    "priming": 0.6043627031650983,
+    "anchoring": 0.5198693522046814
+  },
+  "fixed_sweep": [
+    {
+      "window": 0.0,
+      "pr": 1.3596049864890278,
+      "by_plan": {
+        "purerace": 0.16207935919132935,
+        "racing": 2.123208860854903,
+        "attacking": 1.257672514742916,
+        "priming": 1.087290415073702,
+        "anchoring": 1.6553511245059076
+      },
+      "evals_per_decision": 294.3455
+    },
+    {
+      "window": 0.02,
+      "pr": 1.1906174359049442,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 2.338249706659917,
+        "attacking": 0.8131773015318703,
+        "priming": 0.7795547755405441,
+        "anchoring": 1.5631910307121417
+      },
+      "evals_per_decision": 721.325
+    },
+    {
+      "window": 0.04,
+      "pr": 0.8599001300673301,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.5540149490162836,
+        "attacking": 0.5234214868975721,
+        "priming": 0.6547732466505806,
+        "anchoring": 1.2512527194321617
+      },
+      "evals_per_decision": 1034.6045
+    },
+    {
+      "window": 0.06,
+      "pr": 0.7048297012812835,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.29197344771949,
+        "attacking": 0.4828543211099982,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9111503864961753
+      },
+      "evals_per_decision": 1293.612
+    },
+    {
+      "window": 0.08,
+      "pr": 0.6767311382065389,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.47346630458075134,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 1519.635
+    },
+    {
+      "window": 0.1,
+      "pr": 0.6549775774548623,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 1719.585
+    },
+    {
+      "window": 0.12,
+      "pr": 0.6549775774548623,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 1903.0405
+    },
+    {
+      "window": 0.14,
+      "pr": 0.6549775774548623,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 2057.4475
+    },
+    {
+      "window": 0.16,
+      "pr": 0.6549775774548623,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 2204.0215
+    },
+    {
+      "window": 0.18,
+      "pr": 0.6549775774548623,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1601397778111786,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 2345.1175
+    }
+  ],
+  "contact_scaled": [
+    {
+      "w0": 0.02,
+      "w1": 0.36,
+      "pr": 0.6590462668756816,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.1804324931269856,
+        "attacking": 0.3975376457616359,
+        "priming": 0.562852666467824,
+        "anchoring": 0.9158038159393613
+      },
+      "evals_per_decision": 2091.5765
+    },
+    {
+      "w0": 0.02,
+      "w1": 0.1,
+      "pr": 0.8456613711498103,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.690170987145046,
+        "attacking": 0.5460444893300084,
+        "priming": 0.6547732466505806,
+        "anchoring": 1.0329821068902094
+      },
+      "evals_per_decision": 1241.3575
+    },
+    {
+      "w0": 0.02,
+      "w1": 0.12,
+      "pr": 0.7946678203859263,
+      "by_plan": {
+        "purerace": 0.07202508774986077,
+        "racing": 1.6103559027237082,
+        "attacking": 0.49202126582349087,
+        "priming": 0.6547732466505806,
+        "anchoring": 0.9442867759684431
+      },
+      "evals_per_decision": 1372.7035
+    },
+    {
+      "w0": 0.0,
+      "w1": 0.1,
+      "pr": 0.9179638757871076,
+      "by_plan": {
+        "purerace": 0.16207935919132935,
+        "racing": 1.7545832532402708,
+        "attacking": 0.5766471661748689,
+        "priming": 0.7108768281245215,
+        "anchoring": 1.1701441413498417
+      },
+      "evals_per_decision": 940.0415
+    }
+  ],
+  "saturation_window_by_plan": {
+    "purerace": 0.02,
+    "racing": 0.08,
+    "attacking": 0.1,
+    "priming": 0.06,
+    "anchoring": 0.06
+  },
+  "plan_oracle": {
+    "window_by_plan": {
+      "purerace": 0.02,
+      "racing": 0.08,
+      "attacking": 0.1,
+      "priming": 0.06,
+      "anchoring": 0.06
+    },
+    "pr": 0.6539538229773614,
+    "by_plan": {
+      "purerace": 0.07202508774986077,
+      "racing": 1.1601397778111786,
+      "attacking": 0.3975376457616359,
+      "priming": 0.562852666467824,
+      "anchoring": 0.9111503864961753
+    },
+    "evals_per_decision": 1394.237,
+    "caveat": "Uses the benchmark's position-type labels, which an engine does not have over the board. A ceiling on position-aware allocation, not a setting."
+  }
+}

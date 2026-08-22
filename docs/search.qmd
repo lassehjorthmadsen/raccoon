@@ -714,9 +714,9 @@ for label, key in rows:
     print(f"| {label} | {d['pr']:.3f} | {d['search']['evals_per_decision']:,.0f} |")
 ```
 
-Wider is better across this range. It later turned out that the widest row is wider than it
-needs to be: the same 0.655 is reached at a window of 0.18 for 22% less work, and nothing
-past that point changes a single move ([exp022](#exp022)). Separately, skipping the search
+Wider is better across this range — but the widest row is far wider than it needs to be.
+The same 0.655 is reached at a window of **0.10** for 43% less work, and nothing beyond
+that point changes a single move ([exp022](#exp022)). Separately, skipping the search
 entirely on positions where one move is already far ahead saved 14% of the work and cost
 0.001 PR — effectively free.
 
@@ -829,16 +829,103 @@ the same way: it costs 8% more than exp021's setting and scores 0.014 worse. Tha
 not a controlled comparison — the cap differs too — so it is supporting evidence, not the
 result.
 
-### Why there was nothing to reallocate
+### Why: both arms were set far too wide
 
-The reason turned up in exp021's own numbers. Widening the fixed window from 0.18 to 0.32
-requires 29% more evaluations and changes **not one move out of 2,000** — the two runs
-produce byte-identical scores. Beyond a window of roughly 0.18, extra candidates are
-examined and never win.
+Every window rule can be replayed exactly, without running the network. At one ply a
+move's searched value does not depend on which *other* moves were searched, so any rule
+narrower than a run we already have can be recomputed from that run's stored values. The
+replay reproduces both measured arms to the digit, which is what makes the sweep below a
+measurement rather than a model.
 
-That settles the accuracy side. There is no gain sitting in the wide end waiting to be
-funded, so narrowing races frees a budget with nothing to spend it on, and occasionally
-drops a move that would have won.
+```{python}
+#| echo: false
+#| output: asis
+sw = read(R22, "window_sweep")
+print("| window | PR | evaluations per decision |")
+print("|---:|---:|---:|")
+for row in sw["fixed_sweep"]:
+    if row["window"] in (0.0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.14, 0.18):
+        print(f"| {row['window']:.2f} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
+```
+
+**The window stops paying at 0.10.** Everything from there to 0.18 costs 36% more and
+changes nothing at all. Both exp022 arms averaged 0.18 — the contact-scaled one by
+construction, since it was calibrated against the fixed one — so both were operating deep
+in the flat region, where no width rule can distinguish itself from any other.
+
+That is the honest reason the experiment came out a tie.
+
+### Width does vary by position type — contact is just the wrong dial
+
+Which makes the underlying idea worth a second look, because the sweep says each position
+type has its own requirement:
+
+```{python}
+#| echo: false
+#| output: asis
+labels = {"purerace": "pure race", "racing": "racing", "anchoring": "anchoring",
+          "priming": "priming", "attacking": "attacking"}
+need, mc = sw["saturation_window_by_plan"], sw["mean_contact_by_plan"]
+print("| position type | average contact | window it needs | what a straight line in contact gives it |")
+print("|---|---:|---:|---:|")
+for plan in sorted(labels, key=lambda x: mc[x]):
+    print(f"| {labels[plan]} | {mc[plan]:.2f} | {need[plan]:.2f} | {0.02 + 0.08*mc[plan]:.3f} |")
+```
+
+The requirement runs from 0.02 to 0.10 — a fivefold spread, so there is genuinely
+something to allocate. But it is **not monotone in contact**. Racing has less contact than
+anchoring or priming and needs a *wider* window than either, while attacking needs the
+widest of all. No straight line through contact can produce that shape, and the line we
+ran underfeeds racing — the type where a too-narrow window does the most damage, because
+that is where the most moves are nearly tied.
+
+Set the two rules to a width where the difference can actually show, and contact-scaling
+loses plainly:
+
+```{python}
+#| echo: false
+#| output: asis
+fixed = {r["window"]: r for r in sw["fixed_sweep"]}
+scaled = {(r["w0"], r["w1"]): r for r in sw["contact_scaled"]}
+print("| rule | PR | evaluations per decision |")
+print("|---|---:|---:|")
+for label, row in [
+    ("scaled with contact, 0.02–0.10", scaled[(0.02, 0.10)]),
+    ("fixed at 0.06", fixed[0.06]),
+    ("scaled with contact, 0.02–0.12", scaled[(0.02, 0.12)]),
+    ("fixed at 0.08", fixed[0.08]),
+]:
+    print(f"| {label} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
+```
+
+Each contact-scaled rule is beaten by a plain fixed window costing about the same or less.
+The tie at 0.18 was an artefact of both arms sitting in the flat region; where width
+matters, scaling it by contact is actively worse.
+
+### What a perfect signal would be worth
+
+Suppose we could identify position types exactly and give each one its own window. That is
+not a playable setting — the benchmark's type labels are annotations in the data file, not
+something an engine has over the board — but it bounds the whole idea:
+
+```{python}
+#| echo: false
+#| output: asis
+o = sw["plan_oracle"]
+print("| rule | PR | evaluations per decision |")
+print("|---|---:|---:|")
+for label, row in [
+    ("fixed at 0.18 (what exp021 and exp022 ran)", fixed[0.18]),
+    ("fixed at 0.10", fixed[0.10]),
+    ("perfect position-type allocation (not playable)", o),
+]:
+    print(f"| {label} | {row['pr']:.3f} | {row['evals_per_decision']:,.0f} |")
+```
+
+So the entire prize for a perfect position-aware width rule is **19% of search compute at
+unchanged accuracy** — while simply moving the fixed window from 0.18 to 0.10 banks 27%
+for nothing. A better signal than contact would be chasing the smaller half of an already
+small saving.
 
 ### Where the compute actually goes
 
@@ -882,14 +969,21 @@ on what the network says — so it can be recomputed exactly from the stored 0-p
 predictions. It reproduces both arms' measured cost to the digit (2,345 and 2,476
 evaluations per decision), which is why it is quoted as fact rather than as a model.
 
-The honest reading of the whole experiment is that the fixed window was already at the
-efficient setting, and this was a search for slack that isn't there. A gain in racing
-positions, if there is one, has to come from somewhere other than looking at more moves.
+The honest reading of the whole experiment: the hypothesis was reasonable and the test was
+run at the wrong operating point. Width really does need to vary by position type, but by
+a factor of five rather than the eighteen our rule imposed, and along an axis that contact
+does not track. The saving on offer, even with a perfect signal, is a fifth of search
+compute — against the 5.5x that a second ply of depth costs, which is where the interesting
+allocation question actually lives.
 
 > Does scaling search width with contact beat a fixed width at equal cost? → **No**:
 > 0.659 against 0.655 (PR, n=2,000 shared positions, 2,476 against 2,345 evaluations per
-> move), a difference of one move in two thousand. The window saturates at 0.18, so there
-> is no slack to reallocate.
+> move), a difference of one move in two thousand — because both arms ran at a width where
+> the window has stopped paying. Replayed at widths where it has not, contact-scaling is
+> clearly worse than a fixed window at equal cost (0.846 against 0.705 at ~1,270
+> evaluations), because the width a position needs is not monotone in its contact. A
+> perfect position-type rule would save 19% of search compute at unchanged accuracy;
+> moving the fixed window from 0.18 to 0.10 saves 27% on its own.
 
 
 
