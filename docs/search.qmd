@@ -762,18 +762,41 @@ the rule would examine about as many moves as the fixed window it is measured ag
 making the comparison equal-cost by construction rather than by tuning. With
 $w_0 = 0.02$ and $w_1 = 0.36$ it works out, on the benchmark's own positions, as:
 
-| position type | average contact | window this rule gives it |
-|---|---:|---:|
-| pure race | 0.00 | 0.02 |
-| racing | 0.29 | 0.12 |
-| anchoring | 0.52 | 0.20 |
-| priming | 0.60 | 0.23 |
-| attacking | 0.68 | 0.25 |
-| **all positions** | **0.47** | **0.18** |
+```{python}
+#| echo: false
+#| output: asis
+import json
+from pathlib import Path
 
-So it does what was intended: races get a window a fifth as wide as attacking positions,
-and the average across the benchmark lands on 0.18 — which is exactly the fixed window it
-is compared against.
+R21 = Path("../experiments/exp021-search/results")
+R22 = Path("../experiments/exp022-contact/results")
+
+def read(base, name):
+    return json.loads((base / f"{name}.json").read_text())
+
+W0, W1 = 0.02, 0.36
+def window(contact):
+    return W0 + (W1 - W0) * contact
+
+labels = {"purerace": "pure race", "racing": "racing", "anchoring": "anchoring",
+          "priming": "priming", "attacking": "attacking"}
+plans = read(R22, "cost_by_plan")["by_plan"]
+contact = {p: d["mean_contact"] for p, d in plans.items()}
+mean_all = sum(contact[p] * plans[p]["n"] for p in plans) / sum(plans[p]["n"] for p in plans)
+
+print("| position type | average contact | window this rule gives it |")
+print("|---|---:|---:|")
+for p in sorted(labels, key=lambda x: contact[x]):
+    print(f"| {labels[p]} | {contact[p]:.2f} | {window(contact[p]):.2f} |")
+print(f"| **all positions** | **{mean_all:.2f}** | **{window(mean_all):.2f}** |")
+
+print(f"""
+So it does what was intended: the window runs from **{window(contact["purerace"]):.2f}** in a
+pure race to **{window(contact["attacking"]):.2f}** in an attacking position, and the average
+across the benchmark lands on {window(mean_all):.2f} — exactly the fixed window it is
+compared against.
+""")
+```
 
 ### Result
 
