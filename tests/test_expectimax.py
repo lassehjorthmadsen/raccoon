@@ -199,7 +199,7 @@ def test_depth0_matches_lookahead():
         if dice is None:
             continue
         candidates = _children(board, *sorted(dice, reverse=True))
-        values, _ = search_values(candidates, net, CPU, SearchConfig(depth=0))
+        values, _, _ = search_values(candidates, net, CPU, SearchConfig(depth=0))
         # Both rank the same whole-turn positions; compare the best value reached.
         assert values.max() == pytest.approx(reference.max(), abs=2e-6)
 
@@ -258,7 +258,7 @@ def test_search_matches_naive_reference(depth):
         if dice is None:
             continue
         candidates = _children(_state_to_board(state), *sorted(dice, reverse=True))[:4]
-        values, _ = search_values(candidates, net, CPU, cfg)
+        values, _, _ = search_values(candidates, net, CPU, cfg)
         expected = [
             -(_terminal_value(c) if _terminal_value(c) is not None
               else _naive(c, depth, net, {}))
@@ -287,7 +287,7 @@ def test_dedup_actually_fires():
     state = _random_states(1, seed=9, skip=14)[0]
     dice = state.board_from_perspective().dice
     candidates = _children(_state_to_board(state), *sorted(dice, reverse=True))
-    _, evaluated = search_values(candidates, net, CPU, SearchConfig(depth=1, k=99, gate=0.0))
+    _, _, evaluated = search_values(candidates, net, CPU, SearchConfig(depth=1, k=99, gate=0.0))
     raw = sum(
         len(_children(c, d1, d2)) for c in candidates for d1, d2, _ in ROLLS
     )
@@ -317,9 +317,9 @@ def test_gate_short_circuits_to_static_values():
     state = _random_states(1, seed=21, skip=10)[0]
     dice = state.board_from_perspective().dice
     candidates = _children(_state_to_board(state), *sorted(dice, reverse=True))
-    static, static_evals = search_values(candidates, net, CPU, SearchConfig(depth=0))
+    static, _, static_evals = search_values(candidates, net, CPU, SearchConfig(depth=0))
     # Any positive gap clears a hair-thin gate, so every decision short-circuits.
-    gated, gated_evals = search_values(
+    gated, _, gated_evals = search_values(
         candidates, net, CPU, SearchConfig(depth=2, gate=1e-12)
     )
     np.testing.assert_array_equal(static, gated)
@@ -400,8 +400,8 @@ def test_fixed_window_is_unchanged_bit_for_bit():
     dice = state.board_from_perspective().dice
     root = _state_to_board(state)
     candidates = _children(root, *sorted(dice, reverse=True))
-    without_root, n1 = search_values(candidates, net, CPU, SearchConfig(depth=1))
-    with_root, n2 = search_values(
+    without_root, _, n1 = search_values(candidates, net, CPU, SearchConfig(depth=1))
+    with_root, _, n2 = search_values(
         candidates, net, CPU, SearchConfig(depth=1), root=root,
     )
     np.testing.assert_array_equal(without_root, with_root)
@@ -422,10 +422,57 @@ def test_narrow_window_searches_only_the_static_best():
     if len(candidates) < 3:
         pytest.skip("need a decision with several candidates")
     narrow = SearchConfig(depth=1, window_lo=0.0, window_hi=0.0, gate=0.0)
-    values, _ = search_values(candidates, net, CPU, narrow, root=root)
-    static, _ = search_values(candidates, net, CPU, SearchConfig(depth=0), root=root)
+    values, _, _ = search_values(candidates, net, CPU, narrow, root=root)
+    static, _, _ = search_values(candidates, net, CPU, SearchConfig(depth=0), root=root)
     # Exactly one candidate -- the static best -- may differ from its static value.
     changed = np.flatnonzero(values != static)
     assert len(changed) <= 1
     if len(changed) == 1:
         assert changed[0] == int(np.argmax(static))
+
+
+def test_pruned_moves_are_not_comparable_and_cannot_be_chosen():
+    """A pruned move keeps its static value but must never win the argmax.
+
+    Searching a move takes the opponent's best reply -- a minimum over ~20 noisy
+    estimates, biased low -- so it marks the move down by ~0.005 equity on
+    average. A pruned move never gets that treatment, so on a raw argmax it can
+    overtake a searched move it was behind. On the benchmark that cost 0.054 PR
+    at window 0.10/cap 16 and 0.176 at window 0.04/cap 10.
+    """
+    net = _HashNet()
+    state = _random_states(1, seed=5, skip=12)[0]
+    dice = state.board_from_perspective().dice
+    candidates = _children(_state_to_board(state), *sorted(dice, reverse=True))
+    assert len(candidates) >= 4, "need a decision with several legal moves"
+
+    narrow = SearchConfig(depth=1, k=2, threshold=0.02, gate=0.0)
+    result = search_values(candidates, net, CPU, narrow)
+
+    assert result.searched.sum() <= 2, "the cap should have pruned most candidates"
+    assert result.searched.sum() < len(candidates), "nothing was pruned; test is vacuous"
+
+    # The reported value of a pruned candidate is its static one, unchanged.
+    static = search_values(candidates, net, CPU, SearchConfig(depth=0)).values
+    for i in np.flatnonzero(~result.searched):
+        assert result.values[i] == pytest.approx(static[i])
+
+    # Whatever those static values are, the choice is confined to searched moves.
+    masked = np.where(result.searched, result.values, -np.inf)
+    assert result.searched[int(np.argmax(masked))]
+
+
+def test_everything_is_comparable_when_nothing_was_pruned():
+    """Depth 0 and gate skips leave all values static, so all are comparable."""
+    net = _HashNet()
+    state = _random_states(1, seed=5, skip=12)[0]
+    dice = state.board_from_perspective().dice
+    candidates = _children(_state_to_board(state), *sorted(dice, reverse=True))
+
+    # A *small* positive gate skips most decisions: it skips when the static top
+    # two are further apart than the gate, so tightening it skips more, not less.
+    for cfg in (SearchConfig(depth=0),
+                SearchConfig(depth=1, gate=1e-9),
+                SearchConfig(depth=1, k=99, threshold=9.0, gate=0.0)):
+        result = search_values(candidates, net, CPU, cfg)
+        assert result.searched.all(), f"{cfg.tag()} should leave every value comparable"

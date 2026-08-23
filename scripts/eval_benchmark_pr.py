@@ -479,12 +479,17 @@ def score_raccoon(
         if searching:
             # search_values already returns the mover's value in [-1,1].
             candidates = [pass_turn(board26_to_slots(m["board"])) for m in dec["moves"]]
-            values, n_evals = search_values(
+            result = search_values(
                 candidates, network, device, search_cfg, channels=channels,
                 root=board26_to_slots(dec["board"]),
             )
-            total_evals += n_evals
-            predicted_eqs = [float(v * 3.0) for v in values]
+            total_evals += result.evaluated
+            predicted_eqs = [float(v * 3.0) for v in result.values]
+            # A pruned move keeps its static value, which is a fine estimate to
+            # report but not comparable with a searched one — searching marks a
+            # move down, so an unsearched move can overtake on that alone. Choose
+            # among searched moves only, as GNUBG does.
+            eligible = result.searched
         else:
             # Encode all candidates (flipped to opponent POV)
             obs_list = []
@@ -501,9 +506,12 @@ def score_raccoon(
             # Convert to mover's equity on the standard [-3,3] scale for comparison:
             # mover_equity = -(opponent_value * 3)
             predicted_eqs = [float(-v * 3.0) for v in values]
+            eligible = np.ones(len(predicted_eqs), bool)
 
-        # Engine picks the move with highest predicted mover equity
-        best_idx = int(np.argmax(predicted_eqs))
+        # Engine picks the move with highest predicted mover equity, among those
+        # whose values are on a common scale.
+        masked = np.where(eligible, predicted_eqs, -np.inf)
+        best_idx = int(np.argmax(masked))
         chosen_cl = dec["moves"][best_idx]["cubeless_equity"]
         error = max(0.0, best_cl - chosen_cl)
 

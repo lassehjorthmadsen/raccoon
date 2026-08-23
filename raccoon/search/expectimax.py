@@ -35,6 +35,7 @@ is worth to whoever is about to roll, and a candidate afterstate is worth
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NamedTuple
 
 import numpy as np
 import torch
@@ -331,11 +332,24 @@ def window_for_contact(cfg: SearchConfig, board: Board | None) -> float:
     return cfg.window_lo + (cfg.window_hi - cfg.window_lo) * c
 
 
+class SearchResult(NamedTuple):
+    """Values for every candidate, which of them are comparable, and the cost.
+
+    ``values`` is in equity/3 from the mover's point of view. ``searched`` is a
+    boolean mask: True where the value came from search, False where it is the
+    raw static estimate of a pruned move. Take the argmax over ``searched`` only.
+    """
+
+    values: np.ndarray
+    searched: np.ndarray
+    evaluated: int
+
+
 def search_values(
     candidates: list[Board], network, device, cfg: SearchConfig, channels=None,
     root: Board | None = None,
-) -> tuple[np.ndarray, int]:
-    """Rank one decision's candidate afterstates. Returns ``(values, n_evals)``.
+) -> SearchResult:
+    """Rank one decision's candidate afterstates.
 
     ``candidates`` are the positions *after* each legal move, with the opponent
     on roll. The returned values are from the **mover's** point of view in
@@ -343,9 +357,20 @@ def search_values(
     ``lookahead.child_values`` produces. Note the asymmetry with ``cfg``: values
     are in equity/3, while ``cfg.threshold`` and ``cfg.gate`` are in equity.
 
-    Candidates that survive neither filter keep their static value, which is
-    sound because the filters only ever drop moves that are already behind: a
-    dropped move cannot win the argmax either way.
+    Returns ``searched`` alongside the values because the two are not on the
+    same scale and must not be compared. A searched value takes the opponent's
+    best reply -- a minimum over ~20 noisy estimates, which is biased low -- so
+    searching a move lowers its apparent worth by ~0.005 equity on average. A
+    pruned move keeps its static value and was never marked down that way, so it
+    can overtake a searched one it was behind. Only ``searched`` entries are
+    comparable with each other; **choose the move among those**, as GNUBG does by
+    discarding pruned moves outright. Pruned entries carry their static value so
+    callers still have an estimate to report for every candidate, never so that
+    they can win. (Measured on 12,693 held-out benchmark decisions, letting them
+    win cost 0.054 PR at window 0.10/cap 16 and 0.176 at window 0.04/cap 10.)
+
+    When nothing is searched -- depth 0, a gate skip, an empty filter -- every
+    entry is marked searched, since the static values are then all comparable.
 
     ``root`` is the pre-move position, needed only when the window is
     contact-dependent. It must be passed rather than inferred: an afterstate's
@@ -364,7 +389,7 @@ def search_values(
     ], dtype=np.float64)
 
     if cfg.depth == 0 or gate_skips(static, cfg.gate):
-        return static, ev.evaluated
+        return SearchResult(static, np.ones(len(candidates), bool), ev.evaluated)
 
     values = static.copy()
     order = np.argsort(-static)
@@ -375,7 +400,7 @@ def search_values(
     keep = [i for i in keep if terminal[i] is None]
 
     if not keep:
-        return static, ev.evaluated
+        return SearchResult(static, np.ones(len(candidates), bool), ev.evaluated)
 
     first_depth = 1 if cfg.depth > 1 else cfg.depth
     searched = _search([candidates[i] for i in keep], first_depth, ev)
@@ -389,4 +414,6 @@ def search_values(
         for i, value in zip(deep, searched):
             values[i] = -value
 
-    return values, ev.evaluated
+    mask = np.zeros(len(candidates), bool)
+    mask[keep] = True
+    return SearchResult(values, mask, ev.evaluated)
