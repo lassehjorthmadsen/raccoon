@@ -1,0 +1,47 @@
+{
+  "note": "How much cheaper the search can be made without losing measurable strength, replayed from the exp023 reference dumps (n=12,693 held-out decisions, all with pruned moves discarded). Differences are paired against the first row.",
+  "settings": [
+    {
+      "label": "exp021/exp022 setting",
+      "window": 0.18,
+      "cap": 16,
+      "skip_pure_races": false,
+      "pr": 0.556,
+      "evals_per_decision": 2393,
+      "margin": null,
+      "ci95": null
+    },
+    {
+      "label": "narrower",
+      "window": 0.1,
+      "cap": 16,
+      "skip_pure_races": false,
+      "pr": 0.546,
+      "evals_per_decision": 1774,
+      "margin": -0.011,
+      "ci95": 0.013
+    },
+    {
+      "label": "narrower still",
+      "window": 0.06,
+      "cap": 6,
+      "skip_pure_races": false,
+      "pr": 0.548,
+      "evals_per_decision": 1019,
+      "margin": -0.008,
+      "ci95": 0.017
+    },
+    {
+      "label": "and no search in pure races",
+      "window": 0.06,
+      "cap": 6,
+      "skip_pure_races": true,
+      "pr": 0.548,
+      "evals_per_decision": 902,
+      "margin": -0.008,
+      "ci95": 0.018
+    }
+  ],
+  "compute_saved": 0.62,
+  "caveat": "These are WIDTH savings at one ply. Depth is not free: one ply of search is worth 0.26 to 0.74 PR depending on position type, so trimming depth does cost strength. Untested: whether depth itself can be reduced anywhere without loss."
+}
