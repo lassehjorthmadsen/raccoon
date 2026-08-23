@@ -1,0 +1,11 @@
+{
+  "note": "exp021's 2-ply row re-scored with pruned moves discarded instead of left to compete in the argmax. Replayed from the committed depth-2 dump: the fix changes which candidates may be chosen, never which are evaluated, so no re-run was needed. The replay reproduces the published figure exactly under the old behaviour, and was validated at 1 ply against a real search (529 held-out decisions, 0.4555 predicted and measured).",
+  "positions": "seed-21 subsample of the BGSage money benchmark",
+  "n_decisions": 2000,
+  "config": "depth 2, window 0.16, cap 8, second-pass cap 2, gate 0.08",
+  "pr_as_published": 0.4258,
+  "pr_with_pruned_moves_discarded": 0.4069,
+  "moves_changed": 12,
+  "gnubg_2_ply_same_positions": 0.5877,
+  "caveat": "The 0-ply rows are unaffected (nothing is pruned). The 1-ply rows were measured with the defect and have no dumps, so they remain as published and are pessimistic by an unmeasured amount."
+}

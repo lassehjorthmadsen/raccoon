@@ -1,0 +1,43 @@
+{
+  "note": "Replayed from the exp023 reference dumps; exact, because the fix changes which candidates may be chosen, never which are evaluated. Evaluation counts are identical before and after.",
+  "validation": "A real search over 529 held-out decisions with the fix scored PR 0.4555, matching this replay's prediction of 0.4555.",
+  "n_decisions": 12693,
+  "settings": [
+    {
+      "window": 0.1,
+      "cap": 16,
+      "pr_before": 0.5995697584902919,
+      "pr_after": 0.5455278929705052,
+      "margin": -0.05404186551978669,
+      "ci95": 0.02212028299909998,
+      "sigma": 4.788458466968601
+    },
+    {
+      "window": 0.1,
+      "cap": 12,
+      "pr_before": 0.6173346753297919,
+      "pr_after": 0.5457215853130802,
+      "margin": -0.07161309001671162,
+      "ci95": 0.022335820295171973,
+      "sigma": 6.284150507026367
+    },
+    {
+      "window": 0.06,
+      "cap": 8,
+      "pr_before": 0.7066092664096173,
+      "pr_after": 0.5502241480455795,
+      "margin": -0.1563851183640378,
+      "ci95": 0.0368319623239871,
+      "sigma": 8.321979407377215
+    },
+    {
+      "window": 0.04,
+      "cap": 10,
+      "pr_before": 0.7421297278141609,
+      "pr_after": 0.5665589733988103,
+      "margin": -0.1755707544153506,
+      "ci95": 0.0482528458966331,
+      "sigma": 7.131572703323152
+    }
+  ]
+}
