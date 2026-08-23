@@ -1,0 +1,33 @@
+{
+  "benchmark": "BGSage Money Benchmark (checker-only, cubeless)",
+  "n_decisions": 3173,
+  "results": [
+    {
+      "engine": "ep22_ref_w010_k16_shard3",
+      "pr": 0.5955604295418635,
+      "blunders": 2,
+      "eval_accuracy": {
+        "rollout": {
+          "r2": 0.9968178201610105,
+          "mse": 0.0017754768145515584,
+          "n_positions": 31481
+        },
+        "3T": {
+          "r2": 0.9926946797541137,
+          "mse": 0.0021727079160913025,
+          "n_positions": 14596
+        },
+        "3P": {
+          "r2": 0.9956494084746371,
+          "mse": 0.0013837905697906805,
+          "n_positions": 24883
+        },
+        "all": {
+          "r2": 0.9959121575572724,
+          "mse": 0.0017198349928166255,
+          "n_positions": 70960
+        }
+      }
+    }
+  ]
+}

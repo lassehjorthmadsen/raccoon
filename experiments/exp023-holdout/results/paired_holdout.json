@@ -1,0 +1,847 @@
+{
+  "hypothesis": "At matched compute, a bump-shaped position-dependent effort rule scores a lower PR than the best single fixed setting.",
+  "positions": "BGSage money benchmark, the decisions NOT in exp022's 2000-decision seed-21 sample",
+  "n_decisions": 12693,
+  "frozen_before_run": {
+    "effort": "tanh(c/0.03) * tanh((1-c)/0.25)",
+    "window": [
+      0.02,
+      0.1
+    ],
+    "cap": [
+      2,
+      16
+    ],
+    "target_budget": 1000,
+    "comparator_rule": "fixed setting whose cost is closest to the bump's"
+  },
+  "bump": {
+    "multiplier": 0.5499999999999999,
+    "pr": 0.6925339202932407,
+    "evals_per_decision": 996.5900890254471
+  },
+  "flat": {
+    "window": 0.04,
+    "cap": 11,
+    "pr": 0.7548038790539962,
+    "evals_per_decision": 995.802410777594
+  },
+  "margin_pr": -0.06226995876075546,
+  "margin_sign": "negative means the bump is better",
+  "ci95_same_positions": 0.047889438415117135,
+  "sigma": 2.5485602506575598,
+  "smallest_detectable_at_80pct_power": 0.06841348345016733,
+  "exp022_in_sample_margin": -0.061,
+  "flat_grid": [
+    {
+      "window": 0.02,
+      "cap": 2,
+      "pr": 1.1393061003675524,
+      "evals_per_decision": 456.1065154021902
+    },
+    {
+      "window": 0.02,
+      "cap": 3,
+      "pr": 1.0971901763869243,
+      "evals_per_decision": 535.3366422437564
+    },
+    {
+      "window": 0.02,
+      "cap": 4,
+      "pr": 1.049909409687053,
+      "evals_per_decision": 581.776333412117
+    },
+    {
+      "window": 0.02,
+      "cap": 5,
+      "pr": 1.0628874815248772,
+      "evals_per_decision": 614.2787363113528
+    },
+    {
+      "window": 0.02,
+      "cap": 6,
+      "pr": 1.0358892771922594,
+      "evals_per_decision": 639.754037658552
+    },
+    {
+      "window": 0.02,
+      "cap": 7,
+      "pr": 1.0465534703302672,
+      "evals_per_decision": 659.7628614196801
+    },
+    {
+      "window": 0.02,
+      "cap": 8,
+      "pr": 1.0448315082884037,
+      "evals_per_decision": 676.6002521074608
+    },
+    {
+      "window": 0.02,
+      "cap": 9,
+      "pr": 1.0390534820574298,
+      "evals_per_decision": 691.0096903805247
+    },
+    {
+      "window": 0.02,
+      "cap": 10,
+      "pr": 1.02628910543957,
+      "evals_per_decision": 703.4524541085638
+    },
+    {
+      "window": 0.02,
+      "cap": 11,
+      "pr": 1.038851119359157,
+      "evals_per_decision": 714.2150791774994
+    },
+    {
+      "window": 0.02,
+      "cap": 12,
+      "pr": 1.0344776087686611,
+      "evals_per_decision": 723.6225478610257
+    },
+    {
+      "window": 0.02,
+      "cap": 13,
+      "pr": 1.0329326947712871,
+      "evals_per_decision": 731.8248640983219
+    },
+    {
+      "window": 0.02,
+      "cap": 14,
+      "pr": 1.033543461843684,
+      "evals_per_decision": 739.1126605215474
+    },
+    {
+      "window": 0.02,
+      "cap": 15,
+      "pr": 1.0328692104289778,
+      "evals_per_decision": 745.5318679587174
+    },
+    {
+      "window": 0.02,
+      "cap": 16,
+      "pr": 1.036065143365612,
+      "evals_per_decision": 751.2798392814938
+    },
+    {
+      "window": 0.03,
+      "cap": 2,
+      "pr": 1.0905834484412023,
+      "evals_per_decision": 494.291971953045
+    },
+    {
+      "window": 0.03,
+      "cap": 3,
+      "pr": 1.0239693750612042,
+      "evals_per_decision": 601.9780981643426
+    },
+    {
+      "window": 0.03,
+      "cap": 4,
+      "pr": 0.9407487471557822,
+      "evals_per_decision": 669.1583549988183
+    },
+    {
+      "window": 0.03,
+      "cap": 5,
+      "pr": 0.940263264371238,
+      "evals_per_decision": 716.1195934767195
+    },
+    {
+      "window": 0.03,
+      "cap": 6,
+      "pr": 0.9029674334565866,
+      "evals_per_decision": 752.9171196722604
+    },
+    {
+      "window": 0.03,
+      "cap": 7,
+      "pr": 0.910373504350052,
+      "evals_per_decision": 783.2500590876862
+    },
+    {
+      "window": 0.03,
+      "cap": 8,
+      "pr": 0.8949222409753606,
+      "evals_per_decision": 808.511069093201
+    },
+    {
+      "window": 0.03,
+      "cap": 9,
+      "pr": 0.8741016537491536,
+      "evals_per_decision": 830.7445048451902
+    },
+    {
+      "window": 0.03,
+      "cap": 10,
+      "pr": 0.8556394929623785,
+      "evals_per_decision": 850.1108484991728
+    },
+    {
+      "window": 0.03,
+      "cap": 11,
+      "pr": 0.8690725492012892,
+      "evals_per_decision": 867.0578271488222
+    },
+    {
+      "window": 0.03,
+      "cap": 12,
+      "pr": 0.8606608558462518,
+      "evals_per_decision": 881.8462144489089
+    },
+    {
+      "window": 0.03,
+      "cap": 13,
+      "pr": 0.8541803018035328,
+      "evals_per_decision": 895.0333254549752
+    },
+    {
+      "window": 0.03,
+      "cap": 14,
+      "pr": 0.8529290650554906,
+      "evals_per_decision": 906.8774127471835
+    },
+    {
+      "window": 0.03,
+      "cap": 15,
+      "pr": 0.8485611095412666,
+      "evals_per_decision": 917.6349168833215
+    },
+    {
+      "window": 0.03,
+      "cap": 16,
+      "pr": 0.8508976626804381,
+      "evals_per_decision": 927.5927676672181
+    },
+    {
+      "window": 0.04,
+      "cap": 2,
+      "pr": 1.0428587215935787,
+      "evals_per_decision": 521.9177499409124
+    },
+    {
+      "window": 0.04,
+      "cap": 3,
+      "pr": 0.9592582218705443,
+      "evals_per_decision": 655.048373119042
+    },
+    {
+      "window": 0.04,
+      "cap": 4,
+      "pr": 0.8531674431012617,
+      "evals_per_decision": 741.221460647601
+    },
+    {
+      "window": 0.04,
+      "cap": 5,
+      "pr": 0.8474915437134827,
+      "evals_per_decision": 803.3089892066494
+    },
+    {
+      "window": 0.04,
+      "cap": 6,
+      "pr": 0.8043852197889535,
+      "evals_per_decision": 850.58236823446
+    },
+    {
+      "window": 0.04,
+      "cap": 7,
+      "pr": 0.8035314051606329,
+      "evals_per_decision": 889.4011659970063
+    },
+    {
+      "window": 0.04,
+      "cap": 8,
+      "pr": 0.7879436061981143,
+      "evals_per_decision": 921.8129677775152
+    },
+    {
+      "window": 0.04,
+      "cap": 9,
+      "pr": 0.7659411208293856,
+      "evals_per_decision": 949.4704955487276
+    },
+    {
+      "window": 0.04,
+      "cap": 10,
+      "pr": 0.7421297278141609,
+      "evals_per_decision": 973.8644922398172
+    },
+    {
+      "window": 0.04,
+      "cap": 11,
+      "pr": 0.7548038790539962,
+      "evals_per_decision": 995.802410777594
+    },
+    {
+      "window": 0.04,
+      "cap": 12,
+      "pr": 0.7438497350368993,
+      "evals_per_decision": 1015.437879145986
+    },
+    {
+      "window": 0.04,
+      "cap": 13,
+      "pr": 0.7383503575240979,
+      "evals_per_decision": 1032.7838178523596
+    },
+    {
+      "window": 0.04,
+      "cap": 14,
+      "pr": 0.7352701662618519,
+      "evals_per_decision": 1048.7617584495392
+    },
+    {
+      "window": 0.04,
+      "cap": 15,
+      "pr": 0.7285760486005871,
+      "evals_per_decision": 1063.3021350350587
+    },
+    {
+      "window": 0.04,
+      "cap": 16,
+      "pr": 0.7309126017397585,
+      "evals_per_decision": 1076.445127235484
+    },
+    {
+      "window": 0.05,
+      "cap": 2,
+      "pr": 1.0328881450265541,
+      "evals_per_decision": 542.9882612463563
+    },
+    {
+      "window": 0.05,
+      "cap": 3,
+      "pr": 0.9355231987642352,
+      "evals_per_decision": 697.8209249192469
+    },
+    {
+      "window": 0.05,
+      "cap": 4,
+      "pr": 0.8317593385694203,
+      "evals_per_decision": 802.6661939651776
+    },
+    {
+      "window": 0.05,
+      "cap": 5,
+      "pr": 0.8179038913187686,
+      "evals_per_decision": 878.4025053178917
+    },
+    {
+      "window": 0.05,
+      "cap": 6,
+      "pr": 0.7715797836752754,
+      "evals_per_decision": 937.3360119751044
+    },
+    {
+      "window": 0.05,
+      "cap": 7,
+      "pr": 0.7683689873444619,
+      "evals_per_decision": 984.489246041125
+    },
+    {
+      "window": 0.05,
+      "cap": 8,
+      "pr": 0.7520696506855389,
+      "evals_per_decision": 1024.514062869298
+    },
+    {
+      "window": 0.05,
+      "cap": 9,
+      "pr": 0.7250909577364815,
+      "evals_per_decision": 1058.5728354210983
+    },
+    {
+      "window": 0.05,
+      "cap": 10,
+      "pr": 0.6991443603407499,
+      "evals_per_decision": 1087.8444024265343
+    },
+    {
+      "window": 0.05,
+      "cap": 11,
+      "pr": 0.7149724749649325,
+      "evals_per_decision": 1113.9840857165366
+    },
+    {
+      "window": 0.05,
+      "cap": 12,
+      "pr": 0.7048493616107652,
+      "evals_per_decision": 1137.1422043646105
+    },
+    {
+      "window": 0.05,
+      "cap": 13,
+      "pr": 0.6947493512922671,
+      "evals_per_decision": 1157.9036476798235
+    },
+    {
+      "window": 0.05,
+      "cap": 14,
+      "pr": 0.6916720739624823,
+      "evals_per_decision": 1176.923343575199
+    },
+    {
+      "window": 0.05,
+      "cap": 15,
+      "pr": 0.6862395588487153,
+      "evals_per_decision": 1194.1767903568896
+    },
+    {
+      "window": 0.05,
+      "cap": 16,
+      "pr": 0.688646263874262,
+      "evals_per_decision": 1210.2781060427008
+    },
+    {
+      "window": 0.06,
+      "cap": 2,
+      "pr": 1.0196852946736283,
+      "evals_per_decision": 561.1372409989758
+    },
+    {
+      "window": 0.06,
+      "cap": 3,
+      "pr": 0.9134134022690494,
+      "evals_per_decision": 737.415583392421
+    },
+    {
+      "window": 0.06,
+      "cap": 4,
+      "pr": 0.8094373784871853,
+      "evals_per_decision": 859.610651540219
+    },
+    {
+      "window": 0.06,
+      "cap": 5,
+      "pr": 0.7910576254593156,
+      "evals_per_decision": 949.4003781611912
+    },
+    {
+      "window": 0.06,
+      "cap": 6,
+      "pr": 0.7395889153984608,
+      "evals_per_decision": 1019.0058299850311
+    },
+    {
+      "window": 0.06,
+      "cap": 7,
+      "pr": 0.7324111978141391,
+      "evals_per_decision": 1075.4940518395965
+    },
+    {
+      "window": 0.06,
+      "cap": 8,
+      "pr": 0.7066092664096173,
+      "evals_per_decision": 1122.739620263137
+    },
+    {
+      "window": 0.06,
+      "cap": 9,
+      "pr": 0.6770702618746037,
+      "evals_per_decision": 1162.969195619633
+    },
+    {
+      "window": 0.06,
+      "cap": 10,
+      "pr": 0.6480210509526466,
+      "evals_per_decision": 1197.3146616245174
+    },
+    {
+      "window": 0.06,
+      "cap": 11,
+      "pr": 0.6646485077477529,
+      "evals_per_decision": 1227.8176160088237
+    },
+    {
+      "window": 0.06,
+      "cap": 12,
+      "pr": 0.6545176104892354,
+      "evals_per_decision": 1255.0182777909083
+    },
+    {
+      "window": 0.06,
+      "cap": 13,
+      "pr": 0.6440971199088991,
+      "evals_per_decision": 1278.9869219254708
+    },
+    {
+      "window": 0.06,
+      "cap": 14,
+      "pr": 0.6407559006553238,
+      "evals_per_decision": 1300.704561569369
+    },
+    {
+      "window": 0.06,
+      "cap": 15,
+      "pr": 0.6348177248378639,
+      "evals_per_decision": 1320.4142440715354
+    },
+    {
+      "window": 0.06,
+      "cap": 16,
+      "pr": 0.6365060269617735,
+      "evals_per_decision": 1338.683841487434
+    },
+    {
+      "window": 0.07,
+      "cap": 2,
+      "pr": 1.016544408612038,
+      "evals_per_decision": 575.3230126841567
+    },
+    {
+      "window": 0.07,
+      "cap": 3,
+      "pr": 0.9070046514180709,
+      "evals_per_decision": 770.6305837863389
+    },
+    {
+      "window": 0.07,
+      "cap": 4,
+      "pr": 0.8019500291329557,
+      "evals_per_decision": 909.4782163397148
+    },
+    {
+      "window": 0.07,
+      "cap": 5,
+      "pr": 0.7807131426419354,
+      "evals_per_decision": 1013.6932167336328
+    },
+    {
+      "window": 0.07,
+      "cap": 6,
+      "pr": 0.7226147690904786,
+      "evals_per_decision": 1094.5212321752147
+    },
+    {
+      "window": 0.07,
+      "cap": 7,
+      "pr": 0.7159083906346811,
+      "evals_per_decision": 1160.4255889072717
+    },
+    {
+      "window": 0.07,
+      "cap": 8,
+      "pr": 0.6901064592301596,
+      "evals_per_decision": 1215.334830221382
+    },
+    {
+      "window": 0.07,
+      "cap": 9,
+      "pr": 0.660567454695146,
+      "evals_per_decision": 1261.9237374931065
+    },
+    {
+      "window": 0.07,
+      "cap": 10,
+      "pr": 0.6308234507773958,
+      "evals_per_decision": 1302.2148428267549
+    },
+    {
+      "window": 0.07,
+      "cap": 11,
+      "pr": 0.6510898093238973,
+      "evals_per_decision": 1337.4992515559757
+    },
+    {
+      "window": 0.07,
+      "cap": 12,
+      "pr": 0.6410128595037846,
+      "evals_per_decision": 1368.5072086977075
+    },
+    {
+      "window": 0.07,
+      "cap": 13,
+      "pr": 0.6281035845623848,
+      "evals_per_decision": 1395.8444812101159
+    },
+    {
+      "window": 0.07,
+      "cap": 14,
+      "pr": 0.6247623653088096,
+      "evals_per_decision": 1420.496651697786
+    },
+    {
+      "window": 0.07,
+      "cap": 15,
+      "pr": 0.6203568023301347,
+      "evals_per_decision": 1442.6346017489955
+    },
+    {
+      "window": 0.07,
+      "cap": 16,
+      "pr": 0.6215363323801307,
+      "evals_per_decision": 1463.2835421098243
+    },
+    {
+      "window": 0.08,
+      "cap": 2,
+      "pr": 1.0129611518230088,
+      "evals_per_decision": 586.1637122823604
+    },
+    {
+      "window": 0.08,
+      "cap": 3,
+      "pr": 0.9043923221583918,
+      "evals_per_decision": 798.3801307807453
+    },
+    {
+      "window": 0.08,
+      "cap": 4,
+      "pr": 0.7924388852695937,
+      "evals_per_decision": 954.6194753013472
+    },
+    {
+      "window": 0.08,
+      "cap": 5,
+      "pr": 0.7672173216775438,
+      "evals_per_decision": 1071.051839596628
+    },
+    {
+      "window": 0.08,
+      "cap": 6,
+      "pr": 0.7079133560169258,
+      "evals_per_decision": 1162.6026943984873
+    },
+    {
+      "window": 0.08,
+      "cap": 7,
+      "pr": 0.694790381072283,
+      "evals_per_decision": 1237.75655873316
+    },
+    {
+      "window": 0.08,
+      "cap": 8,
+      "pr": 0.6679360941785127,
+      "evals_per_decision": 1300.8973449933035
+    },
+    {
+      "window": 0.08,
+      "cap": 9,
+      "pr": 0.6383970896434991,
+      "evals_per_decision": 1353.978964783739
+    },
+    {
+      "window": 0.08,
+      "cap": 10,
+      "pr": 0.6086530857257489,
+      "evals_per_decision": 1399.5225714961002
+    },
+    {
+      "window": 0.08,
+      "cap": 11,
+      "pr": 0.6294341801206779,
+      "evals_per_decision": 1438.9392578586624
+    },
+    {
+      "window": 0.08,
+      "cap": 12,
+      "pr": 0.6190702801039605,
+      "evals_per_decision": 1474.2739305128812
+    },
+    {
+      "window": 0.08,
+      "cap": 13,
+      "pr": 0.6061610051625608,
+      "evals_per_decision": 1505.954305522729
+    },
+    {
+      "window": 0.08,
+      "cap": 14,
+      "pr": 0.6028197859089854,
+      "evals_per_decision": 1533.9140471125818
+    },
+    {
+      "window": 0.08,
+      "cap": 15,
+      "pr": 0.5984142229303105,
+      "evals_per_decision": 1558.730954069172
+    },
+    {
+      "window": 0.08,
+      "cap": 16,
+      "pr": 0.5995937529803065,
+      "evals_per_decision": 1581.3233278184825
+    },
+    {
+      "window": 0.09,
+      "cap": 2,
+      "pr": 1.0129611518230088,
+      "evals_per_decision": 586.1637122823604
+    },
+    {
+      "window": 0.09,
+      "cap": 3,
+      "pr": 0.9043923221583918,
+      "evals_per_decision": 809.143701252659
+    },
+    {
+      "window": 0.09,
+      "cap": 4,
+      "pr": 0.7924283556674478,
+      "evals_per_decision": 979.6412195698416
+    },
+    {
+      "window": 0.09,
+      "cap": 5,
+      "pr": 0.7672976622418217,
+      "evals_per_decision": 1110.022295753565
+    },
+    {
+      "window": 0.09,
+      "cap": 6,
+      "pr": 0.7079936965812038,
+      "evals_per_decision": 1212.67627826361
+    },
+    {
+      "window": 0.09,
+      "cap": 7,
+      "pr": 0.6947209504680721,
+      "evals_per_decision": 1296.722130308044
+    },
+    {
+      "window": 0.09,
+      "cap": 8,
+      "pr": 0.6657582464437393,
+      "evals_per_decision": 1366.9104230678327
+    },
+    {
+      "window": 0.09,
+      "cap": 9,
+      "pr": 0.6362192419087256,
+      "evals_per_decision": 1427.045221775782
+    },
+    {
+      "window": 0.09,
+      "cap": 10,
+      "pr": 0.6064752379909756,
+      "evals_per_decision": 1478.5321830930434
+    },
+    {
+      "window": 0.09,
+      "cap": 11,
+      "pr": 0.6272563323859044,
+      "evals_per_decision": 1523.0958796186874
+    },
+    {
+      "window": 0.09,
+      "cap": 12,
+      "pr": 0.6168924323691872,
+      "evals_per_decision": 1562.196801386591
+    },
+    {
+      "window": 0.09,
+      "cap": 13,
+      "pr": 0.6056947677119414,
+      "evals_per_decision": 1596.9624990152051
+    },
+    {
+      "window": 0.09,
+      "cap": 14,
+      "pr": 0.602353548458366,
+      "evals_per_decision": 1627.8005199716379
+    },
+    {
+      "window": 0.09,
+      "cap": 15,
+      "pr": 0.5979479854796912,
+      "evals_per_decision": 1655.5575514062868
+    },
+    {
+      "window": 0.09,
+      "cap": 16,
+      "pr": 0.5991275155296871,
+      "evals_per_decision": 1680.9618687465531
+    },
+    {
+      "window": 0.1,
+      "cap": 2,
+      "pr": 1.0129611518230088,
+      "evals_per_decision": 586.1637122823604
+    },
+    {
+      "window": 0.1,
+      "cap": 3,
+      "pr": 0.9043923221583918,
+      "evals_per_decision": 817.5441581974317
+    },
+    {
+      "window": 0.1,
+      "cap": 4,
+      "pr": 0.7924283556674478,
+      "evals_per_decision": 998.4254313401087
+    },
+    {
+      "window": 0.1,
+      "cap": 5,
+      "pr": 0.7652002295294019,
+      "evals_per_decision": 1140.333569684078
+    },
+    {
+      "window": 0.1,
+      "cap": 6,
+      "pr": 0.7075311034202203,
+      "evals_per_decision": 1254.657291420468
+    },
+    {
+      "window": 0.1,
+      "cap": 7,
+      "pr": 0.6951467810786587,
+      "evals_per_decision": 1349.1733238793036
+    },
+    {
+      "window": 0.1,
+      "cap": 8,
+      "pr": 0.6662004894043441,
+      "evals_per_decision": 1427.2575435279289
+    },
+    {
+      "window": 0.1,
+      "cap": 9,
+      "pr": 0.6366614848693305,
+      "evals_per_decision": 1493.3314425273772
+    },
+    {
+      "window": 0.1,
+      "cap": 10,
+      "pr": 0.6069174809515803,
+      "evals_per_decision": 1550.735523516899
+    },
+    {
+      "window": 0.1,
+      "cap": 11,
+      "pr": 0.6276985753465091,
+      "evals_per_decision": 1600.4300007878358
+    },
+    {
+      "window": 0.1,
+      "cap": 12,
+      "pr": 0.6173346753297919,
+      "evals_per_decision": 1643.4381154967305
+    },
+    {
+      "window": 0.1,
+      "cap": 13,
+      "pr": 0.6061370106725461,
+      "evals_per_decision": 1682.1292050736627
+    },
+    {
+      "window": 0.1,
+      "cap": 14,
+      "pr": 0.6027957914189709,
+      "evals_per_decision": 1716.2075947372568
+    },
+    {
+      "window": 0.1,
+      "cap": 15,
+      "pr": 0.5983902284402961,
+      "evals_per_decision": 1746.6991255022454
+    },
+    {
+      "window": 0.1,
+      "cap": 16,
+      "pr": 0.5995697584902919,
+      "evals_per_decision": 1774.411486646183
+    }
+  ]
+}

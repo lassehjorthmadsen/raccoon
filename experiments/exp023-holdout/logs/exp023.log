@@ -1,0 +1,171 @@
+exp023 started 2026-08-22T14:11:41+02:00 on lasse-iMac14-2, 4 shards
+=== shard 0/4 starting 2026-08-22T14:11:41+02:00 ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (holdout: the 12693 decisions NOT in the 2000-decision seed-21 sample)
+  (shard 0 of 4: 3174 decisions)
+
+Search: d1_k16_k22_t0.1_g0.08
+
+Scoring raccoon: ep22_ref_w010_k16_shard0 (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_ref_w010_k16_shard0] 500/3174 (1886s, ~10084s remaining)
+  [ep22_ref_w010_k16_shard0] 1000/3174 (3733s, ~8115s remaining)
+  [ep22_ref_w010_k16_shard0] 1500/3174 (5609s, ~6259s remaining)
+  [ep22_ref_w010_k16_shard0] 2000/3174 (8112s, ~4762s remaining)
+  [ep22_ref_w010_k16_shard0] 2500/3174 (10133s, ~2732s remaining)
+  [ep22_ref_w010_k16_shard0] 3000/3174 (12529s, ~727s remaining)
+  [ep22_ref_w010_k16_shard0] Done: 3174 decisions in 13185.1s
+  [ep22_ref_w010_k16_shard0] Saved predictions: experiments/exp023-holdout/dumps/ep22_ref_w010_k16_shard0.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 3174 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard0           0.58   3174      3    0.25    0.62    0.48    0.63    0.78
+
+  (N per plan)                                              401     662     845     553     713
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard0                0.9973   0.0017    32190        0.9954   0.0016    13142        0.9944   0.0014    25609        0.9965   0.0016    70941
+
+Saving results to experiments/exp023-holdout/results/
+  Saved: experiments/exp023-holdout/results/ep22_ref_w010_k16_shard0.json
+  Saved: experiments/exp023-holdout/results/summary.json
+=== shard 1/4 starting 2026-08-22T17:51:31+02:00 ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (holdout: the 12693 decisions NOT in the 2000-decision seed-21 sample)
+  (shard 1 of 4: 3173 decisions)
+
+Search: d1_k16_k22_t0.1_g0.08
+
+Scoring raccoon: ep22_ref_w010_k16_shard1 (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_ref_w010_k16_shard1] 500/3173 (2006s, ~10722s remaining)
+  [ep22_ref_w010_k16_shard1] 1000/3173 (3927s, ~8533s remaining)
+  [ep22_ref_w010_k16_shard1] 1500/3173 (5741s, ~6403s remaining)
+  [ep22_ref_w010_k16_shard1] 2000/3173 (7993s, ~4688s remaining)
+  [ep22_ref_w010_k16_shard1] 2500/3173 (10161s, ~2735s remaining)
+  [ep22_ref_w010_k16_shard1] 3000/3173 (12524s, ~722s remaining)
+  [ep22_ref_w010_k16_shard1] Done: 3173 decisions in 13051.3s
+  [ep22_ref_w010_k16_shard1] Saved predictions: experiments/exp023-holdout/dumps/ep22_ref_w010_k16_shard1.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 3173 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard1           0.58   3173      0    0.08    0.95    0.46    0.46    0.74
+
+  (N per plan)                                              400     689     915     521     648
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard1                0.9971   0.0017    31064        0.9953   0.0017    13120        0.9948   0.0013    24867        0.9963   0.0016    69051
+
+Saving results to experiments/exp023-holdout/results/
+  Saved: experiments/exp023-holdout/results/ep22_ref_w010_k16_shard1.json
+  Saved: experiments/exp023-holdout/results/summary.json
+=== shard 2/4 starting 2026-08-22T21:29:07+02:00 ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (holdout: the 12693 decisions NOT in the 2000-decision seed-21 sample)
+  (shard 2 of 4: 3173 decisions)
+
+Search: d1_k16_k22_t0.1_g0.08
+
+Scoring raccoon: ep22_ref_w010_k16_shard2 (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_ref_w010_k16_shard2] 500/3173 (1860s, ~9942s remaining)
+  [ep22_ref_w010_k16_shard2] 1000/3173 (3647s, ~7925s remaining)
+  [ep22_ref_w010_k16_shard2] 1500/3173 (5607s, ~6254s remaining)
+  [ep22_ref_w010_k16_shard2] 2000/3173 (8129s, ~4768s remaining)
+  [ep22_ref_w010_k16_shard2] 2500/3173 (10054s, ~2707s remaining)
+  [ep22_ref_w010_k16_shard2] 3000/3173 (12467s, ~719s remaining)
+  [ep22_ref_w010_k16_shard2] Done: 3173 decisions in 13113.1s
+  [ep22_ref_w010_k16_shard2] Saved predictions: experiments/exp023-holdout/dumps/ep22_ref_w010_k16_shard2.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 3173 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard2           0.65   3173      3    0.09    0.94    0.57    0.66    0.78
+
+  (N per plan)                                              390     696     880     523     684
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard2                0.9967   0.0021    31981        0.9935   0.0018    13364        0.9952   0.0014    25299        0.9960   0.0018    70644
+
+Saving results to experiments/exp023-holdout/results/
+  Saved: experiments/exp023-holdout/results/ep22_ref_w010_k16_shard2.json
+  Saved: experiments/exp023-holdout/results/summary.json
+=== shard 3/4 starting 2026-08-23T01:07:45+02:00 ===
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (holdout: the 12693 decisions NOT in the 2000-decision seed-21 sample)
+  (shard 3 of 4: 3173 decisions)
+
+Search: d1_k16_k22_t0.1_g0.08
+
+Scoring raccoon: ep22_ref_w010_k16_shard3 (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22_ref_w010_k16_shard3] 500/3173 (2203s, ~11776s remaining)
+  [ep22_ref_w010_k16_shard3] 1000/3173 (4086s, ~8879s remaining)
+  [ep22_ref_w010_k16_shard3] 1500/3173 (5935s, ~6619s remaining)
+  [ep22_ref_w010_k16_shard3] 2000/3173 (8454s, ~4958s remaining)
+  [ep22_ref_w010_k16_shard3] 2500/3173 (10532s, ~2835s remaining)
+  [ep22_ref_w010_k16_shard3] 3000/3173 (12662s, ~730s remaining)
+  [ep22_ref_w010_k16_shard3] Done: 3173 decisions in 13252.0s
+  [ep22_ref_w010_k16_shard3] Saved predictions: experiments/exp023-holdout/dumps/ep22_ref_w010_k16_shard3.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 3173 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard3           0.60   3173      2    0.07    0.87    0.50    0.47    0.83
+
+  (N per plan)                                              389     672     898     506     708
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22_ref_w010_k16_shard3                0.9968   0.0018    31481        0.9927   0.0022    14596        0.9956   0.0014    24883        0.9959   0.0017    70960
+
+Saving results to experiments/exp023-holdout/results/
+  Saved: experiments/exp023-holdout/results/ep22_ref_w010_k16_shard3.json
+  Saved: experiments/exp023-holdout/results/summary.json
+exp023 reference run finished 2026-08-23T04:48:42+02:00
+Next: scripts/exp023_confirm.py replays the frozen bump and its flat comparator.
