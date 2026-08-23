@@ -1,0 +1,28 @@
+[2026-07-28 00:47:26] waiting for VM raccoon-gpu to reach TERMINATED (pipeline_exp014.sh self-stops on completion)
+[2026-07-28 00:47:31] VM is TERMINATED — exp014 training run is over
+[2026-07-28 00:47:31] pulling exp014-distill from GCS
+[2026-07-28 00:47:35] === SUPPORTING: own-label held-out R^2 per epoch (capped at 200000 rows) ===
+[0ply/ep1] experiments/exp014-distill/scalar_0ply/checkpoints/ep1.pt
+  held-out n=249903  R^2 vs cache labels (own) = 0.9933
+[2ply/ep1] experiments/exp014-distill/scalar_2ply/checkpoints/ep1.pt
+  held-out n=249903  R^2 vs cache_2ply labels (own) = 0.9942
+[0ply/ep2] experiments/exp014-distill/scalar_0ply/checkpoints/ep2.pt
+  held-out n=249903  R^2 vs cache labels (own) = 0.9956
+[2ply/ep2] experiments/exp014-distill/scalar_2ply/checkpoints/ep2.pt
+  held-out n=249903  R^2 vs cache_2ply labels (own) = 0.9981
+[0ply/ep3] experiments/exp014-distill/scalar_0ply/checkpoints/ep3.pt
+  held-out n=249903  R^2 vs cache labels (own) = 0.9984
+[2ply/ep3] experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt
+  held-out n=249903  R^2 vs cache_2ply labels (own) = 0.9983
+[2026-07-28 01:45:47] === PRIMARY: exp014 2x2 R^2 table + overfitting check (ep3, n_holdout~2M, sample_train=200000) ===
+[2026-07-28 01:45:47] --- 0-ply-trained net (scalar_0ply/ep3) ---
+[0ply/ep3 FINAL] experiments/exp014-distill/scalar_0ply/checkpoints/ep3.pt
+  held-out n=1998223  R^2 vs cache labels (own) = 0.9983
+  held-out n=1998223  R^2 vs cache_2ply labels (cross) = 0.9979
+  train-sample n=200000  R^2 vs cache labels = 0.9984  (train - held-out = +0.0001; understated — see --sample-train help)
+[2026-07-28 03:10:18] --- 2-ply-trained net (scalar_2ply/ep3) ---
+[2ply/ep3 FINAL] experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt
+  held-out n=1998223  R^2 vs cache_2ply labels (own) = 0.9983
+  held-out n=1998223  R^2 vs cache labels (cross) = 0.9981
+  train-sample n=200000  R^2 vs cache_2ply labels = 0.9984  (train - held-out = +0.0000; understated — see --sample-train help)
+[2026-07-28 04:34:53] EXP014_DONE — see experiments/exp014-benchmark/logs/exp014.log for the R^2 table (own/cross/train per arm)

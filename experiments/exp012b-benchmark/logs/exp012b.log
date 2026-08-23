@@ -1,0 +1,28 @@
+[2026-07-23 22:14:51] waiting for VM raccoon-gpu to reach TERMINATED (exp011b self-stops on completion)
+[2026-07-24 02:56:02] VM is TERMINATED — exp011b run is over
+[2026-07-24 02:56:02] pulling exp011b-distill from GCS
+CommandException: arg (experiments/exp011b-distill) does not name a directory, bucket, or bucket subdir.
+If there is an object with the same path, please add a trailing
+slash to specify the directory.
+[2026-07-24 02:56:04] WARN: GCS pull had errors
+[2026-07-24 02:56:04] EXP012B_ABORT: exp011b did not finish 3 epochs on both arms (preempted/truncated?).
+[2026-07-24 02:56:04]   scalar/ep3.pt: MISSING   outcomes6/ep3.pt: MISSING
+[2026-07-24 02:56:04]   Inspect experiments/exp011b-distill before benchmarking. Not touching gnubg.
+[2026-07-24 03:40:47] waiting for VM raccoon-gpu to reach TERMINATED (exp011b self-stops on completion)
+[2026-07-24 03:40:48] VM is TERMINATED — exp011b run is over
+[2026-07-24 03:40:48] pulling exp011b-distill from GCS
+[2026-07-24 03:40:50] === SWEEP n=1000 vs GNUBG-0-ply over 6 epoch checkpoints ===
+[2026-07-24 04:13:30]   scalar/checkpoints/ep1.pt -> -0.0940 ppg (0-ply, n=1000)
+[2026-07-24 04:45:49]   scalar/checkpoints/ep2.pt -> -0.0770 ppg (0-ply, n=1000)
+[2026-07-24 05:17:42]   scalar/checkpoints/ep3.pt -> -0.0100 ppg (0-ply, n=1000)
+[2026-07-24 05:50:07]   outcomes6/checkpoints/ep1.pt -> -0.0980 ppg (0-ply, n=1000)
+[2026-07-24 06:21:59]   outcomes6/checkpoints/ep2.pt -> -0.0040 ppg (0-ply, n=1000)
+[2026-07-24 06:53:47]   outcomes6/checkpoints/ep3.pt -> +0.0010 ppg (0-ply, n=1000)
+[2026-07-24 06:53:47] WINNER: outcomes6/checkpoints/ep3.pt  (sweep 0-ply ppg=+0.0010)
+[2026-07-24 06:53:47] === exp012b(a): n=6000 vs GNUBG-0-ply on winner ===
+[exp012b winner 0-ply] experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt
+  2873/6000 wins (47.9%), -0.0527 ppg vs GNUBG-0ply  (95% CI ~±0.046)
+[2026-07-24 10:13:08] === exp012b(b): n=1000 vs GNUBG-2-ply on winner ===
+[exp012b winner 2-ply] experiments/exp011b-distill/outcomes6/checkpoints/ep3.pt
+  481/1000 wins (48.1%), -0.0640 ppg vs GNUBG-2ply  (95% CI ~±0.112)
+[2026-07-24 12:39:28] EXP012B_DONE  winner=outcomes6/checkpoints/ep3.pt  (compare to exp011 control: -0.087 0-ply / -0.124 2-ply)

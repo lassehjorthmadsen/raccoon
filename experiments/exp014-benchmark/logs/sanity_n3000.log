@@ -1,0 +1,8 @@
+[2026-07-28 08:08:14] === sanity check 1/2: 2ply-trained net vs GNUBG-0-ply, n=3000 ===
+[2ply/ep3 vs GNUBG-0ply] experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt
+  1505/3000 wins (50.2%), -0.0193 ppg vs GNUBG-0ply  (95% CI ~±0.064)
+[2026-07-28 10:05:09] === sanity check 2/2: 2ply-trained net vs 0ply-trained net (head-to-head), n=3000 ===
+[2ply vs 0ply head-to-head] A=experiments/exp014-distill/scalar_2ply/checkpoints/ep3.pt
+     B=experiments/exp014-distill/scalar_0ply/checkpoints/ep3.pt
+  1524/3000 wins for A (50.8%), +0.0290 ppg (A's POV)  (95% CI ~±0.064)
+[2026-07-28 13:27:08] SANITY_N3000_DONE
