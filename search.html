@@ -330,7 +330,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="7f5da517" class="cell" data-execution_count="2">
+<div id="c333e903" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -887,8 +887,78 @@ window.Quarto = {
 <p>Tighter filters gain more, since they prune more moves into the unfair slot. A real search over 529 held-out decisions with the fix scored 0.4555, matching the replay exactly.</p>
 <p>With it applied, the filter cap stops mattering beyond about 5, and the bump and a fixed setting become indistinguishable: <strong>0.5459 against 0.5458, a difference of 0.0001 ± 0.0062</strong>. Both experiments were measuring how much of this bias each rule happened to expose.</p>
 <p>No re-run was needed to establish that. The fix changes which candidates may be <em>chosen</em>, never which are <em>evaluated</em>, so exp023’s dumps replay under either behaviour.</p>
+</section>
+<section id="why-spending-more-where-it-matters-cannot-help" class="level3">
+<h3 class="anchored" data-anchor-id="why-spending-more-where-it-matters-cannot-help">Why spending more where it matters cannot help</h3>
+<p>Search really does pay unevenly — that part of the premise holds. But the effort each band <em>wants</em> is not what varies:</p>
+<table class="caption-top table">
+<caption>Searching is worth 0.74 PR at high contact and nothing at all in a pure race — but going from cap 6 to cap 16 is worth nothing <em>anywhere</em>.</caption>
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>contact</th>
+<th style="text-align: right;">decisions</th>
+<th style="text-align: right;">no search</th>
+<th style="text-align: right;">what search buys</th>
+<th style="text-align: right;">what a wider filter buys</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exactly 0</td>
+<td style="text-align: right;">1,580</td>
+<td style="text-align: right;">0.129</td>
+<td style="text-align: right;"><strong>+0.005</strong></td>
+<td style="text-align: right;">-0.001</td>
+</tr>
+<tr class="even">
+<td>0–0.25</td>
+<td style="text-align: right;">2,740</td>
+<td style="text-align: right;">1.048</td>
+<td style="text-align: right;"><strong>+0.262</strong></td>
+<td style="text-align: right;">+0.007</td>
+</tr>
+<tr class="odd">
+<td>0.25–0.45</td>
+<td style="text-align: right;">2,091</td>
+<td style="text-align: right;">1.221</td>
+<td style="text-align: right;"><strong>+0.478</strong></td>
+<td style="text-align: right;">-0.007</td>
+</tr>
+<tr class="even">
+<td>0.45–0.65</td>
+<td style="text-align: right;">1,949</td>
+<td style="text-align: right;">1.187</td>
+<td style="text-align: right;"><strong>+0.476</strong></td>
+<td style="text-align: right;">+0.008</td>
+</tr>
+<tr class="odd">
+<td>0.65–0.85</td>
+<td style="text-align: right;">1,976</td>
+<td style="text-align: right;">1.245</td>
+<td style="text-align: right;"><strong>+0.737</strong></td>
+<td style="text-align: right;">-0.002</td>
+</tr>
+<tr class="even">
+<td>above 0.85</td>
+<td style="text-align: right;">2,357</td>
+<td style="text-align: right;">0.636</td>
+<td style="text-align: right;"><strong>+0.369</strong></td>
+<td style="text-align: right;">+0.005</td>
+</tr>
+</tbody>
+</table>
+<p>So the budget freed by not searching races has nowhere productive to go. Every band is already getting everything extra width can give it by about cap 6. Reallocating effort can therefore <strong>save compute but not improve play</strong> — which is exactly what the matched-compute comparison found.</p>
+<p>The gradient exp022 saw across these bands was the defect. At a lean setting more moves are pruned, so more of them compete unfairly, so lean looks worse — and it looks worse in proportion to how many moves a position has. That reads as “complicated positions want more search” and is nothing of the kind.</p>
+<p>What remains open is <strong>depth</strong>, the one dimension whose marginal value we have not measured since the fix. A second ply is worth far more than extra width was, and it costs about five times as much, so an uneven payoff there would be worth acting on. Three plies is out of reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this machine.</p>
 <blockquote class="blockquote">
-<p>Does a bump-shaped rule beat a fixed setting at matched compute? → <strong>On held-out positions, yes as measured</strong> (0.693 against 0.742, margin 0.050 ± 0.047, n=12,693) — but the margin came from a defect in the search, not from allocating effort. With pruned moves correctly discarded the difference is 0.0001 ± 0.0062, and the defect itself is worth 0.054 to 0.176 PR at no extra cost.</p>
+<p>Does a bump-shaped rule beat a fixed setting at matched compute? → <strong>On held-out positions, yes as measured</strong> (0.693 against 0.742, margin 0.050 ± 0.047, n=12,693) — but the margin came from a defect in the search, not from allocating effort. With pruned moves correctly discarded the difference is 0.0001 ± 0.0062. Search pays very unevenly across position types, yet no type wants a wider filter than any other, so allocating width can save compute and cannot improve play. The defect itself is worth 0.054 to 0.176 PR at no extra cost.</p>
 </blockquote>
 </section>
 </section>

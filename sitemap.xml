@@ -2,114 +2,114 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://research.raccoonbg.com/training_parameters.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/mcts_explained.html</loc>
-    <lastmod>2026-08-23T08:42:40.387Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.115Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/architecture.html</loc>
-    <lastmod>2026-08-23T08:42:40.386Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.113Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/variance_reduction.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/search.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/train.replay_buffer.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/search.mcts.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/model.network.html</loc>
-    <lastmod>2026-08-23T08:42:59.469Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/eval.vr_arena.html</loc>
-    <lastmod>2026-08-23T08:42:59.528Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.212Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/eval.gnubg_harness.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/eval.arena.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/env.encoder.html</loc>
-    <lastmod>2026-08-23T08:42:59.454Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.090Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/pretraining_analysis.html</loc>
-    <lastmod>2026-08-23T08:42:40.387Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.115Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/contact.html</loc>
-    <lastmod>2026-08-23T08:42:40.386Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.113Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/about.html</loc>
-    <lastmod>2026-08-23T08:42:40.386Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.113Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/index.html</loc>
-    <lastmod>2026-08-23T08:42:40.386Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.114Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/env.actions.html</loc>
-    <lastmod>2026-08-23T08:42:40.387Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.115Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/env.game_wrapper.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/eval.doubles.html</loc>
-    <lastmod>2026-08-23T08:42:59.509Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.181Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/eval.luck.html</loc>
-    <lastmod>2026-08-23T08:42:59.524Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.205Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/index.html</loc>
-    <lastmod>2026-08-23T08:42:59.418Z</lastmod>
+    <lastmod>2026-08-23T09:00:44.031Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/protocol.rgp.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/train.coach.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/reference/train.self_play.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/training_analysis.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/2ply_label_generation.html</loc>
-    <lastmod>2026-08-23T08:42:40.378Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.104Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/gcp_guide.html</loc>
-    <lastmod>2026-08-23T08:42:40.386Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.113Z</lastmod>
   </url>
   <url>
     <loc>https://research.raccoonbg.com/research-perfomance-benchmarks.html</loc>
-    <lastmod>2026-08-23T08:42:40.388Z</lastmod>
+    <lastmod>2026-08-23T09:00:22.116Z</lastmod>
   </url>
 </urlset>
