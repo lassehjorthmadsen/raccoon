@@ -1,4 +1,74 @@
 {
+  "value_by_contact_band": [
+    {
+      "band": "exactly 0",
+      "n": 1580,
+      "pr_no_search": 0.12930653341554152,
+      "pr_lean": 0.12321368857709031,
+      "pr_rich": 0.12383746309144707,
+      "search_buys": 0.005469070324094446,
+      "extra_width_buys": -0.0006237745143567537,
+      "extra_evals": 791.6259493670885
+    },
+    {
+      "band": "0\u20130.25",
+      "n": 2740,
+      "pr_no_search": 1.0484786195463027,
+      "pr_lean": 0.7937841390272139,
+      "pr_rich": 0.7866967961300361,
+      "search_buys": 0.2617818234162667,
+      "extra_width_buys": 0.007087342897177796,
+      "extra_evals": 1028.6704379562045
+    },
+    {
+      "band": "0.25\u20130.45",
+      "n": 2091,
+      "pr_no_search": 1.2206106038288145,
+      "pr_lean": 0.7356128887699848,
+      "pr_rich": 0.7430465251269274,
+      "search_buys": 0.4775640787018871,
+      "extra_width_buys": -0.007433636356942558,
+      "extra_evals": 830.1382113821139
+    },
+    {
+      "band": "0.45\u20130.65",
+      "n": 1949,
+      "pr_no_search": 1.1871756619684808,
+      "pr_lean": 0.7190247259085601,
+      "pr_rich": 0.7108570611250633,
+      "search_buys": 0.47631860084341754,
+      "extra_width_buys": 0.00816766478349681,
+      "extra_evals": 670.0831195484864
+    },
+    {
+      "band": "0.65\u20130.85",
+      "n": 1976,
+      "pr_no_search": 1.2453380385167037,
+      "pr_lean": 0.5064910919605115,
+      "pr_rich": 0.508386838187125,
+      "search_buys": 0.7369512003295786,
+      "extra_width_buys": -0.0018957462266136179,
+      "extra_evals": 487.55465587044523
+    },
+    {
+      "band": "above 0.85",
+      "n": 2357,
+      "pr_no_search": 0.6356943799510895,
+      "pr_lean": 0.2721202007318052,
+      "pr_rich": 0.2670471124153268,
+      "search_buys": 0.3686472675357627,
+      "extra_width_buys": 0.0050730883164783955,
+      "extra_evals": 642.2651675859142
+    }
+  ],
+  "lean": {
+    "window": 0.06,
+    "cap": 6
+  },
+  "rich": {
+    "window": 0.1,
+    "cap": 16
+  },
   "note": "Replayed from the exp023 reference dumps; exact, because the fix changes which candidates may be chosen, never which are evaluated. Evaluation counts are identical before and after.",
   "validation": "A real search over 529 held-out decisions with the fix scored PR 0.4555, matching this replay's prediction of 0.4555.",
   "n_decisions": 12693,

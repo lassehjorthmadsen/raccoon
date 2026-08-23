@@ -491,7 +491,15 @@ def score_raccoon(
             # among searched moves only, as GNUBG does.
             eligible = result.searched
         else:
-            # Encode all candidates (flipped to opponent POV)
+            # NOTE: this path converts boards with flip_board_to_opp +
+            # flipped_to_board_view, while the search path above goes through
+            # gnubg_adapter.board_to_view. The two agree to within 2e-4 in
+            # equity/3 (mean 4e-7) on the same positions -- consistent with
+            # float32 batching rather than a semantic difference, and pinned by
+            # tests/test_expectimax.py::test_board26_conversion_matches_benchmark_encoder.
+            # Far below anything measured here, but it is two encoders where
+            # there should be one, and a static baseline taken from one path is
+            # not bit-identical to the other's.
             obs_list = []
             for move in dec["moves"]:
                 flipped = flip_board_to_opp(move["board"])

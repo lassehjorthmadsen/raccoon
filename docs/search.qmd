@@ -894,11 +894,51 @@ expose.
 No re-run was needed to establish that. The fix changes which candidates may be *chosen*,
 never which are *evaluated*, so exp023's dumps replay under either behaviour.
 
+### Why spending more where it matters cannot help
+
+Search really does pay unevenly — that part of the premise holds. But the effort each band
+*wants* is not what varies:
+
+```{python}
+#| echo: false
+#| output: asis
+df = read(R23, "discard_fix")
+lean, rich = df["lean"], df["rich"]
+print(f"| contact | decisions | no search | what search buys | what a wider filter buys |")
+print("|---|---:|---:|---:|---:|")
+for r in df["value_by_contact_band"]:
+    print(f"| {r['band']} | {r['n']:,} | {r['pr_no_search']:.3f} | **{r['search_buys']:+.3f}** "
+          f"| {r['extra_width_buys']:+.3f} |")
+print(f"""
+: Searching is worth {df['value_by_contact_band'][4]['search_buys']:.2f} PR at high contact
+and nothing at all in a pure race — but going from cap {lean['cap']} to cap {rich['cap']}
+is worth nothing *anywhere*.
+""")
+```
+
+So the budget freed by not searching races has nowhere productive to go. Every band is
+already getting everything extra width can give it by about cap 6. Reallocating effort can
+therefore **save compute but not improve play** — which is exactly what the matched-compute
+comparison found.
+
+The gradient exp022 saw across these bands was the defect. At a lean setting more moves are
+pruned, so more of them compete unfairly, so lean looks worse — and it looks worse in
+proportion to how many moves a position has. That reads as "complicated positions want more
+search" and is nothing of the kind.
+
+What remains open is **depth**, the one dimension whose marginal value we have not measured
+since the fix. A second ply is worth far more than extra width was, and it costs about five
+times as much, so an uneven payoff there would be worth acting on. Three plies is out of
+reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this
+machine.
+
 > Does a bump-shaped rule beat a fixed setting at matched compute? → **On held-out
 > positions, yes as measured** (0.693 against 0.742, margin 0.050 ± 0.047, n=12,693) — but
 > the margin came from a defect in the search, not from allocating effort. With pruned
-> moves correctly discarded the difference is 0.0001 ± 0.0062, and the defect itself is
-> worth 0.054 to 0.176 PR at no extra cost.
+> moves correctly discarded the difference is 0.0001 ± 0.0062. Search pays very unevenly
+> across position types, yet no type wants a wider filter than any other, so allocating
+> width can save compute and cannot improve play. The defect itself is worth 0.054 to
+> 0.176 PR at no extra cost.
 
 
 ## References

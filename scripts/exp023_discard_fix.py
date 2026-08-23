@@ -27,6 +27,9 @@ from exp023_confirm import build  # noqa: E402
 
 OUT = Path("experiments/exp023-holdout/results/discard_fix.json")
 SETTINGS = [(0.10, 16), (0.10, 12), (0.06, 8), (0.04, 10)]
+BANDS = [(-0.001, 0.001, "exactly 0"), (0.001, 0.25, "0–0.25"), (0.25, 0.45, "0.25–0.45"),
+         (0.45, 0.65, "0.45–0.65"), (0.65, 0.85, "0.65–0.85"), (0.85, 9.0, "above 0.85")]
+LEAN, RICH = (0.06, 6), (0.10, 16)
 
 
 def errors(decisions, window, cap, discard):
@@ -53,6 +56,25 @@ def errors(decisions, window, cap, discard):
     return out
 
 
+def evaluations(decisions, window, cap):
+    out = np.empty(len(decisions))
+    for i, d in enumerate(decisions):
+        out[i] = len(d["roots"])
+        if d["gated"]:
+            continue
+        best = d["static"][d["order"][0]]
+        keep = [int(x) for x in d["order"][:cap] if best - d["static"][x] <= window / 3.0]
+        parts = [d["kids"][x] for x in keep if x in d["kids"]]
+        if parts:
+            out[i] += len(np.union1d(d["roots"], np.concatenate(parts))) - len(d["roots"])
+    return out
+
+
+def static_errors(decisions):
+    return np.array([d["ref"].max() - d["ref"][int(np.argmax(d["static"]))]
+                     for d in decisions])
+
+
 def main() -> None:
     decisions = build()
     n = len(decisions)
@@ -71,7 +93,32 @@ def main() -> None:
         print(f"  window {window:.2f}, cap {cap:<3} {rows[-1]['pr_before']:.4f} -> "
               f"{rows[-1]['pr_after']:.4f}  {diff.mean():+.4f} ± {ci:.4f}")
 
+    # Where search pays, and whether any of it wants MORE search -- the question
+    # exp022 and exp023 were really asking. Both columns post-fix.
+    contact = np.array([d["contact"] for d in decisions])
+    e_static = static_errors(decisions)
+    e_lean, v_lean = errors(decisions, *LEAN, True), evaluations(decisions, *LEAN)
+    e_rich, v_rich = errors(decisions, *RICH, True), evaluations(decisions, *RICH)
+    bands = []
+    for lo, hi, label in BANDS:
+        m = (contact > lo) & (contact <= hi)
+        extra = v_rich[m].mean() - v_lean[m].mean()
+        bands.append({
+            "band": label, "n": int(m.sum()),
+            "pr_no_search": float(e_static[m].mean() * 500),
+            "pr_lean": float(e_lean[m].mean() * 500),
+            "pr_rich": float(e_rich[m].mean() * 500),
+            "search_buys": float((e_static[m].mean() - e_rich[m].mean()) * 500),
+            "extra_width_buys": float((e_lean[m].mean() - e_rich[m].mean()) * 500),
+            "extra_evals": float(extra),
+        })
+        print(f"  {label:>11} search buys {bands[-1]['search_buys']:+.3f}, "
+              f"more width buys {bands[-1]['extra_width_buys']:+.3f}")
+
     result = {
+        "value_by_contact_band": bands,
+        "lean": {"window": LEAN[0], "cap": LEAN[1]},
+        "rich": {"window": RICH[0], "cap": RICH[1]},
         "note": (
             "Replayed from the exp023 reference dumps; exact, because the fix changes "
             "which candidates may be chosen, never which are evaluated. Evaluation "
