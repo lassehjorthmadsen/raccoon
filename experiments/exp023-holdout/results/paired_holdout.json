@@ -32,6 +32,16 @@
   "sigma": 2.5485602506575598,
   "smallest_detectable_at_80pct_power": 0.06841348345016733,
   "exp022_in_sample_margin": -0.061,
+  "best_fixed_within_bump_cost": {
+    "note": "The strongest fixed setting the bump's budget can buy, as opposed to the pre-registered nearest-cost one. This is the honest effect size; the pre-registered comparison above is the result as specified in advance.",
+    "window": 0.04,
+    "cap": 10,
+    "pr": 0.7421297278141609,
+    "evals_per_decision": 973.8644922398172,
+    "margin_pr": -0.04959580752092013,
+    "ci95_same_positions": 0.04697696000608175,
+    "sigma": 2.069265076505987
+  },
   "flat_grid": [
     {
       "window": 0.02,

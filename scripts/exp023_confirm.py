@@ -174,6 +174,15 @@ def main() -> None:
     print(f"flat comparator (closest cost): window {comparator['window']:.2f}, "
           f"cap {comparator['cap']} -> {comparator['evals_per_decision']:,.0f} evals/decision")
 
+    # The pre-registered comparator is chosen by cost proximity alone, which does not
+    # guarantee it is the STRONGEST fixed setting available for that money -- here it
+    # was not. Report both: the pre-registered comparison is the result, the
+    # best-at-budget one is the honest effect size.
+    affordable = [r for r in flat if r["evals_per_decision"] <= cost_bump]
+    strongest = min(affordable, key=lambda r: r["pr"])
+    d_str = (err_bump - strongest["err"]) * 500
+    ci_str = 1.96 * d_str.std(ddof=1) / np.sqrt(n)
+
     diff = (err_bump - err_flat) * 500
     ci = 1.96 * diff.std(ddof=1) / np.sqrt(n)
     pr_bump, pr_flat = float(err_bump.mean() * 500), comparator["pr"]
@@ -204,6 +213,18 @@ def main() -> None:
         "sigma": float(abs(diff.mean()) / (ci / 1.96)) if ci else 0.0,
         "smallest_detectable_at_80pct_power": float(detectable),
         "exp022_in_sample_margin": -0.061,
+        "best_fixed_within_bump_cost": {
+            "note": (
+                "The strongest fixed setting the bump's budget can buy, as opposed to the "
+                "pre-registered nearest-cost one. This is the honest effect size; the "
+                "pre-registered comparison above is the result as specified in advance."
+            ),
+            "window": strongest["window"], "cap": strongest["cap"], "pr": strongest["pr"],
+            "evals_per_decision": strongest["evals_per_decision"],
+            "margin_pr": float(d_str.mean()),
+            "ci95_same_positions": float(ci_str),
+            "sigma": float(abs(d_str.mean()) / (ci_str / 1.96)) if ci_str else 0.0,
+        },
         "flat_grid": [{k: r[k] for k in ("window", "cap", "pr", "evals_per_decision")}
                       for r in flat],
     }
@@ -214,6 +235,10 @@ def main() -> None:
     print(f"  margin {diff.mean():+.4f} ± {ci:.4f}  ({result['sigma']:.1f} sigma)")
     print(f"  smallest effect this n could detect at 80% power: {detectable:.4f}")
     print(f"  exp022 measured {result['exp022_in_sample_margin']:+.3f} in-sample")
+    print(f"\n  strongest fixed setting this budget buys: window {strongest['window']:.2f}, "
+          f"cap {strongest['cap']} -> PR {strongest['pr']:.4f} at "
+          f"{strongest['evals_per_decision']:,.0f} evals")
+    print(f"  bump margin against THAT: {d_str.mean():+.4f} ± {ci_str:.4f}")
     print(f"\nSaved: {OUT}")
 
 
