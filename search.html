@@ -330,7 +330,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="4715a9e7" class="cell" data-execution_count="2">
+<div id="48959266" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -1004,7 +1004,7 @@ window.Quarto = {
 </table>
 <p><strong>62% less computing, no measurable change in strength.</strong> Nothing here is worth doing while we only benchmark offline, where compute is not the binding constraint. It matters the moment the engine plays under a clock, or runs somewhere slower than this machine.</p>
 <p>The caveat is that these are <em>width</em> savings. Depth is not free — one ply is worth between 0.26 and 0.74 PR depending on the position — so this is “stop looking at moves that never win”, not “search less deeply”.</p>
-<p>What remains open is <strong>depth</strong>, the one dimension whose marginal value we have not measured since the fix. A second ply is worth far more than extra width was, and it costs about five times as much, so an uneven payoff there would be worth acting on. Three plies is out of reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this machine.</p>
+<p>What remains open is <strong>depth</strong>. Its marginal value does look uneven across position types, unlike width’s — a second ply appears to <em>hurt</em> in pure races — but measured on 2,000 positions split six ways the intervals are too wide to act on, so nothing is claimed here. A second ply is worth far more than extra width was, and it costs about five times as much, so an uneven payoff there would be worth acting on. Three plies is out of reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this machine.</p>
 <blockquote class="blockquote">
 <p>Does a bump-shaped rule beat a fixed setting at matched compute? → <strong>On held-out positions, yes as measured</strong> (0.693 against 0.742, margin 0.050 ± 0.047, n=12,693) — but the margin came from a defect in the search, not from allocating effort. With pruned moves correctly discarded the difference is 0.0001 ± 0.0062. Search pays very unevenly across position types, yet no type wants a wider filter than any other, so allocating width can save compute and cannot improve play. The defect itself is worth 0.054 to 0.176 PR at no extra cost.</p>
 </blockquote>
