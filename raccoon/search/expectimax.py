@@ -82,9 +82,14 @@ class SearchConfig:
     (see :func:`window_for_contact`). Leaving ``window_lo`` as ``None`` — the
     default — keeps the constant ``threshold``, unchanged to the last bit.
 
-    The window is the knob worth varying: measured on the exp018/ep22 benchmark
-    dump it admits a median of 5 candidates at ``threshold=0.16``, and is what
-    binds rather than ``k`` in 72% of decisions, so ``k`` mostly acts as a cap.
+    Of the two, ``k`` is the stronger. The window binds more *often* -- at
+    ``threshold=0.16`` it admits a median of 5 candidates, fewer than ``k`` in
+    72% of decisions -- but the decisions where ``k`` binds are the ones that
+    matter. On held-out benchmark positions, at a window of 0.10, tightening
+    ``k`` from 12 to 2 costs 0.43 PR, four times the range the window commands
+    over its whole span. Neither is worth widening far: past a window of ~0.10
+    and ``k`` of ~6 nothing changes, so the default here is generous rather
+    than optimal (see ``docs/search.qmd``, "A note for whenever speed matters").
     """
 
     depth: int = 1
