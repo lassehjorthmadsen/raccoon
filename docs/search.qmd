@@ -951,8 +951,9 @@ The caveat is that these are *width* savings. Depth is not free — one ply is w
 0.26 and 0.74 PR depending on the position — so this is "stop looking at moves that never
 win", not "search less deeply".
 
-What remains open is **depth**, the one dimension whose marginal value we have not measured
-since the fix. A second ply is worth far more than extra width was, and it costs about five
+What remains open is **depth**. Its marginal value does look uneven across position types,
+unlike width's — a second ply appears to *hurt* in pure races — but measured on 2,000
+positions split six ways the intervals are too wide to act on, so nothing is claimed here. A second ply is worth far more than extra width was, and it costs about five
 times as much, so an uneven payoff there would be worth acting on. Three plies is out of
 reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this
 machine.
