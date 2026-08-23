@@ -330,7 +330,7 @@ window.Quarto = {
 <li><strong>Aggressive caching and incremental evaluation.</strong> Thread-local and shared position caches keyed by (board, depth, config), and a sparse-delta kernel that re-evaluates sibling candidates by only the input columns that changed. This is C++-flavoured machinery; Raccoon’s equivalent is batching (below).</li>
 </ul>
 <p>Because BGSage published measured error rates for the whole ladder on one benchmark (<a href="https://github.com/markbgsage/bgsage/blob/main/XG_COMPARISON.md"><code>XG_COMPARISON.md</code></a>, 17,535 decisions scored against rollout truth), we get the cleanest available picture of what search is worth:</p>
-<div id="c333e903" class="cell" data-execution_count="2">
+<div id="4715a9e7" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -956,6 +956,54 @@ window.Quarto = {
 </table>
 <p>So the budget freed by not searching races has nowhere productive to go. Every band is already getting everything extra width can give it by about cap 6. Reallocating effort can therefore <strong>save compute but not improve play</strong> — which is exactly what the matched-compute comparison found.</p>
 <p>The gradient exp022 saw across these bands was the defect. At a lean setting more moves are pruned, so more of them compete unfairly, so lean looks worse — and it looks worse in proportion to how many moves a position has. That reads as “complicated positions want more search” and is nothing of the kind.</p>
+</section>
+<section id="a-note-for-whenever-speed-matters" class="level3">
+<h3 class="anchored" data-anchor-id="a-note-for-whenever-speed-matters">A note for whenever speed matters</h3>
+<p>None of this improves play, but it does say the current search is far more expensive than it needs to be. Replayed on the held-out positions, all with pruned moves discarded:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>setting</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">evaluations per decision</th>
+<th style="text-align: right;">vs the first row</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exp021/exp022 setting (window 0.18, cap 16)</td>
+<td style="text-align: right;">0.556</td>
+<td style="text-align: right;">2,393</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="even">
+<td>narrower (window 0.10, cap 16)</td>
+<td style="text-align: right;">0.546</td>
+<td style="text-align: right;">1,774</td>
+<td style="text-align: right;">-0.011 ± 0.013</td>
+</tr>
+<tr class="odd">
+<td>narrower still (window 0.06, cap 6)</td>
+<td style="text-align: right;">0.548</td>
+<td style="text-align: right;">1,019</td>
+<td style="text-align: right;">-0.008 ± 0.017</td>
+</tr>
+<tr class="even">
+<td>and no search in pure races (window 0.06, cap 6)</td>
+<td style="text-align: right;">0.548</td>
+<td style="text-align: right;">902</td>
+<td style="text-align: right;">-0.008 ± 0.018</td>
+</tr>
+</tbody>
+</table>
+<p><strong>62% less computing, no measurable change in strength.</strong> Nothing here is worth doing while we only benchmark offline, where compute is not the binding constraint. It matters the moment the engine plays under a clock, or runs somewhere slower than this machine.</p>
+<p>The caveat is that these are <em>width</em> savings. Depth is not free — one ply is worth between 0.26 and 0.74 PR depending on the position — so this is “stop looking at moves that never win”, not “search less deeply”.</p>
 <p>What remains open is <strong>depth</strong>, the one dimension whose marginal value we have not measured since the fix. A second ply is worth far more than extra width was, and it costs about five times as much, so an uneven payoff there would be worth acting on. Three plies is out of reach locally — roughly 60,000 evaluations per decision, some 140 seconds a move on this machine.</p>
 <blockquote class="blockquote">
 <p>Does a bump-shaped rule beat a fixed setting at matched compute? → <strong>On held-out positions, yes as measured</strong> (0.693 against 0.742, margin 0.050 ± 0.047, n=12,693) — but the margin came from a defect in the search, not from allocating effort. With pruned moves correctly discarded the difference is 0.0001 ± 0.0062. Search pays very unevenly across position types, yet no type wants a wider filter than any other, so allocating width can save compute and cannot improve play. The defect itself is worth 0.054 to 0.176 PR at no extra cost.</p>
