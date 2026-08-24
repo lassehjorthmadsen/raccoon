@@ -1,0 +1,187 @@
+{
+  "measurement": "where the Janowski no-double residual lives (centred cube)",
+  "published_x": 0.68,
+  "note": "best-fit indices here minimise equity RMSE and are diagnostics; exp024's arms are fitted on cube PR, the metric it reports",
+  "overall": {
+    "jacoby_on": {
+      "n": 551,
+      "bias_at_published_x": -0.07146889889628384,
+      "rmse_at_published_x": 0.08470142171444062,
+      "best_x_by_rmse": 0.88,
+      "rmse_at_best_x": 0.04118013474227766
+    },
+    "jacoby_off": {
+      "n": 551,
+      "bias_at_published_x": -0.030290479122019882,
+      "rmse_at_published_x": 0.0735148047830483,
+      "best_x_by_rmse": 0.825,
+      "rmse_at_best_x": 0.06266807801190519
+    }
+  },
+  "by_region": {
+    "doubling_window": {
+      "jacoby_on": {
+        "n": 492,
+        "bias_at_published_x": -0.07288101057331238,
+        "rmse_at_published_x": 0.0859354666937443,
+        "best_x_by_rmse": 0.88,
+        "rmse_at_best_x": 0.04227621158913807
+      },
+      "jacoby_off": {
+        "n": 492,
+        "bias_at_published_x": -0.03873893587418242,
+        "rmse_at_published_x": 0.06297291087157582,
+        "best_x_by_rmse": 0.845,
+        "rmse_at_best_x": 0.046047911306961356
+      }
+    },
+    "above_cash_point": {
+      "jacoby_on": {
+        "n": 59,
+        "bias_at_published_x": -0.059693323555639215,
+        "rmse_at_published_x": 0.07360951838756806,
+        "best_x_by_rmse": 0.885,
+        "rmse_at_best_x": 0.030483621068620726
+      },
+      "jacoby_off": {
+        "n": 59,
+        "bias_at_published_x": 0.04016105854008132,
+        "rmse_at_published_x": 0.13191997844038744,
+        "best_x_by_rmse": 0.665,
+        "rmse_at_best_x": 0.1318616661203239
+      }
+    }
+  },
+  "by_gammon_quartile": [
+    {
+      "gammon_rate_lo": -1.6561909433221444e-05,
+      "gammon_rate_hi": 0.08600682765245438,
+      "n": 138,
+      "bias": -0.06222541013755725
+    },
+    {
+      "gammon_rate_lo": 0.08600682765245438,
+      "gammon_rate_hi": 0.24031305313110352,
+      "n": 137,
+      "bias": -0.08204638599586635
+    },
+    {
+      "gammon_rate_lo": 0.24031305313110352,
+      "gammon_rate_hi": 0.32341618463397026,
+      "n": 138,
+      "bias": -0.07628088242639805
+    },
+    {
+      "gammon_rate_lo": 0.32341618463397026,
+      "gammon_rate_hi": 0.7075836099684238,
+      "n": 138,
+      "bias": -0.06539956548255707
+    }
+  ],
+  "correlations": {
+    "residual_vs_gammon_rate": -0.027089176908997457,
+    "residual_vs_contact": -0.20992769601956637,
+    "residual_vs_p_win": -0.013538823288326238
+  },
+  "by_contact_quintile": [
+    {
+      "contact_lo": 0.0,
+      "contact_hi": 0.24550898203592814,
+      "n": 108,
+      "best_x_by_rmse": 0.865,
+      "rmse_at_best_x": 0.03984457215577355
+    },
+    {
+      "contact_lo": 0.24550898203592814,
+      "contact_hi": 0.47005988023952094,
+      "n": 112,
+      "best_x_by_rmse": 0.95,
+      "rmse_at_best_x": 0.04254192670262754
+    },
+    {
+      "contact_lo": 0.47005988023952094,
+      "contact_hi": 0.655688622754491,
+      "n": 110,
+      "best_x_by_rmse": 0.875,
+      "rmse_at_best_x": 0.04370488589772321
+    },
+    {
+      "contact_lo": 0.655688622754491,
+      "contact_hi": 0.8532934131736527,
+      "n": 110,
+      "best_x_by_rmse": 0.84,
+      "rmse_at_best_x": 0.038565723756241614
+    },
+    {
+      "contact_lo": 0.8532934131736527,
+      "contact_hi": 1.0,
+      "n": 111,
+      "best_x_by_rmse": 0.88,
+      "rmse_at_best_x": 0.029626918560008462
+    }
+  ],
+  "dt_validation": {
+    "all": {
+      "n": 700,
+      "best_x_by_rmse": 0.685,
+      "rmse_at_best_x": 0.025986351976245752,
+      "rmse_at_published_x": 0.02604631225463589
+    },
+    "by_game_plan": {
+      "anchoring": {
+        "n": 7,
+        "best_x_by_rmse": 0.72,
+        "rmse_at_best_x": 0.01897852960344381,
+        "rmse_at_published_x": 0.023416551902475553
+      },
+      "attacking": {
+        "n": 313,
+        "best_x_by_rmse": 0.71,
+        "rmse_at_best_x": 0.020678571018752645,
+        "rmse_at_published_x": 0.022885194151154083
+      },
+      "priming": {
+        "n": 194,
+        "best_x_by_rmse": 0.68,
+        "rmse_at_best_x": 0.022546882903520735,
+        "rmse_at_published_x": 0.022546882903520735
+      },
+      "purerace": {
+        "n": 52,
+        "best_x_by_rmse": 0.545,
+        "rmse_at_best_x": 0.036908278452668246,
+        "rmse_at_published_x": 0.045773779755176096
+      },
+      "racing": {
+        "n": 134,
+        "best_x_by_rmse": 0.645,
+        "rmse_at_best_x": 0.02554450930500344,
+        "rmse_at_published_x": 0.027255854449305398
+      }
+    }
+  },
+  "centred_formulations": {
+    "janowski_closed_form": {
+      "n": 551,
+      "best_x": 0.66,
+      "rmse_at_best_x": 0.13089228956587198,
+      "rmse_at_published_x": 0.1310208431053155
+    },
+    "piecewise_linear_jacoby_on": {
+      "n": 551,
+      "best_x": 0.88,
+      "rmse_at_best_x": 0.04118013474227766,
+      "rmse_at_published_x": 0.08470142171444062
+    },
+    "piecewise_linear_jacoby_off": {
+      "n": 551,
+      "best_x": 0.825,
+      "rmse_at_best_x": 0.06266807801190519,
+      "rmse_at_published_x": 0.0735148047830483
+    },
+    "reference_dt_line": {
+      "n": 700,
+      "rmse_at_published_x": 0.02604631225463589
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "note": "worst-fitting centred-cube positions, for independent checking in GNU Backgammon's own money play",
+  "groups": [
+    {
+      "title": "Janowski too OPTIMISTIC (model above rollout)",
+      "positions": [
+        {
+          "position_id": "0NvBASRmO5EBUA",
+          "game_plan": "priming",
+          "p_win_mover": 0.3540809154510498,
+          "gammon_win_mover": 0.0807381123304367,
+          "gammon_loss_mover": 0.3580482006072998,
+          "rollout_mover": -0.9247894287109375,
+          "janowski_mover": -0.692540077790618,
+          "miss": 0.2322493509203195
+        },
+        {
+          "position_id": "4PPIAwKMt4UDIA",
+          "game_plan": "priming",
+          "p_win_mover": 0.31684958934783936,
+          "gammon_win_mover": 0.05436619371175766,
+          "gammon_loss_mover": 0.2831292450428009,
+          "rollout_mover": -0.9742822051048279,
+          "janowski_mover": -0.7435798457264899,
+          "miss": 0.23070235937833794
+        }
+      ]
+    },
+    {
+      "title": "Janowski too PESSIMISTIC (model below rollout)",
+      "positions": [
+        {
+          "position_id": "67nBAQDb6oABBg",
+          "game_plan": "racing",
+          "p_win_mover": 0.783584475517273,
+          "gammon_win_mover": 0.027602285146713257,
+          "gammon_loss_mover": 0.008077527396380901,
+          "rollout_mover": 1.0765289068222046,
+          "janowski_mover": 0.8422798095864714,
+          "miss": -0.23424909723573317
+        },
+        {
+          "position_id": "NntAgA2w2wwEcA",
+          "game_plan": "attacking",
+          "p_win_mover": 0.5722081661224365,
+          "gammon_win_mover": 0.38113945722579956,
+          "gammon_loss_mover": 0.09934257715940475,
+          "rollout_mover": 0.7429255247116089,
+          "janowski_mover": 0.5003151792412004,
+          "miss": -0.2426103454704085
+        }
+      ]
+    }
+  ]
+}

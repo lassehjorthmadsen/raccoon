@@ -171,3 +171,30 @@ def test_input_bn_with_feature_subset_roundtrips():
         assert net2.input_norm.num_features == len(sel)
     finally:
         os.unlink(path)
+
+
+def test_value_probs6_is_a_distribution_and_matches_value_equity():
+    """The six-outcome view and the scalar view must never disagree.
+
+    value_equity collapses the distribution to a number; the cube needs the
+    distribution itself. Both route through the same softmax, and this pins that
+    they stay consistent.
+    """
+    net = RaccoonNet(channels=16, num_blocks=1, value_head="outcomes6").eval()
+    x = torch.randn(4, 26, 2, 12)
+    with torch.no_grad():
+        probs6 = net.value_probs6(x)
+        equity = net.value_equity(x)
+
+    assert probs6.shape == (4, 6)
+    assert torch.allclose(probs6.sum(dim=-1), torch.ones(4), atol=1e-6)
+    assert (probs6 >= 0).all()
+
+    points = torch.tensor(RaccoonNet._OUTCOME_POINTS)
+    assert torch.allclose((probs6 * points).sum(dim=-1) / 3.0, equity, atol=1e-6)
+
+
+def test_value_probs6_rejects_a_scalar_head():
+    net = RaccoonNet(channels=16, num_blocks=1, value_head="scalar").eval()
+    with pytest.raises(ValueError, match="outcomes6"):
+        net.value_probs6(torch.randn(2, 26, 2, 12))

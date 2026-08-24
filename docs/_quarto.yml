@@ -49,6 +49,8 @@ website:
             file: variance_reduction.qmd
           - text: "Multi-Ply Search"
             file: search.qmd
+          - text: "The Doubling Cube"
+            file: cube.qmd
       - text: "Developer"
         file: gcp_guide.md
       - text: "Reference"

@@ -1,0 +1,23 @@
+References: ALL 2196 positions (includes search-derived references; near-circular, for contrast only)
+Loaded 2196 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: reference
+Fit/confirm split by game: 1060 / 1136 positions
+
+baseline: x=0.68 (published)
+  full n=2842  cube PR = 2.353 +- 0.287
+  paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
+  held out n=1456  cube PR = 2.680 +- 0.450
+  ordering E_O>=E_C>=E_U: 3.5% violations (11 centred-above-owned, 65 opponent-above-centred) -> ok
+
+refit_global: refit global x
+  fitting on the fit split (minimising cube PR)...
+    round 1: fit PR 0.9881
+    round 2: fit PR 0.9881
+  fitted: {'label': 'refit global x', 'x_nd_centered': 0.775, 'x_nd_player': 0.775, 'x_dt': 0.775, 'nd_offset': 0.0, 'x_race': None}
+  full n=2842  cube PR = 1.185 +- 0.219
+  paired vs baseline: +1.167 +- 0.271 (264 decisions changed)
+  held out n=1456  cube PR = 1.373 +- 0.357
+  ordering E_O>=E_C>=E_U: 2.9% violations (8 centred-above-owned, 56 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/all_refs_::_baseline.json
+  Saved: experiments/exp024-cube/results/all_refs_::_refit_global.json
+  Saved: experiments/exp024-cube/results/summary.json

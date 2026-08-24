@@ -141,11 +141,20 @@ class RaccoonNet(nn.Module):
         to match the scalar head's money-equity/3 convention.
         """
         if self.value_head == "outcomes6":
-            probs = F.softmax(value_out, dim=-1)
+            probs = self._probs6_from_value_out(value_out)
             w = torch.tensor(self._OUTCOME_POINTS, device=probs.device,
                              dtype=probs.dtype)
             return (probs * w).sum(dim=-1) / 3.0
         return value_out.squeeze(-1)
+
+    @staticmethod
+    def _probs6_from_value_out(value_out: torch.Tensor) -> torch.Tensor:
+        """Softmax over the six-outcome logits, shape (batch, 6).
+
+        Both value_equity and value_probs6 route through here so the two views of
+        the head can never disagree about what the distribution is.
+        """
+        return F.softmax(value_out, dim=-1)
 
     def value_equity(self, x: torch.Tensor) -> torch.Tensor:
         """Scalar equity/3 in [-1, 1] per position, for both head types.
@@ -155,6 +164,23 @@ class RaccoonNet(nn.Module):
         """
         _, value_out = self.forward(x)
         return self._equity_from_value_out(value_out)
+
+    def value_probs6(self, x: torch.Tensor) -> torch.Tensor:
+        """The full six-outcome distribution, shape (batch, 6).
+
+        Order is [win, win_gammon, win_bg, lose, lose_gammon, lose_bg]: mutually
+        exclusive, summing to 1. The doubling cube needs the whole distribution
+        rather than the single number it collapses to, because a double or a take
+        turns on the gammon rates that value_equity has already folded away.
+        See raccoon.cube.janowski.probs6_to_cumulative5 for the conversion into
+        the nested 5-vector the cube formulas expect.
+        """
+        if self.value_head != "outcomes6":
+            raise ValueError(
+                "value_probs6 needs an 'outcomes6' value head; this network has "
+                f"'{self.value_head}', which never carried a distribution")
+        _, value_out = self.forward(x)
+        return self._probs6_from_value_out(value_out)
 
     @property
     def device(self) -> torch.device:

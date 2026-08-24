@@ -1,0 +1,10 @@
+measured cubeful equities: n=42,636
+
+| formula | cube location | n | bias @0.68 | RMSE @0.68 | best x | RMSE there |
+|---|---|---:|---:|---:|---:|---:|
+| E_O | we own the cube | 17,210 | +0.0001 | 0.0186 | 0.715 | 0.0181 |
+| E_C | cube centred | 14,612 | +0.0252 | 0.0644 | 0.940 | 0.0295 |
+| E_U | opponent owns it | 10,814 | +0.0025 | 0.0200 | 0.730 | 0.0188 |
+
+single index everywhere: x=0.68 -> rmse 0.0408; best x=0.865 -> rmse 0.0283
+  Saved: experiments/exp024-cube/results/cube_equity_fit.json

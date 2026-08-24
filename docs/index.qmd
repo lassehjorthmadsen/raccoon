@@ -107,6 +107,7 @@ and conclusion — including the ones that failed.
 | [Supervised & Expert Iteration](pretraining_analysis.qmd) | Distilling GNUBG, on-distribution DAgger, consolidation — the current best results |
 | [Self-Play Analysis](training_analysis.qmd) | What pure AlphaZero self-play achieved, and why it plateaued |
 | [Variance-Reduced Rollouts](variance_reduction.qmd) | Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, the head-to-head result, and the doubles bug it uncovered |
+| [The Doubling Cube](cube.qmd) | Janowski's cube model measured against rollout references — what it gets right, where it breaks, and why the Jacoby rule is not the culprit |
 | [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
 | [MCTS Explained](mcts_explained.md) | Simulations, PUCT selection, temperature, Dirichlet noise |
 | [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |

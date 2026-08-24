@@ -751,7 +751,8 @@ def _describe(value: object) -> str:
     return repr(value)
 
 
-def check_no_clobber(result: dict, path: str) -> None:
+def check_no_clobber(result: dict, path: str,
+                     fields: tuple[str, ...] = IDENTITY_FIELDS) -> None:
     """Refuse to overwrite a result file that measured something else.
 
     Results are keyed by engine label alone, so reusing a label for a different
@@ -759,6 +760,10 @@ def check_no_clobber(result: dict, path: str) -> None:
     GNUBG 1-ply number was lost to a 2,000-position re-score. Re-writing the
     *same* measurement stays idempotent; a different n, checkpoint or search
     configuration is an error the caller has to resolve.
+
+    ``fields`` names what counts as the same measurement. It defaults to this
+    script's checker-play identity; a sibling scorer with different identity
+    fields (see eval_cube_pr.py) passes its own.
     """
     if not os.path.exists(path):
         return
@@ -770,7 +775,7 @@ def check_no_clobber(result: dict, path: str) -> None:
 
     clashes = [
         (field, existing.get(field), result.get(field))
-        for field in IDENTITY_FIELDS
+        for field in fields
         if existing.get(field) != result.get(field)
     ]
     if not clashes:

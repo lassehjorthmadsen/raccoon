@@ -1,0 +1,20 @@
+{
+  "measurement": "GNU Backgammon 3-ply cubeful equities for the worst-fitting centred-cube positions",
+  "provenance": "read from GNU Backgammon's own GUI by the project author; money play, Jacoby on, beavers on, cube centred. Not produced by this repository -- the gnubg_nn binding used here refuses money play.",
+  "perspective": "all values from the on-roll player's side",
+  "match_id": "cAkAAAAAAAAA",
+  "positions": [
+    {"position_id": "0NvBASRmO5EBUA", "gnubg_nd": 0.604, "gnubg_dt": 0.894,
+     "gnubg_dp": 1.000, "gnubg_action": "Double, take",
+     "gnubg_cubeless_3ply": 0.571, "janowski_nd": 0.6925, "rollout": 0.9248},
+    {"position_id": "4PPIAwKMt4UDIA", "gnubg_nd": 0.743, "gnubg_dt": 0.959,
+     "gnubg_dp": 1.000, "gnubg_action": "Double, take",
+     "gnubg_cubeless_3ply": 0.588, "janowski_nd": 0.7436, "rollout": 0.9743},
+    {"position_id": "67nBAQDb6oABBg", "gnubg_nd": -0.849, "gnubg_dt": -1.701,
+     "gnubg_dp": 1.000, "gnubg_action": "No double, beaver (31.5%)",
+     "gnubg_cubeless_3ply": -0.510, "janowski_nd": -0.8423, "rollout": -1.0765},
+    {"position_id": "NntAgA2w2wwEcA", "gnubg_nd": -0.731, "gnubg_dt": -1.516,
+     "gnubg_dp": 1.000, "gnubg_action": "No double, beaver (31.2%)",
+     "gnubg_cubeless_3ply": -0.509, "janowski_nd": -0.5003, "rollout": -0.7429}
+  ]
+}

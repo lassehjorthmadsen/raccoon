@@ -1,0 +1,154 @@
+=== Motivation: what cube-blind checker play costs ===
+n = 14,693 checker decisions
+cube-blind floor PR = 0.336 +- 0.042
+best move differs on 992 (6.8%)
+  centered  n= 5657  PR=0.553
+  player    n= 4015  PR=0.269
+  opponent  n= 5021  PR=0.145
+  Saved: experiments/exp024-cube/results/cube_blind_floor.json
+=== Diagnosis: where the residual lives, and whether Jacoby explains it ===
+centred ND, n=1830
+  jacoby on : bias -0.0384 rmse 0.0584 | best x 0.815 rmse 0.0403
+  jacoby off: bias -0.0058 rmse 0.0558 | best x 0.725 rmse 0.0549
+  doubling_window    n= 1693 bias -0.0383
+  above_cash_point   n=  137 bias -0.0392
+  corr(residual, gammon rate) = -0.065
+take/pass line, fitted freely: x = 0.675 (published 0.68)
+  anchoring  n=   62 x = 0.675
+  attacking  n= 1008 x = 0.685
+  priming    n=  581 x = 0.675
+  purerace   n=  118 x = 0.585
+  racing     n=  427 x = 0.660
+  Saved: experiments/exp024-cube/results/residual_diagnostics.json
+=== Stage A: the cube model in isolation (reference probabilities) ===
+References: measured only -- 700 of 2196 positions have rolled-out reference equities
+Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: reference
+Fit/confirm split by game: 356 / 344 positions
+
+baseline: x=0.68 (published)
+  full n=1018  cube PR = 5.406 +- 0.609
+  paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
+  held out n=498  cube PR = 5.449 +- 0.856
+  ordering E_O>=E_C>=E_U: 5.4% violations (9 centred-above-owned, 29 opponent-above-centred) -> ok
+
+race_split: x=0.68 contact / 0.60 race
+  full n=1018  cube PR = 5.589 +- 0.616
+  paired vs baseline: -0.183 +- 0.199 (31 decisions changed)
+  held out n=498  cube PR = 5.585 +- 0.875
+  ordering E_O>=E_C>=E_U: 5.6% violations (9 centred-above-owned, 30 opponent-above-centred) -> ok
+
+refit_global: refit global x
+  fitting on the fit split (minimising cube PR)...
+    round 1: fit PR 2.3110
+    round 2: fit PR 2.3110
+  fitted: {'label': 'refit global x', 'x_nd_centered': 0.8, 'x_nd_player': 0.8, 'x_dt': 0.8, 'nd_offset': 0.0, 'x_race': None}
+  full n=1018  cube PR = 2.278 +- 0.398
+  paired vs baseline: +3.128 +- 0.689 (300 decisions changed)
+  held out n=498  cube PR = 2.243 +- 0.546
+  ordering E_O>=E_C>=E_U: 4.4% violations (7 centred-above-owned, 24 opponent-above-centred) -> ok
+
+refit_per_state: refit x per cube state
+  fitting on the fit split (minimising cube PR)...
+    round 1: fit PR 1.6044
+    round 2: fit PR 1.6044
+  fitted: {'label': 'refit x per cube state', 'x_nd_centered': 0.92, 'x_nd_player': 0.57, 'x_dt': 0.665, 'nd_offset': 0.0, 'x_race': None}
+  full n=1018  cube PR = 1.670 +- 0.310
+  paired vs baseline: +3.735 +- 0.632 (264 decisions changed)
+  held out n=498  cube PR = 1.739 +- 0.461
+  ordering E_O>=E_C>=E_U: 89.7% violations (605 centred-above-owned, 23 opponent-above-centred) -> INCOHERENT - disqualified
+
+dead: x=0 (dead cube)
+  full n=1018  cube PR = 10.451 +- 1.219
+  paired vs baseline: -5.045 +- 1.186 (169 decisions changed)
+  held out n=498  cube PR = 11.155 +- 1.904
+  ordering E_O>=E_C>=E_U: 95.4% violations (33 centred-above-owned, 635 opponent-above-centred) -> INCOHERENT - disqualified
+
+live: x=1 (live cube)
+  full n=1018  cube PR = 9.630 +- 1.327
+  paired vs baseline: -4.224 +- 1.561 (642 decisions changed)
+  held out n=498  cube PR = 8.323 +- 1.801
+  ordering E_O>=E_C>=E_U: 3.0% violations (2 centred-above-owned, 19 opponent-above-centred) -> ok
+
+offset: x=0.68 + fitted ND offset
+  fitting on the fit split (minimising cube PR)...
+    round 1: fit PR 2.3043
+    round 2: fit PR 2.3043
+  fitted: {'label': 'x=0.68 + fitted ND offset', 'x_nd_centered': 0.68, 'x_nd_player': 0.68, 'x_dt': 0.68, 'nd_offset': 0.094, 'x_race': None}
+  full n=1018  cube PR = 2.550 +- 0.596
+  paired vs baseline: +2.856 +- 0.836 (373 decisions changed)
+  held out n=498  cube PR = 2.807 +- 1.085
+  ordering E_O>=E_C>=E_U: 2.4% violations (9 centred-above-owned, 8 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/reference_::_baseline.json
+  Saved: experiments/exp024-cube/results/reference_::_race_split.json
+  Saved: experiments/exp024-cube/results/reference_::_refit_global.json
+  Saved: experiments/exp024-cube/results/reference_::_refit_per_state.json
+  Saved: experiments/exp024-cube/results/reference_::_dead.json
+  Saved: experiments/exp024-cube/results/reference_::_live.json
+  Saved: experiments/exp024-cube/results/reference_::_offset.json
+  Saved: experiments/exp024-cube/results/summary.json
+=== Stage B: exp018/ep22's own evaluations ===
+References: measured only -- 700 of 2196 positions have rolled-out reference equities
+Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: checkpoint
+Fit/confirm split by game: 356 / 344 positions
+
+baseline: x=0.68 (published)
+  full n=1018  cube PR = 5.916 +- 0.676
+  paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
+  held out n=498  cube PR = 6.027 +- 0.961
+  ordering E_O>=E_C>=E_U: 5.3% violations (12 centred-above-owned, 25 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/ep22_::_baseline.json
+  Saved: experiments/exp024-cube/results/summary.json
+References: measured only -- 700 of 2196 positions have rolled-out reference equities
+Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: checkpoint
+Custom variant 'selected': {'label': 'selected (x_nd_centered=0.8 x_nd_player=0.8 x_dt=0.8)', 'x_nd_centered': 0.8, 'x_nd_player': 0.8, 'x_dt': 0.8, 'nd_offset': 0.0, 'x_race': None}
+Fit/confirm split by game: 356 / 344 positions
+
+selected: selected (x_nd_centered=0.8 x_nd_player=0.8 x_dt=0.8)
+  full n=1018  cube PR = 3.381 +- 0.579
+  paired vs baseline: +2.535 +- 0.737 (318 decisions changed)
+  held out n=498  cube PR = 3.289 +- 0.815
+  ordering E_O>=E_C>=E_U: 4.3% violations (10 centred-above-owned, 20 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/ep22_::_selected.json
+  Saved: experiments/exp024-cube/results/summary.json
+=== Stage B reference point: GNUBG 0-ply through the published constant ===
+References: measured only -- 700 of 2196 positions have rolled-out reference equities
+Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: gnubg
+    gnubg 500/700
+Fit/confirm split by game: 356 / 344 positions
+
+baseline: x=0.68 (published)
+  full n=1018  cube PR = 6.275 +- 0.706
+  paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
+  held out n=498  cube PR = 6.491 +- 1.028
+  ordering E_O>=E_C>=E_U: 4.1% violations (9 centred-above-owned, 20 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/gnubg_0ply_::_baseline.json
+  Saved: experiments/exp024-cube/results/summary.json
+=== Contrast: the same variants on search-derived references ===
+References: ALL 2196 positions (includes search-derived references; near-circular, for contrast only)
+Loaded 2196 cube positions (2189 doubler + 653 receiver sub-decisions)
+Probabilities: reference
+Fit/confirm split by game: 1060 / 1136 positions
+
+baseline: x=0.68 (published)
+  full n=2842  cube PR = 2.353 +- 0.287
+  paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
+  held out n=1456  cube PR = 2.680 +- 0.450
+  ordering E_O>=E_C>=E_U: 3.5% violations (11 centred-above-owned, 65 opponent-above-centred) -> ok
+
+refit_global: refit global x
+  fitting on the fit split (minimising cube PR)...
+    round 1: fit PR 0.9881
+    round 2: fit PR 0.9881
+  fitted: {'label': 'refit global x', 'x_nd_centered': 0.775, 'x_nd_player': 0.775, 'x_dt': 0.775, 'nd_offset': 0.0, 'x_race': None}
+  full n=2842  cube PR = 1.185 +- 0.219
+  paired vs baseline: +1.167 +- 0.271 (264 decisions changed)
+  held out n=1456  cube PR = 1.373 +- 0.357
+  ordering E_O>=E_C>=E_U: 2.9% violations (8 centred-above-owned, 56 opponent-above-centred) -> ok
+  Saved: experiments/exp024-cube/results/all_refs_::_baseline.json
+  Saved: experiments/exp024-cube/results/all_refs_::_refit_global.json
+  Saved: experiments/exp024-cube/results/summary.json
+Done. Results in experiments/exp024-cube/results

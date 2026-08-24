@@ -1,0 +1,7 @@
+n = 14,693 checker decisions
+cube-blind floor PR = 0.336 +- 0.042
+best move differs on 992 (6.8%)
+  centered  n= 5657  PR=0.553
+  player    n= 4015  PR=0.269
+  opponent  n= 5021  PR=0.145
+  Saved: experiments/exp024-cube/results/cube_blind_floor.json
