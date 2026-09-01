@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Raccoon is a backgammon AI aiming to beat GNUBG at cubeless money game. OpenSpiel provides game logic; all ML/search code is written from scratch in Python/PyTorch.
+Raccoon is a backgammon AI aiming to beat GNUBG at money game **without the Jacoby rule**, as the stepping stone to match play (see `goal.md`). Play is cubeless today, which already satisfies that framing: with no cube there is nothing for Jacoby to suppress. OpenSpiel provides game logic; all ML/search code is written from scratch in Python/PyTorch.
 
 **The project began as AlphaZero (ResNet policy-value net + MCTS self-play) and that machinery is still here and runnable — but it is not what the current engine does.** The shipped net was trained by distilling GNUBG onto the value head (`scripts/train_distill.py`), and it selects moves by **0-ply value lookahead** (`raccoon/train/lookahead.py`): evaluate the value head on every legal afterstate, no tree, no policy head. Read `docs/architecture.md` before assuming which path a change affects. When editing that file or this one, keep the two in step — they contradicting each other is the failure mode this note exists to prevent.
 

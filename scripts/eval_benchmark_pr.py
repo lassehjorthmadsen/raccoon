@@ -263,6 +263,7 @@ def _eval_gnubg_decision(args: tuple) -> dict:
         "error": error,
         "game_plan": decision["game_plan"],
         "tier": decision["tier"],
+        "cube_owner": decision["cube_owner"],
         "predicted": predicted_eqs,
         "reference": reference_eqs,
         "key": decision["key"],
@@ -529,6 +530,7 @@ def score_raccoon(
             "error": error,
             "game_plan": dec["game_plan"],
             "tier": dec["tier"],
+            "cube_owner": dec["cube_owner"],
             "predicted": predicted_eqs,
             "reference": reference_eqs,
         })
@@ -617,6 +619,32 @@ def aggregate(decision_results: list[dict], label: str) -> dict:
         else:
             by_plan[plan] = {"pr": 0.0, "n": 0, "total_error": 0.0, "blunders": 0}
 
+    # Per cube location. The benchmark is generated with the Jacoby rule on, which
+    # suppresses gammons while the cube is CENTRED and makes the reference engine
+    # play boldly there -- so those labels describe a game we are not aiming at
+    # (see goal.md). The owned-cube subset is Jacoby-clean by construction, and
+    # reporting the split lets any comparison be redone on it without a re-score.
+    by_cube_owner: dict[str, dict] = {}
+    owners = [r.get("cube_owner") for r in decision_results]
+    for owner in ("centered", "player", "opponent"):
+        owner_errors = [e for e, o in zip(errors, owners) if o == owner]
+        if not owner_errors:
+            continue
+        by_cube_owner[owner] = {
+            "pr": (sum(owner_errors) / len(owner_errors)) * PR_MULTIPLIER,
+            "n": len(owner_errors),
+            "total_error": sum(owner_errors),
+            "blunders": sum(1 for e in owner_errors if e > BLUNDER_THRESHOLD),
+        }
+    owned = [e for e, o in zip(errors, owners) if o in ("player", "opponent")]
+    if owned:
+        by_cube_owner["owned (Jacoby-clean)"] = {
+            "pr": (sum(owned) / len(owned)) * PR_MULTIPLIER,
+            "n": len(owned),
+            "total_error": sum(owned),
+            "blunders": sum(1 for e in owned if e > BLUNDER_THRESHOLD),
+        }
+
     # Eval accuracy: R^2 and MSE on predicted vs reference equity, split by tier
     eval_accuracy = {}
     for tier in TIERS + ["all"]:
@@ -655,6 +683,7 @@ def aggregate(decision_results: list[dict], label: str) -> dict:
         "total_error": total_error,
         "blunders": blunders,
         "by_plan": by_plan,
+        "by_cube_owner": by_cube_owner,
         "eval_accuracy": eval_accuracy,
     }
 

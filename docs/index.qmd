@@ -30,7 +30,7 @@ better; 0 would mean never picking a suboptimal move.
 |---|---|---|
 | **Raccoon, with 2-ply search** | 2 plies | **0.43** |
 | GNUBG, 2-ply full-width search | 2 plies | **0.56** |
-| **Raccoon, single network evaluation** | none | **0.93** |
+| **Raccoon, single network evaluation** | none | **0.95** |
 | GNUBG, single network evaluation | none | **2.14** |
 
 *Raccoon network: checkpoint `exp018/ep22` — a 10-block, 256-channel ResNet trained
@@ -41,7 +41,7 @@ of it, the unsearched rows on all 14,693; method and full results:
 [Supervised & Expert-Iteration Analysis](pretraining_analysis.qmd).*
 
 Read plainly: **Raccoon's checker play beats GNU Backgammon's, both with and without
-search.** Without search the margin is large (0.93 vs 2.14). Give both engines two
+search.** Without search the margin is large (0.95 vs 2.14). Give both engines two
 plies of lookahead and Raccoon still leads, 0.43 to 0.56 — but by less, because search
 helps Raccoon roughly 2.4x where it helps GNUBG 3.6x. Our network was trained by
 imitating GNUBG's 2-ply search, so it already knows much of what that search computes;

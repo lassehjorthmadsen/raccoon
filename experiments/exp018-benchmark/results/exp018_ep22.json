@@ -1,5 +1,5 @@
 {
-  "engine_label": "exp018-ep22",
+  "engine_label": "exp018_ep22",
   "pr": 0.9497743641243873,
   "n": 14693,
   "total_error": 27.910069464159246,
@@ -36,6 +36,32 @@
       "blunders": 6
     }
   },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 0.9050936139261595,
+      "n": 5657,
+      "total_error": 10.24022914796057,
+      "blunders": 6
+    },
+    "player": {
+      "pr": 1.0677794324674836,
+      "n": 4015,
+      "total_error": 8.574268842713895,
+      "blunders": 8
+    },
+    "opponent": {
+      "pr": 0.9057529848122668,
+      "n": 5021,
+      "total_error": 9.095571473484783,
+      "blunders": 5
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 0.9777468081119234,
+      "n": 9036,
+      "total_error": 17.669840316198677,
+      "blunders": 13
+    }
+  },
   "eval_accuracy": {
     "rollout": {
       "r2": 0.9968266480506788,
@@ -57,5 +83,6 @@
       "mse": 0.0017177570517452575,
       "n_positions": 327451
     }
-  }
+  },
+  "checkpoint": "experiments/exp018-distill/checkpoints/ep22.pt"
 }
