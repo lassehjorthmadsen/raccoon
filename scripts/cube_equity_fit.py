@@ -6,7 +6,7 @@ the cube than its cube decisions do. Every candidate move rolled out to
 completion has a **measured cubeful equity** alongside the cubeless probability
 vector for the same position, and the parent decision records where the cube
 sat. That is a direct observation of the map Janowski's model is trying to be --
-42,636 of them, against 700 rolled-out cube positions.
+33,395 of them, against 282 fully rolled-out cube positions.
 
 Better still, the cube location varies across them, so each of the three
 formulas can be tested on its own:
@@ -49,18 +49,25 @@ OWNERS = [(J.PLAYER, "E_O", "we own the cube"),
 
 
 def load_measured(path: str) -> list[tuple]:
-    """(cube_owner, probs, equity, game_plan, key, cube_value) per rolled-out candidate.
+    """(cube_owner, probs, equity, game_plan, key, cube_value, cubeless, se) per candidate.
 
     Both the probabilities and the equity are from the mover's point of view, and
     a checker play does not move the cube, so the parent decision's cube_owner
     and cube_value apply unchanged to each candidate. The equity is in units of
     the current cube, so a gammon is 2.0 whatever the cube reads.
+
+    It takes both fields to select a measurement. ``eval_level == "Rollout"``
+    alone also admits 9,241 candidates from ``tier == "3T"`` positions, whose
+    rollouts were *truncated* at a 3-ply cubeful evaluation that applies Janowski
+    at its leaves -- circular for judging Janowski. Requiring the position's tier
+    as well leaves 33,395 candidates played out to completion.
     """
     with gzip.open(path, "rt") as f:
         data = json.load(f)
     return [(e["cube_owner"], m["probs"], m["equity"], e.get("game_plan"), e["key"],
-             e.get("cube_value"))
-            for e in data["decisions"] if e["kind"] == "checker"
+             e.get("cube_value"), m.get("cubeless_equity"), m.get("std_error"))
+            for e in data["decisions"]
+            if e["kind"] == "checker" and e["tier"] == "rollout"
             for m in e["moves"] if m["eval_level"] == "Rollout"]
 
 
@@ -179,7 +186,8 @@ def main() -> None:
     out = {
         "measurement": ("Janowski cubeful-equity formulas vs measured rollout "
                         "equities, one formula per cube location"),
-        "source": "BGSage money benchmark, checker candidates with eval_level=Rollout",
+        "source": ("BGSage money benchmark, checker candidates played out to "
+                   "completion (tier=rollout and eval_level=Rollout)"),
         "n_total": len(rows),
         "by_cube_location": {},
         "by_game_plan": {},
@@ -449,6 +457,74 @@ def main() -> None:
     out["pooled"] = {"n": len(rows), "bias_at_published_x": b68,
                      "rmse_at_published_x": r68,
                      "best_x": float(best_x), "rmse_at_best_x": float(best_rmse)}
+
+    # What the index is actually worth where it is actually read.
+    #
+    # Everything above is an ESTIMATION metric: every candidate weighted equally,
+    # scored on how close the modelled equity lands to the measured one. That is
+    # not how the parameter earns its keep. Over 500 games the benchmark asks
+    # "which move?" 14,693 times and "should I take?" 653 times, so the index is
+    # read for move selection ~22x as often as for a take decision -- and move
+    # selection only cares about the RANKING of candidates within one position,
+    # where a common error cancels. Retuning x can look valuable on RMSE and buy
+    # nothing here, which is the comparison that decides whether to ship it.
+    by_key: dict = {}
+    for r in rows:
+        by_key.setdefault(r[4], []).append(r)
+    contested = [v for v in by_key.values() if len(v) >= 2]
+
+    def _pick_rate(label, x_for):
+        lost = []
+        for cands in contested:
+            model = [with_cube_action(r[1], r[0], x_for(r[0])) for r in cands]
+            best_measured = max(r[2] for r in cands)
+            lost.append(best_measured - cands[int(np.argmax(model))][2])
+        lost = np.array(lost)
+        return {"setting": label, "decisions": len(lost),
+                "picks_best_move": float(np.mean(lost < 1e-9)),
+                "mean_equity_lost": float(lost.mean())}
+
+    x_centred_fit = out["by_cube_location"][J.CENTERED]["best_x"]
+    picks = [
+        _pick_rate("published x = 0.68", lambda o: J.X_CONTACT),
+        _pick_rate(f"centred {x_centred_fit:.3f}, owned 0.68",
+                   lambda o: x_centred_fit if o == J.CENTERED else J.X_CONTACT),
+        _pick_rate(f"one refitted index ({out['pooled']['best_x']:.3f})",
+                   lambda o: out["pooled"]["best_x"]),
+    ]
+    # How much the references themselves can resolve.
+    #
+    # Every rolled-out candidate carries a standard error, so we can ask how often
+    # the benchmark's own "best move" is statistically indistinguishable from the
+    # runner-up. The noise is fixed and identical for every engine scored, so
+    # comparisons stay fair -- but it puts a floor under achievable PR, and it is
+    # the reason a near-parity engine cannot be separated on this benchmark by
+    # move-accuracy alone.
+    gaps, ses = [], []
+    for cands in contested:
+        ranked = sorted(cands, key=lambda r: -(r[6] if r[6] is not None else -9e9))
+        if any(r[6] is None or r[7] is None for r in ranked[:2]):
+            continue
+        se = (ranked[0][7] ** 2 + ranked[1][7] ** 2) ** 0.5
+        if se <= 0:
+            continue
+        gaps.append(ranked[0][6] - ranked[1][6])
+        ses.append(se)
+    g, se_arr = np.array(gaps), np.array(ses)
+    z = g / se_arr
+    out["reference_noise"] = {
+        "n_decisions": len(g),
+        "median_se_of_gap": float(np.median(se_arr)),
+        "share_within_1_se": float(np.mean(z < 1.0)),
+        "share_within_2_se": float(np.mean(z < 2.0)),
+    }
+
+    out["move_selection"] = {
+        "n_decisions": len(contested),
+        "n_candidates": sum(len(v) for v in contested),
+        "settings": picks,
+    }
+
     print("\nresidual by distance from the cash point (negative = model undershoots):")
     for owner, v in out["by_cash_point_distance"].items():
         worst = min(v["bins"], key=lambda b: b["mean_residual"])

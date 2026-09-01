@@ -7,6 +7,8 @@ produced. Where the paper is silent, the cross-checks come from what GNU
 Backgammon reports for the same position.
 """
 
+import random
+
 import pytest
 
 from raccoon.cube import janowski as J
@@ -205,3 +207,52 @@ def test_matches_gnubg_reported_equities_for_the_opening():
     assert J.cl2cf_money(p, J.CENTERED, 0.68) == pytest.approx(0.0036, abs=5e-3)
     assert 2.0 * J.cl2cf_money(p, J.OPPONENT, 0.68) == pytest.approx(
         -0.3373, abs=5e-3)
+
+
+# --- Robustness against the labels we actually get ------------------------
+
+def test_wl_floored_at_one_on_variance_reduced_labels():
+    """A negative probability must not drag W below a point.
+
+    Variance reduction reports corrected means, not counts, so a rare outcome can
+    come back very slightly negative. Divided by a small win probability that
+    produces a large negative W, which would put the take point and both envelope
+    endpoints through the floor. This vector is the worst case in the BGSage
+    money benchmark: it computes to W = -5.29 unfloored.
+    """
+    probs = (2.086162567138672e-07, -6.556510925292969e-07,
+             -6.556510925292969e-07, 0.14453581720590591, 0.0)
+    assert 1.0 + (probs[1] + probs[2]) / probs[0] == pytest.approx(-5.286, abs=1e-3)
+    W, L = J.compute_wl(probs)
+    assert W == 1.0
+    assert L == pytest.approx(1.1445, abs=1e-4)   # the loss side here is genuine
+
+
+@pytest.mark.parametrize("owner", [J.PLAYER, J.CENTERED, J.OPPONENT])
+@pytest.mark.parametrize("jacoby", [True, False])
+def test_cubeful_equity_stays_inside_the_provable_bounds(owner, jacoby):
+    """No cube line can pay more than W, or cost more than L.
+
+    If you double and the opponent takes, they took because taking beat passing
+    for them, so you collect less than +1; if they pass you collect exactly +1.
+    Undoubled you cannot collect more than the natural size of the win. So
+    E <= max(1, W) = W, and by the mirror argument E >= -L. Under Jacoby with the
+    cube centred the bound tightens to +/-1, since an undoubled gammon counts one.
+
+    The piecewise form satisfies this by construction -- both the dead and live
+    branches lie inside the bounds, so any blend of them does too -- which is the
+    reason to prefer it over Janowski's equations 5-7, which are linear in p and
+    run straight past +/-1. Pinned here so that stays true.
+    """
+    rng = random.Random(11)
+    for _ in range(2000):
+        win, wg, wbg = sorted((rng.random(), rng.random(), rng.random()), reverse=True)
+        lg, lbg = sorted((rng.random() * (1 - win), rng.random() * (1 - win)),
+                         reverse=True)
+        probs = (win, wg, wbg, lg, lbg)
+        W, L = J.compute_wl(probs)
+        x = rng.random()
+        eq = J.cl2cf_money(probs, owner, x, J.jacoby_active(owner, jacoby))
+        assert -L - 1e-9 <= eq <= W + 1e-9
+        if J.jacoby_active(owner, jacoby):
+            assert -1.0 - 1e-9 <= eq <= 1.0 + 1e-9

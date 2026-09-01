@@ -31,27 +31,34 @@
 #                                       tables, plus the Jacoby branch structure.
 #
 # PRIMARY METRIC.
-# Cube PR on the BGSage money benchmark, restricted to the 700 positions whose
-# reference equities were ACTUALLY ROLLED OUT -- n=1,018 cube sub-decisions --
+# Cube PR on the BGSage money benchmark, restricted to the 282 positions whose
+# reference equities were PLAYED OUT TO COMPLETION -- n=432 cube sub-decisions --
 # fed the benchmark's own reference probabilities so the net's evaluation error
-# is out of the comparison. Baseline: x = 0.68 -> 5.406 +/- 0.609. Variants are
+# is out of the comparison. Baseline: x = 0.68 -> 2.259 +/- 0.488. Variants are
 # compared to it PAIRED.
 #
-# WHY NOT ALL 2,196 POSITIONS. `eval_level` records how each reference was made:
-#     Rollout (700)  1,296 trials PLAYED TO COMPLETION with the cube live, VR on;
-#                    an observed average carrying a standard error (~+/-0.005).
-#     3-ply (1,496)  a cubeful 3-ply search that calls cl2cf_money -- Janowski --
-#                    at its own leaves (cpp/src/cube.cpp:670).
-# Scoring a Janowski variant against the second group is close to scoring it
-# against itself, and it shows: the published model measures PR 0.649 there
-# against 5.406 on the rolled-out set, and refitting the index buys +0.117 +/-
-# 0.210 (nothing) against +3.049 +/- 0.641. Pooling the two -- which an earlier
-# version of this experiment did -- dilutes the real effect with 1,824 near-
-# circular, near-null decisions and understates the model's error fourfold.
+# WHY NOT ALL 2,196 POSITIONS, AND WHY IT TAKES TWO FIELDS TO SAY SO.
+# `eval_level` records how each reference was made, but it is not sufficient on
+# its own -- BGSage gives TRUNCATED rollouts the same "Rollout" label. Crossed
+# with `tier`:
+#     tier=rollout, Rollout (282)   1,296 trials played to completion with the
+#                                   cube live, VR on; an observed average with a
+#                                   standard error (~+/-0.005).
+#     tier=3T,      Rollout (418)   TRUNCATED at a 3-ply cubeful evaluation that
+#                                   calls cl2cf_money -- Janowski -- at its own
+#                                   leaves (cpp/src/cube.cpp:670).
+#     tier=3P,      3-ply (1,496)   that same cubeful search, all the way down.
+# Only the first group is a measurement. An earlier version of this experiment
+# filtered on eval_level alone, which let the 418 truncated entries in: 586 of
+# its 1,018 sub-decisions came from them, baseline PR read 5.406 instead of
+# 2.259, and refitting the index appeared to be worth +3.206 +/- 0.984. On the
+# 282 genuine measurements that effect is +0.128 +/- 1.242 -- nothing. The
+# apparent improvement was an artefact of scoring Janowski partly against itself.
 #
-# NOTE tier is NOT the same split and must not be used for this. Tier is assigned
-# by how close a decision is, so it confounds difficulty with provenance (3P
-# ~ 3-ply, 3T+rollout ~ Rollout). Split on eval_level.
+# NOTE neither field alone is enough. Tier is assigned by how close a decision
+# is, so it confounds difficulty with provenance; eval_level confounds full with
+# truncated rollouts. Require BOTH tier=="rollout" AND eval_level=="Rollout"
+# (raccoon/eval/cube_benchmark.py:measured_only).
 #
 # WHAT THE MEASURED REFERENCES STILL ARE NOT. The payoff is empirical, but the
 # cube decisions made DURING each rollout come from a 3-ply bot that also bottoms
@@ -91,13 +98,17 @@
 # be worth less than the opponent owning it. Nothing in the fitting enforces
 # this, because each entry is EITHER centred OR owned, so the three lines are
 # fitted on disjoint position sets. A variant that breaks the ordering is
-# disqualified regardless of PR. refit_per_state fails it at 38.9% and is
-# rejected; the single-index variants sit at the ~3% Jacoby-asymmetry floor.
+# disqualified regardless of PR. refit_per_state fails it at 92.6% and is
+# rejected -- fitted on 153 positions it drives the owned-cube index to 0.42
+# against the 0.71 the equity data gives, which is what inverts the ordering.
+# The single-index variants sit near the Jacoby-asymmetry floor.
 #
 # COMPLETION (stage B). The selected variant is applied UNCHANGED (no per-engine
 # re-fit, which would confound cube modelling with evaluation error) to
 # exp018/ep22's own six-outcome vector, with GNUBG-0-ply's probabilities through
-# the published constant as the reference point.
+# the published constant as the reference point. Since no variant beats the
+# published constant on the measured references, the selected variant IS the
+# baseline -- stage B scores x = 0.68, which is also what the engine will ship.
 #
 # OUTPUT LAYOUT.
 #   experiments/exp024-cube/results/<source>_::_<variant>.json   one per variant; carries
@@ -108,12 +119,12 @@
 #       measurement: what perfect cubeless checker play costs on the cubeful
 #       metric. Reported, not chased; its experiment is pre-registered separately.
 #   experiments/exp024-cube/results/cube_equity_fit.json      each of the three
-#       Janowski equity formulas scored against 42,636 measured rollout equities,
+#       Janowski equity formulas scored against 33,395 measured rollout equities,
 #       fitted independently. This is what identifies E_C rather than the index
-#       as the broken component.
+#       as the weak component, and unlike cube PR it is not underpowered.
 #   experiments/exp024-cube/results/residual_diagnostics.json where the
-#       no-double residual lives, and the three tests that rule out the Jacoby
-#       rule as its cause. Best-fit indices there minimise equity RMSE and are
+#       no-double residual lives, split by game plan and by distance from the
+#       cash point. Best-fit indices there minimise equity RMSE and are
 #       diagnostics only — the variants above are fitted on cube PR.
 #   experiments/exp024-cube/results/summary.json             rebuilt from every
 #       variant file in the directory, so stage A and stage B both show up.
@@ -137,13 +148,14 @@ python3 scripts/cube_blind_floor.py --output "$RESULTS" \
   2>&1 | tee "$LOGS/cube_blind_floor.log"
 
 echo "=== The three equity formulas vs measured rollout equities ==="
-# The primary evidence. The benchmark's CHECKER decisions carry 42,636 candidates
+# The primary evidence. The benchmark's CHECKER decisions carry 33,395 candidates
 # rolled out to completion, each with a measured cubeful equity next to the
 # cubeless probabilities for the same position, and the parent decision records
 # where the cube sat -- so each of E_O, E_C, E_U can be tested on its own against
-# measurement. That is 42x the rolled-out cube positions and it separates the
-# three formulas, which cube PR cannot: a cube decision only ever compares two
-# locations at once.
+# measurement. That is 118x the fully rolled-out cube positions and it separates
+# the three formulas, which cube PR cannot: a cube decision only ever compares two
+# locations at once. It is also the only part of this experiment that is well
+# powered -- 432 cube sub-decisions cannot resolve a small change in the index.
 python3 scripts/cube_equity_fit.py --output "$RESULTS" \
   2>&1 | tee "$LOGS/cube_equity_fit.log"
 
@@ -166,16 +178,6 @@ echo "=== Stage B: exp018/ep22's own evaluations ==="
 python3 scripts/eval_cube_pr.py --probs checkpoint --checkpoint "$CKPT" \
   --variants baseline --engine-label ep22 --output "$RESULTS" \
   2>&1 | tee "$LOGS/stage_b_ep22.log"
-
-# The selected variant, applied with the parameters stage A settled on. That is
-# the single re-fitted index, NOT the per-cube-state fit: fitting an index per
-# cube state scores better on PR but breaks E_O >= E_C >= E_U on 39% of
-# positions, and PR cannot see that because each scored decision involves only
-# one cube location.
-python3 scripts/eval_cube_pr.py --probs checkpoint --checkpoint "$CKPT" \
-  --custom-name selected --x-nd-centered 0.800 --x-nd-player 0.800 --x-dt 0.800 \
-  --variants selected --engine-label ep22 --output "$RESULTS" \
-  2>&1 | tee -a "$LOGS/stage_b_ep22.log"
 
 echo "=== Stage B reference point: GNUBG 0-ply through the published constant ==="
 python3 scripts/eval_cube_pr.py --probs gnubg --gnubg-ply 0 \

@@ -88,9 +88,10 @@ written from scratch in Python and PyTorch.
 
 ## Roadmap
 
-- **Cube-capable value head.** Move from a scalar equity to a six-outcome
-  distribution (win/gammon/backgammon, either side), the prerequisite for doubling
-  and take/pass decisions.
+- **The doubling cube.** The six-outcome value head that a cube needs already
+  ships, and [Janowski's model is measured and implemented](cube.qmd); what is
+  missing is the engine wiring — cube-aware move ranking first, then double and
+  take decisions.
 - **A stronger teacher.** Distilling from deeper GNUBG search rather than more
   2-ply data — the residual gap to the teacher is search, not data.
 - **Match play**, where score-dependent equity and the cube dominate.
@@ -107,7 +108,7 @@ and conclusion — including the ones that failed.
 | [Supervised & Expert Iteration](pretraining_analysis.qmd) | Distilling GNUBG, on-distribution DAgger, consolidation — the current best results |
 | [Self-Play Analysis](training_analysis.qmd) | What pure AlphaZero self-play achieved, and why it plateaued |
 | [Variance-Reduced Rollouts](variance_reduction.qmd) | Measuring a 0.05 ppg edge without playing hundreds of thousands of games — method, proof of unbiasedness, the head-to-head result, and the doubles bug it uncovered |
-| [The Doubling Cube](cube.qmd) | Janowski's cube model measured against rollout references — what it gets right, where it breaks, and why the Jacoby rule is not the culprit |
+| [The Doubling Cube](cube.qmd) | Janowski's cube model measured against 33,395 rolled-out equities — which of its three formulas hold, why the published constant survives, and what Raccoon will implement |
 | [Architecture](architecture.md) | Board encoding, network, MCTS, and training loop design |
 | [MCTS Explained](mcts_explained.md) | Simulations, PUCT selection, temperature, Dirichlet noise |
 | [Training Parameters](training_parameters.md) | Every CLI flag explained with intuition and reference points |

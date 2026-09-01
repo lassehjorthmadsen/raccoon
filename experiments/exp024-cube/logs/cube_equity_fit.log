@@ -1,10 +1,16 @@
-measured cubeful equities: n=42,636
+measured cubeful equities: n=33,395
 
 | formula | cube location | n | bias @0.68 | RMSE @0.68 | best x | RMSE there |
 |---|---|---:|---:|---:|---:|---:|
-| E_O | we own the cube | 17,210 | +0.0001 | 0.0186 | 0.715 | 0.0181 |
-| E_C | cube centred | 14,612 | +0.0252 | 0.0644 | 0.940 | 0.0295 |
-| E_U | opponent owns it | 10,814 | +0.0025 | 0.0200 | 0.730 | 0.0188 |
+| E_O | we own the cube | 14,813 | +0.0007 | 0.0179 | 0.710 | 0.0177 |
+| E_C | cube centred | 10,677 | +0.0135 | 0.0430 | 0.925 | 0.0307 |
+| E_U | opponent owns it | 7,905 | +0.0025 | 0.0162 | 0.720 | 0.0155 |
 
-single index everywhere: x=0.68 -> rmse 0.0408; best x=0.865 -> rmse 0.0283
+residual by distance from the cash point (negative = model undershoots):
+  player    worst bin p-CP [-0.05,+0.00) n=68 mean residual -0.1024
+  centered  worst bin p-CP [-0.05,+0.00) n=64 mean residual -0.1134
+  opponent  worst bin p-CP [-0.05,+0.00) n=550 mean residual -0.0024
+
+single index everywhere: x=0.68 -> rmse 0.0282; best x=0.800 -> rmse 0.0253
+  Saved: experiments/exp024-cube/results/cube_equity_scatter.json  (12,000 rows)
   Saved: experiments/exp024-cube/results/cube_equity_fit.json

@@ -76,12 +76,21 @@ def compute_wl(probs: Sequence[float]) -> tuple[float, float]:
     Janowski's model compresses the whole gammon/backgammon distribution into
     these two numbers: given that you win, how many points on average; given
     that you lose, how many. A gammonless position has W = L = 1.
+
+    Both are floored at 1, and not defensively -- rolled-out labels violate it in
+    practice. Variance reduction produces corrected means rather than counts, so a
+    rare outcome can come back very slightly negative; divided by a minute win
+    probability that turns into a large negative W. Over the BGSage money
+    benchmark this affects 550 rows, 10 of them with W < 0 and the worst at
+    -5.29, which would put the take point and both envelope endpoints through the
+    floor. A win cannot be worth less than a point, so clamping here repairs
+    every consumer at once.
     """
     p_win = probs[0]
     W = 1.0 + (probs[1] + probs[2]) / p_win if p_win > 1e-7 else 1.0
     p_lose = 1.0 - p_win
     L = 1.0 + (probs[3] + probs[4]) / p_lose if p_lose > 1e-7 else 1.0
-    return W, L
+    return max(1.0, W), max(1.0, L)
 
 
 def cubeless_equity(probs: Sequence[float]) -> float:

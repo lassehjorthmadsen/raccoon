@@ -69,7 +69,8 @@ def main() -> None:
 
     scored = []
     for e in data["decisions"]:
-        if e["kind"] != "checker" or e["cube_owner"] != "centered":
+        if (e["kind"] != "checker" or e["cube_owner"] != "centered"
+                or e["tier"] != "rollout"):
             continue
         for m in e["moves"]:
             if m["eval_level"] != "Rollout":

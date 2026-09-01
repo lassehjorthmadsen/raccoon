@@ -20,17 +20,20 @@ Two properties of the references are worth knowing before quoting a number:
   search and cubeful rollouts, which use Janowski at their own leaves. Scoring a
   cube model against them measures the gap that deeper cubeful search closes,
   which is useful and is what we want here, but it is not ground truth.
-* **Only a third of them are measurements.** ``eval_level`` says which: entries
-  marked ``Rollout`` (700 of 2,196) had ``equity_nd`` produced by 1,296 trials
-  played to completion with the cube live, so it is an observed average with a
-  standard error. Entries marked ``3-ply`` (1,496) had it produced by a cubeful
-  search that applies Janowski at its own leaves, so scoring a Janowski variant
-  against them is close to scoring it against itself -- and empirically it shows,
-  with the published model scoring PR 0.649 there against 5.406 on the measured
-  set. :func:`measured_only` selects the usable subset.
-* **Tier is not the same split, and confounds two things.** The benchmark spends
-  more compute on closer decisions, so tier mixes difficulty with reference
-  provenance. Split on ``eval_level`` for validity, not on ``tier``.
+* **Only an eighth of them are measurements, and it takes two fields to say
+  which.** ``eval_level == "Rollout"`` is necessary but not sufficient: BGSage
+  gives *truncated* rollouts the same label, and those stop at a 3-ply cubeful
+  evaluation that applies Janowski at its own leaves. Cross-tabulated, the 700
+  entries labelled ``Rollout`` are 282 played to completion (``tier ==
+  "rollout"``) and 418 truncated (``tier == "3T"``). Only the first kind is an
+  observed average. Entries marked ``3-ply`` (1,496) are search all the way
+  down. Scoring a Janowski variant against anything but the 282 is scoring it
+  partly against itself. :func:`measured_only` requires both fields.
+* **Tier alone is not the split either.** The benchmark spends more compute on
+  closer decisions, so tier mixes difficulty with provenance: the ``3T`` tier
+  holds *harder* decisions than ``3P`` but *less trustworthy* references than
+  ``rollout``. Neither field is sufficient on its own; validity needs the
+  conjunction.
 """
 
 import gzip
@@ -82,20 +85,24 @@ def load_cube_decisions(path: str = DEFAULT_BENCHMARK) -> tuple[list[dict], dict
 
 
 def measured_only(entries: Sequence[dict]) -> list[dict]:
-    """Just the entries whose reference equities were actually rolled out.
+    """Just the entries whose reference equities were played out to completion.
 
-    The rest were produced by a cubeful search that uses Janowski at its leaves,
-    which makes them close to circular for judging a Janowski variant. Scoring on
-    them understates the model's error roughly eightfold.
+    Both fields are load-bearing. ``eval_level == "Rollout"`` alone also admits
+    the 418 *truncated* rollouts, which stop at a 3-ply cubeful evaluation that
+    bottoms out in Janowski -- exactly the circularity this filter exists to
+    remove. ``tier == "rollout"`` alone would admit nothing wrong today but says
+    only that the decision was close enough to deserve the effort, not that the
+    effort produced a measurement. Requiring both leaves 282 entries.
 
-    A caveat that survives this filter: the rollout's *payoff* is empirical, but
-    the cube decisions made during it come from a 3-ply bot that also bottoms out
-    in Janowski. So these measure equity under Janowski-quality cube play rather
-    than optimal cube play. Policy error can only lower realised equity and its
-    cost is second-order near a decision threshold, so the references are a
+    A caveat that survives even this filter: the rollout's *payoff* is empirical,
+    but the cube decisions made during it come from a 3-ply bot that also bottoms
+    out in Janowski. So these measure equity under Janowski-quality cube play
+    rather than optimal cube play. Policy error can only lower realised equity and
+    its cost is second-order near a decision threshold, so the references are a
     slight understatement of what a better model could reach, not an overstatement.
     """
-    return [e for e in entries if e["eval_level"] == "Rollout"]
+    return [e for e in entries
+            if e["eval_level"] == "Rollout" and e["tier"] == "rollout"]
 
 
 def split_by_game(entries: Sequence[dict], frac: float = 0.5,

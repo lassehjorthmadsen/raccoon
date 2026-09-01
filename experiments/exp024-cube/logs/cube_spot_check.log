@@ -1,0 +1,39 @@
+Money play, cube CENTRED at 1, Jacoby on, beavers on.
+After the play shown, the OPPONENT is on roll -- the Position ID below
+is written from that on-roll player's side, so equities in GNU
+Backgammon will appear with the sign of the 'on roll' column.
+
+=== Janowski too OPTIMISTIC (model above rollout) ===
+
+  Position ID: 4DnyBQQzHsOABQ
+    game plan anchoring, pips 137 (on roll) vs 159
+    cubeless: P(win)=0.3378 for the player who just moved; gammons 0.063 won / 0.359 lost
+    mover's side  — rollout -0.9757, rollout SE 0.0025   Janowski -0.7460   miss +0.2297
+    on-roll side  — rollout +0.9757   Janowski +0.7460
+
+  Position ID: 4HnwECLMjuGAIQ
+    game plan anchoring, pips 155 (on roll) vs 170
+    cubeless: P(win)=0.3213 for the player who just moved; gammons 0.059 won / 0.308 lost
+    mover's side  — rollout -0.9871, rollout SE 0.0024   Janowski -0.7602   miss +0.2269
+    on-roll side  — rollout +0.9871   Janowski +0.7602
+
+=== Janowski too PESSIMISTIC (model below rollout) ===
+
+  Position ID: xt4GBwDWNuAAIw
+    game plan attacking, pips 142 (on roll) vs 107
+    cubeless: P(win)=0.7545 for the player who just moved; gammons 0.118 won / 0.033 lost
+    mover's side  — rollout +1.0074, rollout SE 0.0015   Janowski +0.8168   miss -0.1906
+    on-roll side  — rollout -1.0074   Janowski -0.8168
+
+  Position ID: WLdVADD25hkAEA
+    game plan priming, pips 87 (on roll) vs 139
+    cubeless: P(win)=0.5773 for the player who just moved; gammons 0.071 won / 0.249 lost
+    mover's side  — rollout +0.2212, rollout SE 0.0052   Janowski +0.0287   miss -0.1925
+    on-roll side  — rollout -0.2212   Janowski -0.0287
+
+  Saved: experiments/exp024-cube/results/cube_spot_check.json
+
+What to compare in GNU Backgammon:
+  Settings > Options: money play, Jacoby on, beavers on, cube centred.
+  Evaluate the position at 0-ply and at 2-ply, and read the cubeful
+  'no double' equity. Compare against the two columns above.

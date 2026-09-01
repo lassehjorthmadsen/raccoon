@@ -1,25 +1,12 @@
-References: measured only -- 700 of 2196 positions have rolled-out reference equities
-Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
+References: measured only -- 282 of 2196 positions have rolled-out reference equities
+Loaded 282 cube positions (2189 doubler + 653 receiver sub-decisions)
 Probabilities: checkpoint
-Fit/confirm split by game: 356 / 344 positions
+Fit/confirm split by game: 153 / 129 positions
 
 baseline: x=0.68 (published)
-  full n=1018  cube PR = 5.916 +- 0.676
+  full n=432  cube PR = 2.684 +- 0.622
   paired vs baseline: +0.000 +- 0.000 (0 decisions changed)
-  held out n=498  cube PR = 6.027 +- 0.961
-  ordering E_O>=E_C>=E_U: 5.3% violations (12 centred-above-owned, 25 opponent-above-centred) -> ok
+  held out n=205  cube PR = 2.801 +- 0.836
+  ordering E_O>=E_C>=E_U: 9.2% violations (8 centred-above-owned, 18 opponent-above-centred) -> ok
   Saved: experiments/exp024-cube/results/ep22_::_baseline.json
-  Saved: experiments/exp024-cube/results/summary.json
-References: measured only -- 700 of 2196 positions have rolled-out reference equities
-Loaded 700 cube positions (2189 doubler + 653 receiver sub-decisions)
-Probabilities: checkpoint
-Custom variant 'selected': {'label': 'selected (x_nd_centered=0.8 x_nd_player=0.8 x_dt=0.8)', 'x_nd_centered': 0.8, 'x_nd_player': 0.8, 'x_dt': 0.8, 'nd_offset': 0.0, 'x_race': None}
-Fit/confirm split by game: 356 / 344 positions
-
-selected: selected (x_nd_centered=0.8 x_nd_player=0.8 x_dt=0.8)
-  full n=1018  cube PR = 3.381 +- 0.579
-  paired vs baseline: +2.535 +- 0.737 (318 decisions changed)
-  held out n=498  cube PR = 3.289 +- 0.815
-  ordering E_O>=E_C>=E_U: 4.3% violations (10 centred-above-owned, 20 opponent-above-centred) -> ok
-  Saved: experiments/exp024-cube/results/ep22_::_selected.json
   Saved: experiments/exp024-cube/results/summary.json
