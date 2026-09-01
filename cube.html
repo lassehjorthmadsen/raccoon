@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>The Doubling Cube – Raccoon</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./favicon.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-e3adbaa939bcd423dddc8c8a834270b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="The Doubling Cube – Raccoon">
+<meta property="og:description" content="Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon will build from it.">
+<meta property="og:image" content="https://research.raccoonbg.com/cube_files/figure-html/cell-3-output-1.png">
+<meta property="og:site_name" content="Raccoon">
+<meta property="og:image:height" content="396">
+<meta property="og:image:width" content="852">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Raccoon</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Concepts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+        <li>
+    <a class="dropdown-item" href="./mcts_explained.html">
+ <span class="dropdown-text">MCTS Explained</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./architecture.html">
+ <span class="dropdown-text">Architecture</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-training" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Training</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
+        <li>
+    <a class="dropdown-item" href="./training_parameters.html">
+ <span class="dropdown-text">Parameters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./training_analysis.html">
+ <span class="dropdown-text">Self-Play Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./pretraining_analysis.html">
+ <span class="dropdown-text">Supervised &amp; Expert Iteration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./variance_reduction.html">
+ <span class="dropdown-text">Variance-Reduced Rollouts</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./search.html">
+ <span class="dropdown-text">Multi-Ply Search</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./cube.html">
+ <span class="dropdown-text">The Doubling Cube</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./gcp_guide.html"> 
+<span class="menu-text">Developer</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./contact.html"> 
+<span class="menu-text">Contact</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#the-model-is-three-formulas" id="toc-the-model-is-three-formulas" class="nav-link active" data-scroll-target="#the-model-is-three-formulas">The model is three formulas</a></li>
+  <li><a href="#what-the-engines-ship-and-what-to-ship" id="toc-what-the-engines-ship-and-what-to-ship" class="nav-link" data-scroll-target="#what-the-engines-ship-and-what-to-ship">What the engines ship, and what to ship</a></li>
+  <li><a href="#how-to-measure-it" id="toc-how-to-measure-it" class="nav-link" data-scroll-target="#how-to-measure-it">How to measure it</a></li>
+  <li><a href="#what-the-measurement-says" id="toc-what-the-measurement-says" class="nav-link" data-scroll-target="#what-the-measurement-says">What the measurement says</a></li>
+  <li><a href="#why-we-are-not-acting-on-the-centred-index" id="toc-why-we-are-not-acting-on-the-centred-index" class="nav-link" data-scroll-target="#why-we-are-not-acting-on-the-centred-index">Why we are not acting on the centred index</a></li>
+  <li><a href="#exp024-results" id="toc-exp024-results" class="nav-link" data-scroll-target="#exp024-results">exp024, re-scored</a></li>
+  <li><a href="#what-raccoon-will-build" id="toc-what-raccoon-will-build" class="nav-link" data-scroll-target="#what-raccoon-will-build">What Raccoon will build</a></li>
+  <li><a href="#what-this-page-does-not-establish" id="toc-what-this-page-does-not-establish" class="nav-link" data-scroll-target="#what-this-page-does-not-establish">What this page does not establish</a></li>
+  <li><a href="#still-open" id="toc-still-open" class="nav-link" data-scroll-target="#still-open">Still open</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">The Doubling Cube</h1>
+<p class="subtitle lead">Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon will build from it.</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Rick Janowski’s cube-life-index model is how a cubeless evaluation becomes a cube decision. GNU Backgammon and eXtreme Gammon both ship it, and its published constant — <span class="math inline">\(x = 0.68\)</span> for contact positions — has stood essentially unchanged since 1993. It is rarely <em>measured</em>, because measuring it needs observed cubeful equities for a large and varied set of real positions.</p>
+<p>Those observations were already on disk. The BGSage money benchmark rolled positions out to completion with the cube live, recording for each candidate a <strong>measured cubeful equity</strong> next to the cubeless probabilities for the same position — and the cube sits in a different place across them, which is what makes the model separable. This page tests it on 33,395 of those, then says exactly what Raccoon should implement.</p>
+<p><strong>The short answer is that the model is in good shape and the conventional constant survives.</strong> Two of the three equity formulas are correct at <span class="math inline">\(x = 0.68\)</span> to within 0.018 of a point. The third, for a centred cube, wants a much higher index — but adopting it buys nothing where the parameter is actually read, and we cannot explain it, so we are not acting on it. What <em>is</em> worth fixing is structural: use the piecewise form, respect the provable bounds, and floor <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> at one point.</p>
+<p>Two numbers this page used to report were wrong, and both errors are the same kind, so they are worth stating rather than quietly correcting. Reference quality is recorded in <strong>two</strong> fields, not one: filtering on <code>eval_level</code> alone admitted truncated rollouts whose leaves call Janowski. Against references that include them, retuning the index looks worth <strong>+1.167 ± 0.271</strong> cube PR. Against references that are actually measurements it is worth <strong>+0.128 ± 1.242</strong> — nothing. <a href="#how-to-measure-it">The measurement section</a> sets out the filter that separates them.</p>
+<p>Everything here is money play with the Jacoby rule and beavers on, matching the benchmark. Match play, where the score moves every take point, is out of scope and is not calibrated by anything below.</p>
+<section id="the-model-is-three-formulas" class="level2">
+<h2 class="anchored" data-anchor-id="the-model-is-three-formulas">The model is three formulas</h2>
+<p>A network evaluates a position <em>cubelessly</em>: six probabilities for winning or losing a plain game, a gammon, or a backgammon, if the game were played out with no cube. Under real rules that game never happens. Janowski’s model says what those probabilities are worth once the cube is on the table.</p>
+<p>It starts by compressing the outcome distribution into two numbers — the average value of a win and of a loss:</p>
+<p><span class="math display">\[W=\frac{\sum_i i \cdot P(\text{win } i)}{P(\text{win})}
+\qquad
+L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
+<p>A gammonless position has <span class="math inline">\(W = L = 1\)</span>. Two extremes can then be solved exactly. A <strong>dead cube</strong> can never be turned again, so the game plays out at the current stake and a take risks <span class="math inline">\(2L-1\)</span> to gain <span class="math inline">\(2W+1\)</span> — the familiar 25% take point. A <strong>live cube</strong> is redoubled at exactly the right moment every time, which adds a constant bonus and gives the continuous model’s 20%. Real positions sit between, at a fraction <span class="math inline">\(x\)</span> — the <strong>cube life index</strong>, 0 for dead, 1 for live.</p>
+<p>What matters below is that the model then produces <strong>three different equity formulas, one per cube location</strong> (Janowski’s equations 5–7):</p>
+<p><span class="math display">\[E_O = C_V\left[p(W + L + 0.5x) - L\right] \qquad \text{we own the cube}\]</span></p>
+<p><span class="math display">\[E_U = C_V\left[p(W + L + 0.5x) - L - 0.5x\right] \qquad \text{opponent owns it}\]</span></p>
+<p><span class="math display">\[E_C = \frac{4C_V}{4-x}\left[p(W + L + 0.5x) - L - 0.25x\right] \qquad \text{centred}\]</span></p>
+<p>Every take point, cash point and doubling point in the paper is derived by setting two of these equal. So the model stands or falls on them, and — crucially — <strong>they can fail independently</strong>. That is what makes the measurement below possible, and it is not something a cube decision can reveal: a double compares only two locations at a time.</p>
+<p>One property of <span class="math inline">\(x\)</span> matters later. It is meant to be a <strong>physical property of the position</strong> — its volatility. Janowski derives it as proportional to the cube-life of the position and inversely proportional to its long-term volatility. The same position has the same volatility whoever holds the cube, so <span class="math inline">\(x\)</span> cannot legitimately depend on where the cube sits.</p>
+<div id="4f3f44d6" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="cube_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img"></p>
+<figcaption>Janowski’s three formulas in a gammonless position (W = L = 1) at the published index x = 0.68 — pure theory, no data. Read the y-axis carefully: these curves give the equity of NOT turning the cube, which is what the formulas are defined to produce. Above the cash point that is the wrong quantity to act on — you double, your opponent passes, and gammonless the position is worth exactly +1 (dash-dotted). The gap between the blue curve and that ceiling is not an error in the formula; it is the difference between holding the cube and using it.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>What is Janowski’s model? → <strong>Three equity formulas sharing one parameter</strong>, one per cube location, from which every take point and doubling point is derived. They can be wrong independently, and <span class="math inline">\(x\)</span> is meant to describe the position, not the cube’s location.</p>
+</blockquote>
+</section>
+<section id="what-the-engines-ship-and-what-to-ship" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-engines-ship-and-what-to-ship">What the engines ship, and what to ship</h2>
+<p>Three implementation decisions, all settled before any fitting. Each is either provable or measurable, so none of them costs a parameter.</p>
+<section id="use-the-piecewise-form-not-equations-57" class="level3">
+<h3 class="anchored" data-anchor-id="use-the-piecewise-form-not-equations-57">Use the piecewise form, not equations 5–7</h3>
+<p>Equations 5–7 are linear in <span class="math inline">\(p\)</span>, so they run straight past the values a game can actually pay. GNU Backgammon and BGSage instead pin the live-cube equity at the four points where it is known — <span class="math inline">\(-L\)</span> at <span class="math inline">\(p = 0\)</span>, <span class="math inline">\(-1\)</span> at the take point, <span class="math inline">\(+1\)</span> at the cash point, <span class="math inline">\(+W\)</span> at <span class="math inline">\(p = 1\)</span> — and interpolate linearly between them, flattening the outer segments to <span class="math inline">\(\pm 1\)</span> under Jacoby. That is a <em>substitution</em> for equation (7), not an approximation of it.</p>
+<p>It is also more accurate. On owned cubes the piecewise form reaches RMSE 0.0177 against 0.022–0.027 for the algebra, and its fitted indices sit close to the convention rather than scattering. <code>raccoon/cube/janowski.py</code> implements the piecewise form.</p>
+</section>
+<section id="the-bounds-are-provable-so-they-should-never-be-fitted" class="level3">
+<h3 class="anchored" data-anchor-id="the-bounds-are-provable-so-they-should-never-be-fitted">The bounds are provable, so they should never be fitted</h3>
+<p>If you double and your opponent takes, they took because taking beat passing <em>for them</em>, so you collect less than <span class="math inline">\(+1\)</span>; if they pass you collect exactly <span class="math inline">\(+1\)</span>. No doubling line pays more than a point. Undoubled you cannot collect more than the natural size of the win. So</p>
+<p><span class="math display">\[-L \;\le\; E \;\le\; \max(1, W) = W\]</span></p>
+<p>and under Jacoby with the cube centred this tightens to <span class="math inline">\(\pm 1\)</span>, since an undoubled gammon counts one anyway. The measured rollouts respect it. The piecewise form satisfies it by construction — both the dead and the live branch lie inside the bounds, so any blend of them does too — which is a second reason to prefer it over the algebra, which breaks the bound by up to a full point. We pin this as a property test rather than enforcing it with a clamp, so a change that breaks it fails loudly instead of being silently patched over.</p>
+</section>
+<section id="floor-w-and-l-at-one-point" class="level3">
+<h3 class="anchored" data-anchor-id="floor-w-and-l-at-one-point">Floor <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> at one point</h3>
+<p>Not a defensive nicety; the labels violate it. Variance reduction reports corrected means rather than counts, so a rare outcome can come back very slightly negative, and <span class="math inline">\(W = 1 + (P_{gw} + P_{bgw}) / P_{win}\)</span> divides that by a win probability that can be minute. Across this benchmark that produces <strong>550 rows with <span class="math inline">\(W &lt; 1\)</span>, ten of them below zero, and a worst case of <span class="math inline">\(-5.29\)</span></strong> — which would put the take point and both envelope endpoints through the floor. A win cannot be worth less than a point. Flooring inside <code>compute_wl</code> repairs every consumer at once.</p>
+<blockquote class="blockquote">
+<p>What should the implementation look like before any tuning? → <strong>Piecewise interpolation, bounds as a test rather than a clamp, and <span class="math inline">\(W, L \ge 1\)</span>.</strong> All three are free: no parameter, no fitting, no benchmark needed.</p>
+</blockquote>
+</section>
+</section>
+<section id="how-to-measure-it" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-measure-it">How to measure it</h2>
+<p>Cube models are usually argued about rather than measured, because the references are hard to come by. This benchmark has them — but most of its entries cannot judge a Janowski variant, and it takes two fields to tell which can.</p>
+<section id="it-takes-two-fields-to-identify-a-measurement" class="level3">
+<h3 class="anchored" data-anchor-id="it-takes-two-fields-to-identify-a-measurement">It takes two fields to identify a measurement</h3>
+<p><code>eval_level</code> records how a reference was produced; <code>tier</code> records how much effort the decision earned. Neither is sufficient alone, because BGSage gives <em>truncated</em> rollouts the same <code>Rollout</code> label as full ones. Crossed:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 23%">
+<col style="width: 23%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>reference</th>
+<th><code>tier</code></th>
+<th><code>eval_level</code></th>
+<th style="text-align: right;">cube entries</th>
+<th style="text-align: right;">rolled-out candidates</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>played to completion</td>
+<td><code>rollout</code></td>
+<td><code>Rollout</code></td>
+<td style="text-align: right;"><strong>282</strong></td>
+<td style="text-align: right;"><strong>33,395</strong></td>
+</tr>
+<tr class="even">
+<td>truncated at 3-ply</td>
+<td><code>3T</code></td>
+<td><code>Rollout</code></td>
+<td style="text-align: right;">418</td>
+<td style="text-align: right;">9,241</td>
+</tr>
+<tr class="odd">
+<td>3-ply search</td>
+<td><code>3P</code></td>
+<td><code>3-ply</code></td>
+<td style="text-align: right;">1,496</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p>Only the first row is an observed average. The truncated rollouts stop at a cubeful 3-ply evaluation that calls Janowski at its own leaves, and the 3-ply references are that same search all the way down — so scoring a Janowski variant against either is scoring it partly against itself.</p>
+<p>The bias does not show up where you would look for it. Pooled cube PR barely moves — 2.353 over all references against 2.259 over the measured ones — because the contaminated groups pull in opposite directions: the model scores an implausible 0.649 against the 3-ply references it half-agrees with, and 7.726 against the truncated ones, which are the hardest decisions in the benchmark. The level looks fine. What breaks is every <em>comparison</em> made on it:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>references</th>
+<th style="text-align: right;">baseline</th>
+<th style="text-align: right;">one refitted index</th>
+<th style="text-align: right;">paired gain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>all 2,196 entries</td>
+<td style="text-align: right;">2.353</td>
+<td style="text-align: right;">1.185</td>
+<td style="text-align: right;"><strong>+1.167 ± 0.271</strong></td>
+</tr>
+<tr class="even">
+<td>the 282 measured ones</td>
+<td style="text-align: right;">2.259</td>
+<td style="text-align: right;">2.130</td>
+<td style="text-align: right;"><strong>+0.128 ± 1.242</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Deeper cubeful search sees cube value a static evaluation cannot — market losers, mostly — so a larger <span class="math inline">\(x\)</span> lets a 0-ply model imitate a 3-ply one. Refitting against search-derived references buys depth, not accuracy, and it does not survive contact with a real payoff.</p>
+</section>
+<section id="the-checker-rollouts-are-the-instrument-not-the-cube-decisions" class="level3">
+<h3 class="anchored" data-anchor-id="the-checker-rollouts-are-the-instrument-not-the-cube-decisions">The checker rollouts are the instrument, not the cube decisions</h3>
+<p>The benchmark’s <em>cube</em> entries look like the natural place to test a cube model, but only 282 of them are measured, and a cube decision structurally cannot separate the three formulas — it compares two locations at a time. The <em>checker</em> candidates can. Every one carries a measured cubeful equity beside the cubeless probabilities for the same position, and the parent decision records where the cube sat, so each formula is testable on its own against 33,395 observations.</p>
+<p>Two properties of these positions carry into every conclusion below. They are <strong>post-move</strong> positions, so the opponent is on roll — the formulas do not model whose turn it is, so we evaluate from the on-roll player’s side and negate. And the cube decisions taken <em>during</em> each rollout come from a bot that also uses Janowski, so these measure equity under Janowski-quality cube play rather than optimal cube play.</p>
+</section>
+<section id="the-references-have-a-noise-floor" class="level3">
+<h3 class="anchored" data-anchor-id="the-references-have-a-noise-floor">The references have a noise floor</h3>
+<p>Every rolled-out candidate carries a standard error, so the benchmark can be asked how well it knows its own answer:</p>
+<p>Across 5,651 rolled-out decisions the median standard error on the gap between the best move and the runner-up is <strong>0.0033</strong> of a point. <strong>32%</strong> of those decisions have their best move within one standard error of the second-best, and 51% within two.</p>
+<p>That noise is fixed and identical for every engine scored, so comparisons stay fair. But it puts a floor under achievable PR, and it is why a near-parity engine cannot be separated on move accuracy alone — a third of the closest decisions in the benchmark do not have a knowable right answer.</p>
+</section>
+<section id="compare-like-with-like-or-the-model-is-charged-for-an-option" class="level3">
+<h3 class="anchored" data-anchor-id="compare-like-with-like-or-the-model-is-charged-for-an-option">Compare like with like, or the model is charged for an option</h3>
+<p>Janowski’s formulas give the <strong>no-double</strong> equity — what a position is worth if the cube stays put — while a rollout reference always includes the option to double. Comparing the two directly charges the formula for an option it was never asked to price. Since these are post-move positions the option belongs to the <em>opponent</em>, so the matching quantity is <span class="math inline">\(\min(\text{ND}, \max(\text{DT}, -1))\)</span>: a minimum over their choice, a maximum over ours. Getting that backwards inflates the centred error by half. Four positions checked by hand in GNU Backgammon confirm the distinction — its <em>No double</em> line reproduces <code>cl2cf_money</code> closely and its <em>optimal</em> line matches the rollout.</p>
+<blockquote class="blockquote">
+<p>Can Janowski be measured with what we already have? → <strong>Yes — on 33,395 observed cubeful equities</strong>, spanning all three cube locations, at zero play cost. But only an eighth of the benchmark’s cube entries can judge it, and a pooled score hides that: the level looks normal while every comparison built on it inflates.</p>
+</blockquote>
+</section>
+</section>
+<section id="what-the-measurement-says" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-measurement-says">What the measurement says</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>formula</th>
+<th>cube location</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">bias at 0.68</th>
+<th style="text-align: right;">RMSE at 0.68</th>
+<th style="text-align: right;">best <span class="math inline">\(x\)</span></th>
+<th style="text-align: right;">RMSE there</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(E_O\)</span></td>
+<td>we own the cube</td>
+<td style="text-align: right;">14,813</td>
+<td style="text-align: right;">+0.0007</td>
+<td style="text-align: right;">0.0179</td>
+<td style="text-align: right;">0.710</td>
+<td style="text-align: right;">0.0177</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(E_C\)</span></td>
+<td>cube centred</td>
+<td style="text-align: right;">10,677</td>
+<td style="text-align: right;">+0.0135</td>
+<td style="text-align: right;">0.0430</td>
+<td style="text-align: right;">0.925</td>
+<td style="text-align: right;">0.0307</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(E_U\)</span></td>
+<td>opponent owns it</td>
+<td style="text-align: right;">7,905</td>
+<td style="text-align: right;">+0.0025</td>
+<td style="text-align: right;">0.0162</td>
+<td style="text-align: right;">0.720</td>
+<td style="text-align: right;">0.0155</td>
+</tr>
+</tbody>
+</table>
+<p><strong><span class="math inline">\(E_O\)</span> and <span class="math inline">\(E_U\)</span> are right, and the published constant is right for them.</strong> Bias under 0.003 of a point across 22,718 positions, RMSE under 0.018, and freely fitted indices of 0.71 and 0.72 — close to each other and close to 0.68, which is what a genuine property of the position should look like. Refitting moves their RMSE by about 1%.</p>
+<p><strong><span class="math inline">\(E_C\)</span> is the outlier.</strong> Nineteen times the bias, more than twice the RMSE, and it wants 0.925 — a nearly perfect cube. Even there it stays worse than the other two are for free.</p>
+<p>An independent check that the method is sound rather than the model being uniformly bad: let the index float against the take/pass line alone, told nothing about what it should be.</p>
+<p>Across all 282 measured cube positions the take/pass index comes out at <strong>0.700</strong>, against GNU Backgammon’s published 0.68. Within pure races it comes out at 0.515, against GNUBG’s documented 0.60 race constant.</p>
+<p>The measurement reproduces both published constants without being told either.</p>
+<div id="d83be6df" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="cube_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+<figcaption>Model minus rollout for each formula, at the published index. Zero is agreement; below zero the model says a position is worth less than it proved to be. Two panels are a narrow band about zero; the centred panel is more than twice as wide and visibly tilted — high on the left, low on the right.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Averages hide where the failures are. Binning the same errors by observed equity, with intervals clustered on the checker decision — candidates within one decision are the same position played different ways, and clustering roughly doubles the intervals against treating them as independent:</p>
+<div id="48987c4d" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="cube_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+<figcaption>Bin means with 95% intervals, clustered on the checker decision. Marker area is proportional to the number of positions in the bin, so the thin tails do not read as loudly as the dense middle. E_O tracks zero until the position is nearly won, then sags through the run-up to a cashing decision and recovers once the cash is banked. E_C is off in both directions and crosses zero near even money. E_U sits on zero wherever it has weight.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong><span class="math inline">\(E_U\)</span> is correct wherever it has weight</strong> — on zero from about <span class="math inline">\(-0.2\)</span> equity upward. <strong><span class="math inline">\(E_O\)</span> is correct until the position is nearly won</strong>, then sags through the band where a cashing decision is live and snaps back above <span class="math inline">\(+1.0\)</span>. That band is thin, which is why the aggregate barely notices it. <strong><span class="math inline">\(E_C\)</span> is wrong in both directions</strong> — positive when the position is losing, negative when it is winning, crossing zero near even equity. A residual that changes sign cannot be removed by any constant, any index, or any offset.</p>
+<p>The <span class="math inline">\(E_O\)</span> sag has a mechanism worth naming, because it is a <em>modelling</em> choice rather than a measurement question. The model blends a dead branch with a live branch in fixed proportion, <span class="math inline">\((1-x)E_{\text{dead}} + xE_{\text{live}}\)</span>. As a position approaches its cash point the live branch has reached its ceiling of <span class="math inline">\(+1\)</span> while the dead branch is still only <span class="math inline">\(2p-1\)</span>, so the blend drags the answer down by roughly <span class="math inline">\((1-x)\)</span> times the gap between them. But a position near its cash point does not <em>need</em> future cube efficiency — you double and your opponent passes. A fixed weight is defensible in the middle of the range and not near the boundary.</p>
+<div id="870b1f81" class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="cube_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+<figcaption>The same errors split by BGSage’s game-plan classification. The centred series is the widest in every panel, so this is not a quirk of one position type, and the same tilt appears in each. Per-plan centred RMSE is in the panel titles.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>Where is the model weak? → <strong>Only in the centred formula</strong>, and everywhere in its range rather than in one position type or one game plan. The other two are correct at the published constant.</p>
+</blockquote>
+</section>
+<section id="why-we-are-not-acting-on-the-centred-index" class="level2">
+<h2 class="anchored" data-anchor-id="why-we-are-not-acting-on-the-centred-index">Why we are not acting on the centred index</h2>
+<p>A centred cube fits at 0.925 — almost a perfect cube. The result is robust: it survives clustered bootstrapping, disjoint halves of the games, and every formulation of the Jacoby handling we tried, and it reproduces on the benchmark’s own cube entries, which need no perspective flip at all. It is also the case where <span class="math inline">\(x\)</span> matters most. And we still cannot explain it.</p>
+<p>Two honest readings remain, and this data cannot separate them. Either an initial double really is more efficient than a redouble — both players can pick their moment, and a full ladder of recubes lies ahead — or the centred formula is missing something structural that <span class="math inline">\(x\)</span> absorbs. The second is the better bet given the sign change above, since no constant can produce one.</p>
+<p>What settles the <em>practical</em> question is that adopting it buys nothing.</p>
+<section id="the-index-is-read-for-move-selection-not-for-takes" class="level3">
+<h3 class="anchored" data-anchor-id="the-index-is-read-for-move-selection-not-for-takes">The index is read for move selection, not for takes</h3>
+<p>Everything above is an <em>estimation</em> metric: every candidate weighted equally, scored on how close the model lands. That is not how the parameter earns its keep. Over 500 games the benchmark asks:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>question</th>
+<th style="text-align: right;">times in 500 games</th>
+<th style="text-align: right;">relative frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>which move? (every turn)</td>
+<td style="text-align: right;">14,693</td>
+<td style="text-align: right;">22.5×</td>
+</tr>
+<tr class="even">
+<td>should I double? (every turn with cube access)</td>
+<td style="text-align: right;">2,189</td>
+<td style="text-align: right;">3.4×</td>
+</tr>
+<tr class="odd">
+<td>should I take? (only when actually doubled)</td>
+<td style="text-align: right;">653</td>
+<td style="text-align: right;">1.0×</td>
+</tr>
+</tbody>
+</table>
+<p>So the index is read for move selection roughly <strong>22 times as often</strong> as for a take decision — and move selection only cares about the <em>ranking</em> of candidates within one position, where an error common to all of them cancels. A change can look valuable on RMSE and be worth nothing here. On the 5,695 measured decisions that offer a real choice:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>setting</th>
+<th style="text-align: right;">picks the best move</th>
+<th style="text-align: right;">mean cubeful equity lost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>published x = 0.68</td>
+<td style="text-align: right;">88.0%</td>
+<td style="text-align: right;">0.00053</td>
+</tr>
+<tr class="even">
+<td>centred 0.925, owned 0.68</td>
+<td style="text-align: right;">87.6%</td>
+<td style="text-align: right;">0.00060</td>
+</tr>
+<tr class="odd">
+<td>one refitted index (0.800)</td>
+<td style="text-align: right;">88.0%</td>
+<td style="text-align: right;">0.00053</td>
+</tr>
+</tbody>
+</table>
+<p>Retuning moves this by a fraction of a percentage point, and the centred refit makes it slightly <em>worse</em>. There is no case for shipping it.</p>
+<blockquote class="blockquote">
+<p>Should the centred index be changed? → <strong>No.</strong> It is a real and unexplained feature of the data, but acting on it costs accuracy where the parameter is actually read. Keep 0.68 and record the anomaly as open.</p>
+</blockquote>
+</section>
+</section>
+<section id="exp024-results" class="level2">
+<h2 class="anchored" data-anchor-id="exp024-results">exp024, re-scored</h2>
+<p><strong>Hypothesis.</strong> Janowski’s functional form is adequate and its published cube-life index is simply mis-set: re-fitting <span class="math inline">\(x\)</span> recovers the cube-decision error that <span class="math inline">\(x = 0.68\)</span> leaves.</p>
+<p><strong>Primary metric.</strong> Cube PR on the BGSage money benchmark — mean equity thrown away per decision, times 500 — restricted to the 282 positions whose references were played to completion, n = 432 sub-decisions, fed the benchmark’s own reference probabilities so the net’s evaluation error is out of the comparison. Variants are fitted on half the <em>games</em> and confirmed on the held-out half, and compared to the baseline paired.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 28%">
+<col style="width: 28%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>variant</th>
+<th style="text-align: right;">cube PR</th>
+<th style="text-align: right;">paired vs baseline</th>
+<th style="text-align: left;">coherent?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(x = 0.68\)</span> (published)</td>
+<td style="text-align: right;">2.259 ± 0.488</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td>0.68 contact / 0.60 race</td>
+<td style="text-align: right;">2.228 ± 0.489</td>
+<td style="text-align: right;">+0.031 ± 0.112</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="odd">
+<td>one refitted index</td>
+<td style="text-align: right;">2.130 ± 1.140</td>
+<td style="text-align: right;">+0.128 ± 1.242</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td>refitted per cube state</td>
+<td style="text-align: right;">1.306 ± 0.326</td>
+<td style="text-align: right;">+0.953 ± 0.528</td>
+<td style="text-align: left;"><strong>no</strong> (93% violations)</td>
+</tr>
+<tr class="odd">
+<td>0.68 plus a fitted shift</td>
+<td style="text-align: right;">2.138 ± 0.477</td>
+<td style="text-align: right;">+0.121 ± 0.190</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(x = 0\)</span> (dead cube)</td>
+<td style="text-align: right;">5.566 ± 1.657</td>
+<td style="text-align: right;">-3.307 ± 1.647</td>
+<td style="text-align: left;"><strong>no</strong> (94% violations)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(x = 1\)</span> (live cube)</td>
+<td style="text-align: right;">6.680 ± 1.950</td>
+<td style="text-align: right;">-4.422 ± 2.058</td>
+<td style="text-align: left;">yes</td>
+</tr>
+</tbody>
+</table>
+<p>Nothing beats the published constant. The two fitted variants land about 0.12 lower with intervals many times that wide, the race split is inside noise, and the dead and live envelopes are far worse — which is the sanity check that the model is doing real work between them.</p>
+<p><strong>The coherence gate matters more than the PR column.</strong> For any one position <span class="math inline">\(E_O \ge E_C \ge E_U\)</span> must hold: owning the cube cannot be worth less than it being centred, which cannot be worth less than the opponent owning it. Nothing in the fitting enforces that, because each entry is <em>either</em> centred <em>or</em> owned, so the three lines are fitted on disjoint position sets. The per-state fit scores best on PR and drives the owned-cube index to 0.42 against the 0.71 the equity data gives, inverting the ordering on 93% of positions. PR cannot see that, because each scored decision involves only one cube location. A mis-set constant cannot produce an impossible ordering; a mis-specified form can.</p>
+<p><strong>Power, stated rather than assumed.</strong> 432 sub-decisions cannot resolve a small change: the paired interval on the refitted index is ±1.242, so this test would miss anything under about a point of PR. It is a null in the sense of <em>no evidence of benefit</em>, not proof of no effect. The move-selection comparison above, at 5,695 decisions, is the better-powered instrument and agrees.</p>
+<section id="where-raccoons-own-evaluations-land" class="level3">
+<h3 class="anchored" data-anchor-id="where-raccoons-own-evaluations-land">Where Raccoon’s own evaluations land</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>probabilities</th>
+<th style="text-align: right;">cube PR (n = 432)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>benchmark reference (the model alone)</td>
+<td style="text-align: right;">2.259 ± 0.488</td>
+</tr>
+<tr class="even">
+<td>Raccoon exp018/ep22</td>
+<td style="text-align: right;">2.684 ± 0.622</td>
+</tr>
+<tr class="odd">
+<td>GNUBG 0-ply</td>
+<td style="text-align: right;">2.658 ± 0.638</td>
+</tr>
+</tbody>
+</table>
+<p>Raccoon’s net and GNUBG at 0-ply are indistinguishable on cube decisions, and both sit a little above what the model reaches on perfect probabilities — the cost of evaluation error rather than of cube modelling.</p>
+<blockquote class="blockquote">
+<p>Is the cube-life index mis-set? → <strong>No.</strong> Against references that are measurements, no variant beats <span class="math inline">\(x = 0.68\)</span> (best: one refitted index, <strong>+0.128 ± 1.242</strong> paired, n = 432). The earlier <strong>+3.206</strong> came from references produced by a search that uses Janowski at its own leaves.</p>
+</blockquote>
+</section>
+</section>
+<section id="what-raccoon-will-build" class="level2">
+<h2 class="anchored" data-anchor-id="what-raccoon-will-build">What Raccoon will build</h2>
+<p>Raccoon has no cube at all today. The shipped net already emits the six-outcome distribution the cube needs, <code>raccoon/cube/janowski.py</code> is written and tested, and nothing in the playing path references it. This is the specification for closing that gap, in the order the measurements above say to do it.</p>
+<p><strong>The model, settled.</strong> Piecewise dead/live blend; <span class="math inline">\(x = 0.68\)</span> for contact and <span class="math inline">\(0.60\)</span> in races; one index for all three cube locations, never one per location; <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> floored at 1; the <span class="math inline">\([-L, W]\)</span> bound as a test.</p>
+<p><strong>The inputs, all present.</strong> <code>RaccoonNet.value_probs6</code> → <code>janowski.probs6_to_cumulative5</code> → <code>janowski.cube_action</code>. No model work is needed; the value head has carried the six-outcome distribution since exp018.</p>
+<p><strong>Cube-aware checker play comes first</strong> — not the double/take decision. Ranking afterstates by cubeful rather than cubeless equity in <code>raccoon/train/lookahead.py</code> is where the model gets read 22 times as often, and the prize is already measured: a <em>perfect cubeless</em> player throws away</p>
+<p><strong>PR 0.336 ± 0.042</strong> on the cubeful metric, with cubeless-best and cubeful-best differing on 992 of 14,693 decisions (6.8%). It concentrates exactly where the cube is most alive — PR 0.553 with the cube centred against 0.145 when the opponent owns it — and is nearly absent in pure races (0.046).</p>
+<p><strong>Then the cube decision itself</strong>, via <code>cube_action</code> at the top of a turn, and the plumbing it needs: <code>cube_value</code> and <code>cube_owner</code> threaded through the play loop, <code>raccoon/eval/arena.py</code> and <code>raccoon/protocol/rgp.py</code>, none of which have any concept of a cube today.</p>
+<p><strong>How to score each.</strong> Cube decisions on the 432 measured sub-decisions, knowing that is underpowered for anything small. Move selection on the 33,395 clean candidates, by picks-best-move rate and mean cubeful equity lost — the metric that matches the frequency with which the parameter is read.</p>
+<p><strong>Explicit non-goals.</strong> Do not tune <span class="math inline">\(x\)</span> against 3-ply references. Do not score a cube change on take decisions alone. Do not chase the centred index until there is a reference not generated by a 0.68 policy.</p>
+</section>
+<section id="what-this-page-does-not-establish" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-page-does-not-establish">What this page does not establish</h2>
+<ul>
+<li><strong>The population is not the target.</strong> These are 500 games of one engine playing itself. An index fitted here describes how efficiently <em>that bot</em> uses the cube, on the positions its own style produces.</li>
+<li><strong>The references are not optimal cubeful equity.</strong> The payoff is empirical, but the cube decisions taken during each rollout come from a bot that also bottoms out in Janowski. Policy error can only lower realised equity, so this understates what a better model could reach rather than overstating it.</li>
+<li><strong>The benchmark is played under Jacoby, and Raccoon’s target is not.</strong> The project aims at money game <em>without</em> Jacoby, as the stepping stone to match play (<code>goal.md</code>). Jacoby zeroes gammons while the cube is centred, so on those positions the reference engine plays boldly — it leaves the cubeless-best move 25.2% of the time against 10.7% with the cube owned, giving up five times as much cubeless equity and trading away gammon wins as readily as it accepts gammon losses, since the rule makes both worthless. That is 38.5% of the benchmark’s checker decisions, and it taints the labels rather than just the target: the rollout continuations behind them were played bold too. Regenerating without Jacoby means rebuilding every tier from new games, so we report the Jacoby-clean owned-cube subset alongside the full number instead.</li>
+<li><strong>Nothing here transfers to match play</strong> beyond that: score-dependent take points, no beavers, and Janowski in match-winning-chance space are all uncalibrated here.</li>
+<li><strong>No position is observed at two cube locations</strong>, so the ordering constraint is a model check and can never be validated against data.</li>
+<li><strong>The benchmark’s cube positions are selected for being non-trivial</strong>, so an index fitted on them is tuned for close decisions and should not be quoted as a general-purpose constant.</li>
+<li><strong>Coordinate descent on a grid</strong> finds a coordinate-wise minimum, not a certified global one.</li>
+</ul>
+</section>
+<section id="still-open" class="level2">
+<h2 class="anchored" data-anchor-id="still-open">Still open</h2>
+<ul>
+<li><strong>The centred index.</strong> Two readings, no way to separate them here; it needs a reference not generated by a 0.68 policy.</li>
+<li><strong>Whether an index per cube <em>value</em> is real.</strong> A centred cube is always a 1-cube here, so cube value and cube location tell the same story and cannot be told apart.</li>
+<li><strong>Volatility measured rather than proxied.</strong> Janowski derives <span class="math inline">\(x\)</span> as inversely proportional to volatility, and it can be measured directly — the spread of the 0-ply value over the 21 next rolls, reusing <code>raccoon/eval/luck.py</code> and the roll table in <code>raccoon/search/expectimax.py</code>. A cheap proxy does not work: the residual correlates with contact at only <span class="math inline">\(-0.15\)</span>, with no monotone trend, which is precisely why the direct measurement is the experiment worth running.</li>
+<li><strong>Cubeful search.</strong> GNUBG does not use the closed form as its cube engine — it uses it as a leaf evaluator inside a search that makes cube decisions at every node. The gap that refitting appeared to close against 3-ply references <em>is</em> that search, and running it is the principled way to close it.</li>
+</ul>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Rick Janowski, <em>Take-Points in Money Games</em> (<a href="https://bkgm.com/articles/Janowski/cubeformulae.pdf">PDF</a>) — the cube-life index, equations (5)–(7) for the three cube locations, the refined model of Appendix 2, and the Jacoby factors of Appendix 3.</li>
+<li>Keeler and Spencer, <em>Optimal Doubling in Backgammon</em> (1975) (<a href="https://bkgm.com/articles/KeelerSpencer/OptimalDoublingInBackgammon/index.html">online</a>) — the continuous model behind the live-cube take point.</li>
+<li><a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/raccoon/cube/janowski.py"><code>raccoon/cube/janowski.py</code></a> — the model, ported from the paper and cross-checked against its worked examples and against GNU Backgammon.</li>
+<li><a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/experiments/pipeline_exp024.sh"><code>experiments/pipeline_exp024.sh</code></a> — every number on this page, reproducible end to end.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/research\.raccoonbg\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p><strong>Tekst og tal</strong> · CVR 34101302 · Denmark</p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="mailto:hello@raccoonbg.com">hello@raccoonbg.com</a></p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/lassehjorthmadsen/raccoon">GitHub</a> · <a href="https://github.com/lassehjorthmadsen/raccoon/blob/main/LICENSE">MIT licence</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

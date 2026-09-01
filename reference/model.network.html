@@ -182,6 +182,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../search.html">
  <span class="dropdown-text">Multi-Ply Search</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../cube.html">
+ <span class="dropdown-text">The Doubling Cube</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -299,6 +303,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><a href="#raccoon.model.network.RaccoonNet.value_equity">value_equity</a></td>
 <td>Scalar equity/3 in [-1, 1] per position, for both head types.</td>
 </tr>
+<tr class="odd">
+<td><a href="#raccoon.model.network.RaccoonNet.value_probs6">value_probs6</a></td>
+<td>The full six-outcome distribution, shape (batch, 6).</td>
+</tr>
 </tbody>
 </table>
 <section id="raccoon.model.network.RaccoonNet.forward" class="level5">
@@ -328,11 +336,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Scalar equity/3 in [-1, 1] per position, for both head types.</p>
 <p>This is what 0-ply move selection reads (see lookahead.eval_values_batch), so a scalar net and an outcomes6 net are interchangeable at play time.</p>
 </section>
+<section id="raccoon.model.network.RaccoonNet.value_probs6" class="level5">
+<h5 class="anchored" data-anchor-id="raccoon.model.network.RaccoonNet.value_probs6">value_probs6</h5>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model.network.RaccoonNet.value_probs6(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The full six-outcome distribution, shape (batch, 6).</p>
+<p>Order is [win, win_gammon, win_bg, lose, lose_gammon, lose_bg]: mutually exclusive, summing to 1. The doubling cube needs the whole distribution rather than the single number it collapses to, because a double or a take turns on the gammon rates that value_equity has already folded away. See raccoon.cube.janowski.probs6_to_cumulative5 for the conversion into the nested 5-vector the cube formulas expect.</p>
+</section>
 </section>
 </section>
 <section id="raccoon.model.network.ResidualBlock" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.model.network.ResidualBlock">ResidualBlock</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model.network.ResidualBlock(channels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.network.ResidualBlock(channels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Conv3x3 -&gt; BN -&gt; ReLU -&gt; Conv3x3 -&gt; BN -&gt; skip add -&gt; ReLU.</p>
 </section>
 </section>
@@ -354,7 +368,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <section id="raccoon.model.network.load_model" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.model.network.load_model">load_model</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.network.load_model(path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model.network.load_model(path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Create a RaccoonNet from a checkpoint, using its saved config.</p>
 <p>Falls back to default config for older checkpoints without config.</p>
 
