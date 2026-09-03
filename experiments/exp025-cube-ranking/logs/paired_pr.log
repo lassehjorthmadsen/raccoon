@@ -1,0 +1,12 @@
+n = 14,693 decisions over 499 games
+  cubeless ranking   PR 1.382
+  cubeful  ranking   PR 1.307
+  gain               +0.075 (95% CI +0.025 to +0.126, clustered on game)
+  rankings differ on 376 decisions (2.6%)
+
+  cube position             cubeless   cubeful      gain  95% CI
+  centered                     1.851     1.655    +0.196  [+0.079, +0.316]
+  opponent                     1.039     1.037    +0.003  [-0.034, +0.041]
+  player                       1.149     1.155    -0.007  [-0.055, +0.040]
+
+wrote experiments/exp025-cube-play/results/exp025_paired_pr.json

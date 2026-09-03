@@ -1,0 +1,61 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ep22 cubeful-rank (experiments/exp018-distill/checkpoints/ep22.pt)...
+  [ep22 cubeful-rank] 500/14693 (47s, ~1344s remaining)
+  [ep22 cubeful-rank] 1000/14693 (90s, ~1234s remaining)
+  [ep22 cubeful-rank] 1500/14693 (133s, ~1174s remaining)
+  [ep22 cubeful-rank] 2000/14693 (177s, ~1121s remaining)
+  [ep22 cubeful-rank] 2500/14693 (219s, ~1067s remaining)
+  [ep22 cubeful-rank] 3000/14693 (264s, ~1028s remaining)
+  [ep22 cubeful-rank] 3500/14693 (345s, ~1104s remaining)
+  [ep22 cubeful-rank] 4000/14693 (429s, ~1148s remaining)
+  [ep22 cubeful-rank] 4500/14693 (514s, ~1163s remaining)
+  [ep22 cubeful-rank] 5000/14693 (598s, ~1160s remaining)
+  [ep22 cubeful-rank] 5500/14693 (675s, ~1129s remaining)
+  [ep22 cubeful-rank] 6000/14693 (755s, ~1093s remaining)
+  [ep22 cubeful-rank] 6500/14693 (836s, ~1054s remaining)
+  [ep22 cubeful-rank] 7000/14693 (925s, ~1016s remaining)
+  [ep22 cubeful-rank] 7500/14693 (1020s, ~979s remaining)
+  [ep22 cubeful-rank] 8000/14693 (1116s, ~933s remaining)
+  [ep22 cubeful-rank] 8500/14693 (1202s, ~876s remaining)
+  [ep22 cubeful-rank] 9000/14693 (1295s, ~819s remaining)
+  [ep22 cubeful-rank] 9500/14693 (1380s, ~754s remaining)
+  [ep22 cubeful-rank] 10000/14693 (1461s, ~686s remaining)
+  [ep22 cubeful-rank] 10500/14693 (1545s, ~617s remaining)
+  [ep22 cubeful-rank] 11000/14693 (1629s, ~547s remaining)
+  [ep22 cubeful-rank] 11500/14693 (1712s, ~475s remaining)
+  [ep22 cubeful-rank] 12000/14693 (1803s, ~405s remaining)
+  [ep22 cubeful-rank] 12500/14693 (1889s, ~331s remaining)
+  [ep22 cubeful-rank] 13000/14693 (1973s, ~257s remaining)
+  [ep22 cubeful-rank] 13500/14693 (2062s, ~182s remaining)
+  [ep22 cubeful-rank] 14000/14693 (2150s, ~106s remaining)
+  [ep22 cubeful-rank] 14500/14693 (2237s, ~30s remaining)
+  [ep22 cubeful-rank] Done: 14693 decisions in 2268.2s
+  [ep22 cubeful-rank] Saved paired errors: experiments/exp025-cube-play/dumps/ep22_paired.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeful reference
+Positions: 14693 checker decisions from 500 games
+Reference: equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeful (Janowski) equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ep22 cubeful-rank                  1.31  14693     44    0.14    1.47    1.40    1.62    1.46
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeful equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ep22 cubeful-rank                       0.9930   0.0041   149113        0.9834   0.0057    61917        0.9753   0.0076   116421        0.9873   0.0056   327451
+
+Saving results to experiments/exp025-cube-play/results/
+  Saved: experiments/exp025-cube-play/results/ep22_cubeful_rank.json
+  Saved: experiments/exp025-cube-play/results/summary.json

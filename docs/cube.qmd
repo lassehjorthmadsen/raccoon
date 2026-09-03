@@ -1,6 +1,6 @@
 ---
 title: "The Doubling Cube"
-subtitle: "Janowski's model, measured against 33,395 rolled-out equities — and what Raccoon will build from it."
+subtitle: "Janowski's model, measured against 33,395 rolled-out equities — and what Raccoon built from it."
 toc-depth: 2
 jupyter: python3
 ---
@@ -15,8 +15,10 @@ Those observations were already on disk. The BGSage money benchmark rolled
 positions out to completion with the cube live, recording for each candidate a
 **measured cubeful equity** next to the cubeless probabilities for the same
 position — and the cube sits in a different place across them, which is what
-makes the model separable. This page tests it on 33,395 of those, then says
-exactly what Raccoon should implement.
+makes the model separable. This page tests it on 33,395 of those, then reports what happened when Raccoon
+implemented it: [exp024](#exp024-results) measures the model, and
+[exp025](#exp025-results) ships it into move selection and measures what that
+buys.
 
 **The short answer is that the model is in good shape and the conventional
 constant survives.** Two of the three equity formulas are correct at $x = 0.68$
@@ -614,25 +616,34 @@ evaluation error rather than of cube modelling.
 > 1.242** paired, n = 432). The earlier **+3.206** came from references produced by
 > a search that uses Janowski at its own leaves.
 
-## What Raccoon will build
+## What Raccoon built
 
-Raccoon has no cube at all today. The shipped net already emits the six-outcome
-distribution the cube needs, `raccoon/cube/janowski.py` is written and tested, and
-nothing in the playing path references it. This is the specification for closing
-that gap, in the order the measurements above say to do it.
+exp024 left the cube specified but unbuilt: the shipped net already emitted the
+six-outcome distribution, `raccoon/cube/janowski.py` was written and tested, and
+nothing in the playing path referenced it. exp025 closed that gap.
 
-**The model, settled.** Piecewise dead/live blend; $x = 0.68$ for contact and
-$0.60$ in races; one index for all three cube locations, never one per location;
-$W$ and $L$ floored at 1; the $[-L, W]$ bound as a test.
+**The model, settled and unchanged.** Piecewise dead/live blend; $x = 0.68$ for
+contact and $0.60$ in races; one index for all three cube locations, never one per
+location; $W$ and $L$ floored at 1; the $[-L, W]$ bound as a test. Nothing was
+refitted.
 
-**The inputs, all present.** `RaccoonNet.value_probs6` →
-`janowski.probs6_to_cumulative5` → `janowski.cube_action`. No model work is
-needed; the value head has carried the six-outcome distribution since exp018.
+**Two pieces of perspective logic**, both in `raccoon/cube/state.py`, both easy to
+get silently wrong and therefore both pinned by tests. `CubeState` translates
+between seat indices, which a game loop speaks, and the `CENTERED`/`PLAYER`/
+`OPPONENT` labels, which Janowski speaks. And `flip_label` records the rule that
+**changing perspective flips the cube owner as well as the sign of the equity** —
+negating alone hands the opponent your cube ownership, and nothing about the
+resulting number looks wrong.
 
-**Cube-aware checker play comes first** — not the double/take decision. Ranking
-afterstates by cubeful rather than cubeless equity in
-`raccoon/train/lookahead.py` is where the model gets read 22 times as often, and
-the prize is already measured: a *perfect cubeless* player throws away
+**Cube-aware checker play came first**, not the double/take decision, because the
+model is read for move selection roughly 22 times as often. `child_cubeful_values`
+in `raccoon/train/lookahead.py` shares its enumeration, doubles handling and leaf
+dedup with the cubeless `child_values` through a common `enumerate_leaves`, so the
+two rankings cannot drift apart. The regression test that matters is an identity:
+at $x = 0$ with no Jacoby, `cl2cf_money` *is* `cubeless_equity`, so the cubeful
+path must reproduce the shipping cubeless one to the last bit on real positions.
+
+**The prize was already measured.** A *perfect cubeless* player throws away
 
 ```{python}
 #| echo: false
@@ -647,19 +658,106 @@ print(f"**PR {FLOOR['pr']:.3f} ± {FLOOR['pr_ci95']:.3f}** on the cubeful metric
       f"nearly absent in pure races ({FLOOR['by_game_plan']['purerace']['pr']:.3f}).")
 ```
 
-**Then the cube decision itself**, via `cube_action` at the top of a turn, and the
-plumbing it needs: `cube_value` and `cube_owner` threaded through the play loop,
-`raccoon/eval/arena.py` and `raccoon/protocol/rgp.py`, none of which have any
-concept of a cube today.
+That floor is what a player with *perfect* probabilities leaves behind. The
+question exp025 asks is how much of it a real net, carrying its own evaluation
+error, actually claims.
 
-**How to score each.** Cube decisions on the 432 measured sub-decisions, knowing
-that is underpowered for anything small. Move selection on the 33,395 clean
-candidates, by picks-best-move rate and mean cubeful equity lost — the metric that
-matches the frequency with which the parameter is read.
+## exp025, cube-aware checker play {#exp025-results}
 
-**Explicit non-goals.** Do not tune $x$ against 3-ply references. Do not score a
-cube change on take decisions alone. Do not chase the centred index until there is
-a reference not generated by a 0.68 policy.
+```{python}
+#| echo: false
+R25 = Path("../experiments/exp025-cube-ranking/results")
+PAIR = json.loads((R25 / "exp025_paired_pr.json").read_text())
+OV = PAIR["overall"]
+```
+
+**Hypothesis.** Ranking candidate moves by Janowski cubeful equity instead of
+cubeless equity reduces the cubeful move-selection error of the shipped net
+(exp018/ep22).
+
+**Primary metric.** Cubeful PR on all
+`{python} f"{OV['n']:,}"` BGSage checker decisions — mean cubeful equity thrown
+away per decision, times 500 — scored against each candidate's `equity` field
+rather than its `cubeless_equity`, which is the same reference the cube-blind
+floor above is measured on. The two arms are compared **paired**, with the
+interval bootstrapped over the `{python} f"{OV['n_games']}"` generating games.
+
+**Why paired, and why it is not optional.** The arms agree on the great majority
+of decisions — the rankings differ on only
+`{python} f"{PAIR['picks_differ']:,}"` of them
+(`{python} f"{PAIR['picks_differ_fraction']:.1%}"`) — so their per-decision errors
+are identical almost everywhere and an unpaired comparison of two PR numbers has
+an interval far wider than the effect. Both errors are therefore taken off the
+*same* six-outcome forward pass: for an `outcomes6` head the value head's equity
+is exactly `cubeless_equity` of its own distribution, so the arms are paired by
+construction rather than by re-running and hoping the passes matched. The
+separately-run cubeless arm reproduces the derived one to rounding, which is the
+check that the shortcut is sound.
+
+```{python}
+#| echo: false
+#| output: asis
+print("| cube position | n | cubeless ranking | cubeful ranking | gain | 95% CI |")
+print("|---|---:|---:|---:|---:|:--|")
+rows = [("all decisions", OV)] + [
+    (LOC[k][2], PAIR["by_cube_owner"][k]) for k in ("player", "centered", "opponent")
+]
+for label, v in rows:
+    lo, hi = v["pr_gain_ci95"]
+    print(f"| {label} | {v['n']:,} | {v['pr_cubeless_rank']:.3f} | "
+          f"{v['pr_cubeful_rank']:.3f} | **{v['pr_gain']:+.3f}** | "
+          f"[{lo:+.3f}, {hi:+.3f}] |")
+```
+
+**The gain is real and small.** Cubeful ranking is worth
+`{python} f"{OV['pr_gain']:+.3f}"` PR with the interval clear of zero. Against the
+`{python} f"{FLOOR['pr']:.3f}"` floor that is about
+`{python} f"{OV['pr_gain'] / FLOOR['pr']:.0%}"` of the available prize — the rest
+is eaten by the net's own evaluation error, which is the thing that decides *which*
+candidate the cube term is applied to. The rankings differ on
+`{python} f"{PAIR['picks_differ_fraction']:.1%}"` of decisions against the
+`{python} f"{FLOOR['fraction_differs']:.1%}"` on which a perfect player's would.
+
+**All of it sits in one bucket, and it is the tainted one.** The gain is confined
+to a centred cube; with the cube owned by either side it is indistinguishable from
+zero. That is where exp024 said the cube-blindness lives, so the sign is
+unsurprising — but a centred cube is also exactly where the Jacoby rule bites, and
+the benchmark was generated with Jacoby **on** while Raccoon's target is money
+without it. Scoring here therefore models Jacoby to match the references, and the
+Jacoby-clean owned-cube buckets are the ones showing no effect. **This is weaker
+evidence for the target game than the interval suggests**, and it is the first
+thing a follow-up should attack.
+
+**No head-to-head, deliberately.** The natural completion is "and it beats GNUBG
+at cubeful money". It is not here because there was no honest opponent to hand.
+`gnubg-nn` — the package every other Raccoon number is measured against — cannot
+make a money cube decision at all (`evaluate_cube_decision` raises *Not
+implemented for money*; the binding covers match play only), and it ranks checker
+plays cubelessly. Bolting our own Janowski layer onto its probabilities gives a
+match in which **both sides share one cube model**, while real GNU Backgammon uses
+the closed form only as a leaf evaluator inside a cubeful search that makes cube
+decisions at every node. That opponent is weaker than real GNUBG precisely on the
+cube, so a win against it would not be the `goal.md` criterion. The real opponent
+does exist — `/usr/games/gnubg` answers money cube decisions and cube-aware
+checker play at about 71 ms per 2-ply decision — and wiring it up is exp026.
+
+**Supporting, and demarcated.** The cubeful arena built along the way
+(`raccoon/eval/cube_arena.py`) established that the dice-luck control variate
+survives a live cube: scaling each luck term by the cube value at its own roll
+keeps it unbiased (mean luck $t = +0.26$ over 600 games), and using a *cubeful*
+$h$ rather than a cube-scaled cubeless one cuts the standard deviation 7.32× against
+5.24×, at $\hat\beta = 1.017$. That is a property of the estimator, which exp026
+reuses. The ppg those games implied was deliberately never read, and is reported
+nowhere.
+
+> Is cube-aware checker ranking worth anything? → **Yes, but little of what was
+> available.** Cubeful ranking beats cubeless ranking by
+> `{python} f"{OV['pr_gain']:+.3f}"` PR (95% CI
+> `{python} f"[{OV['pr_gain_ci95'][0]:+.3f}, {OV['pr_gain_ci95'][1]:+.3f}]"`,
+> n = `{python} f"{OV['n']:,}"`, bootstrapped over
+> `{python} f"{OV['n_games']}"` games) — about
+> `{python} f"{OV['pr_gain'] / FLOOR['pr']:.0%}"` of the cube-blind floor, and all
+> of it with the cube centred.
 
 ## What this page does not establish
 
@@ -690,6 +788,15 @@ a reference not generated by a 0.68 policy.
   general-purpose constant.
 * **Coordinate descent on a grid** finds a coordinate-wise minimum, not a certified
   global one.
+* **exp025's gain is measured entirely under Jacoby.** It lands wholly in the
+  centred-cube bucket, which is the one the rule alters and the one whose rollout
+  continuations were played boldly because of it. The Jacoby-clean owned-cube
+  decisions show no effect at all, so the result transfers to non-Jacoby money by
+  assumption, not by measurement.
+* **Nothing here has been tested in play.** Every number on this page is scored
+  against static references. No cubeful game against a real opponent has been
+  played, because until exp026 there is no opponent that makes money cube
+  decisions.
 
 ## Still open
 
@@ -707,7 +814,18 @@ a reference not generated by a 0.68 policy.
 * **Cubeful search.** GNUBG does not use the closed form as its cube engine — it
   uses it as a leaf evaluator inside a search that makes cube decisions at every
   node. The gap that refitting appeared to close against 3-ply references *is* that
-  search, and running it is the principled way to close it.
+  search, and running it is the principled way to close it. This is also why a
+  Janowski-only opponent cannot stand in for GNUBG: it is weaker than the real
+  thing on exactly the dimension being tested.
+* **The double/take decision in play.** exp025 shipped cube-aware *move
+  selection* and measured it; `cube_action` is wired into an arena but its value
+  has never been measured against an opponent that can answer a money cube.
+* **A real cubeful opponent (exp026).** `/usr/games/gnubg` 1.07 answers money cube
+  decisions and cube-aware checker play, driven by Position ID plus named
+  `set turn` / `set dice` / `set cube` commands, at about 71 ms per 2-ply
+  decision. BGSage (`../bgsage`) exposes a money `cube_action` behind a C++
+  extension and is the stronger target. Both want the same harness, so both go in
+  one experiment.
 
 ## References
 

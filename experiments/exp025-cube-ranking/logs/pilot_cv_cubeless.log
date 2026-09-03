@@ -1,0 +1,8 @@
+[pilot_cv_cubeless] experiments/exp018-distill/checkpoints/ep22.pt
+  cubeful money (no Jacoby) vs GNUBG-2ply, n=600 games, 288 wins (48.0%), 71.7 min
+  raw ppg = +0.0233  (95% CI ±0.2539)
+  VR  ppg = -0.0244  (95% CI ±0.0485)   <- 5.24x tighter (= 27.4x the games), cv=cubeless
+  mean luck = +0.0477 (t=+0.42, should be ~0)   corr(raw,luck) = 0.987   beta_hat = 1.118
+  cube: mean terminal 2.05, turned in 436/600 games, drop rate 42.2%, distribution {1: 164, 2: 363, 4: 65, 8: 6, 16: 2}
+  net doubled 364/8704 opportunities, took 274/408 offers
+  wrote experiments/exp025-cube-play/results/pilot_cv_cubeless.json

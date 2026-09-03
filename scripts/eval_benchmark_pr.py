@@ -81,6 +81,31 @@ DEFAULT_BENCHMARK = str(
     / "money_benchmark" / "benchmark.json.gz"
 )
 
+# Which reference a move is scored against (exp025).
+#
+# Every checker candidate in the benchmark carries two reference equities: what
+# the position is worth with no cube (`cubeless_equity`), and what it is worth
+# with the cube live (`equity`, from the same rollout). Scoring against the
+# second is what makes cube-aware move ranking measurable, and it is what
+# `scripts/cube_blind_floor.py` scores against — so a number here is directly
+# comparable to the PR 0.336 ± 0.042 floor a *perfect cubeless* player leaves on
+# the table.
+#
+# `cubeless` stays the default so every figure published before exp025 is
+# reproduced by the same command that produced it.
+METRIC_CUBELESS = "cubeless"
+METRIC_CUBEFUL = "cubeful"
+REFERENCE_FIELD = {METRIC_CUBELESS: "cubeless_equity", METRIC_CUBEFUL: "equity"}
+
+# The benchmark's 500 generating games were played **with the Jacoby rule on**,
+# so its cubeful references price a game in which gammons are worthless while the
+# cube sits in the middle. Scoring against them therefore has to model the same
+# rule, which is the one place in exp025 that is not Raccoon's non-Jacoby target
+# (`goal.md`); the arena in raccoon/eval/cube_arena.py uses jacoby=False. The
+# `owned (Jacoby-clean)` breakdown already reported by `by_cube_owner` bounds how
+# much the difference matters.
+CUBE_JACOBY_DEFAULT = True
+
 
 # ---------------------------------------------------------------------------
 # Data loading
@@ -233,11 +258,11 @@ def _eval_gnubg_decision(args: tuple) -> dict:
     Returns dict with 'error', 'game_plan', 'tier', and per-candidate
     'predicted'/'reference' equity pairs for eval-accuracy metrics.
     """
-    decision, ply = args
+    decision, ply, metric = args
     import gnubg_nn
 
-    # Reference best cubeless equity
-    best_cl = max(m["cubeless_equity"] for m in decision["moves"])
+    field = REFERENCE_FIELD[metric]
+    best_cl = max(m[field] for m in decision["moves"])
 
     # Evaluate each candidate from opponent's perspective
     predicted_eqs: list[float] = []
@@ -253,11 +278,11 @@ def _eval_gnubg_decision(args: tuple) -> dict:
 
     # Engine picks the move with highest predicted mover equity
     best_idx = int(np.argmax(predicted_eqs))
-    chosen_cl = decision["moves"][best_idx]["cubeless_equity"]
+    chosen_cl = decision["moves"][best_idx][field]
     error = max(0.0, best_cl - chosen_cl)
 
     # Collect per-candidate pairs for eval accuracy
-    reference_eqs = [m["cubeless_equity"] for m in decision["moves"]]
+    reference_eqs = [m[field] for m in decision["moves"]]
 
     return {
         "error": error,
@@ -277,6 +302,7 @@ def score_gnubg(
     workers: int = 1,
     max_positions: int | None = None,
     dump_predictions: str | None = None,
+    metric: str = METRIC_CUBELESS,
 ) -> dict:
     """Score all checker decisions with gnubg-nn at given ply.
 
@@ -297,7 +323,7 @@ def score_gnubg(
     if ply == 0 or workers <= 1:
         # Sequential -- fast enough for 0-ply
         for i, dec in enumerate(decisions):
-            result = _eval_gnubg_decision((dec, ply))
+            result = _eval_gnubg_decision((dec, ply, metric))
             all_decision_results.append(result)
             if (i + 1) % 500 == 0:
                 elapsed = time.perf_counter() - t0
@@ -310,7 +336,7 @@ def score_gnubg(
                 )
     else:
         # Parallel for expensive plies
-        args_list = [(dec, ply) for dec in decisions]
+        args_list = [(dec, ply, metric) for dec in decisions]
         done = 0
         results_by_idx: dict[int, dict] = {}
         with ProcessPoolExecutor(max_workers=workers) as pool:
@@ -361,7 +387,10 @@ def score_gnubg(
         )
         print(f"  [{label}] Saved predictions: {dump_predictions}", flush=True)
 
-    return aggregate(all_decision_results, label)
+    result = aggregate(all_decision_results, label)
+    result["metric"] = metric
+    result["cubeful_rank"] = False   # GNUBG always ranks with its own evaluation
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -401,6 +430,10 @@ def score_raccoon(
     dump_predictions: str | None = None,
     onnx_path: str | None = None,
     search_cfg=None,
+    metric: str = METRIC_CUBELESS,
+    cubeful_rank: bool = False,
+    cube_jacoby: bool = CUBE_JACOBY_DEFAULT,
+    paired_dump: str | None = None,
 ) -> dict:
     """Score all checker decisions with a raccoon network.
 
@@ -415,6 +448,25 @@ def score_raccoon(
     config the same candidates are ranked by expectimax search instead; only the
     ranking rule changes, so PR stays comparable across depths. Search needs the
     torch path (it calls the network directly), not ONNX.
+
+    `metric` selects the reference a move is scored against — see
+    :data:`REFERENCE_FIELD`. `cubeful_rank` selects how the *engine* ranks
+    candidates: by the value head's equity (the default, and what has always
+    shipped) or by Janowski's cubeful equity built from its six-outcome
+    distribution, using each decision's own recorded cube position. The two are
+    independent on purpose: scoring an unchanged cubeless engine on the cubeful
+    metric is the baseline the cube-aware arm is compared against, **paired on
+    the same decisions with the same net**, which is what isolates the ranking
+    rule from the evaluation.
+
+    `paired_dump` (cubeful ranking only) writes a per-DECISION .npz carrying both
+    rankings' errors side by side. Both are derived from the *same* six-outcome
+    forward pass — for an outcomes6 net the value head's equity is exactly
+    `cubeless_equity` of its own distribution — so the two arms are paired by
+    construction rather than by re-running and hoping the passes matched. That
+    matters: the arms agree on the great majority of decisions, so an unpaired
+    comparison of two PR numbers is far too noisy to resolve the difference
+    between them. `scripts/exp025_paired_pr.py` reads the file.
 
     If `dump_predictions` is given, also write a per-candidate .npz with
     aligned `pred_eq`/`ref_eq`/`tier`/`decision_key`/`game_seed`/`game_plan`
@@ -433,6 +485,16 @@ def score_raccoon(
     searching = search_cfg is not None and search_cfg.depth > 0
     if searching and onnx_path is not None:
         raise ValueError("search requires a torch checkpoint, not an ONNX model")
+    if cubeful_rank and onnx_path is not None:
+        # The exported graph carries the value head, but this scorer reads it
+        # through a single equity output; wiring the six-outcome tensor out of
+        # ONNX is a separate job and silently ranking cubelessly would be worse.
+        raise ValueError("cubeful ranking requires a torch checkpoint, not an ONNX model")
+    if cubeful_rank and searching:
+        raise ValueError("cubeful ranking and expectimax search are not combined yet")
+    if paired_dump is not None and not cubeful_rank:
+        raise ValueError("--paired-dump needs --cubeful-rank: the cubeless arm is "
+                         "derived from the same six-outcome pass the cubeful one uses")
     if searching:
         from raccoon.search.expectimax import (
             board26_to_slots, pass_turn, search_values,
@@ -459,6 +521,20 @@ def score_raccoon(
                 x = torch.from_numpy(obs_batch).float().to(device, non_blocking=True)
                 return network.value_equity(x).cpu().numpy()
 
+        def evaluate_probs6(obs_batch: np.ndarray) -> np.ndarray:
+            with torch.no_grad():
+                x = torch.from_numpy(obs_batch).float().to(device, non_blocking=True)
+                return network.value_probs6(x).cpu().numpy()
+
+    if cubeful_rank:
+        from raccoon.cube.janowski import (
+            cl2cf_money, cubeless_equity, jacoby_active, probs6_to_cumulative5,
+        )
+        from raccoon.cube.state import flip_label, is_race
+        from raccoon.cube.janowski import X_CONTACT, X_RACE
+        from raccoon.eval.gnubg_adapter import board_to_view
+        from raccoon.search.expectimax import board26_to_slots
+
     n_total = len(decisions)
     all_decision_results: list[dict] = []
 
@@ -473,11 +549,55 @@ def score_raccoon(
     t0 = time.perf_counter()
     total_evals = 0
 
-    for i, dec in enumerate(decisions):
-        # Reference best cubeless equity
-        best_cl = max(m["cubeless_equity"] for m in dec["moves"])
+    field = REFERENCE_FIELD[metric]
+    paired: dict[str, list] = {
+        "error_cubeful_rank": [], "error_cubeless_rank": [], "picks_differ": [],
+        "decision_key": [], "game_seed": [], "tier": [], "game_plan": [],
+        "cube_owner": [],
+    }
 
-        if searching:
+    for i, dec in enumerate(decisions):
+        best_cl = max(m[field] for m in dec["moves"])
+
+        if cubeful_rank:
+            # Each candidate board is post-move, so the opponent is on roll and
+            # the cube reads from their side: flip the label, price it there, and
+            # negate. The decision's own `cube_owner` is from the mover's POV.
+            # The cube *value* is left out — it scales every candidate equally
+            # and so cannot change a ranking.
+            root_view = board_to_view(board26_to_slots(dec["board"]))
+            x = X_RACE if is_race(root_view) else X_CONTACT
+            opp_label = flip_label(dec["cube_owner"])
+            # cl2cf_money wants the rule already resolved against the cube
+            # position: Jacoby only bites while the cube is still centred.
+            jac = jacoby_active(opp_label, cube_jacoby)
+            obs_list = []
+            for move in dec["moves"]:
+                bv = flipped_to_board_view(flip_board_to_opp(move["board"]))
+                obs_list.append(encode_state(bv, channels=channels))
+            probs6 = evaluate_probs6(np.stack(obs_list))
+            probs5 = [probs6_to_cumulative5(p6) for p6 in probs6]
+            predicted_eqs = [
+                -cl2cf_money(p5, opp_label, x, jac) for p5 in probs5
+            ]
+            eligible = np.ones(len(predicted_eqs), bool)
+            if paired_dump is not None:
+                # The cubeless ranking this net would have used, off the same
+                # forward pass: for an outcomes6 head, value_equity IS
+                # cubeless_equity of its own distribution.
+                cubeless_pick = int(np.argmax([-cubeless_equity(p5) for p5 in probs5]))
+                cubeful_pick = int(np.argmax(predicted_eqs))
+                paired["error_cubeless_rank"].append(
+                    max(0.0, best_cl - dec["moves"][cubeless_pick][field]))
+                paired["error_cubeful_rank"].append(
+                    max(0.0, best_cl - dec["moves"][cubeful_pick][field]))
+                paired["picks_differ"].append(cubeless_pick != cubeful_pick)
+                paired["decision_key"].append(dec["key"])
+                paired["game_seed"].append(dec["seed"])
+                paired["tier"].append(dec["tier"])
+                paired["game_plan"].append(dec["game_plan"])
+                paired["cube_owner"].append(dec["cube_owner"])
+        elif searching:
             # search_values already returns the mover's value in [-1,1].
             candidates = [pass_turn(board26_to_slots(m["board"])) for m in dec["moves"]]
             result = search_values(
@@ -521,10 +641,10 @@ def score_raccoon(
         # whose values are on a common scale.
         masked = np.where(eligible, predicted_eqs, -np.inf)
         best_idx = int(np.argmax(masked))
-        chosen_cl = dec["moves"][best_idx]["cubeless_equity"]
+        chosen_cl = dec["moves"][best_idx][field]
         error = max(0.0, best_cl - chosen_cl)
 
-        reference_eqs = [m["cubeless_equity"] for m in dec["moves"]]
+        reference_eqs = [m[field] for m in dec["moves"]]
 
         all_decision_results.append({
             "error": error,
@@ -573,8 +693,29 @@ def score_raccoon(
         )
         print(f"  [{engine_label}] Saved predictions: {dump_predictions}", flush=True)
 
+    if paired_dump is not None:
+        os.makedirs(os.path.dirname(paired_dump) or ".", exist_ok=True)
+        np.savez_compressed(
+            paired_dump,
+            error_cubeful_rank=np.array(paired["error_cubeful_rank"], dtype=np.float64),
+            error_cubeless_rank=np.array(paired["error_cubeless_rank"], dtype=np.float64),
+            picks_differ=np.array(paired["picks_differ"], dtype=bool),
+            decision_key=np.array(paired["decision_key"], dtype=object),
+            game_seed=np.array(paired["game_seed"], dtype=np.int64),
+            tier=np.array(paired["tier"], dtype=object),
+            game_plan=np.array(paired["game_plan"], dtype=object),
+            cube_owner=np.array(paired["cube_owner"], dtype=object),
+            metric=np.array(metric),
+            cube_jacoby=np.array(cube_jacoby),
+        )
+        print(f"  [{engine_label}] Saved paired errors: {paired_dump}", flush=True)
+
     result = aggregate(all_decision_results, engine_label)
     result["checkpoint"] = checkpoint_path or onnx_path
+    result["metric"] = metric
+    result["cubeful_rank"] = cubeful_rank
+    if cubeful_rank:
+        result["cube_jacoby"] = cube_jacoby
     if searching:
         result["search"] = {
             "depth": search_cfg.depth,
@@ -690,11 +831,16 @@ def aggregate(decision_results: list[dict], label: str) -> dict:
 
 def print_table(results: list[dict]) -> None:
     """Print formatted results table."""
+    metric = results[0].get("metric", METRIC_CUBELESS)
+    field = REFERENCE_FIELD[metric]
+    ranked = ("cubeful (Janowski)" if any(r.get("cubeful_rank") for r in results)
+              else "cubeless")
     print()
     print("=" * 90)
-    print("BGSage Money Benchmark - Checker-only, cubeless reference")
+    print(f"BGSage Money Benchmark - Checker-only, {metric} reference")
     print(f"Positions: {results[0]['n']} checker decisions from 500 games")
-    print("Reference: cubeless_equity (Sage 3P / 3T / Rollout)")
+    print(f"Reference: {field} (Sage 3P / 3T / Rollout)")
+    print(f"Engines rank candidates by: {ranked} equity")
     print("=" * 90)
 
     # --- Move-selection PR ---
@@ -732,7 +878,12 @@ def print_table(results: list[dict]) -> None:
 
     # --- Eval accuracy ---
     print()
-    print("EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)")
+    print(f"EVAL ACCURACY (R^2 / MSE on predicted vs reference {metric} equity)")
+    if metric == METRIC_CUBEFUL and not any(r.get("cubeful_rank") for r in results):
+        # A cubeless prediction against a cubeful reference is two different
+        # quantities, so this block is not a calibration read here. PR is.
+        print("  (cubeless predictions vs cubeful references -- not comparable "
+              "quantities; read PR, not R^2)")
     print()
     header2 = f"  {'Engine':<32}"
     for tier in TIERS + ["all"]:
@@ -768,7 +919,7 @@ def sanitize_label(label: str) -> str:
 # What makes two results the *same measurement*, so that re-scoring is idempotent
 # rather than destructive. Anything outside this list (PR, R^2, timings) is an
 # outcome and may legitimately change on a re-run.
-IDENTITY_FIELDS = ("n", "checkpoint", "search")
+IDENTITY_FIELDS = ("n", "checkpoint", "search", "metric", "cubeful_rank")
 
 
 def _describe(value: object) -> str:
@@ -975,6 +1126,43 @@ def main():
         help="Limit number of decisions scored (for quick testing)",
     )
     parser.add_argument(
+        "--metric", choices=[METRIC_CUBELESS, METRIC_CUBEFUL],
+        default=METRIC_CUBELESS,
+        help=(
+            "Which reference to score a move against: 'cubeless' (the default, "
+            "and every number published before exp025) or 'cubeful', the same "
+            "rollout's equity with the cube live. The cubeful metric is what "
+            "scripts/cube_blind_floor.py measures the PR 0.336 floor on."
+        ),
+    )
+    parser.add_argument(
+        "--cubeful-rank", action="store_true",
+        help=(
+            "Rank candidates by Janowski cubeful equity from the net's "
+            "six-outcome head, using each decision's own recorded cube position, "
+            "instead of by the value head's equity. Independent of --metric: the "
+            "exp025 comparison is cubeless-rank vs cubeful-rank, both scored on "
+            "the cubeful metric, paired on the same decisions."
+        ),
+    )
+    parser.add_argument(
+        "--no-cube-jacoby", action="store_true",
+        help=(
+            "Model money WITHOUT the Jacoby rule when ranking cubefully. Off by "
+            "default because the benchmark's references were generated with the "
+            "rule ON, so matching it is what makes the comparison fair; the flag "
+            "exists to measure how much that assumption is worth."
+        ),
+    )
+    parser.add_argument(
+        "--paired-dump", type=str, default=None,
+        help=(
+            "With --cubeful-rank, write a per-decision .npz holding BOTH "
+            "rankings' errors from the same forward pass, so the two arms are "
+            "paired by construction. Read it with scripts/exp025_paired_pr.py."
+        ),
+    )
+    parser.add_argument(
         "--output", type=str, default=None,
         help="Directory to save JSON results",
     )
@@ -1057,6 +1245,7 @@ def main():
                     os.path.join(args.dump_dir, f"gnubg_{ply}ply.npz")
                     if args.dump_dir else None
                 ),
+                metric=args.metric,
             )
             all_results.append(result)
             print()
@@ -1076,6 +1265,10 @@ def main():
             max_positions=args.max_positions,
             dump_predictions=dump_path,
             search_cfg=search_cfg,
+            metric=args.metric,
+            cubeful_rank=args.cubeful_rank,
+            cube_jacoby=not args.no_cube_jacoby,
+            paired_dump=args.paired_dump,
         )
         all_results.append(result)
         print()
@@ -1091,6 +1284,7 @@ def main():
             decisions, None, label,
             max_positions=args.max_positions,
             onnx_path=path,
+            metric=args.metric,
         )
         all_results.append(result)
         print()

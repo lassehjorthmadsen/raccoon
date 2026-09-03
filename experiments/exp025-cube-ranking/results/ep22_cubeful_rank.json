@@ -1,0 +1,91 @@
+{
+  "engine_label": "ep22 cubeful-rank",
+  "pr": 1.3071422027391213,
+  "n": 14693,
+  "total_error": 38.41168076969182,
+  "blunders": 44,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.14204379833286393,
+      "n": 1816,
+      "total_error": 0.5159030755449618,
+      "blunders": 0
+    },
+    "racing": {
+      "pr": 1.465809636789208,
+      "n": 3120,
+      "total_error": 9.146652133564658,
+      "blunders": 12
+    },
+    "attacking": {
+      "pr": 1.396909458231173,
+      "n": 4111,
+      "total_error": 11.485389565576705,
+      "blunders": 13
+    },
+    "priming": {
+      "pr": 1.6156014456674281,
+      "n": 2453,
+      "total_error": 7.9261406924444024,
+      "blunders": 9
+    },
+    "anchoring": {
+      "pr": 1.4621978237646556,
+      "n": 3193,
+      "total_error": 9.337595302561091,
+      "blunders": 10
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.6548595144476015,
+      "n": 5657,
+      "total_error": 18.723080546460164,
+      "blunders": 29
+    },
+    "player": {
+      "pr": 1.1554925571312473,
+      "n": 4015,
+      "total_error": 9.278605233763916,
+      "blunders": 9
+    },
+    "opponent": {
+      "pr": 1.0366455874793603,
+      "n": 5021,
+      "total_error": 10.409994989467737,
+      "blunders": 6
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.0894533102717825,
+      "n": 9036,
+      "total_error": 19.688600223231653,
+      "blunders": 15
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9930411989499087,
+      "mse": 0.004073538175284715,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.983373587319391,
+      "mse": 0.0057384594565857115,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9753209289316238,
+      "mse": 0.007604910858787138,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9872737575571431,
+      "mse": 0.0056438887625797594,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp018-distill/checkpoints/ep22.pt",
+  "metric": "cubeful",
+  "cubeful_rank": true,
+  "cube_jacoby": true
+}

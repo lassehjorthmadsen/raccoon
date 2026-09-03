@@ -1,0 +1,170 @@
+{
+ "measurement": "cubeful PR, cubeless ranking vs cubeful ranking, paired",
+ "benchmark": "BGSage Money Benchmark (checker decisions, cubeful reference)",
+ "metric": "cubeful",
+ "cube_jacoby": true,
+ "picks_differ": 376,
+ "picks_differ_fraction": 0.025590417205471994,
+ "overall": {
+  "n": 14693,
+  "n_games": 499,
+  "pr_cubeless_rank": 1.3817891069658286,
+  "pr_cubeful_rank": 1.307142202739121,
+  "pr_gain": 0.07464690422670728,
+  "pr_gain_ci95": [
+   0.025226797250274168,
+   0.12555672054152206
+  ],
+  "pr_gain_se": 0.025572739276564917,
+  "decisions_where_ranking_differs": 372
+ },
+ "by_cube_owner": {
+  "centered": {
+   "n": 5657,
+   "n_games": 498,
+   "pr_cubeless_rank": 1.851258621858206,
+   "pr_cubeful_rank": 1.6548595144476017,
+   "pr_gain": 0.19639910741060482,
+   "pr_gain_ci95": [
+    0.079489968428028,
+    0.31589082759311465
+   ],
+   "pr_gain_se": 0.05994049118213258,
+   "decisions_where_ranking_differs": 237
+  },
+  "opponent": {
+   "n": 5021,
+   "n_games": 347,
+   "pr_cubeless_rank": 1.039204236782242,
+   "pr_cubeful_rank": 1.0366455874793603,
+   "pr_gain": 0.0025586493028816634,
+   "pr_gain_ci95": [
+    -0.03432876408363903,
+    0.040782194689110866
+   ],
+   "pr_gain_se": 0.019151779770047887,
+   "decisions_where_ranking_differs": 61
+  },
+  "player": {
+   "n": 4015,
+   "n_games": 345,
+   "pr_cubeless_rank": 1.148745417662119,
+   "pr_cubeful_rank": 1.1554925571312473,
+   "pr_gain": -0.006747139469128305,
+   "pr_gain_ci95": [
+    -0.054511500270215014,
+    0.03986851672137512
+   ],
+   "pr_gain_se": 0.023936945645264093,
+   "decisions_where_ranking_differs": 74
+  }
+ },
+ "by_game_plan": {
+  "anchoring": {
+   "n": 3193,
+   "n_games": 465,
+   "pr_cubeless_rank": 1.6263441488492387,
+   "pr_cubeful_rank": 1.4621978237646556,
+   "pr_gain": 0.16414632508458316,
+   "pr_gain_ci95": [
+    0.050142214792889384,
+    0.28207113469922235
+   ],
+   "pr_gain_se": 0.05972742426613319,
+   "decisions_where_ranking_differs": 127
+  },
+  "attacking": {
+   "n": 4111,
+   "n_games": 490,
+   "pr_cubeless_rank": 1.5380016306448732,
+   "pr_cubeful_rank": 1.396909458231173,
+   "pr_gain": 0.14109217241369992,
+   "pr_gain_ci95": [
+    0.04255565926789442,
+    0.24236336316258508
+   ],
+   "pr_gain_se": 0.05108848325935231,
+   "decisions_where_ranking_differs": 115
+  },
+  "priming": {
+   "n": 2453,
+   "n_games": 414,
+   "pr_cubeless_rank": 1.6506960266086697,
+   "pr_cubeful_rank": 1.6156014456674281,
+   "pr_gain": 0.03509458094124132,
+   "pr_gain_ci95": [
+    -0.0991624081840532,
+    0.16388692909278155
+   ],
+   "pr_gain_se": 0.06687422885861065,
+   "decisions_where_ranking_differs": 77
+  },
+  "purerace": {
+   "n": 1816,
+   "n_games": 265,
+   "pr_cubeless_rank": 0.14235117580991324,
+   "pr_cubeful_rank": 0.14204379833286393,
+   "pr_gain": 0.00030737747704930247,
+   "pr_gain_ci95": [
+    0.0,
+    0.0009719051044484036
+   ],
+   "pr_gain_se": 0.00030722185989752855,
+   "decisions_where_ranking_differs": 1
+  },
+  "racing": {
+   "n": 3120,
+   "n_games": 405,
+   "pr_cubeless_rank": 1.4356790670674227,
+   "pr_cubeful_rank": 1.465809636789208,
+   "pr_gain": -0.030130569721785523,
+   "pr_gain_ci95": [
+    -0.13038244117437264,
+    0.0780144692434866
+   ],
+   "pr_gain_se": 0.05291113758155802,
+   "decisions_where_ranking_differs": 52
+  }
+ },
+ "by_tier": {
+  "3P": {
+   "n": 6156,
+   "n_games": 497,
+   "pr_cubeless_rank": 0.4470279016528978,
+   "pr_cubeful_rank": 0.40543771884752083,
+   "pr_gain": 0.041590182805376984,
+   "pr_gain_ci95": [
+    -0.029641092608852865,
+    0.11549777996145373
+   ],
+   "pr_gain_se": 0.03669775684269187,
+   "decisions_where_ranking_differs": 25
+  },
+  "3T": {
+   "n": 2842,
+   "n_games": 488,
+   "pr_cubeless_rank": 2.313896558817049,
+   "pr_cubeful_rank": 2.270554794348582,
+   "pr_gain": 0.043341764468466375,
+   "pr_gain_ci95": [
+    -0.09481562476046541,
+    0.18858193232899803
+   ],
+   "pr_gain_se": 0.07206396754508082,
+   "decisions_where_ranking_differs": 90
+  },
+  "rollout": {
+   "n": 5695,
+   "n_games": 475,
+   "pr_cubeless_rank": 1.9270640150861504,
+   "pr_cubeful_rank": 1.8010621706904124,
+   "pr_gain": 0.126001844395738,
+   "pr_gain_ci95": [
+    0.05448863694921318,
+    0.20289974122048315
+   ],
+   "pr_gain_se": 0.03786181814937823,
+   "decisions_where_ranking_differs": 257
+  }
+ }
+}
