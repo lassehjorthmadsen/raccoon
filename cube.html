@@ -223,6 +223,7 @@ window.Quarto = {
   <li><a href="#exp024-results" id="toc-exp024-results" class="nav-link" data-scroll-target="#exp024-results">exp024, re-scored</a></li>
   <li><a href="#what-raccoon-built" id="toc-what-raccoon-built" class="nav-link" data-scroll-target="#what-raccoon-built">What Raccoon built</a></li>
   <li><a href="#exp025-results" id="toc-exp025-results" class="nav-link" data-scroll-target="#exp025-results">exp025, cube-aware checker play</a></li>
+  <li><a href="#exp026-results" id="toc-exp026-results" class="nav-link" data-scroll-target="#exp026-results">exp026, against the real GNU Backgammon</a></li>
   <li><a href="#what-this-page-does-not-establish" id="toc-what-this-page-does-not-establish" class="nav-link" data-scroll-target="#what-this-page-does-not-establish">What this page does not establish</a></li>
   <li><a href="#still-open" id="toc-still-open" class="nav-link" data-scroll-target="#still-open">Still open</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
@@ -252,8 +253,8 @@ window.Quarto = {
 </header>
 
 
-<p>Rick Janowski’s cube-life-index model is how a cubeless evaluation becomes a cube decision. GNU Backgammon and eXtreme Gammon both ship it, and its published constant — <span class="math inline">\(x = 0.68\)</span> for contact positions — has stood essentially unchanged since 1993. It is rarely <em>measured</em>, because measuring it needs observed cubeful equities for a large and varied set of real positions.</p>
-<p>Those observations were already on disk. The BGSage money benchmark rolled positions out to completion with the cube live, recording for each candidate a <strong>measured cubeful equity</strong> next to the cubeless probabilities for the same position — and the cube sits in a different place across them, which is what makes the model separable. This page tests it on 33,395 of those, then reports what happened when Raccoon implemented it: <a href="#exp024-results">exp024</a> measures the model, and <a href="#exp025-results">exp025</a> ships it into move selection and measures what that buys.</p>
+<p>Rick Janowski’s cube-life-index model is how a cubeless evaluation becomes a cube decision. GNU Backgammon and eXtreme Gammon both ship it, and the constant they use — <span class="math inline">\(x = 0.68\)</span> for contact positions — has stood essentially unchanged for as long as they have shipped it. Janowski’s own 1993 paper does not give 0.68; he estimates <span class="math inline">\(x\)</span> at between <span class="math inline">\(\tfrac12\)</span> and <span class="math inline">\(\tfrac34\)</span>, “with <span class="math inline">\(\tfrac23\)</span> being a normal value”. The 0.68 is GNU Backgammon’s. It is rarely <em>measured</em>, because measuring it needs observed cubeful equities for a large and varied set of real positions.</p>
+<p>Those observations were already on disk. The BGSage money benchmark rolled positions out to completion with the cube live, recording for each candidate a <strong>measured cubeful equity</strong> next to the cubeless probabilities for the same position — and the cube sits in a different place across them, which is what makes the model separable. This page tests it on 33,395 of those, then reports what happened when Raccoon implemented it: <a href="#exp024-results">exp024</a> measures the model, <a href="#exp025-results">exp025</a> ships it into move selection and measures what that buys, and <a href="#exp026-results">exp026</a> plays it against real GNU Backgammon.</p>
 <p><strong>The short answer is that the model is in good shape and the conventional constant survives.</strong> Two of the three equity formulas are correct at <span class="math inline">\(x = 0.68\)</span> to within 0.018 of a point. The third, for a centred cube, wants a much higher index — but adopting it buys nothing where the parameter is actually read, and we cannot explain it, so we are not acting on it. What <em>is</em> worth fixing is structural: use the piecewise form, respect the provable bounds, and floor <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> at one point.</p>
 <p>Two numbers this page used to report were wrong, and both errors are the same kind, so they are worth stating rather than quietly correcting. Reference quality is recorded in <strong>two</strong> fields, not one: filtering on <code>eval_level</code> alone admitted truncated rollouts whose leaves call Janowski. Against references that include them, retuning the index looks worth <strong>+1.167 ± 0.271</strong> cube PR. Against references that are actually measurements it is worth <strong>+0.128 ± 1.242</strong> — nothing. <a href="#how-to-measure-it">The measurement section</a> sets out the filter that separates them.</p>
 <p>Everything here is money play with the Jacoby rule and beavers on, matching the benchmark. Match play, where the score moves every take point, is out of scope and is not calibrated by anything below.</p>
@@ -270,8 +271,8 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p><span class="math display">\[E_U = C_V\left[p(W + L + 0.5x) - L - 0.5x\right] \qquad \text{opponent owns it}\]</span></p>
 <p><span class="math display">\[E_C = \frac{4C_V}{4-x}\left[p(W + L + 0.5x) - L - 0.25x\right] \qquad \text{centred}\]</span></p>
 <p>Every take point, cash point and doubling point in the paper is derived by setting two of these equal. So the model stands or falls on them, and — crucially — <strong>they can fail independently</strong>. That is what makes the measurement below possible, and it is not something a cube decision can reveal: a double compares only two locations at a time.</p>
-<p>One property of <span class="math inline">\(x\)</span> matters later. It is meant to be a <strong>physical property of the position</strong> — its volatility. Janowski derives it as proportional to the cube-life of the position and inversely proportional to its long-term volatility. The same position has the same volatility whoever holds the cube, so <span class="math inline">\(x\)</span> cannot legitimately depend on where the cube sits.</p>
-<div id="3dc98e80" class="cell" data-execution_count="2">
+<p>One property of <span class="math inline">\(x\)</span> matters later: it describes <strong>the position, not the cube</strong>. Janowski names three things that set it — how far the position is from the optimal doubling point, how wide the doubling window is, and how volatile the position is — and states that the cube-ownership bonus is “proportional to the degree of cube-life of the position (and inversely proportional to its long-term volatility)”, with <span class="math inline">\(x = 0\)</span> at maximum volatility and <span class="math inline">\(x = 1\)</span> at zero volatility. He does not derive a value for it; he writes that “finding accurate values for <span class="math inline">\(x\)</span> is a difficult, almost impossible, task” and estimates typical ones. All three factors are properties of the position, and a position has the same three whoever holds the cube, so <span class="math inline">\(x\)</span> cannot legitimately depend on where the cube sits.</p>
+<div id="17a530a2" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -459,7 +460,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p>An independent check that the method is sound rather than the model being uniformly bad: let the index float against the take/pass line alone, told nothing about what it should be.</p>
 <p>Across all 282 measured cube positions the take/pass index comes out at <strong>0.700</strong>, against GNU Backgammon’s published 0.68. Within pure races it comes out at 0.515, against GNUBG’s documented 0.60 race constant.</p>
 <p>The measurement reproduces both published constants without being told either.</p>
-<div id="215a99a4" class="cell" data-execution_count="6">
+<div id="76b4367c" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -470,7 +471,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 </div>
 <p>Averages hide where the failures are. Binning the same errors by observed equity, with intervals clustered on the checker decision — candidates within one decision are the same position played different ways, and clustering roughly doubles the intervals against treating them as independent:</p>
-<div id="9002cd67" class="cell" data-execution_count="7">
+<div id="df39a9aa" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -482,7 +483,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 <p><strong><span class="math inline">\(E_U\)</span> is correct wherever it has weight</strong> — on zero from about <span class="math inline">\(-0.2\)</span> equity upward. <strong><span class="math inline">\(E_O\)</span> is correct until the position is nearly won</strong>, then sags through the band where a cashing decision is live and snaps back above <span class="math inline">\(+1.0\)</span>. That band is thin, which is why the aggregate barely notices it. <strong><span class="math inline">\(E_C\)</span> is wrong in both directions</strong> — positive when the position is losing, negative when it is winning, crossing zero near even equity. A residual that changes sign cannot be removed by any constant, any index, or any offset.</p>
 <p>The <span class="math inline">\(E_O\)</span> sag has a mechanism worth naming, because it is a <em>modelling</em> choice rather than a measurement question. The model blends a dead branch with a live branch in fixed proportion, <span class="math inline">\((1-x)E_{\text{dead}} + xE_{\text{live}}\)</span>. As a position approaches its cash point the live branch has reached its ceiling of <span class="math inline">\(+1\)</span> while the dead branch is still only <span class="math inline">\(2p-1\)</span>, so the blend drags the answer down by roughly <span class="math inline">\((1-x)\)</span> times the gap between them. But a position near its cash point does not <em>need</em> future cube efficiency — you double and your opponent passes. A fixed weight is defensible in the middle of the range and not near the boundary.</p>
-<div id="8514d520" class="cell" data-execution_count="8">
+<div id="ed87ce36" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -737,6 +738,127 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p>Is cube-aware checker ranking worth anything? → <strong>Yes, but little of what was available.</strong> Cubeful ranking beats cubeless ranking by +0.075 PR (95% CI [+0.025, +0.126], n = 14,693, bootstrapped over 499 games) — about 22% of the cube-blind floor, and all of it with the cube centred.</p>
 </blockquote>
 </section>
+<section id="exp026-results" class="level2">
+<h2 class="anchored" data-anchor-id="exp026-results">exp026, against the real GNU Backgammon</h2>
+<p>exp025 measured the cube on a static benchmark and reported no head-to-head, because there was no opponent that could play one. This experiment supplies the opponent and runs the match.</p>
+<section id="the-package-cannot-play-a-cubeful-game-the-binary-can" class="level3">
+<h3 class="anchored" data-anchor-id="the-package-cannot-play-a-cubeful-game-the-binary-can">The package cannot play a cubeful game; the binary can</h3>
+<p>Every Raccoon result before this was measured against <code>gnubg-nn</code>, the Python package that wraps GNU Backgammon’s networks. It cannot make a money cube decision at all — <code>evaluate_cube_decision</code> raises <em>Not implemented for money</em>, its binding covering match play only — and it ranks checker plays on cubeless equity. Supplying the missing half with our own Janowski layer produces a match in which <strong>both sides use the same cube model</strong>, while real GNU Backgammon uses the closed form only at the leaves of a search that decides the cube at every node. That opponent is weaker than the real one on exactly the quantity a cube experiment measures.</p>
+<p>The installed <code>gnubg</code> binary does the whole job. <code>raccoon/eval/gnubg_cli.py</code> drives it as an oracle: it is asked what to play or what to do with the cube, and nothing else, so Raccoon keeps running the game and rolling the dice — which is what allows the variance-reduced estimator to intercept every pre-roll state. Positions are set by named commands (<code>set board</code> with GNU Backgammon’s own Position ID, then <code>set turn</code>, <code>set dice</code>, <code>set cube value</code>, <code>set cube owner</code>) rather than by the FIBS <code>board:</code> line, which is about fifty unlabelled integers whose field order we could not obtain from any reachable copy of the specification.</p>
+<p>Two checks stand behind every number below. The Position ID GNU Backgammon echoes back must equal the one sent, which tests the encoding against itself and so does not depend on either engine’s evaluation. And every move it returns is converted to a resulting board that must match one of the mover’s legal turn outcomes, so a notation error stops the run instead of silently playing a different move; this was exercised over whole games, 105 turns with no mismatches, including bar entries, hits, bear-offs, doubles and dances.</p>
+</section>
+<section id="the-two-gnu-backgammons-are-different-networks-and-it-does-not-matter" class="level3">
+<h3 class="anchored" data-anchor-id="the-two-gnu-backgammons-are-different-networks-and-it-does-not-matter">The two GNU Backgammons are different networks, and it does not matter</h3>
+<p>They ship different weights. The topology is identical — six networks, race 214-128-5, crashed and contact 250-128-5, and three pruning networks — but the trained values differ: the package’s file declares itself version 1.01, the binary expects 1.00, rejects it, and rejects its contents even when the version string is changed. Their 0-ply probabilities differ by up to about 0.003.</p>
+<p>Since every earlier Raccoon number was measured against the package, they were played against each other, cubeless, at 0-ply, which is the setting exp019 and exp020 used:</p>
+<p>The binary scores <strong>-0.0026 ± 0.0047</strong> ppg against the package (n = 6,000, variance-reduced). The interval covers zero and excludes anything larger than about 0.005 ppg either way.</p>
+<p>The two are the same opponent at the precision that matters, an order of magnitude below exp020’s +0.0472 edge, so earlier results can be quoted alongside this one without a correction term.</p>
+</section>
+<section id="hypothesis-metric-and-power" class="level3">
+<h3 class="anchored" data-anchor-id="hypothesis-metric-and-power">Hypothesis, metric and power</h3>
+<p><strong>Hypothesis.</strong> The shipped net (exp018/ep22) with the Janowski cube layer wins at non-Jacoby cubeful money against real GNU Backgammon at 2-ply.</p>
+<p><strong>Primary metric.</strong> Variance-reduced cubeful ppg from Raccoon’s point of view, seats alternating, 95% interval.</p>
+<p><strong>Power.</strong> A 600-game pilot read only the standard deviations; its ppg was never examined and is not reported.</p>
+<p>It gave sd_raw 2.907 and sd_vr 0.433, the latter within a thousandth of the 0.434 exp025 measured against the stand-in — the estimator does not depend on which opponent it watches. n was then fixed at 7,206 for a half-width of 0.01 ppg, matching the precision exp019 and exp020 reached, and not revisited.</p>
+</section>
+<section id="result" class="level3">
+<h3 class="anchored" data-anchor-id="result">Result</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>quantity</th>
+<th style="text-align: right;">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>variance-reduced ppg</strong></td>
+<td style="text-align: right;"><strong>-0.0375 ± 0.0109</strong></td>
+</tr>
+<tr class="even">
+<td>raw ppg</td>
+<td style="text-align: right;">+0.0616 ± 0.0703</td>
+</tr>
+<tr class="odd">
+<td>games</td>
+<td style="text-align: right;">7,206</td>
+</tr>
+<tr class="even">
+<td>games won</td>
+<td style="text-align: right;">3,557 (49.4%)</td>
+</tr>
+<tr class="odd">
+<td>standard deviation, raw / reduced</td>
+<td style="text-align: right;">3.046 / 0.473 (6.45x)</td>
+</tr>
+<tr class="even">
+<td>cube turned</td>
+<td style="text-align: right;">5,045 of 7,206 games</td>
+</tr>
+<tr class="odd">
+<td>games ending in a pass</td>
+<td style="text-align: right;">43.4%</td>
+</tr>
+<tr class="even">
+<td>Raccoon doubled</td>
+<td style="text-align: right;">4,589 of 98,067 opportunities (4.7%)</td>
+</tr>
+<tr class="odd">
+<td>Raccoon took</td>
+<td style="text-align: right;">2,850 of 4,565 offers (62.4%)</td>
+</tr>
+<tr class="even">
+<td>gnubg subprocess restarts</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Raccoon loses, and the interval is clear of zero.</strong> Read against the two comparable numbers on the same network, the result is consistent rather than surprising: Raccoon beats GNU Backgammon at 0-ply and loses to it at 2-ply.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>comparison</th>
+<th>opponent</th>
+<th>cube</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exp020</td>
+<td>GNUBG 0-ply (package)</td>
+<td>none</td>
+<td><strong>+0.0472 ± 0.0027</strong></td>
+</tr>
+<tr class="even">
+<td>exp011b</td>
+<td>GNUBG 2-ply (package), net ep3</td>
+<td>none</td>
+<td>−0.064 ± 0.046</td>
+</tr>
+<tr class="odd">
+<td><strong>exp026</strong></td>
+<td><strong>GNUBG 2-ply (binary)</strong></td>
+<td><strong>live</strong></td>
+<td><strong>see above</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>goal.md</code> asks for a positive average win against GNU Backgammon at world class settings with the interval above zero. That is not met.</p>
+</section>
+<section id="the-luck-diagnostic-and-why-the-result-stands" class="level3">
+<h3 class="anchored" data-anchor-id="the-luck-diagnostic-and-why-the-result-stands">The luck diagnostic, and why the result stands</h3>
+<p>Accumulated dice luck averaged +0.0991 over the run (t = +2.87), where zero is expected. This does <strong>not</strong> bias the estimate: <code>vr = raw - luck</code> and the luck terms have mean zero by construction whatever a given sample does, so the reduced mean estimates the same quantity the raw mean does. What a large value says is that the dice in this sample favoured Raccoon by about 0.10 ppg, which is exactly the variance the estimator removes — the raw and reduced figures differ by precisely that amount.</p>
+<p>The nominal significance of that t is unreliable, because luck is scaled by the cube value and is therefore heavy-tailed: the median absolute luck is 1.88, the 99th percentile 8.52, the maximum 44.65. The 111 games reaching a cube of 8 or more carry a mean luck of +2.17 against +0.07 for the rest. Dropping them does not change the conclusion: the reduced mean over the remaining 7,095 games is -0.0356.</p>
+</section>
+<section id="what-this-does-not-separate" class="level3">
+<h3 class="anchored" data-anchor-id="what-this-does-not-separate">What this does not separate</h3>
+<p>The result is a single number for two changes at once — Raccoon’s checker play against a 2-ply opponent, and Raccoon’s cube against a cubeful one. There is no matching cubeless measurement of ep22 against the binary at 2-ply, so the deficit cannot be attributed. If ep22 is close to −0.037 cubeless at 2-ply, the cube layer costs little and the gap is checker play; if it is near zero cubeless, the cube accounts for the whole of it. Those point at different next experiments — better evaluation, or cubeful search on our side — and this experiment cannot choose between them.</p>
+<blockquote class="blockquote">
+<p>Does Raccoon beat real GNU Backgammon at 2-ply at non-Jacoby cubeful money? → <strong>No.</strong> ep22 with the Janowski cube layer scores -0.0375 ± 0.0109 ppg (variance-reduced, n = 7,206), against <strong>+0.0472 ± 0.0027</strong> for the same network against GNU Backgammon at 0-ply cubeless. The deficit is not yet split between checker play and the cube.</p>
+</blockquote>
+</section>
+</section>
 <section id="what-this-page-does-not-establish" class="level2">
 <h2 class="anchored" data-anchor-id="what-this-page-does-not-establish">What this page does not establish</h2>
 <ul>
@@ -748,7 +870,8 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <li><strong>The benchmark’s cube positions are selected for being non-trivial</strong>, so an index fitted on them is tuned for close decisions and should not be quoted as a general-purpose constant.</li>
 <li><strong>Coordinate descent on a grid</strong> finds a coordinate-wise minimum, not a certified global one.</li>
 <li><strong>exp025’s gain is measured entirely under Jacoby.</strong> It lands wholly in the centred-cube bucket, which is the one the rule alters and the one whose rollout continuations were played boldly because of it. The Jacoby-clean owned-cube decisions show no effect at all, so the result transfers to non-Jacoby money by assumption, not by measurement.</li>
-<li><strong>Nothing here has been tested in play.</strong> Every number on this page is scored against static references. No cubeful game against a real opponent has been played, because until exp026 there is no opponent that makes money cube decisions.</li>
+<li><strong>exp026 is a single number covering two changes.</strong> It compares Raccoon’s checker play <em>and</em> its cube against a 2-ply cubeful opponent at once, with no matching cubeless measurement at the same depth, so the deficit cannot be split between the two.</li>
+<li><strong>The opponent changed between exp020 and exp026</strong> — from the <code>gnubg-nn</code> package to the installed binary. They were measured against each other and are indistinguishable, but that measurement was made cubeless at 0-ply, not at the 2-ply setting exp026 runs.</li>
 </ul>
 </section>
 <section id="still-open" class="level2">
@@ -756,10 +879,11 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <ul>
 <li><strong>The centred index.</strong> Two readings, no way to separate them here; it needs a reference not generated by a 0.68 policy.</li>
 <li><strong>Whether an index per cube <em>value</em> is real.</strong> A centred cube is always a 1-cube here, so cube value and cube location tell the same story and cannot be told apart.</li>
-<li><strong>Volatility measured rather than proxied.</strong> Janowski derives <span class="math inline">\(x\)</span> as inversely proportional to volatility, and it can be measured directly — the spread of the 0-ply value over the 21 next rolls, reusing <code>raccoon/eval/luck.py</code> and the roll table in <code>raccoon/search/expectimax.py</code>. A cheap proxy does not work: the residual correlates with contact at only <span class="math inline">\(-0.15\)</span>, with no monotone trend, which is precisely why the direct measurement is the experiment worth running.</li>
+<li><strong>Volatility measured rather than proxied — but it is only one of three factors.</strong> Janowski ties <span class="math inline">\(x\)</span> inversely to volatility, and volatility can be measured directly: the spread of the 0-ply value over the 21 next rolls, reusing <code>raccoon/eval/luck.py</code> and the roll table in <code>raccoon/search/expectimax.py</code>. Note before building it that volatility is the third of the three factors he names, and that the two constants actually in use do not follow from it alone — a race is <em>less</em> volatile than a contact position yet gets the <em>lower</em> index (0.60 against 0.68). His second factor, the width of the doubling window, explains that ordering and volatility does not, so a volatility-only measurement would model part of <span class="math inline">\(x\)</span> and miss the part that distinguishes the two cases we already treat differently. A cheap proxy does not work either: the residual correlates with contact at only <span class="math inline">\(-0.15\)</span>, with no monotone trend, which is precisely why the direct measurement is the experiment worth running.</li>
 <li><strong>Cubeful search.</strong> GNUBG does not use the closed form as its cube engine — it uses it as a leaf evaluator inside a search that makes cube decisions at every node. The gap that refitting appeared to close against 3-ply references <em>is</em> that search, and running it is the principled way to close it. This is also why a Janowski-only opponent cannot stand in for GNUBG: it is weaker than the real thing on exactly the dimension being tested.</li>
-<li><strong>The double/take decision in play.</strong> exp025 shipped cube-aware <em>move selection</em> and measured it; <code>cube_action</code> is wired into an arena but its value has never been measured against an opponent that can answer a money cube.</li>
-<li><strong>A real cubeful opponent (exp026).</strong> <code>/usr/games/gnubg</code> 1.07 answers money cube decisions and cube-aware checker play, driven by Position ID plus named <code>set turn</code> / <code>set dice</code> / <code>set cube</code> commands, at about 71 ms per 2-ply decision. BGSage (<code>../bgsage</code>) exposes a money <code>cube_action</code> behind a C++ extension and is the stronger target. Both want the same harness, so both go in one experiment.</li>
+<li><strong>Splitting exp026’s deficit between checker play and the cube.</strong> The single most useful next measurement: ep22 against the binary at 2-ply, <strong>cubeless</strong>, on the same estimator. It decides whether the next experiment should improve evaluation or add cubeful search, and the harness for it already exists.</li>
+<li><strong>Cubeful search on Raccoon’s side.</strong> GNU Backgammon decides the cube inside its 2-ply search while Raccoon applies the closed form once at the root, so Raccoon is the weaker side on cube decisions by construction. exp026 measures what the whole gap costs; it does not say how much of it this accounts for.</li>
+<li><strong>BGSage as an opponent.</strong> <code>../bgsage</code> exposes a money <code>cube_action</code> behind a C++ extension that is not built here, and is the stronger target. It reuses exp026’s harness, but “beats GNU Backgammon” and “beats BGSage” are separate questions and get separate experiments.</li>
 </ul>
 </section>
 <section id="references" class="level2">
