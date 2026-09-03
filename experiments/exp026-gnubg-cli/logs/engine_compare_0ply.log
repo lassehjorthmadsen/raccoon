@@ -1,0 +1,6 @@
+[binary_vs_package_0ply] cubeless, both engines at ply 0, n=6000
+  raw ppg (binary's POV) = +0.0208 (95% CI ±0.0345)
+  VR  ppg               = -0.0026 (95% CI ±0.0047)   <- 7.42x tighter
+  mean luck +0.0235 (t=+1.34, should be ~0)
+  33.7 min, 1.01 s/game/worker, gnubg restarts=0
+  wrote experiments/exp026-gnubg-cli/results/binary_vs_package_0ply.json

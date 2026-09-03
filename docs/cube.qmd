@@ -6,9 +6,11 @@ jupyter: python3
 ---
 
 Rick Janowski's cube-life-index model is how a cubeless evaluation becomes a cube
-decision. GNU Backgammon and eXtreme Gammon both ship it, and its published
-constant — $x = 0.68$ for contact positions — has stood essentially unchanged
-since 1993. It is rarely *measured*, because measuring it needs observed cubeful
+decision. GNU Backgammon and eXtreme Gammon both ship it, and the constant they use —
+$x = 0.68$ for contact positions — has stood essentially unchanged for as long
+as they have shipped it. Janowski's own 1993 paper does not give 0.68; he
+estimates $x$ at between $\tfrac12$ and $\tfrac34$, "with $\tfrac23$ being a
+normal value". The 0.68 is GNU Backgammon's. It is rarely *measured*, because measuring it needs observed cubeful
 equities for a large and varied set of real positions.
 
 Those observations were already on disk. The BGSage money benchmark rolled
@@ -16,9 +18,9 @@ positions out to completion with the cube live, recording for each candidate a
 **measured cubeful equity** next to the cubeless probabilities for the same
 position — and the cube sits in a different place across them, which is what
 makes the model separable. This page tests it on 33,395 of those, then reports what happened when Raccoon
-implemented it: [exp024](#exp024-results) measures the model, and
+implemented it: [exp024](#exp024-results) measures the model,
 [exp025](#exp025-results) ships it into move selection and measures what that
-buys.
+buys, and [exp026](#exp026-results) plays it against real GNU Backgammon.
 
 **The short answer is that the model is in good shape and the conventional
 constant survives.** Two of the three equity formulas are correct at $x = 0.68$
@@ -115,11 +117,17 @@ can fail independently**. That is what makes the measurement below possible, and
 it is not something a cube decision can reveal: a double compares only two
 locations at a time.
 
-One property of $x$ matters later. It is meant to be a **physical property of the
-position** — its volatility. Janowski derives it as proportional to the cube-life
-of the position and inversely proportional to its long-term volatility. The same
-position has the same volatility whoever holds the cube, so $x$ cannot
-legitimately depend on where the cube sits.
+One property of $x$ matters later: it describes **the position, not the cube**.
+Janowski names three things that set it — how far the position is from the
+optimal doubling point, how wide the doubling window is, and how volatile the
+position is — and states that the cube-ownership bonus is "proportional to the
+degree of cube-life of the position (and inversely proportional to its long-term
+volatility)", with $x = 0$ at maximum volatility and $x = 1$ at zero volatility.
+He does not derive a value for it; he writes that "finding accurate values for
+$x$ is a difficult, almost impossible, task" and estimates typical ones. All
+three factors are properties of the position, and a position has the same three
+whoever holds the cube, so $x$ cannot legitimately depend on where the cube
+sits.
 
 ```{python}
 #| echo: false
@@ -759,6 +767,177 @@ nowhere.
 > `{python} f"{OV['pr_gain'] / FLOOR['pr']:.0%}"` of the cube-blind floor, and all
 > of it with the cube centred.
 
+## exp026, against the real GNU Backgammon {#exp026-results}
+
+```{python}
+#| echo: false
+R26 = Path("../experiments/exp026-gnubg-cli/results")
+HEAD = json.loads((R26 / "ep22_vs_gnubg_cli_2ply.json").read_text())
+ENG = json.loads((R26 / "binary_vs_package_0ply.json").read_text())
+PILOT = json.loads((R26 / "pilot_sd.json").read_text())
+h_pts = np.array(HEAD["game_pts"]); h_luck = np.array(HEAD["game_luck"])
+h_cube = np.array(HEAD["game_cube"]); h_vr = h_pts - h_luck
+```
+
+exp025 measured the cube on a static benchmark and reported no head-to-head,
+because there was no opponent that could play one. This experiment supplies the
+opponent and runs the match.
+
+### The package cannot play a cubeful game; the binary can
+
+Every Raccoon result before this was measured against `gnubg-nn`, the Python
+package that wraps GNU Backgammon's networks. It cannot make a money cube
+decision at all — `evaluate_cube_decision` raises *Not implemented for money*,
+its binding covering match play only — and it ranks checker plays on cubeless
+equity. Supplying the missing half with our own Janowski layer produces a match
+in which **both sides use the same cube model**, while real GNU Backgammon uses
+the closed form only at the leaves of a search that decides the cube at every
+node. That opponent is weaker than the real one on exactly the quantity a cube
+experiment measures.
+
+The installed `gnubg` binary does the whole job. `raccoon/eval/gnubg_cli.py`
+drives it as an oracle: it is asked what to play or what to do with the cube, and
+nothing else, so Raccoon keeps running the game and rolling the dice — which is
+what allows the variance-reduced estimator to intercept every pre-roll state.
+Positions are set by named commands (`set board` with GNU Backgammon's own
+Position ID, then `set turn`, `set dice`, `set cube value`, `set cube owner`)
+rather than by the FIBS `board:` line, which is about fifty unlabelled integers
+whose field order we could not obtain from any reachable copy of the
+specification.
+
+Two checks stand behind every number below. The Position ID GNU Backgammon
+echoes back must equal the one sent, which tests the encoding against itself and
+so does not depend on either engine's evaluation. And every move it returns is
+converted to a resulting board that must match one of the mover's legal turn
+outcomes, so a notation error stops the run instead of silently playing a
+different move; this was exercised over whole games, 105 turns with no
+mismatches, including bar entries, hits, bear-offs, doubles and dances.
+
+### The two GNU Backgammons are different networks, and it does not matter
+
+They ship different weights. The topology is identical — six networks, race
+214-128-5, crashed and contact 250-128-5, and three pruning networks — but the
+trained values differ: the package's file declares itself version 1.01, the
+binary expects 1.00, rejects it, and rejects its contents even when the version
+string is changed. Their 0-ply probabilities differ by up to about 0.003.
+
+Since every earlier Raccoon number was measured against the package, they were
+played against each other, cubeless, at 0-ply, which is the setting exp019 and
+exp020 used:
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"The binary scores **{ENG['vr_ppg']:+.4f} ± {ENG['vr_ci95']:.4f}** ppg "
+      f"against the package (n = {ENG['games']:,}, variance-reduced). The "
+      f"interval covers zero and excludes anything larger than about "
+      f"{ENG['vr_ci95']:.3f} ppg either way.")
+```
+
+The two are the same opponent at the precision that matters, an order of
+magnitude below exp020's +0.0472 edge, so earlier results can be quoted
+alongside this one without a correction term.
+
+### Hypothesis, metric and power
+
+**Hypothesis.** The shipped net (exp018/ep22) with the Janowski cube layer wins
+at non-Jacoby cubeful money against real GNU Backgammon at 2-ply.
+
+**Primary metric.** Variance-reduced cubeful ppg from Raccoon's point of view,
+seats alternating, 95% interval.
+
+**Power.** A 600-game pilot read only the standard deviations; its ppg was never
+examined and is not reported.
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"It gave sd_raw {PILOT['raw_sd']:.3f} and sd_vr {PILOT['vr_sd']:.3f}, the "
+      f"latter within a thousandth of the {0.434:.3f} exp025 measured against the "
+      f"stand-in — the estimator does not depend on which opponent it watches. "
+      f"n was then fixed at {HEAD['games']:,} for a half-width of 0.01 ppg, "
+      f"matching the precision exp019 and exp020 reached, and not revisited.")
+```
+
+### Result
+
+```{python}
+#| echo: false
+#| output: asis
+print("| quantity | value |")
+print("|---|---:|")
+print(f"| **variance-reduced ppg** | **{HEAD['vr_ppg']:+.4f} ± {HEAD['vr_ci95']:.4f}** |")
+print(f"| raw ppg | {HEAD['raw_ppg']:+.4f} ± {HEAD['raw_ci95']:.4f} |")
+print(f"| games | {HEAD['games']:,} |")
+print(f"| games won | {HEAD['net_wins']:,} ({HEAD['win_pct']:.1f}%) |")
+print(f"| standard deviation, raw / reduced | {HEAD['raw_sd']:.3f} / {HEAD['vr_sd']:.3f} "
+      f"({HEAD['sd_ratio']:.2f}x) |")
+print(f"| cube turned | {HEAD['games_with_cube_turned']:,} of {HEAD['games']:,} games |")
+print(f"| games ending in a pass | {HEAD['drop_rate']:.1%} |")
+print(f"| Raccoon doubled | {HEAD['net_doubles']:,} of {HEAD['net_doubles_offered']:,} "
+      f"opportunities ({HEAD['net_double_rate']:.1%}) |")
+print(f"| Raccoon took | {HEAD['net_takes']:,} of {HEAD['net_takes_offered']:,} "
+      f"offers ({HEAD['net_take_rate']:.1%}) |")
+print(f"| gnubg subprocess restarts | {HEAD['gnubg_restarts']} |")
+```
+
+**Raccoon loses, and the interval is clear of zero.** Read against the two
+comparable numbers on the same network, the result is consistent rather than
+surprising: Raccoon beats GNU Backgammon at 0-ply and loses to it at 2-ply.
+
+| comparison | opponent | cube | result |
+|---|---|---|---|
+| exp020 | GNUBG 0-ply (package) | none | **+0.0472 ± 0.0027** |
+| exp011b | GNUBG 2-ply (package), net ep3 | none | −0.064 ± 0.046 |
+| **exp026** | **GNUBG 2-ply (binary)** | **live** | **see above** |
+
+`goal.md` asks for a positive average win against GNU Backgammon at world class
+settings with the interval above zero. That is not met.
+
+### The luck diagnostic, and why the result stands
+
+```{python}
+#| echo: false
+#| output: asis
+big = h_cube >= 8
+print(f"Accumulated dice luck averaged {HEAD['mean_luck']:+.4f} over the run "
+      f"(t = {HEAD['luck_t']:+.2f}), where zero is expected. This does **not** bias "
+      f"the estimate: `vr = raw - luck` and the luck terms have mean zero by "
+      f"construction whatever a given sample does, so the reduced mean estimates "
+      f"the same quantity the raw mean does. What a large value says is that the "
+      f"dice in this sample favoured Raccoon by about {HEAD['mean_luck']:.2f} ppg, "
+      f"which is exactly the variance the estimator removes — the raw and reduced "
+      f"figures differ by precisely that amount.")
+print()
+print(f"The nominal significance of that t is unreliable, because luck is scaled "
+      f"by the cube value and is therefore heavy-tailed: the median absolute luck "
+      f"is {np.median(np.abs(h_luck)):.2f}, the 99th percentile "
+      f"{np.quantile(np.abs(h_luck), 0.99):.2f}, the maximum "
+      f"{np.abs(h_luck).max():.2f}. The {int(big.sum())} games reaching a cube of 8 "
+      f"or more carry a mean luck of {h_luck[big].mean():+.2f} against "
+      f"{h_luck[~big].mean():+.2f} for the rest. Dropping them does not change the "
+      f"conclusion: the reduced mean over the remaining {int((~big).sum()):,} games "
+      f"is {h_vr[~big].mean():+.4f}.")
+```
+
+### What this does not separate
+
+The result is a single number for two changes at once — Raccoon's checker play
+against a 2-ply opponent, and Raccoon's cube against a cubeful one. There is no
+matching cubeless measurement of ep22 against the binary at 2-ply, so the deficit
+cannot be attributed. If ep22 is close to −0.037 cubeless at 2-ply, the cube
+layer costs little and the gap is checker play; if it is near zero cubeless, the
+cube accounts for the whole of it. Those point at different next experiments —
+better evaluation, or cubeful search on our side — and this experiment cannot
+choose between them.
+
+> Does Raccoon beat real GNU Backgammon at 2-ply at non-Jacoby cubeful money? →
+> **No.** ep22 with the Janowski cube layer scores
+> `{python} f"{HEAD['vr_ppg']:+.4f} ± {HEAD['vr_ci95']:.4f}"` ppg
+> (variance-reduced, n = `{python} f"{HEAD['games']:,}"`), against
+> **+0.0472 ± 0.0027** for the same network against GNU Backgammon at 0-ply
+> cubeless. The deficit is not yet split between checker play and the cube.
+
 ## What this page does not establish
 
 * **The population is not the target.** These are 500 games of one engine playing
@@ -793,10 +972,14 @@ nowhere.
   continuations were played boldly because of it. The Jacoby-clean owned-cube
   decisions show no effect at all, so the result transfers to non-Jacoby money by
   assumption, not by measurement.
-* **Nothing here has been tested in play.** Every number on this page is scored
-  against static references. No cubeful game against a real opponent has been
-  played, because until exp026 there is no opponent that makes money cube
-  decisions.
+* **exp026 is a single number covering two changes.** It compares Raccoon's
+  checker play *and* its cube against a 2-ply cubeful opponent at once, with no
+  matching cubeless measurement at the same depth, so the deficit cannot be split
+  between the two.
+* **The opponent changed between exp020 and exp026** — from the `gnubg-nn`
+  package to the installed binary. They were measured against each other and are
+  indistinguishable, but that measurement was made cubeless at 0-ply, not at the
+  2-ply setting exp026 runs.
 
 ## Still open
 
@@ -805,11 +988,19 @@ nowhere.
 * **Whether an index per cube *value* is real.** A centred cube is always a 1-cube
   here, so cube value and cube location tell the same story and cannot be told
   apart.
-* **Volatility measured rather than proxied.** Janowski derives $x$ as inversely
-  proportional to volatility, and it can be measured directly — the spread of the
-  0-ply value over the 21 next rolls, reusing `raccoon/eval/luck.py` and the roll
-  table in `raccoon/search/expectimax.py`. A cheap proxy does not work: the
-  residual correlates with contact at only $-0.15$, with no monotone trend, which
+* **Volatility measured rather than proxied — but it is only one of three
+  factors.** Janowski ties $x$ inversely to volatility, and volatility can be
+  measured directly: the spread of the 0-ply value over the 21 next rolls,
+  reusing `raccoon/eval/luck.py` and the roll table in
+  `raccoon/search/expectimax.py`. Note before building it that volatility is the
+  third of the three factors he names, and that the two constants actually in use
+  do not follow from it alone — a race is *less* volatile than a contact position
+  yet gets the *lower* index (0.60 against 0.68). His second factor, the width of
+  the doubling window, explains that ordering and volatility does not, so a
+  volatility-only measurement would model part of $x$ and miss the part that
+  distinguishes the two cases we already treat differently. A cheap proxy does not
+  work either: the residual correlates with contact at only $-0.15$, with no
+  monotone trend, which
   is precisely why the direct measurement is the experiment worth running.
 * **Cubeful search.** GNUBG does not use the closed form as its cube engine — it
   uses it as a leaf evaluator inside a search that makes cube decisions at every
@@ -817,15 +1008,18 @@ nowhere.
   search, and running it is the principled way to close it. This is also why a
   Janowski-only opponent cannot stand in for GNUBG: it is weaker than the real
   thing on exactly the dimension being tested.
-* **The double/take decision in play.** exp025 shipped cube-aware *move
-  selection* and measured it; `cube_action` is wired into an arena but its value
-  has never been measured against an opponent that can answer a money cube.
-* **A real cubeful opponent (exp026).** `/usr/games/gnubg` 1.07 answers money cube
-  decisions and cube-aware checker play, driven by Position ID plus named
-  `set turn` / `set dice` / `set cube` commands, at about 71 ms per 2-ply
-  decision. BGSage (`../bgsage`) exposes a money `cube_action` behind a C++
-  extension and is the stronger target. Both want the same harness, so both go in
-  one experiment.
+* **Splitting exp026's deficit between checker play and the cube.** The single
+  most useful next measurement: ep22 against the binary at 2-ply, **cubeless**, on
+  the same estimator. It decides whether the next experiment should improve
+  evaluation or add cubeful search, and the harness for it already exists.
+* **Cubeful search on Raccoon's side.** GNU Backgammon decides the cube inside
+  its 2-ply search while Raccoon applies the closed form once at the root, so
+  Raccoon is the weaker side on cube decisions by construction. exp026 measures
+  what the whole gap costs; it does not say how much of it this accounts for.
+* **BGSage as an opponent.** `../bgsage` exposes a money `cube_action` behind a
+  C++ extension that is not built here, and is the stronger target. It reuses
+  exp026's harness, but "beats GNU Backgammon" and "beats BGSage" are separate
+  questions and get separate experiments.
 
 ## References
 

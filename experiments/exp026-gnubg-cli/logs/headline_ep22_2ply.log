@@ -1,0 +1,9 @@
+[ep22_vs_gnubg_cli_2ply] experiments/exp018-distill/checkpoints/ep22.pt
+  cubeful money (no Jacoby) vs gnubg-cli-2ply, n=7206 games, 3557 wins (49.4%), 265.0 min
+  raw ppg = +0.0616  (95% CI ±0.0703)
+  VR  ppg = -0.0375  (95% CI ±0.0109)   <- 6.45x tighter (= 41.6x the games), cv=cubeful
+  mean luck = +0.0991 (t=+2.87, should be ~0)   corr(raw,luck) = 0.988   beta_hat = 1.026
+  cube: mean terminal 2.02, turned in 5045/7206 games, drop rate 43.4%, distribution {1: 2161, 2: 4193, 4: 741, 8: 99, 16: 9, 32: 3}
+  net doubled 4589/98067 opportunities, took 2850/4565 offers
+  gnubg subprocess restarts: 0
+  wrote experiments/exp026-gnubg-cli/results/ep22_vs_gnubg_cli_2ply.json
