@@ -81,9 +81,21 @@ class GameState:
         """
         return int(self._state.board(player, index))
 
-    def board_from_perspective(self) -> BoardView:
-        """Return the board from the current player's perspective."""
-        cp = self.current_player()
+    def board_from_perspective(self, player: int | None = None) -> BoardView:
+        """Return the board from ``player``'s perspective (default: to move).
+
+        ``player`` has to be given explicitly at a **terminal** state, where
+        ``current_player()`` is OpenSpiel's TERMINAL sentinel rather than a seat
+        index and passing it to the C++ board accessor segfaults. Reading the
+        final position is exactly what a caller matching a bear-off that ended
+        the game needs to do.
+        """
+        cp = self.current_player() if player is None else player
+        if cp not in (0, 1):
+            raise ValueError(
+                f"board_from_perspective needs a seat index, got {cp}; pass "
+                "player= explicitly at chance or terminal states"
+            )
         op = 1 - cp
         state = self._state
 
