@@ -223,9 +223,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
   <ul class="collapse">
   <li><a href="#raccoon.eval.luck.candidate_board_equity" id="toc-raccoon.eval.luck.candidate_board_equity" class="nav-link" data-scroll-target="#raccoon.eval.luck.candidate_board_equity">candidate_board_equity</a></li>
+  <li><a href="#raccoon.eval.luck.pre_roll_cubeful_values" id="toc-raccoon.eval.luck.pre_roll_cubeful_values" class="nav-link" data-scroll-target="#raccoon.eval.luck.pre_roll_cubeful_values">pre_roll_cubeful_values</a></li>
   <li><a href="#raccoon.eval.luck.pre_roll_luck" id="toc-raccoon.eval.luck.pre_roll_luck" class="nav-link" data-scroll-target="#raccoon.eval.luck.pre_roll_luck">pre_roll_luck</a></li>
   <li><a href="#raccoon.eval.luck.pre_roll_values" id="toc-raccoon.eval.luck.pre_roll_values" class="nav-link" data-scroll-target="#raccoon.eval.luck.pre_roll_values">pre_roll_values</a></li>
   <li><a href="#raccoon.eval.luck.python_roll_value" id="toc-raccoon.eval.luck.python_roll_value" class="nav-link" data-scroll-target="#raccoon.eval.luck.python_roll_value">python_roll_value</a></li>
+  <li><a href="#raccoon.eval.luck.roll_probs_table" id="toc-raccoon.eval.luck.roll_probs_table" class="nav-link" data-scroll-target="#raccoon.eval.luck.roll_probs_table">roll_probs_table</a></li>
   <li><a href="#raccoon.eval.luck.roll_value_table" id="toc-raccoon.eval.luck.roll_value_table" class="nav-link" data-scroll-target="#raccoon.eval.luck.roll_value_table">roll_value_table</a></li>
   </ul></li>
   </ul></li>
@@ -273,16 +275,24 @@ luck    = h(s, d_actual) - m(s)             -- the luck of the roll that happene
 <td>GNUBG’s equity of decision state <code>state</code> from the side-to-move’s POV.</td>
 </tr>
 <tr class="even">
+<td><a href="#raccoon.eval.luck.pre_roll_cubeful_values">pre_roll_cubeful_values</a></td>
+<td>:func:<code>pre_roll_values</code>, with <code>h</code> a cubeful equity at cube value 1.</td>
+</tr>
+<tr class="odd">
 <td><a href="#raccoon.eval.luck.pre_roll_luck">pre_roll_luck</a></td>
 <td><code>(luck, mean)</code> for <code>chance_action</code> at chance node <code>state</code>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#raccoon.eval.luck.pre_roll_values">pre_roll_values</a></td>
 <td><code>(actions, probs, values)</code> for every outcome of the chance node <code>state</code>.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#raccoon.eval.luck.python_roll_value">python_roll_value</a></td>
 <td>Reference route for the native sweep, over OpenSpiel’s own move generation.</td>
+</tr>
+<tr class="even">
+<td><a href="#raccoon.eval.luck.roll_probs_table">roll_probs_table</a></td>
+<td>The 21-roll sweep again, returning outcome distributions instead of equities.</td>
 </tr>
 <tr class="odd">
 <td><a href="#raccoon.eval.luck.roll_value_table">roll_value_table</a></td>
@@ -295,28 +305,48 @@ luck    = h(s, d_actual) - m(s)             -- the luck of the roll that happene
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.candidate_board_equity(state, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>GNUBG’s equity of decision state <code>state</code> from the side-to-move’s POV.</p>
 </section>
+<section id="raccoon.eval.luck.pre_roll_cubeful_values" class="level3">
+<h3 class="anchored" data-anchor-id="raccoon.eval.luck.pre_roll_cubeful_values">pre_roll_cubeful_values</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.pre_roll_cubeful_values(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    state,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    perspective_player,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    cube,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    x,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    jacoby<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ply<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>:func:<code>pre_roll_values</code>, with <code>h</code> a cubeful equity at cube value 1.</p>
+<p><code>cube</code> is a :class:<code>raccoon.cube.state.CubeState</code>; the label is taken from the <em>mover’s</em> point of view before the values are signed to <code>perspective_player</code>, so a cube we own stays ours through the negation. The cube <strong>value</strong> is left out on purpose – the caller multiplies the luck term by it, keeping this function a pure function of the board.</p>
+<p>Raises <code>ValueError</code> if <code>state</code> is not a chance node.</p>
+</section>
 <section id="raccoon.eval.luck.pre_roll_luck" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.eval.luck.pre_roll_luck">pre_roll_luck</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.pre_roll_luck(state, chance_action, perspective_player, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.pre_roll_luck(state, chance_action, perspective_player, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>(luck, mean)</code> for <code>chance_action</code> at chance node <code>state</code>.</p>
 <p><code>luck = h(s, d) - m(s)</code> from <code>perspective_player</code>’s POV. Averaged over the node’s own dice distribution this is exactly zero — that is the property the whole estimator rests on, and <code>tests/test_luck.py</code> asserts it directly.</p>
 </section>
 <section id="raccoon.eval.luck.pre_roll_values" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.eval.luck.pre_roll_values">pre_roll_values</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.pre_roll_values(state, perspective_player, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.pre_roll_values(state, perspective_player, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>(actions, probs, values)</code> for every outcome of the chance node <code>state</code>.</p>
 <p><code>values[i]</code> is <code>h(s, d_i)</code> — GNUBG’s best-play equity after outcome <code>actions[i]</code>, signed to <code>perspective_player</code>’s POV on the ±3 scale. The probability-weighted mean of <code>values</code> is the pre-roll mean <code>m(s)</code>.</p>
 <p>Raises <code>ValueError</code> if <code>state</code> is not a chance node.</p>
 </section>
 <section id="raccoon.eval.luck.python_roll_value" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.eval.luck.python_roll_value">python_roll_value</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.python_roll_value(state, chance_action, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.python_roll_value(state, chance_action, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Reference route for the native sweep, over OpenSpiel’s own move generation.</p>
 <p>Applies <code>chance_action</code> to a clone of the chance node <code>state</code> and returns the best-play equity from the mover’s POV, with <strong>exact</strong> terminal values — unlike <code>candidate_equities</code>, which reports <code>+3.0</code> for every terminal child. Mirrors that function otherwise, including the recursion through the second half of a doubles turn. ~150x slower than the native route; the test oracle, not used in play.</p>
 </section>
+<section id="raccoon.eval.luck.roll_probs_table" class="level3">
+<h3 class="anchored" data-anchor-id="raccoon.eval.luck.roll_probs_table">roll_probs_table</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.roll_probs_table(board, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The 21-roll sweep again, returning outcome distributions instead of equities.</p>
+<p>Costs what :func:<code>roll_value_table</code> costs – <code>best_move_probs</code> reads the same <code>probabilities</code> call uncollapsed.</p>
+</section>
 <section id="raccoon.eval.luck.roll_value_table" class="level3">
 <h3 class="anchored" data-anchor-id="raccoon.eval.luck.roll_value_table">roll_value_table</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.roll_value_table(board, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.luck.roll_value_table(board, ply<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The 21-roll sweep: <code>{(lo, hi): mover-POV best-play equity}</code>.</p>
 <p><code>board</code> is in :func:<code>raccoon.eval.gnubg_adapter.board_from_view</code> layout. This is the whole cost of variance reduction — ~1.7 ms per pre-roll state.</p>
 

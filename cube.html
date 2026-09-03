@@ -107,7 +107,7 @@ window.Quarto = {
 
 <link rel="stylesheet" href="styles.css">
 <meta property="og:title" content="The Doubling Cube – Raccoon">
-<meta property="og:description" content="Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon will build from it.">
+<meta property="og:description" content="Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon built from it.">
 <meta property="og:image" content="https://research.raccoonbg.com/cube_files/figure-html/cell-3-output-1.png">
 <meta property="og:site_name" content="Raccoon">
 <meta property="og:image:height" content="396">
@@ -221,7 +221,8 @@ window.Quarto = {
   <li><a href="#what-the-measurement-says" id="toc-what-the-measurement-says" class="nav-link" data-scroll-target="#what-the-measurement-says">What the measurement says</a></li>
   <li><a href="#why-we-are-not-acting-on-the-centred-index" id="toc-why-we-are-not-acting-on-the-centred-index" class="nav-link" data-scroll-target="#why-we-are-not-acting-on-the-centred-index">Why we are not acting on the centred index</a></li>
   <li><a href="#exp024-results" id="toc-exp024-results" class="nav-link" data-scroll-target="#exp024-results">exp024, re-scored</a></li>
-  <li><a href="#what-raccoon-will-build" id="toc-what-raccoon-will-build" class="nav-link" data-scroll-target="#what-raccoon-will-build">What Raccoon will build</a></li>
+  <li><a href="#what-raccoon-built" id="toc-what-raccoon-built" class="nav-link" data-scroll-target="#what-raccoon-built">What Raccoon built</a></li>
+  <li><a href="#exp025-results" id="toc-exp025-results" class="nav-link" data-scroll-target="#exp025-results">exp025, cube-aware checker play</a></li>
   <li><a href="#what-this-page-does-not-establish" id="toc-what-this-page-does-not-establish" class="nav-link" data-scroll-target="#what-this-page-does-not-establish">What this page does not establish</a></li>
   <li><a href="#still-open" id="toc-still-open" class="nav-link" data-scroll-target="#still-open">Still open</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
@@ -234,7 +235,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">The Doubling Cube</h1>
-<p class="subtitle lead">Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon will build from it.</p>
+<p class="subtitle lead">Janowski’s model, measured against 33,395 rolled-out equities — and what Raccoon built from it.</p>
 </div>
 
 
@@ -252,7 +253,7 @@ window.Quarto = {
 
 
 <p>Rick Janowski’s cube-life-index model is how a cubeless evaluation becomes a cube decision. GNU Backgammon and eXtreme Gammon both ship it, and its published constant — <span class="math inline">\(x = 0.68\)</span> for contact positions — has stood essentially unchanged since 1993. It is rarely <em>measured</em>, because measuring it needs observed cubeful equities for a large and varied set of real positions.</p>
-<p>Those observations were already on disk. The BGSage money benchmark rolled positions out to completion with the cube live, recording for each candidate a <strong>measured cubeful equity</strong> next to the cubeless probabilities for the same position — and the cube sits in a different place across them, which is what makes the model separable. This page tests it on 33,395 of those, then says exactly what Raccoon should implement.</p>
+<p>Those observations were already on disk. The BGSage money benchmark rolled positions out to completion with the cube live, recording for each candidate a <strong>measured cubeful equity</strong> next to the cubeless probabilities for the same position — and the cube sits in a different place across them, which is what makes the model separable. This page tests it on 33,395 of those, then reports what happened when Raccoon implemented it: <a href="#exp024-results">exp024</a> measures the model, and <a href="#exp025-results">exp025</a> ships it into move selection and measures what that buys.</p>
 <p><strong>The short answer is that the model is in good shape and the conventional constant survives.</strong> Two of the three equity formulas are correct at <span class="math inline">\(x = 0.68\)</span> to within 0.018 of a point. The third, for a centred cube, wants a much higher index — but adopting it buys nothing where the parameter is actually read, and we cannot explain it, so we are not acting on it. What <em>is</em> worth fixing is structural: use the piecewise form, respect the provable bounds, and floor <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> at one point.</p>
 <p>Two numbers this page used to report were wrong, and both errors are the same kind, so they are worth stating rather than quietly correcting. Reference quality is recorded in <strong>two</strong> fields, not one: filtering on <code>eval_level</code> alone admitted truncated rollouts whose leaves call Janowski. Against references that include them, retuning the index looks worth <strong>+1.167 ± 0.271</strong> cube PR. Against references that are actually measurements it is worth <strong>+0.128 ± 1.242</strong> — nothing. <a href="#how-to-measure-it">The measurement section</a> sets out the filter that separates them.</p>
 <p>Everything here is money play with the Jacoby rule and beavers on, matching the benchmark. Match play, where the score moves every take point, is out of scope and is not calibrated by anything below.</p>
@@ -270,7 +271,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p><span class="math display">\[E_C = \frac{4C_V}{4-x}\left[p(W + L + 0.5x) - L - 0.25x\right] \qquad \text{centred}\]</span></p>
 <p>Every take point, cash point and doubling point in the paper is derived by setting two of these equal. So the model stands or falls on them, and — crucially — <strong>they can fail independently</strong>. That is what makes the measurement below possible, and it is not something a cube decision can reveal: a double compares only two locations at a time.</p>
 <p>One property of <span class="math inline">\(x\)</span> matters later. It is meant to be a <strong>physical property of the position</strong> — its volatility. Janowski derives it as proportional to the cube-life of the position and inversely proportional to its long-term volatility. The same position has the same volatility whoever holds the cube, so <span class="math inline">\(x\)</span> cannot legitimately depend on where the cube sits.</p>
-<div id="4f3f44d6" class="cell" data-execution_count="2">
+<div id="3dc98e80" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -458,7 +459,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p>An independent check that the method is sound rather than the model being uniformly bad: let the index float against the take/pass line alone, told nothing about what it should be.</p>
 <p>Across all 282 measured cube positions the take/pass index comes out at <strong>0.700</strong>, against GNU Backgammon’s published 0.68. Within pure races it comes out at 0.515, against GNUBG’s documented 0.60 race constant.</p>
 <p>The measurement reproduces both published constants without being told either.</p>
-<div id="d83be6df" class="cell" data-execution_count="6">
+<div id="215a99a4" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -469,7 +470,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 </div>
 <p>Averages hide where the failures are. Binning the same errors by observed equity, with intervals clustered on the checker decision — candidates within one decision are the same position played different ways, and clustering roughly doubles the intervals against treating them as independent:</p>
-<div id="48987c4d" class="cell" data-execution_count="7">
+<div id="9002cd67" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -481,7 +482,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 <p><strong><span class="math inline">\(E_U\)</span> is correct wherever it has weight</strong> — on zero from about <span class="math inline">\(-0.2\)</span> equity upward. <strong><span class="math inline">\(E_O\)</span> is correct until the position is nearly won</strong>, then sags through the band where a cashing decision is live and snaps back above <span class="math inline">\(+1.0\)</span>. That band is thin, which is why the aggregate barely notices it. <strong><span class="math inline">\(E_C\)</span> is wrong in both directions</strong> — positive when the position is losing, negative when it is winning, crossing zero near even equity. A residual that changes sign cannot be removed by any constant, any index, or any offset.</p>
 <p>The <span class="math inline">\(E_O\)</span> sag has a mechanism worth naming, because it is a <em>modelling</em> choice rather than a measurement question. The model blends a dead branch with a live branch in fixed proportion, <span class="math inline">\((1-x)E_{\text{dead}} + xE_{\text{live}}\)</span>. As a position approaches its cash point the live branch has reached its ceiling of <span class="math inline">\(+1\)</span> while the dead branch is still only <span class="math inline">\(2p-1\)</span>, so the blend drags the answer down by roughly <span class="math inline">\((1-x)\)</span> times the gap between them. But a position near its cash point does not <em>need</em> future cube efficiency — you double and your opponent passes. A fixed weight is defensible in the middle of the range and not near the boundary.</p>
-<div id="870b1f81" class="cell" data-execution_count="8">
+<div id="8514d520" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -659,16 +660,82 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </blockquote>
 </section>
 </section>
-<section id="what-raccoon-will-build" class="level2">
-<h2 class="anchored" data-anchor-id="what-raccoon-will-build">What Raccoon will build</h2>
-<p>Raccoon has no cube at all today. The shipped net already emits the six-outcome distribution the cube needs, <code>raccoon/cube/janowski.py</code> is written and tested, and nothing in the playing path references it. This is the specification for closing that gap, in the order the measurements above say to do it.</p>
-<p><strong>The model, settled.</strong> Piecewise dead/live blend; <span class="math inline">\(x = 0.68\)</span> for contact and <span class="math inline">\(0.60\)</span> in races; one index for all three cube locations, never one per location; <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> floored at 1; the <span class="math inline">\([-L, W]\)</span> bound as a test.</p>
-<p><strong>The inputs, all present.</strong> <code>RaccoonNet.value_probs6</code> → <code>janowski.probs6_to_cumulative5</code> → <code>janowski.cube_action</code>. No model work is needed; the value head has carried the six-outcome distribution since exp018.</p>
-<p><strong>Cube-aware checker play comes first</strong> — not the double/take decision. Ranking afterstates by cubeful rather than cubeless equity in <code>raccoon/train/lookahead.py</code> is where the model gets read 22 times as often, and the prize is already measured: a <em>perfect cubeless</em> player throws away</p>
+<section id="what-raccoon-built" class="level2">
+<h2 class="anchored" data-anchor-id="what-raccoon-built">What Raccoon built</h2>
+<p>exp024 left the cube specified but unbuilt: the shipped net already emitted the six-outcome distribution, <code>raccoon/cube/janowski.py</code> was written and tested, and nothing in the playing path referenced it. exp025 closed that gap.</p>
+<p><strong>The model, settled and unchanged.</strong> Piecewise dead/live blend; <span class="math inline">\(x = 0.68\)</span> for contact and <span class="math inline">\(0.60\)</span> in races; one index for all three cube locations, never one per location; <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> floored at 1; the <span class="math inline">\([-L, W]\)</span> bound as a test. Nothing was refitted.</p>
+<p><strong>Two pieces of perspective logic</strong>, both in <code>raccoon/cube/state.py</code>, both easy to get silently wrong and therefore both pinned by tests. <code>CubeState</code> translates between seat indices, which a game loop speaks, and the <code>CENTERED</code>/<code>PLAYER</code>/ <code>OPPONENT</code> labels, which Janowski speaks. And <code>flip_label</code> records the rule that <strong>changing perspective flips the cube owner as well as the sign of the equity</strong> — negating alone hands the opponent your cube ownership, and nothing about the resulting number looks wrong.</p>
+<p><strong>Cube-aware checker play came first</strong>, not the double/take decision, because the model is read for move selection roughly 22 times as often. <code>child_cubeful_values</code> in <code>raccoon/train/lookahead.py</code> shares its enumeration, doubles handling and leaf dedup with the cubeless <code>child_values</code> through a common <code>enumerate_leaves</code>, so the two rankings cannot drift apart. The regression test that matters is an identity: at <span class="math inline">\(x = 0\)</span> with no Jacoby, <code>cl2cf_money</code> <em>is</em> <code>cubeless_equity</code>, so the cubeful path must reproduce the shipping cubeless one to the last bit on real positions.</p>
+<p><strong>The prize was already measured.</strong> A <em>perfect cubeless</em> player throws away</p>
 <p><strong>PR 0.336 ± 0.042</strong> on the cubeful metric, with cubeless-best and cubeful-best differing on 992 of 14,693 decisions (6.8%). It concentrates exactly where the cube is most alive — PR 0.553 with the cube centred against 0.145 when the opponent owns it — and is nearly absent in pure races (0.046).</p>
-<p><strong>Then the cube decision itself</strong>, via <code>cube_action</code> at the top of a turn, and the plumbing it needs: <code>cube_value</code> and <code>cube_owner</code> threaded through the play loop, <code>raccoon/eval/arena.py</code> and <code>raccoon/protocol/rgp.py</code>, none of which have any concept of a cube today.</p>
-<p><strong>How to score each.</strong> Cube decisions on the 432 measured sub-decisions, knowing that is underpowered for anything small. Move selection on the 33,395 clean candidates, by picks-best-move rate and mean cubeful equity lost — the metric that matches the frequency with which the parameter is read.</p>
-<p><strong>Explicit non-goals.</strong> Do not tune <span class="math inline">\(x\)</span> against 3-ply references. Do not score a cube change on take decisions alone. Do not chase the centred index until there is a reference not generated by a 0.68 policy.</p>
+<p>That floor is what a player with <em>perfect</em> probabilities leaves behind. The question exp025 asks is how much of it a real net, carrying its own evaluation error, actually claims.</p>
+</section>
+<section id="exp025-results" class="level2">
+<h2 class="anchored" data-anchor-id="exp025-results">exp025, cube-aware checker play</h2>
+<p><strong>Hypothesis.</strong> Ranking candidate moves by Janowski cubeful equity instead of cubeless equity reduces the cubeful move-selection error of the shipped net (exp018/ep22).</p>
+<p><strong>Primary metric.</strong> Cubeful PR on all 14,693 BGSage checker decisions — mean cubeful equity thrown away per decision, times 500 — scored against each candidate’s <code>equity</code> field rather than its <code>cubeless_equity</code>, which is the same reference the cube-blind floor above is measured on. The two arms are compared <strong>paired</strong>, with the interval bootstrapped over the 499 generating games.</p>
+<p><strong>Why paired, and why it is not optional.</strong> The arms agree on the great majority of decisions — the rankings differ on only 376 of them (2.6%) — so their per-decision errors are identical almost everywhere and an unpaired comparison of two PR numbers has an interval far wider than the effect. Both errors are therefore taken off the <em>same</em> six-outcome forward pass: for an <code>outcomes6</code> head the value head’s equity is exactly <code>cubeless_equity</code> of its own distribution, so the arms are paired by construction rather than by re-running and hoping the passes matched. The separately-run cubeless arm reproduces the derived one to rounding, which is the check that the shortcut is sound.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>cube position</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">cubeless ranking</th>
+<th style="text-align: right;">cubeful ranking</th>
+<th style="text-align: right;">gain</th>
+<th style="text-align: left;">95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>all decisions</td>
+<td style="text-align: right;">14,693</td>
+<td style="text-align: right;">1.382</td>
+<td style="text-align: right;">1.307</td>
+<td style="text-align: right;"><strong>+0.075</strong></td>
+<td style="text-align: left;">[+0.025, +0.126]</td>
+</tr>
+<tr class="even">
+<td>we own the cube</td>
+<td style="text-align: right;">4,015</td>
+<td style="text-align: right;">1.149</td>
+<td style="text-align: right;">1.155</td>
+<td style="text-align: right;"><strong>-0.007</strong></td>
+<td style="text-align: left;">[-0.055, +0.040]</td>
+</tr>
+<tr class="odd">
+<td>cube centred</td>
+<td style="text-align: right;">5,657</td>
+<td style="text-align: right;">1.851</td>
+<td style="text-align: right;">1.655</td>
+<td style="text-align: right;"><strong>+0.196</strong></td>
+<td style="text-align: left;">[+0.079, +0.316]</td>
+</tr>
+<tr class="even">
+<td>opponent owns it</td>
+<td style="text-align: right;">5,021</td>
+<td style="text-align: right;">1.039</td>
+<td style="text-align: right;">1.037</td>
+<td style="text-align: right;"><strong>+0.003</strong></td>
+<td style="text-align: left;">[-0.034, +0.041]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The gain is real and small.</strong> Cubeful ranking is worth +0.075 PR with the interval clear of zero. Against the 0.336 floor that is about 22% of the available prize — the rest is eaten by the net’s own evaluation error, which is the thing that decides <em>which</em> candidate the cube term is applied to. The rankings differ on 2.6% of decisions against the 6.8% on which a perfect player’s would.</p>
+<p><strong>All of it sits in one bucket, and it is the tainted one.</strong> The gain is confined to a centred cube; with the cube owned by either side it is indistinguishable from zero. That is where exp024 said the cube-blindness lives, so the sign is unsurprising — but a centred cube is also exactly where the Jacoby rule bites, and the benchmark was generated with Jacoby <strong>on</strong> while Raccoon’s target is money without it. Scoring here therefore models Jacoby to match the references, and the Jacoby-clean owned-cube buckets are the ones showing no effect. <strong>This is weaker evidence for the target game than the interval suggests</strong>, and it is the first thing a follow-up should attack.</p>
+<p><strong>No head-to-head, deliberately.</strong> The natural completion is “and it beats GNUBG at cubeful money”. It is not here because there was no honest opponent to hand. <code>gnubg-nn</code> — the package every other Raccoon number is measured against — cannot make a money cube decision at all (<code>evaluate_cube_decision</code> raises <em>Not implemented for money</em>; the binding covers match play only), and it ranks checker plays cubelessly. Bolting our own Janowski layer onto its probabilities gives a match in which <strong>both sides share one cube model</strong>, while real GNU Backgammon uses the closed form only as a leaf evaluator inside a cubeful search that makes cube decisions at every node. That opponent is weaker than real GNUBG precisely on the cube, so a win against it would not be the <code>goal.md</code> criterion. The real opponent does exist — <code>/usr/games/gnubg</code> answers money cube decisions and cube-aware checker play at about 71 ms per 2-ply decision — and wiring it up is exp026.</p>
+<p><strong>Supporting, and demarcated.</strong> The cubeful arena built along the way (<code>raccoon/eval/cube_arena.py</code>) established that the dice-luck control variate survives a live cube: scaling each luck term by the cube value at its own roll keeps it unbiased (mean luck <span class="math inline">\(t = +0.26\)</span> over 600 games), and using a <em>cubeful</em> <span class="math inline">\(h\)</span> rather than a cube-scaled cubeless one cuts the standard deviation 7.32× against 5.24×, at <span class="math inline">\(\hat\beta = 1.017\)</span>. That is a property of the estimator, which exp026 reuses. The ppg those games implied was deliberately never read, and is reported nowhere.</p>
+<blockquote class="blockquote">
+<p>Is cube-aware checker ranking worth anything? → <strong>Yes, but little of what was available.</strong> Cubeful ranking beats cubeless ranking by +0.075 PR (95% CI [+0.025, +0.126], n = 14,693, bootstrapped over 499 games) — about 22% of the cube-blind floor, and all of it with the cube centred.</p>
+</blockquote>
 </section>
 <section id="what-this-page-does-not-establish" class="level2">
 <h2 class="anchored" data-anchor-id="what-this-page-does-not-establish">What this page does not establish</h2>
@@ -680,6 +747,8 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <li><strong>No position is observed at two cube locations</strong>, so the ordering constraint is a model check and can never be validated against data.</li>
 <li><strong>The benchmark’s cube positions are selected for being non-trivial</strong>, so an index fitted on them is tuned for close decisions and should not be quoted as a general-purpose constant.</li>
 <li><strong>Coordinate descent on a grid</strong> finds a coordinate-wise minimum, not a certified global one.</li>
+<li><strong>exp025’s gain is measured entirely under Jacoby.</strong> It lands wholly in the centred-cube bucket, which is the one the rule alters and the one whose rollout continuations were played boldly because of it. The Jacoby-clean owned-cube decisions show no effect at all, so the result transfers to non-Jacoby money by assumption, not by measurement.</li>
+<li><strong>Nothing here has been tested in play.</strong> Every number on this page is scored against static references. No cubeful game against a real opponent has been played, because until exp026 there is no opponent that makes money cube decisions.</li>
 </ul>
 </section>
 <section id="still-open" class="level2">
@@ -688,7 +757,9 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <li><strong>The centred index.</strong> Two readings, no way to separate them here; it needs a reference not generated by a 0.68 policy.</li>
 <li><strong>Whether an index per cube <em>value</em> is real.</strong> A centred cube is always a 1-cube here, so cube value and cube location tell the same story and cannot be told apart.</li>
 <li><strong>Volatility measured rather than proxied.</strong> Janowski derives <span class="math inline">\(x\)</span> as inversely proportional to volatility, and it can be measured directly — the spread of the 0-ply value over the 21 next rolls, reusing <code>raccoon/eval/luck.py</code> and the roll table in <code>raccoon/search/expectimax.py</code>. A cheap proxy does not work: the residual correlates with contact at only <span class="math inline">\(-0.15\)</span>, with no monotone trend, which is precisely why the direct measurement is the experiment worth running.</li>
-<li><strong>Cubeful search.</strong> GNUBG does not use the closed form as its cube engine — it uses it as a leaf evaluator inside a search that makes cube decisions at every node. The gap that refitting appeared to close against 3-ply references <em>is</em> that search, and running it is the principled way to close it.</li>
+<li><strong>Cubeful search.</strong> GNUBG does not use the closed form as its cube engine — it uses it as a leaf evaluator inside a search that makes cube decisions at every node. The gap that refitting appeared to close against 3-ply references <em>is</em> that search, and running it is the principled way to close it. This is also why a Janowski-only opponent cannot stand in for GNUBG: it is weaker than the real thing on exactly the dimension being tested.</li>
+<li><strong>The double/take decision in play.</strong> exp025 shipped cube-aware <em>move selection</em> and measured it; <code>cube_action</code> is wired into an arena but its value has never been measured against an opponent that can answer a money cube.</li>
+<li><strong>A real cubeful opponent (exp026).</strong> <code>/usr/games/gnubg</code> 1.07 answers money cube decisions and cube-aware checker play, driven by Position ID plus named <code>set turn</code> / <code>set dice</code> / <code>set cube</code> commands, at about 71 ms per 2-ply decision. BGSage (<code>../bgsage</code>) exposes a money <code>cube_action</code> behind a C++ extension and is the stronger target. Both want the same harness, so both go in one experiment.</li>
 </ul>
 </section>
 <section id="references" class="level2">
