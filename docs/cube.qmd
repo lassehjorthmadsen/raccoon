@@ -859,6 +859,31 @@ print(f"It gave sd_raw {PILOT['raw_sd']:.3f} and sd_vr {PILOT['vr_sd']:.3f}, the
       f"matching the precision exp019 and exp020 reached, and not revisited.")
 ```
 
+### What Raccoon fielded, and what it did not
+
+**Raccoon selected moves by 0-ply cubeful lookahead — no search — while GNU
+Backgammon searched two plies for both its checker play and its cube.** The
+configuration played here is materially weaker than the engine can field, on
+both halves of the game, and the result has to be read that way.
+
+For checker play the gap is measured. On the BGSage benchmark's checker
+decisions, ep22 with depth-2 expectimax scores PR 0.426 against GNU Backgammon
+2-ply's 0.588 (exp021, n = 2,000); the 0-ply selection used here scores about
+1.03 on the same positions. Raccoon's checker play beats GNU Backgammon's at
+matched depth and was not used.
+
+The reason is cost, not choice. On this machine depth-2 search runs at 29.3
+seconds per decision and depth-1 at 4.25, against roughly 0.01 for 0-ply. At
+about sixty decisions per game, a 7,206-game match at depth 2 would take on the
+order of a thousand hours against the 4.4 hours this run took. The cheapest
+settings exp023 found without measurable strength loss still cost about 1,000
+evaluations per decision, which is roughly 2.5 minutes per game.
+
+So this number bounds one configuration, not the engine: **0-ply checker play and
+a root-only cube, against 2-ply checker play and a cubeful search.** Both
+dimensions were conceded. It does not establish that GNU Backgammon is stronger
+than Raccoon.
+
 ### Result
 
 ```{python}
@@ -892,7 +917,8 @@ surprising: Raccoon beats GNU Backgammon at 0-ply and loses to it at 2-ply.
 | **exp026** | **GNUBG 2-ply (binary)** | **live** | **see above** |
 
 `goal.md` asks for a positive average win against GNU Backgammon at world class
-settings with the interval above zero. That is not met.
+settings with the interval above zero. **It is not met by this configuration**,
+which is the only claim the run supports.
 
 ### The luck diagnostic, and why the result stands
 
@@ -931,8 +957,9 @@ cube accounts for the whole of it. Those point at different next experiments —
 better evaluation, or cubeful search on our side — and this experiment cannot
 choose between them.
 
-> Does Raccoon beat real GNU Backgammon at 2-ply at non-Jacoby cubeful money? →
-> **No.** ep22 with the Janowski cube layer scores
+> Does Raccoon, playing 0-ply with a root-only cube, beat real GNU Backgammon
+> searching two plies with a cubeful cube? → **No.** ep22 with the Janowski cube
+> layer scores
 > `{python} f"{HEAD['vr_ppg']:+.4f} ± {HEAD['vr_ci95']:.4f}"` ppg
 > (variance-reduced, n = `{python} f"{HEAD['games']:,}"`), against
 > **+0.0472 ± 0.0027** for the same network against GNU Backgammon at 0-ply
@@ -972,10 +999,15 @@ choose between them.
   continuations were played boldly because of it. The Jacoby-clean owned-cube
   decisions show no effect at all, so the result transfers to non-Jacoby money by
   assumption, not by measurement.
-* **exp026 is a single number covering two changes.** It compares Raccoon's
-  checker play *and* its cube against a 2-ply cubeful opponent at once, with no
-  matching cubeless measurement at the same depth, so the deficit cannot be split
-  between the two.
+* **exp026 fielded Raccoon's weakest configuration.** It played 0-ply checker
+  selection and a root-only cube against 2-ply checker play and a cubeful search.
+  ep22 with depth-2 search beats GNU Backgammon 2-ply on the benchmark's checker
+  decisions (PR 0.426 against 0.588, exp021), and that search was not used,
+  because at 29.3 seconds per decision a match of this size is not affordable on
+  this hardware. The number bounds a configuration, not the engine.
+* **exp026 is a single number covering two changes.** It moves checker play and
+  the cube together, with no matching cubeless measurement at the same depth, so
+  the deficit cannot be split between them.
 * **The opponent changed between exp020 and exp026** — from the `gnubg-nn`
   package to the installed binary. They were measured against each other and are
   indistinguishable, but that measurement was made cubeless at 0-ply, not at the
