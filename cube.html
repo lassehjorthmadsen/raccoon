@@ -46,7 +46,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-e3adbaa939bcd423dddc8c8a834270b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3e9b1289f5f353c49b617ce48ad2bc38.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -272,7 +272,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p><span class="math display">\[E_C = \frac{4C_V}{4-x}\left[p(W + L + 0.5x) - L - 0.25x\right] \qquad \text{centred}\]</span></p>
 <p>Every take point, cash point and doubling point in the paper is derived by setting two of these equal. So the model stands or falls on them, and — crucially — <strong>they can fail independently</strong>. That is what makes the measurement below possible, and it is not something a cube decision can reveal: a double compares only two locations at a time.</p>
 <p>One property of <span class="math inline">\(x\)</span> matters later: it describes <strong>the position, not the cube</strong>. Janowski names three things that set it — how far the position is from the optimal doubling point, how wide the doubling window is, and how volatile the position is — and states that the cube-ownership bonus is “proportional to the degree of cube-life of the position (and inversely proportional to its long-term volatility)”, with <span class="math inline">\(x = 0\)</span> at maximum volatility and <span class="math inline">\(x = 1\)</span> at zero volatility. He does not derive a value for it; he writes that “finding accurate values for <span class="math inline">\(x\)</span> is a difficult, almost impossible, task” and estimates typical ones. All three factors are properties of the position, and a position has the same three whoever holds the cube, so <span class="math inline">\(x\)</span> cannot legitimately depend on where the cube sits.</p>
-<div id="17a530a2" class="cell" data-execution_count="2">
+<div id="74b2fef8" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -460,7 +460,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p>An independent check that the method is sound rather than the model being uniformly bad: let the index float against the take/pass line alone, told nothing about what it should be.</p>
 <p>Across all 282 measured cube positions the take/pass index comes out at <strong>0.700</strong>, against GNU Backgammon’s published 0.68. Within pure races it comes out at 0.515, against GNUBG’s documented 0.60 race constant.</p>
 <p>The measurement reproduces both published constants without being told either.</p>
-<div id="76b4367c" class="cell" data-execution_count="6">
+<div id="67b3b3b1" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -471,7 +471,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 </div>
 <p>Averages hide where the failures are. Binning the same errors by observed equity, with intervals clustered on the checker decision — candidates within one decision are the same position played different ways, and clustering roughly doubles the intervals against treating them as independent:</p>
-<div id="df39a9aa" class="cell" data-execution_count="7">
+<div id="5ffcc286" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -483,7 +483,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </div>
 <p><strong><span class="math inline">\(E_U\)</span> is correct wherever it has weight</strong> — on zero from about <span class="math inline">\(-0.2\)</span> equity upward. <strong><span class="math inline">\(E_O\)</span> is correct until the position is nearly won</strong>, then sags through the band where a cashing decision is live and snaps back above <span class="math inline">\(+1.0\)</span>. That band is thin, which is why the aggregate barely notices it. <strong><span class="math inline">\(E_C\)</span> is wrong in both directions</strong> — positive when the position is losing, negative when it is winning, crossing zero near even equity. A residual that changes sign cannot be removed by any constant, any index, or any offset.</p>
 <p>The <span class="math inline">\(E_O\)</span> sag has a mechanism worth naming, because it is a <em>modelling</em> choice rather than a measurement question. The model blends a dead branch with a live branch in fixed proportion, <span class="math inline">\((1-x)E_{\text{dead}} + xE_{\text{live}}\)</span>. As a position approaches its cash point the live branch has reached its ceiling of <span class="math inline">\(+1\)</span> while the dead branch is still only <span class="math inline">\(2p-1\)</span>, so the blend drags the answer down by roughly <span class="math inline">\((1-x)\)</span> times the gap between them. But a position near its cash point does not <em>need</em> future cube efficiency — you double and your opponent passes. A fixed weight is defensible in the middle of the range and not near the boundary.</p>
-<div id="ed87ce36" class="cell" data-execution_count="8">
+<div id="f3f76281" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -761,6 +761,13 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <p><strong>Power.</strong> A 600-game pilot read only the standard deviations; its ppg was never examined and is not reported.</p>
 <p>It gave sd_raw 2.907 and sd_vr 0.433, the latter within a thousandth of the 0.434 exp025 measured against the stand-in — the estimator does not depend on which opponent it watches. n was then fixed at 7,206 for a half-width of 0.01 ppg, matching the precision exp019 and exp020 reached, and not revisited.</p>
 </section>
+<section id="what-raccoon-fielded-and-what-it-did-not" class="level3">
+<h3 class="anchored" data-anchor-id="what-raccoon-fielded-and-what-it-did-not">What Raccoon fielded, and what it did not</h3>
+<p><strong>Raccoon selected moves by 0-ply cubeful lookahead — no search — while GNU Backgammon searched two plies for both its checker play and its cube.</strong> The configuration played here is materially weaker than the engine can field, on both halves of the game, and the result has to be read that way.</p>
+<p>For checker play the gap is measured. On the BGSage benchmark’s checker decisions, ep22 with depth-2 expectimax scores PR 0.426 against GNU Backgammon 2-ply’s 0.588 (exp021, n = 2,000); the 0-ply selection used here scores about 1.03 on the same positions. Raccoon’s checker play beats GNU Backgammon’s at matched depth and was not used.</p>
+<p>The reason is cost, not choice. On this machine depth-2 search runs at 29.3 seconds per decision and depth-1 at 4.25, against roughly 0.01 for 0-ply. At about sixty decisions per game, a 7,206-game match at depth 2 would take on the order of a thousand hours against the 4.4 hours this run took. The cheapest settings exp023 found without measurable strength loss still cost about 1,000 evaluations per decision, which is roughly 2.5 minutes per game.</p>
+<p>So this number bounds one configuration, not the engine: <strong>0-ply checker play and a root-only cube, against 2-ply checker play and a cubeful search.</strong> Both dimensions were conceded. It does not establish that GNU Backgammon is stronger than Raccoon.</p>
+</section>
 <section id="result" class="level3">
 <h3 class="anchored" data-anchor-id="result">Result</h3>
 <table class="caption-top table">
@@ -844,7 +851,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 </tr>
 </tbody>
 </table>
-<p><code>goal.md</code> asks for a positive average win against GNU Backgammon at world class settings with the interval above zero. That is not met.</p>
+<p><code>goal.md</code> asks for a positive average win against GNU Backgammon at world class settings with the interval above zero. <strong>It is not met by this configuration</strong>, which is the only claim the run supports.</p>
 </section>
 <section id="the-luck-diagnostic-and-why-the-result-stands" class="level3">
 <h3 class="anchored" data-anchor-id="the-luck-diagnostic-and-why-the-result-stands">The luck diagnostic, and why the result stands</h3>
@@ -855,7 +862,7 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <h3 class="anchored" data-anchor-id="what-this-does-not-separate">What this does not separate</h3>
 <p>The result is a single number for two changes at once — Raccoon’s checker play against a 2-ply opponent, and Raccoon’s cube against a cubeful one. There is no matching cubeless measurement of ep22 against the binary at 2-ply, so the deficit cannot be attributed. If ep22 is close to −0.037 cubeless at 2-ply, the cube layer costs little and the gap is checker play; if it is near zero cubeless, the cube accounts for the whole of it. Those point at different next experiments — better evaluation, or cubeful search on our side — and this experiment cannot choose between them.</p>
 <blockquote class="blockquote">
-<p>Does Raccoon beat real GNU Backgammon at 2-ply at non-Jacoby cubeful money? → <strong>No.</strong> ep22 with the Janowski cube layer scores -0.0375 ± 0.0109 ppg (variance-reduced, n = 7,206), against <strong>+0.0472 ± 0.0027</strong> for the same network against GNU Backgammon at 0-ply cubeless. The deficit is not yet split between checker play and the cube.</p>
+<p>Does Raccoon, playing 0-ply with a root-only cube, beat real GNU Backgammon searching two plies with a cubeful cube? → <strong>No.</strong> ep22 with the Janowski cube layer scores -0.0375 ± 0.0109 ppg (variance-reduced, n = 7,206), against <strong>+0.0472 ± 0.0027</strong> for the same network against GNU Backgammon at 0-ply cubeless. The deficit is not yet split between checker play and the cube.</p>
 </blockquote>
 </section>
 </section>
@@ -870,7 +877,8 @@ L=\frac{\sum_i i \cdot P(\text{lose } i)}{P(\text{lose})}\]</span></p>
 <li><strong>The benchmark’s cube positions are selected for being non-trivial</strong>, so an index fitted on them is tuned for close decisions and should not be quoted as a general-purpose constant.</li>
 <li><strong>Coordinate descent on a grid</strong> finds a coordinate-wise minimum, not a certified global one.</li>
 <li><strong>exp025’s gain is measured entirely under Jacoby.</strong> It lands wholly in the centred-cube bucket, which is the one the rule alters and the one whose rollout continuations were played boldly because of it. The Jacoby-clean owned-cube decisions show no effect at all, so the result transfers to non-Jacoby money by assumption, not by measurement.</li>
-<li><strong>exp026 is a single number covering two changes.</strong> It compares Raccoon’s checker play <em>and</em> its cube against a 2-ply cubeful opponent at once, with no matching cubeless measurement at the same depth, so the deficit cannot be split between the two.</li>
+<li><strong>exp026 fielded Raccoon’s weakest configuration.</strong> It played 0-ply checker selection and a root-only cube against 2-ply checker play and a cubeful search. ep22 with depth-2 search beats GNU Backgammon 2-ply on the benchmark’s checker decisions (PR 0.426 against 0.588, exp021), and that search was not used, because at 29.3 seconds per decision a match of this size is not affordable on this hardware. The number bounds a configuration, not the engine.</li>
+<li><strong>exp026 is a single number covering two changes.</strong> It moves checker play and the cube together, with no matching cubeless measurement at the same depth, so the deficit cannot be split between them.</li>
 <li><strong>The opponent changed between exp020 and exp026</strong> — from the <code>gnubg-nn</code> package to the installed binary. They were measured against each other and are indistinguishable, but that measurement was made cubeless at 0-ply, not at the 2-ply setting exp026 runs.</li>
 </ul>
 </section>
