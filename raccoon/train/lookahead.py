@@ -27,6 +27,10 @@ import numpy as np
 import torch
 import pyspiel
 
+from raccoon.cube.janowski import (
+    cl2cf_money, cube_action, jacoby_active, probs6_to_cumulative5,
+)
+from raccoon.cube.state import CubeState, flip_label, x_for
 from raccoon.data.bgmatch_replay import _normalize_moves, _strip_action_index_prefix
 from raccoon.env.encoder import encode_state
 from raccoon.env.game_wrapper import GameState
@@ -176,17 +180,50 @@ def child_values(
     distillation) included — an improvement to its doubles half-1 action, and no
     reason to regenerate any existing cache.
     """
+    legal, groups, all_obs = enumerate_leaves(state, joint_doubles)
+    values = eval_values_batch(network, all_obs, device)
+
+    cv = np.empty(len(legal), dtype=np.float32)
+    for i, tokens in enumerate(groups):
+        cv[i] = max(
+            payload / 3.0 if is_term else (-values[payload] if opp else values[payload])
+            for is_term, payload, opp in tokens
+        )
+    return legal, cv, float(values[-1])
+
+
+# A leaf token: ``(is_terminal, terminal_points_or_slot, opponent_is_to_move)``.
+# Terminal payloads are in **points** (±1/±2/±3) so that both the cubeless caller
+# (which divides by 3) and the cubeful one (which does not) can read the same
+# enumeration; see the scale note on :func:`child_cubeful_values`.
+LeafToken = tuple[bool, "float | int", bool]
+
+
+def enumerate_leaves(
+    state: pyspiel.BackgammonState, joint_doubles: bool = True,
+) -> tuple[list[int], list[list[LeafToken]], np.ndarray]:
+    """The shared skeleton of every 0-ply lookahead: what to evaluate, and where.
+
+    Returns ``(legal_actions, groups, observations)``. ``groups[i]`` holds the
+    leaf tokens for ``legal_actions[i]`` — one token per candidate turn-ending
+    position, several when ``joint_doubles`` expands the second half of a doubles
+    turn. ``observations`` is the batch to run the network on: the distinct
+    non-terminal leaves, **with the pre-roll encoding of ``state`` itself
+    appended last**, so ``values[-1]`` is always V(state).
+
+    Split out of :func:`child_values` so the cubeful ranking in
+    :func:`child_cubeful_values` reuses the identical enumeration, dedup and
+    doubles handling rather than growing a second copy of the subtle part.
+    """
     me = state.current_player()
     obs_state_pre_roll = encode_pre_roll(state, me)
 
-    # Distinct non-terminal leaf positions, evaluated once each. A leaf token is
-    # (is_terminal, terminal_value_or_slot, sign_for_the_mover).
     unique_obs: list[np.ndarray] = []
     slot_of: dict[bytes, int] = {}
 
-    def leaf_token(child, dec_player: int) -> tuple[bool, float | int, float]:
+    def leaf_token(child, dec_player: int) -> LeafToken:
         if child.is_terminal():
-            return True, terminal_value(child, me), 1.0
+            return True, child.returns()[me], False
         obs = encode_pre_roll(child, dec_player)
         key = obs.tobytes()
         slot = slot_of.get(key)
@@ -194,10 +231,10 @@ def child_values(
             slot = len(unique_obs)
             slot_of[key] = slot
             unique_obs.append(obs)
-        return False, slot, (1.0 if dec_player == me else -1.0)
+        return False, slot, dec_player != me
 
     legal = state.legal_actions()
-    groups: list[list[tuple[bool, float | int, float]]] = []
+    groups: list[list[LeafToken]] = []
     for a in legal:
         child_state, dec_player, is_term = state_after_apply(state, a)
         if joint_doubles and not is_term and dec_player == me:
@@ -208,16 +245,129 @@ def child_values(
         else:
             groups.append([leaf_token(child_state, dec_player)])
 
-    all_obs = np.stack(unique_obs + [obs_state_pre_roll])
-    values = eval_values_batch(network, all_obs, device)
+    return legal, groups, np.stack(unique_obs + [obs_state_pre_roll])
+
+
+@torch.no_grad()
+def eval_probs6_batch(
+    network, observations: np.ndarray, device: torch.device,
+) -> np.ndarray:
+    """Batched six-outcome forward pass, shape ``(N, 6)``.
+
+    The cubeful sibling of :func:`eval_values_batch`. ``network.value_probs6``
+    raises on a ``scalar``-head net, which is correct: Janowski needs the whole
+    distribution to compute W and L, and a single equity number cannot supply it.
+    """
+    if len(observations) == 0:
+        return np.zeros((0, 6), dtype=np.float32)
+    x = torch.from_numpy(observations).float().to(device, non_blocking=True)
+    return network.value_probs6(x).cpu().numpy()
+
+
+def child_cubeful_values(
+    state: pyspiel.BackgammonState, network, device: torch.device,
+    cube_label: str, x: float, jacoby: bool = False,
+    joint_doubles: bool = True,
+) -> tuple[list[int], np.ndarray, float]:
+    """0-ply lookahead ranking candidates by **cubeful** equity.
+
+    The cube-aware twin of :func:`child_values`, sharing its enumeration through
+    :func:`enumerate_leaves`. Returns ``(legal_actions, child_values, v_state)``
+    with the same shapes and the same "from the to-move player's POV" convention.
+
+    ``cube_label`` is where the cube sits *as the player to move sees it* —
+    ``CENTERED``/``PLAYER``/``OPPONENT`` from :mod:`raccoon.cube.janowski`; a
+    caller holding a :class:`~raccoon.cube.state.CubeState` gets it from
+    ``cube.label_for(mover)``. ``x`` is the cube life index, normally
+    :func:`raccoon.cube.state.x_for` of the root position. ``jacoby`` is the raw
+    rule setting: **False for Raccoon's target** (money without Jacoby, per
+    ``goal.md``), True only when scoring against the BGSage benchmark, whose
+    references were generated with the rule on.
+
+    Two things differ from the cubeless path and both are easy to get wrong:
+
+    **Scale.** These values are money points at cube value 1, roughly [-3, 3] —
+    *not* the equity/3 in [-1, 1] that :func:`child_values` returns. Terminal
+    children are therefore ``state.returns()[me]`` undivided. Never compare a
+    number from this function with one from that one.
+
+    **The negation flips the cube owner too.** A leaf where the opponent is on
+    roll is scored ``-cl2cf_money(probs, flip_label(cube_label), ...)``: the
+    equity changes sign *and* a cube we own becomes a cube they own. Negating
+    alone would credit the opponent with our cube ownership.
+
+    The cube *value* never enters: it multiplies every candidate by the same
+    constant, so it cannot change a ranking. Callers scale at the end.
+    """
+    legal, groups, all_obs = enumerate_leaves(state, joint_doubles)
+    probs6 = eval_probs6_batch(network, all_obs, device)
+
+    # Each distinct leaf is priced twice — once as ours to move, once as theirs —
+    # because the dedup key is the encoded position and two tokens sharing a slot
+    # can still sit on opposite sides of a negation.
+    flipped = flip_label(cube_label)
+    # `jacoby` is the raw rule setting; cl2cf_money wants it already resolved
+    # against the cube position, and the two sides of a flip do not resolve the
+    # same way once the cube has been turned.
+    jac_mine = jacoby_active(cube_label, jacoby)
+    jac_theirs = jacoby_active(flipped, jacoby)
+    mine = np.empty(len(probs6), dtype=np.float64)
+    theirs = np.empty(len(probs6), dtype=np.float64)
+    for j, p6 in enumerate(probs6):
+        probs5 = probs6_to_cumulative5(p6)
+        mine[j] = cl2cf_money(probs5, cube_label, x, jac_mine)
+        theirs[j] = cl2cf_money(probs5, flipped, x, jac_theirs)
 
     cv = np.empty(len(legal), dtype=np.float32)
     for i, tokens in enumerate(groups):
         cv[i] = max(
-            payload if is_term else sign * values[payload]
-            for is_term, payload, sign in tokens
+            payload if is_term else (-theirs[payload] if opp else mine[payload])
+            for is_term, payload, opp in tokens
         )
-    return legal, cv, float(values[-1])
+    return legal, cv, float(mine[-1])
+
+
+@torch.no_grad()
+def net_cube_action(
+    state: pyspiel.BackgammonState, network, device, cube_label: str,
+    x: float, jacoby: bool = False,
+) -> tuple[bool, bool]:
+    """``(should_double, should_take)`` from the net, for the player on roll.
+
+    The net-side counterpart of
+    :func:`raccoon.eval.gnubg_adapter.gnubg_cube_action`, and it works the same
+    way: one pre-roll evaluation of the board **with the doubler on roll**, put
+    through Janowski. ``cube_label`` is from the doubler's point of view, so it
+    is ``CENTERED`` or ``PLAYER``.
+
+    A receiver answers by calling this on the same position with its own net and
+    reading ``should_take`` — see the note on ``gnubg_cube_action``. ``state``
+    may still carry dice; :func:`encode_pre_roll` clears them, which is what the
+    value head was trained on.
+    """
+    obs = encode_pre_roll(state, state.current_player())
+    p6 = eval_probs6_batch(network, obs[None], device)[0]
+    return cube_action(probs6_to_cumulative5(p6), cube_label, x, jacoby=jacoby)
+
+
+def select_move_cubeful(
+    state: pyspiel.BackgammonState, network, device,
+    cube: CubeState, jacoby: bool = False, joint_doubles: bool = True,
+) -> tuple[int, float]:
+    """Choose a move by cubeful 0-ply lookahead. Returns ``(action, E(state))``.
+
+    Greedy only — the cube path is a playing and scoring path, not a training
+    one, so it has no use for the exploration temperature :func:`select_move`
+    carries. ``x`` is read once from the root position via
+    :func:`raccoon.cube.state.x_for`: race-ness does not flip inside a single
+    turn, and a per-root constant keeps this the same cost as the cubeless path.
+    """
+    view = GameState(state).board_from_perspective()
+    legal, cv, e_state = child_cubeful_values(
+        state, network, device, cube.label_for(state.current_player()),
+        x_for(view), jacoby, joint_doubles,
+    )
+    return legal[int(np.argmax(cv))], e_state
 
 
 def process_decision(

@@ -13,8 +13,12 @@ board — gnubg infers them from the sum).
 
 from __future__ import annotations
 
+from typing import Sequence
+
 import numpy as np
 
+from raccoon.cube.janowski import cl2cf_money, cube_action, jacoby_active
+from raccoon.cube.state import flip_label
 from raccoon.env.game_wrapper import BoardView, GameState
 from raccoon.search.mcts import _advance_through_chance
 
@@ -191,6 +195,49 @@ def best_move_equity(
     return terminal if terminal is not None else -evaluate_equity(after, ply)
 
 
+def best_move_probs(
+    board: list[list[int]], die1: int, die2: int, ply: int = 0,
+) -> tuple[float, ...]:
+    """:func:`best_move_equity`, but returning the outcome distribution instead.
+
+    Same move generation, same dance handling, same ``ply == 0`` restriction and
+    the same one extra ``probabilities`` call — so it costs exactly what
+    ``best_move_equity`` costs. The cumulative 5-vector is from the **mover's**
+    POV, ready for :func:`raccoon.cube.janowski.cl2cf_money`.
+
+    A terminal landing has no distribution to report, so it comes back as the
+    degenerate vector that reproduces the exact terminal equity: ``(1, 0, 0, 0,
+    0)`` for a plain win, ``(1, 1, 0, 0, 0)`` for a gammon, ``(1, 1, 1, 0, 0)``
+    for a backgammon. Feeding those through ``cl2cf_money`` gives 1.0/2.0/3.0
+    whatever the cube is, which is right: the game is over, the cube cannot move
+    again, and the cube *value* is applied by the caller.
+    """
+    if ply != 0:
+        raise ValueError(
+            f"best_move_probs: ply must be 0, got {ply}. gnubg-nn's best_move "
+            "segfaults at ply >= 1, exactly as in best_move_equity."
+        )
+    entries = _gnubg.best_move(board, die1, die2, ply, list=1)[1]
+    if not entries:
+        return _invert_probs(outcome_probs([board[1], board[0]], ply))
+    after = [list(side) for side in _gnubg.board_from_position_key(entries[0][0])]
+    terminal = terminal_equity_after_move(after)
+    if terminal is not None:
+        return (1.0,) + (1.0,) * (int(terminal) - 1) + (0.0,) * (5 - int(terminal))
+    return _invert_probs(outcome_probs(after, ply))
+
+
+def _invert_probs(probs: Sequence[float]) -> tuple[float, ...]:
+    """The same cumulative 5-vector seen from the other side of the board.
+
+    ``(win, wg, wbg, lg, lbg)`` from one player's POV is ``(1 - win, lg, lbg,
+    wg, wbg)`` from the other's: winning and losing swap, and the gammon and
+    backgammon legs travel with them.
+    """
+    win, wg, wbg, lg, lbg = probs
+    return (1.0 - win, lg, lbg, wg, wbg)
+
+
 def candidate_equities(state: GameState, ply: int = 0) -> list[tuple[int, float]]:
     """Return ``[(action, my_equity)]`` for every legal action of the side to move.
 
@@ -236,6 +283,102 @@ def candidate_equities(state: GameState, ply: int = 0) -> list[tuple[int, float]
 
         out.append((action, my_equity))
     return out
+
+
+def candidate_cubeful_equities(
+    state: GameState, ply: int, cube_label: str, x: float, jacoby: bool = False,
+) -> list[tuple[int, float]]:
+    """:func:`candidate_equities`, ranked by **cubeful** equity instead.
+
+    The cube-aware twin of the cubeless ranking, and the GNUBG-side counterpart
+    of :func:`raccoon.train.lookahead.child_cubeful_values`. Same enumeration,
+    same doubles recursion, same points scale; the differences are the ones that
+    matter for a cube:
+
+    * The same ``gnubg_nn.probabilities`` call that ``evaluate_equity`` makes is
+      read **uncollapsed**, so cubeful ranking costs GNUBG nothing extra.
+    * The negation flips the cube owner as well as the sign — a cube we own is a
+      cube the opponent owns once we look at the position from their side.
+    * Terminal children take their **exact** value (1/2/3), not the ``+3.0``
+      :func:`candidate_equities` hard-codes. That shortcut is harmless when every
+      terminal child is a win and only the ranking matters, but here the number
+      is a money equity that gets compared against a cube decision.
+
+    ``cube_label`` is from the point of view of the side to move, and the cube
+    *value* is deliberately absent: it scales every candidate equally, so it
+    cannot change the ranking, and the caller applies it.
+    """
+    legal = state.legal_actions()
+    if not legal:
+        raise ValueError("candidate_cubeful_equities called on a state with no legal actions")
+
+    me = state.current_player()
+    flipped = flip_label(cube_label)
+    # `jacoby` is the raw rule setting; cl2cf_money wants it resolved against the
+    # cube position it is being applied to, which is the flipped one here.
+    jac = jacoby_active(flipped, jacoby)
+    out: list[tuple[int, float]] = []
+    for action in legal:
+        child = state.clone()
+        child.apply_action(action)
+        child = _advance_through_chance(child)
+
+        if child.is_terminal():
+            my_equity = child.returns()[me]
+        elif child.current_player() == me:
+            my_equity = max(
+                eq for _, eq in
+                candidate_cubeful_equities(child, ply, cube_label, x, jacoby)
+            )
+        else:
+            opp_board = board_from_view(child.board_from_perspective())
+            my_equity = -cl2cf_money(
+                outcome_probs(opp_board, ply), flipped, x, jac,
+            )
+        out.append((action, my_equity))
+    return out
+
+
+def pick_move_cubeful(
+    state: GameState, ply: int, cube_label: str, x: float, jacoby: bool = False,
+) -> int:
+    """The move GNUBG plays when it is ranking cubefully."""
+    return max(
+        candidate_cubeful_equities(state, ply, cube_label, x, jacoby),
+        key=lambda t: t[1],
+    )[0]
+
+
+def gnubg_cube_action(
+    board: list[list[int]], ply: int, cube_label: str, x: float,
+    jacoby: bool = False,
+) -> tuple[bool, bool]:
+    """``(should_double, should_take)`` for GNUBG's evaluation of a money cube.
+
+    **gnubg-nn cannot answer this itself.** Its ``evaluate_cube_decision`` raises
+    ``RuntimeError: Not implemented for money`` — the binding covers match play
+    only. So the cube decision is reconstructed the way GNU Backgammon computes
+    it for money: its cubeless probabilities at ``ply``, through Janowski's
+    closed form at the published index. That is the same model
+    :mod:`raccoon.cube.janowski` already implements and exp024 measured, so both
+    sides of a head-to-head share one cube model and the match compares
+    evaluation and checker play rather than cube models. Say so wherever a
+    number from this function is reported.
+
+    ``board`` is pre-roll, in :func:`board_from_view` layout, with **the doubler**
+    on roll, and ``cube_label`` is from the doubler's point of view — so it is
+    ``CENTERED`` or ``PLAYER``, never ``OPPONENT``.
+
+    Both halves of a cube decision are read off the same board this way. Janowski
+    derives the take from the doubler's three equities (take iff ``dt < dp``), so
+    a receiver decides by evaluating that same on-roll position with **its own**
+    net and reading ``should_take``. That is what makes a head-to-head cube
+    decision a genuine disagreement between two evaluations rather than one
+    engine deciding for both.
+    """
+    return cube_action(
+        outcome_probs(board, ply), cube_label, x, jacoby=jacoby,
+    )
 
 
 def _best_action_and_opp_equity(

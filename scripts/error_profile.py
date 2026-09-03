@@ -22,6 +22,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from raccoon.cube.state import is_race
 from raccoon.data.bgmatch_replay import _chance_tables
 from raccoon.env.game_wrapper import GameState, GameWrapper
 from raccoon.eval.gnubg_adapter import board_from_view, evaluate_equity
@@ -45,15 +46,6 @@ def _our_equity_after(state: GameState, action: int, ply: int) -> float:
         return max(_our_equity_after(child, a, ply) for a in child.legal_actions())
     opp_view = child.board_from_perspective()
     return -evaluate_equity(board_from_view(opp_view), ply)
-
-
-def _is_race(view) -> bool:
-    """True if the two sides have fully passed each other (no contact)."""
-    if view.my_bar or view.opp_bar:
-        return False
-    my_max = max((i + 1 for i in range(24) if view.my_points[i] > 0), default=0)
-    opp_min = min((25 - (i + 1) for i in range(24) if view.opp_points[i] > 0), default=25)
-    return my_max < opp_min
 
 
 def profile_games(games: list[dict], oracle_ply: int, max_games: int | None = None):
@@ -98,7 +90,7 @@ def profile_games(games: list[dict], oracle_ply: int, max_games: int | None = No
                 loss = max(eqs.values()) - eqs[m["action"]]
                 view = state.board_from_perspective()
                 kind = "doubles" if m["dice"][0] == m["dice"][1] else "non-doubles"
-                phase = "race" if _is_race(view) else "contact"
+                phase = "race" if is_race(view) else "contact"
                 for bucket in ("total", kind, phase):
                     s = stats[(side, bucket)]
                     s["loss"] += loss

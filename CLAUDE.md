@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Raccoon is a backgammon AI aiming to beat GNUBG at money game **without the Jacoby rule**, as the stepping stone to match play (see `goal.md`). Play is cubeless today, which already satisfies that framing: with no cube there is nothing for Jacoby to suppress. OpenSpiel provides game logic; all ML/search code is written from scratch in Python/PyTorch.
+Raccoon is a backgammon AI aiming to beat GNUBG at money game **without the Jacoby rule**, as the stepping stone to match play (see `goal.md`). The **doubling cube ships as of exp025** — cube-aware checker ranking plus Janowski double/take, played with Jacoby off. The cubeless path is still there and still what every pre-exp025 number was measured on. OpenSpiel provides game logic (it has no cube; the cube is a layer above it); all ML/search code is written from scratch in Python/PyTorch.
 
 **The project began as AlphaZero (ResNet policy-value net + MCTS self-play) and that machinery is still here and runnable — but it is not what the current engine does.** The shipped net was trained by distilling GNUBG onto the value head (`scripts/train_distill.py`), and it selects moves by **0-ply value lookahead** (`raccoon/train/lookahead.py`): evaluate the value head on every legal afterstate, no tree, no policy head. Read `docs/architecture.md` before assuming which path a change affects. When editing that file or this one, keep the two in step — they contradicting each other is the failure mode this note exists to prevent.
 
@@ -63,6 +63,20 @@ python3 scripts/train_td.py --experiment-name exp010-td --batches 100
 
 # Score any checkpoint or exported ONNX on the BGSage benchmark (the primary metric)
 python3 scripts/eval_benchmark_pr.py --checkpoint experiments/<name>/checkpoints/<ep>.pt
+
+# The same benchmark scored CUBEFULLY (exp025). --metric picks the reference
+# (cubeless is the default, so every pre-exp025 number reproduces unchanged);
+# --cubeful-rank picks how the engine ranks. The exp025 pair is both arms on
+# --metric cubeful, differing only in the ranking rule.
+python3 scripts/eval_benchmark_pr.py --checkpoint <ckpt> --metric cubeful --cubeful-rank
+
+# Cubeful money games, no Jacoby, variance-reduced ppg. The ESTIMATOR is real;
+# the OPPONENT is a stand-in and its ppg is not a strength result — gnubg-nn
+# cannot make a money cube decision and ranks checker plays cubelessly, so both
+# sides end up sharing our Janowski layer while real GNUBG runs cubeful search.
+# exp026 swaps in /usr/games/gnubg, which does answer money cube decisions.
+python3 scripts/eval_gnubg_cube.py --checkpoint <ckpt> --games 6000 --ply 2 --workers 3 \
+  --exp-dir experiments/exp025-cube-ranking --tag ep22_cube_2ply
 ```
 
 ### Exporting to the browser engine
@@ -117,7 +131,7 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
      - **Never compare a searched value with an unsearched one.** `search_values` returns `SearchResult(values, searched, evaluated)`; take the argmax over `searched` only. Searching a move takes the opponent's best reply — a minimum over ~20 noisy estimates — so it marks the move down ~0.005 equity, while a pruned move keeps its unmarked static value and can overtake a searched move it was behind. Pruned entries carry their static value so every candidate has a number to *report*, never so it can be *chosen*. Letting them compete cost 0.054–0.176 PR (exp023). The same trap in general form: filtering on one estimator and reporting another.
 
 4. **`raccoon/train/`** — move selection and three training routes
-   - `lookahead.py`: **0-ply value lookahead — this is what picks moves.** Enumerate legal moves, evaluate V on each pre-roll child, negate when the child is the opponent's to move, rank. "0-ply" is GNUBG's numbering (static eval, no further search), so a net playing this way is directly comparable to `gnubg` at ply 0; TD-Gammon's papers call this "1-ply". The perspective/negation logic is subtle and lives here once — TD self-play, policy synthesis, and the browser port all reuse it.
+   - `lookahead.py`: **0-ply value lookahead — this is what picks moves.** Enumerate legal moves, evaluate V on each pre-roll child, negate when the child is the opponent's to move, rank. "0-ply" is GNUBG's numbering (static eval, no further search), so a net playing this way is directly comparable to `gnubg` at ply 0; TD-Gammon's papers call this "1-ply". The perspective/negation logic is subtle and lives here once — TD self-play, policy synthesis, and the browser port all reuse it. `child_cubeful_values` / `select_move_cubeful` are the cube-aware twins (exp025), sharing the enumeration through `enumerate_leaves` so the two rankings cannot drift; at `x = 0` with Jacoby off they reproduce the cubeless ranking exactly, which is what `tests/test_cube_lookahead.py` pins.
    - `self_play.py` / `replay_buffer.py` / `coach.py`: the AlphaZero loop. Plays games recording (observation, MCTS policy, outcome); circular buffer of recent positions; SGD + checkpointing. `coach.py` logs full config (architecture, hyperparams, system info) to JSONL.
    - `td_selfplay.py`: TD(λ) self-play (exp010). Plays by 0-ply lookahead with dice supplying exploration, regresses the value head toward forward-view TD(λ) targets. No policy head, no tree. Loop lives in `scripts/train_td.py`.
    - `parallel_self_play.py`, `inference_server.py`: throughput plumbing for the above.
@@ -128,11 +142,20 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
    - `vr_arena.py`: the same net-vs-GNUBG games with a variance-reduced ppg estimator
    - `luck.py`: dice-luck control variate (XG/GNUBG/BGSage style) that `vr_arena` builds on
    - `doubles.py`: what Raccoon's two-step doubles execution costs in play (exp020)
+   - `cube_arena.py`: net-vs-GNUBG **cubeful** money games, no Jacoby, cube-scaled variance reduction (exp025). Both sides share one cube model — gnubg-nn's `evaluate_cube_decision` raises `Not implemented for money`, so GNUBG's cube runs on its own probabilities through the same Janowski code.
+   - `cube_benchmark.py`: cube-decision PR on the BGSage benchmark (exp024)
    - `gnubg_adapter.py`, `game_log.py`, `match_log.py`: gnubg-nn bridging and match/game recording
 
-6. **`raccoon/protocol/rgp.py`** — Raccoon Game Protocol: text-based stdin/stdout protocol inspired by UCI for future GUI frontends
+6. **`raccoon/cube/`** — the doubling cube (exp024 measured the model, exp025 shipped it)
+   - `janowski.py`: cubeless probabilities → cubeful equity. Piecewise-linear live-cube blend (GNUBG's `MoneyLive`), **not** the paper's Appendix-1 closed form. `x = 0.68` contact / `0.60` race, W and L floored at 1, the `[-L, W]` bound pinned as a test rather than clamped. Design study and measurement: `docs/cube.qmd`.
+   - `state.py`: `CubeState(value, owner)` plus the seat↔label bridge. `janowski` speaks in labels relative to the player on roll (`CENTERED`/`PLAYER`/`OPPONENT`); a game loop speaks in seat indices. `flip_label` is load-bearing: **changing perspective flips the cube owner as well as the sign**, and negating alone credits the opponent with your cube.
+   - Two scales coexist and must never be mixed. `value_equity` and `child_values` are **equity/3 in [-1, 1]**; `cl2cf_money` and `child_cubeful_values` are **money points at cube value 1**, roughly [-3, 3]. The cube *value* never enters a ranking — it scales every candidate equally — so callers apply it at the end.
+   - `cl2cf_money` takes the **already-resolved** Jacoby flag; pass `jacoby_active(label, rule)`, since the rule stops applying the moment the cube is turned and the two sides of a flip do not resolve the same way.
+   - Raccoon's target is money **without** Jacoby (`goal.md`), so the arena runs `jacoby=False`. The BGSage benchmark was generated with the rule **on**, so scoring against it uses `jacoby=True`. That is the only place the two differ, and it is stated at the point of use.
 
-7. **`raccoon/cli/play.py`** — Terminal interface for human vs Raccoon play
+7. **`raccoon/protocol/rgp.py`** — Raccoon Game Protocol: text-based stdin/stdout protocol inspired by UCI for future GUI frontends
+
+8. **`raccoon/cli/play.py`** — Terminal interface for human vs Raccoon play
 
 ### Key Design Details
 

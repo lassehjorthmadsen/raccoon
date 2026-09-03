@@ -11,6 +11,10 @@ Both paths are described below, because the repository supports both and the
 distinction decides which parts of the network are even used. OpenSpiel provides
 game logic; all ML and search code is written from scratch in Python/PyTorch.
 
+Since exp025 the engine also has a **doubling cube**. OpenSpiel's backgammon does
+not, so the cube is a layer above it, and it changes move selection as well as
+adding the double/take decision.
+
 ## Board Encoding
 
 States are encoded as **(26, 2, 12)** float32 tensors — 26 channels, 2 rows (board
@@ -112,6 +116,58 @@ synthesis, and the browser port all reuse the same perspective logic.
 Note what this does **not** use: no policy head, no tree, no simulations. The
 exported web model omits the policy head entirely for that reason.
 
+## The Doubling Cube
+
+`raccoon/cube/` turns a cubeless outcome distribution into a cube decision, using
+Rick Janowski's cube-life-index model. exp024 measured that model against 33,395
+rolled-out cubeful equities and found the published constants intact; exp025 wired
+it into play. The measurement is [The Doubling Cube](cube.qmd).
+
+**The model.** `janowski.py` implements the *piecewise-linear* live-cube variant
+(GNU Backgammon's `MoneyLive`), not the paper's Appendix-1 closed form — the
+piecewise version is what the engines we benchmark against ship, and it is also
+more accurate and satisfies the provable `[-L, W]` bound by construction. Index
+`x = 0.68` for contact, `0.60` for races. `W` and `L` are floored at 1, which is
+not a nicety: variance-reduced rollout labels violate it, with a worst case of
+`W = -5.29`.
+
+**The state.** `state.py` holds `CubeState(value, owner)` and the bridge between
+two vocabularies that are easy to confuse. Janowski speaks in labels *relative to
+the player on roll* — `CENTERED`, `PLAYER`, `OPPONENT`; a game loop speaks in seat
+indices. `flip_label` is the piece that matters: **changing perspective flips the
+cube owner as well as the sign of the equity.** Negating alone hands the opponent
+your cube ownership, and nothing about the resulting number looks wrong.
+
+**Cube-aware move selection.** `child_cubeful_values` in `train/lookahead.py` is
+the cubeful twin of `child_values`, sharing its enumeration, doubles handling and
+leaf dedup through `enumerate_leaves`. It reads `value_probs6` instead of
+`value_equity` and prices each leaf with `cl2cf_money`. This is where the cube
+model earns its keep: exp024 measured that it is consulted about 22 times as often
+for move selection as for a take decision, and that a *perfect cubeless* player
+still throws away PR 0.336 ± 0.042 when judged cubefully.
+
+**Two scales, deliberately separate.** `value_equity` and `child_values` are
+equity/3 in [−1, 1]; `cl2cf_money` and `child_cubeful_values` are money points at
+cube value 1, roughly [−3, 3]. Terminal children are `returns()` undivided on the
+cubeful path and divided by 3 on the cubeless one. The cube *value* never enters a
+ranking — it multiplies every candidate by the same constant — so callers apply it
+at the end.
+
+**Jacoby.** `cl2cf_money` takes the flag *already resolved* against the cube
+position, because the rule stops applying the moment the cube is turned; pass
+`jacoby_active(label, rule)`. Raccoon's target is money **without** Jacoby, so
+`eval/cube_arena.py` runs with it off. The BGSage benchmark was generated with it
+on, so scoring against that benchmark turns it on. Those are the only two
+settings, and each is stated where it is used.
+
+**GNUBG's cube.** gnubg-nn cannot make a money cube decision —
+`evaluate_cube_decision` raises `Not implemented for money`, covering match play
+only. So `eval/gnubg_adapter.py` reconstructs it the way GNU Backgammon computes
+it for money: GNUBG's own cubeless probabilities at the requested ply, through the
+same Janowski code. Reading `gnubg_nn.probabilities` uncollapsed costs nothing
+extra. The consequence is that a head-to-head match has **both sides sharing one
+cube model**, so it compares evaluation and checker play rather than cube models.
+
 ## Search
 
 Two independent searches exist. Neither is used by the shipped 0-ply engine.
@@ -186,6 +242,14 @@ the action indices at all.
 - **Variance-reduced arena** (`raccoon/eval/vr_arena.py`) — the same net-vs-GNUBG
   games with a variance-reduced ppg estimator, using the dice-luck control variate
   in `raccoon/eval/luck.py`.
+- **Cubeful arena** (`raccoon/eval/cube_arena.py`, exp025) — full money games with
+  the cube live and Jacoby off. The control variate carries over unchanged in
+  principle: `h` stays a deterministic function of (pre-roll state, roll), the cube
+  state is part of that state, and cube decisions are not chance events so they
+  contribute no luck terms. Two things adapt — each luck term is scaled by the cube
+  value at its own roll, and `h` becomes a cubeful equity so it tracks what it is
+  subtracted from. Both are exactly unbiased, so which one to use is settled by
+  measured variance rather than argument.
 - **Checkpoint vs checkpoint** (`raccoon/eval/arena.py`) — tracks whether new
   iterations improve on old ones.
 - **Doubles execution cost** (`raccoon/eval/doubles.py`, exp020) — measures what

@@ -18,6 +18,10 @@ CPU = torch.device("cpu")
 
 
 def _small_net():
+    # Seeded: an unseeded random net occasionally plays a greedy game that never
+    # ends, and `test_play_td_game_wellformed` then reads a 0.0 result and fails
+    # depending on what ran before it in the same process.
+    torch.manual_seed(7)
     net = RaccoonNet(channels=16, num_blocks=1)
     net.eval()
     return net

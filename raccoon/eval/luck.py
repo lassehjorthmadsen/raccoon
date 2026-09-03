@@ -223,3 +223,118 @@ def pre_roll_luck(
     actions, probs, values = pre_roll_values(state, perspective_player, ply)
     mean = float(probs @ values)
     return float(values[actions.index(chance_action)]) - mean, mean
+
+
+# --- the cubeful control variate ---------------------------------------------
+#
+# With a live cube the game result is no longer +/-1/2/3 but that times the cube
+# value, so the control variate has to be on the same scale or it stops tracking
+# what it is subtracted from. Two things change and neither costs a gnubg call:
+#
+# * every luck term is multiplied by the cube value **at the roll it belongs
+#   to** (applied by the caller, which owns the cube state), and
+# * ``h`` becomes a cubeful equity rather than a cubeless one, so it moves with
+#   the quantity being estimated.
+#
+# Unbiasedness is untouched, and for exactly the reason the module docstring
+# gives: ``h`` stays a deterministic function of (pre-roll state, roll), and the
+# cube state is part of the pre-roll state. Cube decisions are not chance
+# events, so they contribute no luck terms at all. Both variants are therefore
+# valid estimators of the same quantity and the choice between them is purely
+# about variance -- which is why ``scripts/eval_gnubg_cube.py`` exposes it as a
+# flag and settles it on measured ``sd_ratio``.
+
+def roll_probs_table(
+    board: list[list[int]], ply: int = 0,
+) -> dict[tuple[int, int], tuple[float, ...]]:
+    """The 21-roll sweep again, returning outcome distributions instead of equities.
+
+    Costs what :func:`roll_value_table` costs -- ``best_move_probs`` reads the
+    same ``probabilities`` call uncollapsed.
+    """
+    from raccoon.eval.gnubg_adapter import best_move_probs
+
+    return {key: best_move_probs(board, key[0], key[1], ply) for key in ROLL_KEYS}
+
+
+def _cubeful_roll_table(
+    board: list[list[int]], label: str, x: float, jacoby: bool, ply: int,
+) -> dict[tuple[int, int], float]:
+    """``{(lo, hi): mover-POV cubeful equity after best play}``, cube value 1."""
+    from raccoon.cube.janowski import cl2cf_money, jacoby_active
+
+    # `jacoby` is the raw rule setting; resolve it against where the cube sits.
+    jac = jacoby_active(label, jacoby)
+    return {
+        key: cl2cf_money(probs, label, x, jac)
+        for key, probs in roll_probs_table(board, ply).items()
+    }
+
+
+@lru_cache(maxsize=4)
+def _opening_cubeful_values(x: float, jacoby: bool, ply: int) -> np.ndarray:
+    """Player-0-POV cubeful values of the 30 opening outcomes.
+
+    The cube is centred and worth 1 at the opening of every game, and the opening
+    position is contact, so this table depends on nothing that varies within a
+    session and is computed once -- the cubeful twin of :func:`_opening_values`.
+    """
+    from raccoon.cube.janowski import CENTERED
+    from raccoon.env.game_wrapper import GameWrapper
+
+    state = GameWrapper().new_game()
+    table_by_starter = {
+        starter: _cubeful_roll_table(
+            _pre_roll_board(state, starter), CENTERED, x, jacoby, ply,
+        )
+        for starter in (0, 1)
+    }
+    return np.array(
+        [
+            (1.0 if k % 2 == 0 else -1.0)
+            * table_by_starter[k % 2][DICE_BY_CHANCE_ACTION[k]]
+            for k in range(OPENING_OUTCOMES)
+        ],
+        dtype=np.float64,
+    )
+
+
+def pre_roll_cubeful_values(
+    state: GameState, perspective_player: int, cube, x: float,
+    jacoby: bool = False, ply: int = 0,
+) -> tuple[list[int], np.ndarray, np.ndarray]:
+    """:func:`pre_roll_values`, with ``h`` a cubeful equity at cube value 1.
+
+    ``cube`` is a :class:`raccoon.cube.state.CubeState`; the label is taken from
+    the *mover's* point of view before the values are signed to
+    ``perspective_player``, so a cube we own stays ours through the negation.
+    The cube **value** is left out on purpose -- the caller multiplies the luck
+    term by it, keeping this function a pure function of the board.
+
+    Raises ``ValueError`` if ``state`` is not a chance node.
+    """
+    if not state.is_chance_node():
+        raise ValueError("pre_roll_cubeful_values called on a non-chance state")
+
+    outcomes = state.chance_outcomes()
+    actions = [a for a, _ in outcomes]
+    probs = np.array([p for _, p in outcomes], dtype=np.float64)
+
+    if len(outcomes) == OPENING_OUTCOMES:
+        values = _opening_cubeful_values(x, jacoby, ply).copy()
+        if perspective_player != 0:
+            values = -values
+        return actions, probs, values
+
+    probe = state.clone()
+    probe.apply_action(actions[0])
+    mover = probe.current_player()
+    table = _cubeful_roll_table(
+        board_from_view(probe.board_from_perspective()),
+        cube.label_for(mover), x, jacoby, ply,
+    )
+    sign = 1.0 if mover == perspective_player else -1.0
+    values = np.array(
+        [sign * table[DICE_BY_CHANCE_ACTION[a]] for a in actions], dtype=np.float64
+    )
+    return actions, probs, values

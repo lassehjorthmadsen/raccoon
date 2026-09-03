@@ -135,3 +135,92 @@ def test_level_to_ply_mapping():
     assert gnubg_adapter.level_to_ply("World Class") == 2
     with pytest.raises(ValueError):
         gnubg_adapter.level_to_ply("super-duper")
+
+
+# --- the cubeful side (exp025) -------------------------------------------------
+
+def _mid_game_states(n=6):
+    """A few real decision states, reached by letting GNUBG play itself at 0-ply."""
+    import numpy as np
+
+    np.random.seed(17)
+    wrapper = GameWrapper()
+    state = _advance_through_chance(wrapper.new_game())
+    out = []
+    while len(out) < n and not state.is_terminal():
+        out.append(state.clone())
+        state.apply_action(gnubg_adapter.pick_move(state, 0))
+        state = _advance_through_chance(state)
+    return out
+
+
+def test_best_move_probs_reproduces_best_move_equity_exactly():
+    """The two read the same ``probabilities`` call, one collapsed and one not,
+    so the cubeless equity of the distribution must be the equity to the bit.
+    That is what makes the cubeful control variate free rather than a second
+    evaluator that could drift."""
+    from raccoon.cube.janowski import cubeless_equity
+    from raccoon.eval.luck import ROLL_KEYS
+
+    for state in _mid_game_states(4):
+        board = gnubg_adapter.board_from_view(state.board_from_perspective())
+        for die1, die2 in ROLL_KEYS:
+            eq = gnubg_adapter.best_move_equity(board, die1, die2, 0)
+            probs = gnubg_adapter.best_move_probs(board, die1, die2, 0)
+            assert cubeless_equity(probs) == pytest.approx(eq, abs=1e-9)
+
+
+def test_best_move_probs_refuses_deeper_ply_like_its_sibling():
+    board = gnubg_nn.board_from_position_id("4HPwATDgc/ABMA")
+    with pytest.raises(ValueError):
+        gnubg_adapter.best_move_probs(board, 3, 1, 1)
+
+
+def test_invert_probs_is_an_involution_and_swaps_the_sides():
+    from raccoon.cube.janowski import cubeless_equity
+
+    board = gnubg_nn.board_from_position_id("4HPwATDgc/ABMA")
+    probs = gnubg_adapter.outcome_probs(board, 0)
+    flipped = gnubg_adapter._invert_probs(probs)
+    assert cubeless_equity(flipped) == pytest.approx(-cubeless_equity(probs), abs=1e-12)
+    assert gnubg_adapter._invert_probs(flipped) == pytest.approx(tuple(probs), abs=1e-12)
+
+
+def test_dead_cube_ranking_matches_the_cubeless_ranking():
+    """x = 0 makes Janowski the identity on cubeless equity, so GNUBG's cubeful
+    candidate list must reproduce its cubeless one. Terminal children are the
+    one exception: ``candidate_equities`` hard-codes +3.0 for them where the
+    cubeful path takes the exact 1/2/3, so they are compared separately."""
+    from raccoon.cube.janowski import CENTERED
+
+    for state in _mid_game_states(6):
+        cubeless = dict(gnubg_adapter.candidate_equities(state, 0))
+        cubeful = dict(gnubg_adapter.candidate_cubeful_equities(
+            state, 0, CENTERED, 0.0, False,
+        ))
+        assert cubeless.keys() == cubeful.keys()
+        for action, eq in cubeless.items():
+            if eq == 3.0:
+                continue   # terminal shortcut, deliberately different
+            assert cubeful[action] == pytest.approx(eq, abs=1e-9)
+
+
+def test_gnubg_cube_action_does_not_double_the_opening_position():
+    """A no-brainer sanity anchor: the opening position is nobody's double."""
+    from raccoon.cube.janowski import CENTERED, X_CONTACT
+
+    board = gnubg_nn.board_from_position_id("4HPwATDgc/ABMA")
+    should_double, should_take = gnubg_adapter.gnubg_cube_action(
+        board, 0, CENTERED, X_CONTACT, jacoby=False,
+    )
+    assert not should_double
+    assert should_take
+
+
+def test_pick_move_cubeful_returns_a_legal_action():
+    from raccoon.cube.janowski import CENTERED, PLAYER, X_CONTACT
+
+    for state in _mid_game_states(3):
+        for label in (CENTERED, PLAYER):
+            action = gnubg_adapter.pick_move_cubeful(state, 0, label, X_CONTACT, False)
+            assert action in state.legal_actions()
