@@ -51,10 +51,11 @@
 #     and a win against it would not be the goal.md criterion.
 #
 # The real opponent exists — /usr/games/gnubg 1.07 answers money cube decisions
-# and cube-aware checker play, at ~84 ms per 2-ply decision — but wiring it up
-# is its own piece of work, and BGSage (../bgsage, a money cube_action API
-# behind an unbuilt C++ extension) wants the same harness. Both go in exp026,
-# together, so the harness is built once.
+# and cube-aware checker play, at ~71 ms per 2-ply decision — but wiring it up
+# is its own piece of work. It becomes exp026. BGSage (../bgsage, a money
+# cube_action API behind an unbuilt C++ extension) is the stronger target and
+# reuses the same harness, but "beats GNUBG" and "beats BGSage" are two
+# questions, so it gets its own experiment rather than riding along.
 #
 # SUPPORTING, DEMARCATED — NOT part of the hypothesis and not a headline.
 # results/pilot_cv_*.json measure the CUBEFUL VARIANCE-REDUCED ESTIMATOR itself
