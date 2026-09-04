@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>eval.doubles – Raccoon</title>
+<title>Evaluation Speed – Raccoon</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -26,62 +26,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<link href="../favicon.svg" rel="icon" type="image/svg+xml">
-<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-3e9b1289f5f353c49b617ce48ad2bc38.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./favicon.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-3e9b1289f5f353c49b617ce48ad2bc38.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -111,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
-<link rel="stylesheet" href="../styles.css">
-<meta property="og:title" content="Raccoon">
-<meta property="og:description" content="A modern neural engine for backgammon">
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Evaluation Speed – Raccoon">
+<meta property="og:description" content="Every strength result in this project compares engines at matched search depth. At matched time, GNU Backgammon is ahead — by a margin that decides what the engine can do.">
 <meta property="og:site_name" content="Raccoon">
 </head>
 
@@ -124,7 +89,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="../index.html">
+    <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">Raccoon</span>
     </a>
   </div>
@@ -135,11 +100,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../index.html"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../about.html"> 
+    <a class="nav-link" href="./about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -148,11 +113,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
         <li>
-    <a class="dropdown-item" href="../mcts_explained.html">
+    <a class="dropdown-item" href="./mcts_explained.html">
  <span class="dropdown-text">MCTS Explained</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../architecture.html">
+    <a class="dropdown-item" href="./architecture.html">
  <span class="dropdown-text">Architecture</span></a>
   </li>  
     </ul>
@@ -163,47 +128,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-training">    
         <li>
-    <a class="dropdown-item" href="../training_parameters.html">
+    <a class="dropdown-item" href="./training_parameters.html">
  <span class="dropdown-text">Parameters</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../training_analysis.html">
+    <a class="dropdown-item" href="./training_analysis.html">
  <span class="dropdown-text">Self-Play Analysis</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../pretraining_analysis.html">
+    <a class="dropdown-item" href="./pretraining_analysis.html">
  <span class="dropdown-text">Supervised &amp; Expert Iteration</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../variance_reduction.html">
+    <a class="dropdown-item" href="./variance_reduction.html">
  <span class="dropdown-text">Variance-Reduced Rollouts</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../search.html">
+    <a class="dropdown-item" href="./search.html">
  <span class="dropdown-text">Multi-Ply Search</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../speed.html">
+    <a class="dropdown-item" href="./speed.html">
  <span class="dropdown-text">Evaluation Speed</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../cube.html">
+    <a class="dropdown-item" href="./cube.html">
  <span class="dropdown-text">The Doubling Cube</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="../gcp_guide.html"> 
+    <a class="nav-link" href="./gcp_guide.html"> 
 <span class="menu-text">Developer</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../reference/index.html"> 
+    <a class="nav-link" href="./reference/index.html"> 
 <span class="menu-text">Reference</span></a>
   </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../contact.html"> 
+    <a class="nav-link" href="./contact.html"> 
 <span class="menu-text">Contact</span></a>
   </li>  
 </ul>
@@ -221,71 +186,223 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
-  <ul>
-  <li><a href="#raccoon.eval.doubles" id="toc-raccoon.eval.doubles" class="nav-link active" data-scroll-target="#raccoon.eval.doubles">eval.doubles</a>
   <ul class="collapse">
-  <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
-  <ul class="collapse">
-  <li><a href="#raccoon.eval.doubles.doubles_concession_arena" id="toc-raccoon.eval.doubles.doubles_concession_arena" class="nav-link" data-scroll-target="#raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</a></li>
-  </ul></li>
-  </ul></li>
+  <li><a href="#what-one-position-costs" id="toc-what-one-position-costs" class="nav-link active" data-scroll-target="#what-one-position-costs">What one position costs</a></li>
+  <li><a href="#it-is-the-network-not-the-code" id="toc-it-is-the-network-not-the-code" class="nav-link" data-scroll-target="#it-is-the-network-not-the-code">It is the network, not the code</a></li>
+  <li><a href="#what-it-costs-at-matched-time" id="toc-what-it-costs-at-matched-time" class="nav-link" data-scroll-target="#what-it-costs-at-matched-time">What it costs at matched time</a></li>
+  <li><a href="#everyone-else-uses-a-small-network" id="toc-everyone-else-uses-a-small-network" class="nav-link" data-scroll-target="#everyone-else-uses-a-small-network">Everyone else uses a small network</a></li>
+  <li><a href="#what-a-smaller-network-would-cost" id="toc-what-a-smaller-network-would-cost" class="nav-link" data-scroll-target="#what-a-smaller-network-would-cost">What a smaller network would cost</a></li>
+  <li><a href="#what-this-page-does-not-say" id="toc-what-this-page-does-not-say" class="nav-link" data-scroll-target="#what-this-page-does-not-say">What this page does not say</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Evaluation Speed</h1>
+<p class="subtitle lead">Every strength result in this project compares engines at matched search depth. At matched <em>time</em>, GNU Backgammon is ahead — by a margin that decides what the engine can do.</p>
+</div>
 
 
 
+<div class="quarto-title-meta">
 
-<section id="raccoon.eval.doubles" class="level1">
-<h1>eval.doubles</h1>
-<p><code>eval.doubles</code></p>
-<p>What Raccoon’s two-step doubles execution costs in play (exp020).</p>
-<p>OpenSpiel splits a doubles turn into two consecutive decisions by the same player, two of the four half-moves each. GNUBG’s side of the arena (:func:<code>raccoon.eval.gnubg_adapter.candidate_equities</code>) recurses through both halves and optimises the turn jointly. Raccoon’s side historically did not: it ranked half 1 by the static value of the <em>intermediate</em> position — which :func:<code>encode_pre_roll</code> hands to the value head with the dice and the mid-doubles flag cleared, so the net is told “you are about to roll” about a position where the mover still owes two half-moves — and then picked half 2 greedily. On 1/6 of turns the two engines were not playing by the same rule, and only one of them was handicapped.</p>
-<p>This module measures the gap directly, on the distribution where it matters:</p>
-<pre><code>concession = eq_gnubg(final_joint) - eq_gnubg(final_greedy)</code></pre>
-<p>Both finals come from the <strong>same</strong> network, so the teacher’s own move choice never enters and this is purely a question of how the net’s value function is <em>searched</em>. The main line plays the greedy arm by default (<code>play_joint=False</code>), so the sample is the exp019 playing distribution — the one whose ppg shortfall prompted the experiment — and the joint arm is scored as a counterfactual on each turn.</p>
-<p>Two properties keep the measurement honest:</p>
-<ul>
-<li><strong>Non-doubles turns are a control, not filler.</strong> A turn that needs one OpenSpiel action has one leaf per legal action, so joint and greedy enumerate the identical set and must agree exactly. Any non-zero concession there is a harness bug — a bad resting signature, a sign error, a mis-judged terminal — not a strength difference. <code>tests/test_doubles.py</code> pins the same property at the <code>child_values</code> level.</li>
-<li><strong>Measuring does not perturb the games.</strong> Both arms are explored on clones, and neither <code>select_move</code> at temperature 0 nor <code>evaluate_equity</code> touches the RNG, so a run with the same seed visits the same positions as a plain <code>gnubg_arena</code>.</li>
-</ul>
-<p>Judged at <code>judge_ply</code> (default 2 — the strongest affordable referee, and the tier the distillation teacher used). GNUBG is only consulted when the two arms actually disagree; when they land on the same position the concession is exactly zero and no evaluation is needed, which is what keeps the run affordable.</p>
-<section id="functions" class="level2">
-<h2 class="anchored" data-anchor-id="functions">Functions</h2>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Raccoon’s network is more accurate than GNU Backgammon’s, position for position. On the BGSage benchmark it selects moves better at 0-ply than GNU Backgammon does at 1-ply. That result is real and it is measured.</p>
+<p>It is also bought with about three and a half thousand times the computation, and that has never been reported alongside it.</p>
+<p>This page measures what one position evaluation costs each engine, checks whether the difference is the implementation or the network, and works out what it means for the searches both engines can afford. The conclusion is that the current architecture cannot be made practical by tuning, and that the choice recorded in <code>goal.md</code>’s first assumption is the thing to revisit.</p>
+<section id="what-one-position-costs" class="level2">
+<h2 class="anchored" data-anchor-id="what-one-position-costs">What one position costs</h2>
+<p>Both figures below come from the same script on the same machine in the same run, so the ratio does not depend on comparing published numbers from different hardware.</p>
 <table class="caption-top table">
+<caption>Measured on lasse-iMac14-2, 4 cores. MACs are multiply-accumulates in one forward pass, computed from the network shape.</caption>
+<colgroup>
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 28%">
+<col style="width: 28%">
+</colgroup>
 <thead>
 <tr class="header">
-<th>Name</th>
-<th>Description</th>
+<th>engine</th>
+<th>architecture</th>
+<th style="text-align: right;">MACs / position</th>
+<th style="text-align: right;">positions / second</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</a></td>
-<td>Play <code>net</code> vs GNUBG and score both doubles arms at every net turn.</td>
+<td>GNU Backgammon</td>
+<td>250-128-5 MLP (one net per position class)</td>
+<td style="text-align: right;">0.033 M</td>
+<td style="text-align: right;"><strong>1,476,488</strong></td>
+</tr>
+<tr class="even">
+<td>Raccoon ep22</td>
+<td>10x256 ResNet, 11.9 M parameters</td>
+<td style="text-align: right;">285 M</td>
+<td style="text-align: right;"><strong>426</strong></td>
 </tr>
 </tbody>
 </table>
-<section id="raccoon.eval.doubles.doubles_concession_arena" class="level3">
-<h3 class="anchored" data-anchor-id="raccoon.eval.doubles.doubles_concession_arena">doubles_concession_arena</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span>.doubles.doubles_concession_arena(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    net,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    device,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    games,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    gnubg_ply<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    judge_ply<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    max_moves<span class="op">=</span><span class="dv">2000</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    play_joint<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Play <code>net</code> vs GNUBG and score both doubles arms at every net turn.</p>
-<p>Returns per-turn arrays (<code>two_step</code>, <code>disagreed</code>, <code>concession</code>, <code>concession_0ply</code>, <code>n_paths</code>) plus per-game points, so a caller can compute an empirical CI on the concession and cross-check the raw ppg against exp019. Seats alternated; seeds the global numpy RNG (dice), matching :func:<code>raccoon.train.td_selfplay.gnubg_arena</code>.</p>
+<p>GNU Backgammon evaluates <strong>3,470 times</strong> as many positions per second, while Raccoon does <strong>8,718 times</strong> the multiply-accumulates per position.</p>
+</section>
+<section id="it-is-the-network-not-the-code" class="level2">
+<h2 class="anchored" data-anchor-id="it-is-the-network-not-the-code">It is the network, not the code</h2>
+<p>The two ratios differ, and the direction is worth noting: the arithmetic gap is larger than the measured gap. Raccoon extracts more work per multiply-accumulate than GNU Backgammon does, because a convolutional network evaluated in batches uses wide vector instructions and several cores, while a small network evaluated one position at a time does not.</p>
+<p>Raccoon reaches <strong>242 GFLOPS</strong>, against a theoretical peak near 410 for this processor — about 59% of it, which is good for convolutions on a 2x12 board. Its advantage in efficiency per operation is 2.5x; its arithmetic disadvantage is 8,718x.</p>
+<p>So there is no implementation problem to fix. Quantisation, better kernels or a faster runtime might buy a factor of two or three. The gap is three to four orders of magnitude, and it is the shape of the network.</p>
+</section>
+<section id="what-it-costs-at-matched-time" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-costs-at-matched-time">What it costs at matched time</h2>
+<p>Search cost is evaluation cost multiplied by tree size. Two engines searching to the same depth visit comparable numbers of positions, so a per-position gap of this size becomes a per-decision gap of the same size.</p>
+<p>Putting the measured per-decision times next to the benchmark accuracy each configuration achieves:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>configuration</th>
+<th style="text-align: right;">time / decision</th>
+<th style="text-align: right;">benchmark PR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GNU Backgammon, 2-ply</td>
+<td style="text-align: right;">0.062 s</td>
+<td style="text-align: right;"><strong>0.588</strong></td>
+</tr>
+<tr class="even">
+<td>Raccoon, 0-ply</td>
+<td style="text-align: right;">0.049 s</td>
+<td style="text-align: right;">1.026</td>
+</tr>
+<tr class="odd">
+<td>Raccoon, depth-2 expectimax</td>
+<td style="text-align: right;">28 s</td>
+<td style="text-align: right;">0.426</td>
+</tr>
+</tbody>
+</table>
+<p>The first two lines take about the same time, and GNU Backgammon wins. The third line is the configuration where Raccoon is clearly stronger, and it costs roughly 450 times as long as the opponent it beats.</p>
+<p>Times are measured: GNU Backgammon’s from driving the binary (<code>raccoon/eval/gnubg_cli.py</code>), Raccoon’s 0-ply from the throughput above at about 21 evaluations per decision, and depth-2 from exp021’s recorded 12,016 evaluations per decision. PR figures are exp021’s, on a 2,000-decision sample.</p>
+<p><strong>Every comparison this project has published is at matched depth.</strong> exp021’s ladder, exp026’s head-to-head, the benchmark tables: all of them hold search depth fixed and vary the engine. None holds <em>time</em> fixed. At matched time the ordering reverses, and that is the comparison a real game imposes.</p>
+</section>
+<section id="everyone-else-uses-a-small-network" class="level2">
+<h2 class="anchored" data-anchor-id="everyone-else-uses-a-small-network">Everyone else uses a small network</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>engine</th>
+<th>network</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TD-Gammon</td>
+<td>one hidden layer, handcrafted inputs</td>
+</tr>
+<tr class="even">
+<td>GNU Backgammon</td>
+<td>250 → 128 → 5, one per position class</td>
+</tr>
+<tr class="odd">
+<td>BGSage (measured close to eXtreme Gammon)</td>
+<td>244 → 200/400 → 5, five to nineteen networks by game plan</td>
+</tr>
+<tr class="even">
+<td>Raccoon</td>
+<td>26-channel input, ten residual blocks at 256 channels</td>
+</tr>
+</tbody>
+</table>
+<p>The convolutional trunk came from the AlphaZero framing in <code>goal.md</code>. Convolutions assume neighbouring squares are related in a way worth exploiting with shared filters. A backgammon board is 24 points where the relationships that matter are pip distances, contact and blot exposure — quantities Raccoon’s encoder already computes and hands the network directly as channels 17 to 25. It is possible that 285 M multiply-accumulates are being spent partly to rediscover structure the input already contains.</p>
+</section>
+<section id="what-a-smaller-network-would-cost" class="level2">
+<h2 class="anchored" data-anchor-id="what-a-smaller-network-would-cost">What a smaller network would cost</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>architecture</th>
+<th style="text-align: right;">MACs / position</th>
+<th style="text-align: right;">projected positions / second</th>
+<th style="text-align: right;">speed-up</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ResNet 10x256</td>
+<td style="text-align: right;">284.553 M</td>
+<td style="text-align: right;">426</td>
+<td style="text-align: right;">1x</td>
+</tr>
+<tr class="even">
+<td>ResNet 6x128</td>
+<td style="text-align: right;">43.186 M</td>
+<td style="text-align: right;">2,804</td>
+<td style="text-align: right;">7x</td>
+</tr>
+<tr class="odd">
+<td>ResNet 4x64</td>
+<td style="text-align: right;">7.437 M</td>
+<td style="text-align: right;">16,280</td>
+<td style="text-align: right;">38x</td>
+</tr>
+<tr class="even">
+<td>ResNet 2x64</td>
+<td style="text-align: right;">3.898 M</td>
+<td style="text-align: right;">31,059</td>
+<td style="text-align: right;">73x</td>
+</tr>
+<tr class="odd">
+<td>MLP 250x128</td>
+<td style="text-align: right;">0.033 M</td>
+<td style="text-align: right;">3,709,532</td>
+<td style="text-align: right;">8,718x</td>
+</tr>
+<tr class="even">
+<td>MLP 250x400</td>
+<td style="text-align: right;">0.102 M</td>
+<td style="text-align: right;">1,187,050</td>
+<td style="text-align: right;">2,790x</td>
+</tr>
+</tbody>
+</table>
+<p>These rows scale the measured throughput by arithmetic cost. <strong>They say what an architecture would cost, not what it would score.</strong> A cheaper network is only useful if it stays accurate enough, and that requires training one and measuring it.</p>
+<p>The measurement worth making is accuracy against speed, not accuracy alone. exp017 established that scaling from 8 M to 40 M training positions took PR from 2.16 to 0.93 at the current size, and the size itself was never varied against the same data. The 40 M-position cache is on disk and <code>scripts/train_distill.py</code> already does the work, so distilling it into progressively smaller networks — including a plain network over the existing handcrafted features — is a matter of compute rather than new machinery.</p>
+<p>A cheaper network reaching, say, PR 1.2 at forty times the speed would beat ep22 outright at equal time, because it could afford the depth-2 search ep22 cannot.</p>
+</section>
+<section id="what-this-page-does-not-say" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-page-does-not-say">What this page does not say</h2>
+<ul>
+<li><strong>It does not say the network is bad.</strong> It is more accurate per position than GNU Backgammon’s by a wide margin. The question is the price.</li>
+<li><strong>It does not measure a smaller network’s accuracy.</strong> Every projected row is arithmetic. Whether accuracy survives the reduction is unknown, and is the experiment this page argues for.</li>
+<li><strong>It is one machine.</strong> A four-core desktop processor with no GPU. A graphics card changes Raccoon’s throughput far more than GNU Backgammon’s, because batched convolutions suit one and a per-position network does not. That changes the arithmetic for training and offline analysis; it does not change what a browser or a phone can run.</li>
+<li><strong>GNU Backgammon’s figure is single-position and single-threaded.</strong> It has headroom of its own that this comparison does not give it.</li>
+<li><strong>It retracts no published result.</strong> Raccoon does beat GNU Backgammon at matched depth on the benchmark. This page adds the axis those results were silent on.</li>
+</ul>
 
 
-</section>
-</section>
 </section>
 
 </main> <!-- /main -->

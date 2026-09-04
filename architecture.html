@@ -148,6 +148,10 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">Multi-Ply Search</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="./speed.html">
+ <span class="dropdown-text">Evaluation Speed</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="./cube.html">
  <span class="dropdown-text">The Doubling Cube</span></a>
   </li>  
@@ -317,8 +321,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="search" class="level2">
 <h2 class="anchored" data-anchor-id="search">Search</h2>
-<p>Two independent searches exist. Neither is used by the shipped 0-ply engine.</p>
+<p>Three searches exist. None is used by the shipped 0-ply engine.</p>
+<p><strong>A caveat that applies to all of them.</strong> Search cost is evaluation cost times tree size, and Raccoon’s evaluation costs about 3,470x what GNU Backgammon’s does (measured) for 8,718x the arithmetic. A depth-2 Raccoon decision takes 28 seconds where GNU Backgammon’s 2-ply search takes 0.062 and scores better than Raccoon’s 0-ply. Every published comparison holds depth fixed rather than time; at matched time the ordering reverses. See <a href="./speed.html">Evaluation Speed</a>.</p>
 <p><strong>MCTS</strong> (<code>raccoon/search/mcts.py</code>) — AlphaZero-style, PUCT selection, used by self-play training. Dice rolls are sampled and skipped, so the tree contains only decision and terminal nodes and the network is never evaluated at a chance node; with 100+ simulations the dice outcomes are covered by repeated sampling. Temperature controls exploitation vs exploration when converting visit counts into a move. Leaf positions from a simulation round are evaluated in one batched forward pass. See <a href="./mcts_explained.html">MCTS Explained</a>.</p>
+<p><strong>Cubeful search</strong> (<code>raccoon/search/cubeful.py</code>) — Janowski applied at every node instead of once at the root, which is what GNU Backgammon does for cube decisions. Depth 0 reproduces <code>janowski.cube_equities</code> exactly. The cube state changes only how a leaf converts to a number, never the board tree, so one expansion serves every cube state. Measured worth about 0.004 ppg in play, below the resolution of any affordable match, so it is kept in the engine without an experiment resting on it.</p>
 <p><strong>Filtered expectimax</strong> (<code>raccoon/search/expectimax.py</code>, exp021) — ranks moves by pushing evaluation <em>n</em> rolls deeper instead of asking the value head about the afterstate directly. Chance nodes are expanded <strong>full width</strong> over the 21 distinct rolls (doubles weighted 1/36, non-doubles 2/36), the opponent replies greedily, and each tree level is one batched forward pass. <code>depth=0</code> reduces to exactly the 0-ply static evaluation above.</p>
 <p>Expectimax operates on <strong>gnubg-nn’s 2×25 board layout, not OpenSpiel states</strong> — the BGSage benchmark stores raw boards and OpenSpiel cannot construct a state from a board, so moves come from <code>gnubg_nn.moves()</code> (whole-turn, already deduplicated to distinct resulting positions). Two slot-orientation conventions are easy to get backwards and are pinned by tests; see the module docstring. The design study is <a href="./search.html">Multi-Ply Search</a>.</p>
 </section>
