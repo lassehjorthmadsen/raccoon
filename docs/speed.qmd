@@ -1,0 +1,176 @@
+---
+title: "Evaluation Speed"
+subtitle: "Every strength result in this project compares engines at matched search depth. At matched *time*, GNU Backgammon is ahead — by a margin that decides what the engine can do."
+toc-depth: 2
+jupyter: python3
+---
+
+Raccoon's network is more accurate than GNU Backgammon's, position for position.
+On the BGSage benchmark it selects moves better at 0-ply than GNU Backgammon does
+at 1-ply. That result is real and it is measured.
+
+It is also bought with about three and a half thousand times the computation, and
+that has never been reported alongside it.
+
+This page measures what one position evaluation costs each engine, checks whether
+the difference is the implementation or the network, and works out what it means
+for the searches both engines can afford. The conclusion is that the current
+architecture cannot be made practical by tuning, and that the choice recorded in
+`goal.md`'s first assumption is the thing to revisit.
+
+```{python}
+#| echo: false
+import json
+from pathlib import Path
+
+S = json.loads(
+    (Path("../experiments/exp027-speed-audit/results/eval_speed.json")).read_text()
+)
+R, G, RATIO = S["raccoon"], S["gnubg"], S["ratios"]
+```
+
+## What one position costs
+
+Both figures below come from the same script on the same machine in the same run,
+so the ratio does not depend on comparing published numbers from different
+hardware.
+
+```{python}
+#| echo: false
+#| output: asis
+print("| engine | architecture | MACs / position | positions / second |")
+print("|---|---|---:|---:|")
+print(f"| GNU Backgammon | {G['architecture']} | {G['macs_per_position']/1e6:.3f} M | "
+      f"**{G['boards_per_second']:,.0f}** |")
+print(f"| Raccoon ep22 | {R['architecture']}, {R['parameters']/1e6:.1f} M parameters | "
+      f"{R['macs_per_position']/1e6:.0f} M | **{R['boards_per_second_best']:,.0f}** |")
+print()
+print(f": Measured on {S['machine']['node']}, {S['machine']['cpu_count']} cores. "
+      f"MACs are multiply-accumulates in one forward pass, computed from the "
+      f"network shape.")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"GNU Backgammon evaluates **{RATIO['throughput_gnubg_over_raccoon']:,.0f} "
+      f"times** as many positions per second, while Raccoon does "
+      f"**{RATIO['macs_raccoon_over_gnubg']:,.0f} times** the multiply-accumulates "
+      f"per position.")
+```
+
+## It is the network, not the code
+
+The two ratios differ, and the direction is worth noting: the arithmetic gap is
+larger than the measured gap. Raccoon extracts more work per multiply-accumulate
+than GNU Backgammon does, because a convolutional network evaluated in batches
+uses wide vector instructions and several cores, while a small network evaluated
+one position at a time does not.
+
+```{python}
+#| echo: false
+#| output: asis
+eff = RATIO["macs_raccoon_over_gnubg"] / RATIO["throughput_gnubg_over_raccoon"]
+print(f"Raccoon reaches **{R['gflops_achieved']:.0f} GFLOPS**, against a "
+      f"theoretical peak near 410 for this processor — about "
+      f"{R['gflops_achieved']/410:.0%} of it, which is good for convolutions on a "
+      f"2x12 board. Its advantage in efficiency per operation is {eff:.1f}x; its "
+      f"arithmetic disadvantage is {RATIO['macs_raccoon_over_gnubg']:,.0f}x.")
+```
+
+So there is no implementation problem to fix. Quantisation, better kernels or a
+faster runtime might buy a factor of two or three. The gap is three to four
+orders of magnitude, and it is the shape of the network.
+
+## What it costs at matched time
+
+Search cost is evaluation cost multiplied by tree size. Two engines searching to
+the same depth visit comparable numbers of positions, so a per-position gap of
+this size becomes a per-decision gap of the same size.
+
+Putting the measured per-decision times next to the benchmark accuracy each
+configuration achieves:
+
+| configuration | time / decision | benchmark PR |
+|---|---:|---:|
+| GNU Backgammon, 2-ply | 0.062 s | **0.588** |
+| Raccoon, 0-ply | 0.049 s | 1.026 |
+| Raccoon, depth-2 expectimax | 28 s | 0.426 |
+
+The first two lines take about the same time, and GNU Backgammon wins. The third
+line is the configuration where Raccoon is clearly stronger, and it costs roughly
+450 times as long as the opponent it beats.
+
+Times are measured: GNU Backgammon's from driving the binary
+(`raccoon/eval/gnubg_cli.py`), Raccoon's 0-ply from the throughput above at about
+21 evaluations per decision, and depth-2 from exp021's recorded 12,016
+evaluations per decision. PR figures are exp021's, on a 2,000-decision sample.
+
+**Every comparison this project has published is at matched depth.** exp021's
+ladder, exp026's head-to-head, the benchmark tables: all of them hold search depth
+fixed and vary the engine. None holds *time* fixed. At matched time the ordering
+reverses, and that is the comparison a real game imposes.
+
+## Everyone else uses a small network
+
+| engine | network |
+|---|---|
+| TD-Gammon | one hidden layer, handcrafted inputs |
+| GNU Backgammon | 250 → 128 → 5, one per position class |
+| BGSage (measured close to eXtreme Gammon) | 244 → 200/400 → 5, five to nineteen networks by game plan |
+| Raccoon | 26-channel input, ten residual blocks at 256 channels |
+
+The convolutional trunk came from the AlphaZero framing in `goal.md`. Convolutions
+assume neighbouring squares are related in a way worth exploiting with shared
+filters. A backgammon board is 24 points where the relationships that matter are
+pip distances, contact and blot exposure — quantities Raccoon's encoder already
+computes and hands the network directly as channels 17 to 25. It is possible that
+285 M multiply-accumulates are being spent partly to rediscover structure the
+input already contains.
+
+## What a smaller network would cost
+
+```{python}
+#| echo: false
+#| output: asis
+print("| architecture | MACs / position | projected positions / second | speed-up |")
+print("|---|---:|---:|---:|")
+base = R["boards_per_second_best"]
+for row in S["projected_architectures"]:
+    print(f"| {row['name']} | {row['macs_per_position']/1e6:.3f} M | "
+          f"{row['projected_boards_per_second']:,.0f} | "
+          f"{row['projected_boards_per_second']/base:,.0f}x |")
+```
+
+These rows scale the measured throughput by arithmetic cost. **They say what an
+architecture would cost, not what it would score.** A cheaper network is only
+useful if it stays accurate enough, and that requires training one and measuring
+it.
+
+The measurement worth making is accuracy against speed, not accuracy alone. exp017
+established that scaling from 8 M to 40 M training positions took PR from 2.16 to
+0.93 at the current size, and the size itself was never varied against the same
+data. The 40 M-position cache is on disk and `scripts/train_distill.py` already
+does the work, so distilling it into progressively smaller networks — including a
+plain network over the existing handcrafted features — is a matter of compute
+rather than new machinery.
+
+A cheaper network reaching, say, PR 1.2 at forty times the speed would beat ep22
+outright at equal time, because it could afford the depth-2 search ep22 cannot.
+
+## What this page does not say
+
+* **It does not say the network is bad.** It is more accurate per position than
+  GNU Backgammon's by a wide margin. The question is the price.
+* **It does not measure a smaller network's accuracy.** Every projected row is
+  arithmetic. Whether accuracy survives the reduction is unknown, and is the
+  experiment this page argues for.
+* **It is one machine.** A four-core desktop processor with no GPU. A graphics
+  card changes Raccoon's throughput far more than GNU Backgammon's, because
+  batched convolutions suit one and a per-position network does not. That changes
+  the arithmetic for training and offline analysis; it does not change what a
+  browser or a phone can run.
+* **GNU Backgammon's figure is single-position and single-threaded.** It has
+  headroom of its own that this comparison does not give it.
+* **It retracts no published result.** Raccoon does beat GNU Backgammon at matched
+  depth on the benchmark. This page adds the axis those results were silent on.

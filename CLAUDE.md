@@ -125,9 +125,10 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
    - The value head is `"scalar"` (one tanh output) **or** `"outcomes6"` (six logits over `[win, win_g, win_bg, lose, lose_g, lose_bg]`), fixed at construction and recorded in the checkpoint. The shipped net is `outcomes6`.
    - **Every value in this codebase is money-equity/3 in [-1, 1] from the to-move player's POV** (win = ±1/3, gammon = ±2/3, backgammon = ±1), trained on **pre-roll** positions. `value_equity()` applies whichever conversion the head needs, so the two head types are interchangeable at play time — downstream code must go through it and never branch on head type.
 
-3. **`raccoon/search/`** — two independent searches; **neither is used by the shipped 0-ply engine**
+3. **`raccoon/search/`** — three searches; **none is used by the shipped 0-ply engine**
    - `mcts.py`: AlphaZero MCTS with PUCT selection, used by self-play training. Chance nodes (dice rolls) are sampled and skipped — the tree only contains decision/terminal nodes. Temperature controls exploration vs exploitation.
    - `expectimax.py`: filtered expectimax (exp021). Chance nodes expanded **full width** over the 21 distinct rolls (doubles 1/36, non-doubles 2/36), opponent replies greedily, one batched forward pass per level. `depth=0` reduces to plain 0-ply. Operates on **gnubg-nn 2x25 boards, not OpenSpiel states** — two slot-orientation conventions are easy to get backwards and are pinned by tests. Design study: `docs/search.qmd`.
+   - `cubeful.py`: Janowski applied at every node rather than once at the root (the recursion GNUBG runs). Depth 0 reproduces `janowski.cube_equities` exactly — that identity is the base-case test. The cube state never changes the board tree, only the leaf conversion, so one expansion serves every cube state. **Measured at ~0.004 ppg in play, an order of magnitude below anything measurable**, so it is kept but no experiment is built on it (`docs/cube.qmd#cubeful-search`).
      - **Never compare a searched value with an unsearched one.** `search_values` returns `SearchResult(values, searched, evaluated)`; take the argmax over `searched` only. Searching a move takes the opponent's best reply — a minimum over ~20 noisy estimates — so it marks the move down ~0.005 equity, while a pruned move keeps its unmarked static value and can overtake a searched move it was behind. Pruned entries carry their static value so every candidate has a number to *report*, never so it can be *chosen*. Letting them compete cost 0.054–0.176 PR (exp023). The same trap in general form: filtering on one estimator and reporting another.
 
 4. **`raccoon/train/`** — move selection and three training routes
@@ -182,6 +183,14 @@ Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-
 - **When the hypothesized effect is small on a raw-ppg metric, report power, not just the CI.** A fixed n/CI calibrated for one comparison (checkpoint vs. teacher) understates its own noise when reused for a smaller one (checkpoint vs. checkpoint has √2× the SE); before calling a result a clean null, check whether n was actually large enough to detect the realistic effect size (needed n for 80% power ≈ `2·(1.96+0.84)²·σ²/δ²`) — "no significant difference" against an underpowered test is much weaker evidence than it sounds. (BGSage PR/MSE at n=14,693/~149k is rarely the bottleneck, but still state n.)
 - **One experiment = one name = one write-up**, ending in a one-line conclusion: *"[hypothesis] → [answer]: [net] = [X ± CI] (metric, n)."* A re-run that completes a truncated attempt **supersedes** it (don't co-list both).
 - **Supporting metrics are welcome, just demarcated** (training loss/SSE, coarse in-loop evals, epoch curves, secondary findings) — they never drive the headline conclusion or final selection.
+
+## Speed, and why it now constrains everything
+
+`ep22` evaluates **426 positions/s** on the iMac; GNUBG evaluates **1,476,488**. That is 3,470x, and the arithmetic ratio is 8,718x — 285 M multiply-accumulates per position against 0.033 M. It is the network shape, not the implementation: we reach ~59% of the processor's theoretical peak.
+
+**Every strength result in this repo compares engines at matched search depth, never at matched time.** At matched time GNUBG is ahead — PR 0.588 in 0.062 s against Raccoon's 1.026 in 0.049 s. Before proposing more search, check `docs/speed.qmd`; a depth-2 Raccoon decision costs 28 s against GNUBG's 0.062 s for a better answer than our 0-ply.
+
+`scripts/measure_eval_speed.py` reproduces the measurement.
 
 ## Hardware
 

@@ -1,0 +1,12 @@
+10x256 ResNet, 11.9M params, 285M MACs/position
+  threads1_batch64              148 boards/s
+  threads1_batch512             155 boards/s
+  threads3_batch64              426 boards/s
+  threads3_batch512             409 boards/s
+  achieved 242 GFLOPS
+
+GNUBG 250-128-5 MLP (one net per position class):    1,476,488 boards/s, 0.033M MACs/position
+
+GNUBG is 3,470x faster; Raccoon does 8,718x the arithmetic
+
+wrote experiments/exp027-speed-audit/results/eval_speed.json

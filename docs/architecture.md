@@ -170,7 +170,14 @@ cube model**, so it compares evaluation and checker play rather than cube models
 
 ## Search
 
-Two independent searches exist. Neither is used by the shipped 0-ply engine.
+Three searches exist. None is used by the shipped 0-ply engine.
+
+**A caveat that applies to all of them.** Search cost is evaluation cost times
+tree size, and Raccoon's evaluation costs about 3,470x what GNU Backgammon's does
+(measured) for 8,718x the arithmetic. A depth-2 Raccoon decision takes 28 seconds
+where GNU Backgammon's 2-ply search takes 0.062 and scores better than Raccoon's
+0-ply. Every published comparison holds depth fixed rather than time; at matched
+time the ordering reverses. See [Evaluation Speed](speed.qmd).
 
 **MCTS** (`raccoon/search/mcts.py`) — AlphaZero-style, PUCT selection, used by
 self-play training. Dice rolls are sampled and skipped, so the tree contains only
@@ -179,6 +186,14 @@ with 100+ simulations the dice outcomes are covered by repeated sampling.
 Temperature controls exploitation vs exploration when converting visit counts into
 a move. Leaf positions from a simulation round are evaluated in one batched forward
 pass. See [MCTS Explained](mcts_explained.md).
+
+**Cubeful search** (`raccoon/search/cubeful.py`) — Janowski applied at every node
+instead of once at the root, which is what GNU Backgammon does for cube decisions.
+Depth 0 reproduces `janowski.cube_equities` exactly. The cube state changes only
+how a leaf converts to a number, never the board tree, so one expansion serves
+every cube state. Measured worth about 0.004 ppg in play, below the resolution of
+any affordable match, so it is kept in the engine without an experiment resting on
+it.
 
 **Filtered expectimax** (`raccoon/search/expectimax.py`, exp021) — ranks moves by
 pushing evaluation *n* rolls deeper instead of asking the value head about the

@@ -15,7 +15,17 @@ evaluator either way.
 
 Research and challenge these if needed.
 
-- GNUBG uses TD reinforcement learning. A superior system will likely need a more modern framework (AlphaZero-style policy+value + MCTS).
+- ~~GNUBG uses TD reinforcement learning. A superior system will likely need a
+  more modern framework (AlphaZero-style policy+value + MCTS).~~ **Challenged by
+  measurement, 2026-09-04.** The ResNet this assumption motivated is more accurate
+  per position than GNUBG's network, but does 8,718x the arithmetic and evaluates
+  3,470x fewer positions per second. At matched *time* rather than matched search
+  depth, GNUBG is ahead: it reaches PR 0.588 in 0.062 s where Raccoon reaches 1.026
+  in 0.049 s. Every strength result published so far holds depth fixed, never
+  time. GNUBG, XG and BGSage all use small networks over handcrafted inputs, and
+  Raccoon's encoder already supplies those inputs as channels. See
+  [Evaluation Speed](https://research.raccoonbg.com/speed.html). Whether a much
+  smaller network keeps enough accuracy is unmeasured and is the next experiment.
 - GNUBG outputs cubeless outcome probability distributions (win/lose normal, gammon, backgammon) then applies Janowski formulas for cube actions. A superior system may need a more sophisticated model, perhaps outputting cubeful equities directly.
 
 ## A known gap between the goal and the benchmark

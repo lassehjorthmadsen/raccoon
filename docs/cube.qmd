@@ -965,6 +965,64 @@ choose between them.
 > **+0.0472 ± 0.0027** for the same network against GNU Backgammon at 0-ply
 > cubeless. The deficit is not yet split between checker play and the cube.
 
+## Searching the cube instead of computing it once {#cubeful-search}
+
+exp026's deficit had an obvious candidate explanation: Raccoon decides the cube
+from one evaluation of the root position, while GNU Backgammon decides it inside
+a search that applies the same closed form at every node it visits.
+`raccoon/search/cubeful.py` implements that search — the recursion below, in
+money points normalised to a cube value of 1, from the point of view of the
+player on roll:
+
+```
+E(position, cube, depth):
+    if depth == 0:  return cl2cf_money(network probabilities, cube, x)
+    nd = over the 21 rolls, weighted: best turn's -E(child, flipped cube, depth-1)
+    if the mover may double:
+        dt = 2 * E(position, cube now owned by the opponent, depth)
+        return max(nd, min(dt, 1.0))
+    return nd
+```
+
+At depth 0 the two branches are `cl2cf_money` on one distribution under two
+ownership labels, which is exactly `cube_equities` — so the recursion reproduces
+the closed form it generalises, and that identity is a test. The cube state never
+changes the board tree, only how a leaf converts to a number, so one expansion
+serves every cube state and the double/take branch costs arithmetic rather than a
+second tree. A depth-1 cube decision is about 400 evaluations and two seconds.
+
+Scored against the 282 cube positions whose reference equities were played out to
+completion:
+
+| | depth 0 | depth 1 |
+|---|---:|---:|
+| no-double equity, RMSE | 0.1009 | 0.0982 |
+| no-double equity, bias | −0.0731 | −0.0784 |
+| **double/take equity, RMSE** | **0.0744** | **0.0551** |
+| double/take equity, bias | −0.0314 | −0.0209 |
+| cube PR (n = 432 sub-decisions) | 2.684 ± 0.622 | 2.535 ± 0.568 |
+| paired PR gain | — | **+0.149 ± 0.284** |
+
+**The double/take line improves clearly and the no-double line does not.** That
+split is consistent with what this page already established: $E_U$ is the formula
+the rollouts show to be accurate, and searching sharpens it; $E_C$ is the one
+whose residual changes sign with position strength, and a ply of search does not
+repair a mis-specified form any more than a different constant does.
+
+**But the effect is too small to pursue.** Search changes the action on 10 of 432
+decisions. Converting the PR gain into play — about 0.0003 equity per cube
+sub-decision, roughly 14 cube opportunities per game, 2.3% of them changed —
+gives on the order of **0.004 ppg**, and that is an upper bound, because benchmark
+cube positions are selected for being close while most cube decisions in a real
+game are not. exp026's deficit is 0.0375 ppg and the tightest interval an
+affordable match can reach is ±0.011. The cube search is an order of magnitude
+below the deficit and below the resolution of any measurement that could detect
+it.
+
+So it is kept in the engine, because it is the right sign and costs two seconds a
+decision, and no experiment is built on it. The cube is not where exp026's deficit
+lies.
+
 ## What this page does not establish
 
 * **The population is not the target.** These are 500 games of one engine playing
@@ -1040,14 +1098,16 @@ choose between them.
   search, and running it is the principled way to close it. This is also why a
   Janowski-only opponent cannot stand in for GNUBG: it is weaker than the real
   thing on exactly the dimension being tested.
-* **Splitting exp026's deficit between checker play and the cube.** The single
-  most useful next measurement: ep22 against the binary at 2-ply, **cubeless**, on
-  the same estimator. It decides whether the next experiment should improve
-  evaluation or add cubeful search, and the harness for it already exists.
-* **Cubeful search on Raccoon's side.** GNU Backgammon decides the cube inside
-  its 2-ply search while Raccoon applies the closed form once at the root, so
-  Raccoon is the weaker side on cube decisions by construction. exp026 measures
-  what the whole gap costs; it does not say how much of it this accounts for.
+* **Splitting exp026's deficit between checker play and the cube.** A cubeless
+  ep22-against-the-binary run at 2-ply would attribute it directly. The
+  [cubeful search measurement](#cubeful-search) already argues the cube accounts
+  for little of it, but that is inference from a static benchmark rather than
+  from play.
+* **Whether the engine can afford to compete at all.** The deficit is most likely
+  checker play, and Raccoon has a configuration that beats GNU Backgammon at
+  matched depth — it costs 450 times as much time as the opponent it beats. See
+  [Evaluation Speed](speed.qmd); that question now outranks anything on this
+  page.
 * **BGSage as an opponent.** `../bgsage` exposes a money `cube_action` behind a
   C++ extension that is not built here, and is the stronger target. It reuses
   exp026's harness, but "beats GNU Backgammon" and "beats BGSage" are separate

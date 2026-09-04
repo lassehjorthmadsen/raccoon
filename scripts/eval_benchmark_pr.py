@@ -434,6 +434,7 @@ def score_raccoon(
     cubeful_rank: bool = False,
     cube_jacoby: bool = CUBE_JACOBY_DEFAULT,
     paired_dump: str | None = None,
+    error_dump: str | None = None,
 ) -> dict:
     """Score all checker decisions with a raccoon network.
 
@@ -468,6 +469,14 @@ def score_raccoon(
     comparison of two PR numbers is far too noisy to resolve the difference
     between them. `scripts/exp025_paired_pr.py` reads the file.
 
+    `error_dump` writes one row per DECISION -- the equity thrown away, keyed by
+    decision -- so two runs can be compared paired on identical positions. The
+    per-candidate `dump_predictions` file cannot substitute: it stores every
+    candidate's value including the pruned ones, and re-deriving a choice from it
+    would let a pruned move win on its un-marked-down static value, which is the
+    error exp023 measured at 0.054-0.176 PR. The choice has to be recorded where
+    it was made.
+
     If `dump_predictions` is given, also write a per-candidate .npz with
     aligned `pred_eq`/`ref_eq`/`tier`/`decision_key`/`game_seed`/`game_plan`
     arrays (one row per candidate move, in benchmark order) for downstream
@@ -492,6 +501,7 @@ def score_raccoon(
         raise ValueError("cubeful ranking requires a torch checkpoint, not an ONNX model")
     if cubeful_rank and searching:
         raise ValueError("cubeful ranking and expectimax search are not combined yet")
+    per_decision: list[tuple] = []
     if paired_dump is not None and not cubeful_rank:
         raise ValueError("--paired-dump needs --cubeful-rank: the cubeless arm is "
                          "derived from the same six-outcome pass the cubeful one uses")
@@ -655,6 +665,11 @@ def score_raccoon(
             "reference": reference_eqs,
         })
 
+        if error_dump is not None:
+            per_decision.append(
+                (error, dec["key"], dec["seed"], dec["tier"], dec["game_plan"])
+            )
+
         if dump_predictions:
             n_cand = len(predicted_eqs)
             dump_pred.extend(predicted_eqs)
@@ -692,6 +707,18 @@ def score_raccoon(
             game_plan=np.array(dump_plan, dtype=object),
         )
         print(f"  [{engine_label}] Saved predictions: {dump_predictions}", flush=True)
+
+    if error_dump is not None:
+        os.makedirs(os.path.dirname(error_dump) or ".", exist_ok=True)
+        np.savez_compressed(
+            error_dump,
+            error=np.array([r[0] for r in per_decision], dtype=np.float64),
+            decision_key=np.array([r[1] for r in per_decision], dtype=object),
+            game_seed=np.array([r[2] for r in per_decision], dtype=np.int64),
+            tier=np.array([r[3] for r in per_decision], dtype=object),
+            game_plan=np.array([r[4] for r in per_decision], dtype=object),
+        )
+        print(f"  [{engine_label}] Saved per-decision errors: {error_dump}", flush=True)
 
     if paired_dump is not None:
         os.makedirs(os.path.dirname(paired_dump) or ".", exist_ok=True)
@@ -1155,6 +1182,15 @@ def main():
         ),
     )
     parser.add_argument(
+        "--error-dump", type=str, default=None,
+        help=(
+            "Write a per-DECISION .npz of the equity thrown away, keyed by "
+            "decision, so two configurations can be compared paired on identical "
+            "positions. Needed because a choice cannot be safely re-derived from "
+            "the per-candidate dump, which includes pruned moves."
+        ),
+    )
+    parser.add_argument(
         "--paired-dump", type=str, default=None,
         help=(
             "With --cubeful-rank, write a per-decision .npz holding BOTH "
@@ -1269,6 +1305,7 @@ def main():
             cubeful_rank=args.cubeful_rank,
             cube_jacoby=not args.no_cube_jacoby,
             paired_dump=args.paired_dump,
+            error_dump=args.error_dump,
         )
         all_results.append(result)
         print()

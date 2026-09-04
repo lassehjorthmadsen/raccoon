@@ -1,0 +1,64 @@
+{
+ "machine": {
+  "node": "lasse-iMac14-2",
+  "processor": "x86_64",
+  "cpu_count": 4
+ },
+ "raccoon": {
+  "checkpoint": "experiments/exp018-distill/checkpoints/ep22.pt",
+  "architecture": "10x256 ResNet",
+  "parameters": 11947479,
+  "in_channels": 26,
+  "macs_per_position": 284553216,
+  "boards_per_second": {
+   "threads1_batch64": 147.73866742573617,
+   "threads1_batch512": 154.5454370643009,
+   "threads3_batch64": 425.50606624975387,
+   "threads3_batch512": 408.85977763951223
+  },
+  "boards_per_second_best": 425.50606624975387,
+  "gflops_achieved": 242.15823915775306
+ },
+ "gnubg": {
+  "architecture": "250-128-5 MLP (one net per position class)",
+  "macs_per_position": 32640,
+  "boards_per_second": 1476488.4439331694
+ },
+ "ratios": {
+  "throughput_gnubg_over_raccoon": 3469.958623495943,
+  "macs_raccoon_over_gnubg": 8717.929411764706
+ },
+ "projected_architectures": [
+  {
+   "name": "ResNet 10x256",
+   "macs_per_position": 284553216,
+   "projected_boards_per_second": 425.50606624975387
+  },
+  {
+   "name": "ResNet 6x128",
+   "macs_per_position": 43186176,
+   "projected_boards_per_second": 2803.6545671206572
+  },
+  {
+   "name": "ResNet 4x64",
+   "macs_per_position": 7437312,
+   "projected_boards_per_second": 16279.957003131847
+  },
+  {
+   "name": "ResNet 2x64",
+   "macs_per_position": 3898368,
+   "projected_boards_per_second": 31058.925062712533
+  },
+  {
+   "name": "MLP 250x128",
+   "macs_per_position": 32640,
+   "projected_boards_per_second": 3709531.849843031
+  },
+  {
+   "name": "MLP 250x400",
+   "macs_per_position": 102000,
+   "projected_boards_per_second": 1187050.1919497699
+  }
+ ],
+ "note": "Projected rows scale the measured throughput by the arithmetic cost ratio. They say what an architecture would cost, not what it would score; accuracy needs training and measuring."
+}
