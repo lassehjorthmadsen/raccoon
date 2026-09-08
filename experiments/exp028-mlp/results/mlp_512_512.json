@@ -1,0 +1,90 @@
+{
+  "engine_label": "mlp_512_512",
+  "pr": 2.310194498292407,
+  "n": 14693,
+  "total_error": 67.88737552682068,
+  "blunders": 119,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.5271821884286475,
+      "n": 1816,
+      "total_error": 1.9147257083728477,
+      "blunders": 2
+    },
+    "racing": {
+      "pr": 2.595789508802046,
+      "n": 3120,
+      "total_error": 16.19772653492477,
+      "blunders": 34
+    },
+    "attacking": {
+      "pr": 2.278781232058106,
+      "n": 4111,
+      "total_error": 18.736139289981747,
+      "blunders": 31
+    },
+    "priming": {
+      "pr": 2.7698504412497313,
+      "n": 2453,
+      "total_error": 13.588886264771183,
+      "blunders": 27
+    },
+    "anchoring": {
+      "pr": 2.7325239161869916,
+      "n": 3193,
+      "total_error": 17.44989772877013,
+      "blunders": 25
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 2.043327830671102,
+      "n": 5657,
+      "total_error": 23.118211076212848,
+      "blunders": 24
+    },
+    "player": {
+      "pr": 2.532403010224392,
+      "n": 4015,
+      "total_error": 20.335196172101867,
+      "blunders": 44
+    },
+    "opponent": {
+      "pr": 2.4331774824244143,
+      "n": 5021,
+      "total_error": 24.433968278505965,
+      "blunders": 51
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 2.477266735868074,
+      "n": 9036,
+      "total_error": 44.76916445060783,
+      "blunders": 95
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9939174941793895,
+      "mse": 0.003647142592600509,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9885026448537623,
+      "mse": 0.0036650344785688275,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9862825855378012,
+      "mse": 0.003780776899144453,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9915020703518599,
+      "mse": 0.0036980376929533956,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/mlp_512_512/checkpoints/best.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

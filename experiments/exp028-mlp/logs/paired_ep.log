@@ -1,0 +1,290 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: mlp_512_512_256_256_baseonly_e4 (experiments/exp028-mlp/mlp_512_512_256_256_baseonly/checkpoints/ep4.pt)...
+  [mlp_512_512_256_256_baseonly_e4] 500/14693 (3s, ~72s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 1000/14693 (5s, ~63s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 1500/14693 (7s, ~57s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 2000/14693 (9s, ~55s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 2500/14693 (11s, ~54s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 3000/14693 (13s, ~52s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 3500/14693 (16s, ~50s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 4000/14693 (18s, ~48s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 4500/14693 (20s, ~46s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 5000/14693 (23s, ~44s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 5500/14693 (25s, ~41s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 6000/14693 (27s, ~39s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 6500/14693 (29s, ~37s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 7000/14693 (31s, ~35s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 7500/14693 (33s, ~32s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 8000/14693 (36s, ~30s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 8500/14693 (38s, ~28s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 9000/14693 (40s, ~26s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 9500/14693 (43s, ~23s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 10000/14693 (45s, ~21s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 10500/14693 (47s, ~19s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 11000/14693 (50s, ~17s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 11500/14693 (52s, ~14s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 12000/14693 (54s, ~12s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 12500/14693 (57s, ~10s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 13000/14693 (59s, ~8s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 13500/14693 (60s, ~5s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 14000/14693 (63s, ~3s remaining)
+  [mlp_512_512_256_256_baseonly_e4] 14500/14693 (65s, ~1s remaining)
+  [mlp_512_512_256_256_baseonly_e4] Done: 14693 decisions in 65.9s
+  [mlp_512_512_256_256_baseonly_e4] Saved per-decision errors: experiments/exp028-mlp/dumps/mlp_512_512_256_256_baseonly_e4.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e4    1.92  14693     77    0.53    2.18    1.81    2.30    2.29
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e4         0.9948   0.0031   149113        0.9894   0.0034    61917        0.9868   0.0036   116421        0.9923   0.0034   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: mlp_512_512_256_256_baseonly_e7 (experiments/exp028-mlp/mlp_512_512_256_256_baseonly/checkpoints/ep7.pt)...
+  [mlp_512_512_256_256_baseonly_e7] 500/14693 (3s, ~73s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 1000/14693 (5s, ~68s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 1500/14693 (7s, ~65s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 2000/14693 (10s, ~62s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 2500/14693 (12s, ~59s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 3000/14693 (14s, ~55s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 3500/14693 (16s, ~51s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 4000/14693 (18s, ~49s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 4500/14693 (21s, ~47s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 5000/14693 (23s, ~45s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 5500/14693 (25s, ~42s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 6000/14693 (28s, ~40s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 6500/14693 (30s, ~38s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 7000/14693 (32s, ~36s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 7500/14693 (35s, ~34s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 8000/14693 (38s, ~31s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 8500/14693 (40s, ~29s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 9000/14693 (42s, ~26s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 9500/14693 (44s, ~24s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 10000/14693 (46s, ~22s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 10500/14693 (49s, ~19s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 11000/14693 (51s, ~17s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 11500/14693 (53s, ~15s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 12000/14693 (56s, ~13s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 12500/14693 (58s, ~10s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 13000/14693 (61s, ~8s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 13500/14693 (63s, ~6s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 14000/14693 (66s, ~3s remaining)
+  [mlp_512_512_256_256_baseonly_e7] 14500/14693 (67s, ~1s remaining)
+  [mlp_512_512_256_256_baseonly_e7] Done: 14693 decisions in 68.4s
+  [mlp_512_512_256_256_baseonly_e7] Saved per-decision errors: experiments/exp028-mlp/dumps/mlp_512_512_256_256_baseonly_e7.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e7    1.82  14693     64    0.61    2.10    1.82    1.98    2.10
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e7         0.9952   0.0029   149113        0.9903   0.0031    61917        0.9898   0.0028   116421        0.9933   0.0029   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: mlp_512_512_256_256_baseonly_e11 (experiments/exp028-mlp/mlp_512_512_256_256_baseonly/checkpoints/ep11.pt)...
+  [mlp_512_512_256_256_baseonly_e11] 500/14693 (2s, ~70s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 1000/14693 (5s, ~66s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 1500/14693 (7s, ~63s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 2000/14693 (9s, ~60s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 2500/14693 (12s, ~58s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 3000/14693 (14s, ~55s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 3500/14693 (16s, ~52s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 4000/14693 (18s, ~48s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 4500/14693 (20s, ~46s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 5000/14693 (22s, ~44s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 5500/14693 (25s, ~41s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 6000/14693 (27s, ~39s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 6500/14693 (29s, ~37s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 7000/14693 (31s, ~35s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 7500/14693 (34s, ~33s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 8000/14693 (36s, ~30s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 8500/14693 (39s, ~28s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 9000/14693 (41s, ~26s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 9500/14693 (43s, ~24s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 10000/14693 (45s, ~21s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 10500/14693 (47s, ~19s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 11000/14693 (49s, ~17s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 11500/14693 (51s, ~14s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 12000/14693 (54s, ~12s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 12500/14693 (56s, ~10s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 13000/14693 (58s, ~8s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 13500/14693 (61s, ~5s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 14000/14693 (63s, ~3s remaining)
+  [mlp_512_512_256_256_baseonly_e11] 14500/14693 (66s, ~1s remaining)
+  [mlp_512_512_256_256_baseonly_e11] Done: 14693 decisions in 66.4s
+  [mlp_512_512_256_256_baseonly_e11] Saved per-decision errors: experiments/exp028-mlp/dumps/mlp_512_512_256_256_baseonly_e11.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e11   1.74  14693     61    0.53    1.92    1.74    2.03    2.04
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  mlp_512_512_256_256_baseonly_e11        0.9955   0.0027   149113        0.9911   0.0028    61917        0.9904   0.0027   116421        0.9938   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: debroadcast_base_e4 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep4.pt)...
+  [debroadcast_base_e4] 500/14693 (2s, ~56s remaining)
+  [debroadcast_base_e4] 1000/14693 (4s, ~57s remaining)
+  [debroadcast_base_e4] 1500/14693 (7s, ~57s remaining)
+  [debroadcast_base_e4] 2000/14693 (9s, ~56s remaining)
+  [debroadcast_base_e4] 2500/14693 (11s, ~54s remaining)
+  [debroadcast_base_e4] 3000/14693 (13s, ~52s remaining)
+  [debroadcast_base_e4] 3500/14693 (16s, ~50s remaining)
+  [debroadcast_base_e4] 4000/14693 (18s, ~48s remaining)
+  [debroadcast_base_e4] 4500/14693 (20s, ~46s remaining)
+  [debroadcast_base_e4] 5000/14693 (23s, ~44s remaining)
+  [debroadcast_base_e4] 5500/14693 (25s, ~41s remaining)
+  [debroadcast_base_e4] 6000/14693 (26s, ~38s remaining)
+  [debroadcast_base_e4] 6500/14693 (28s, ~36s remaining)
+  [debroadcast_base_e4] 7000/14693 (31s, ~34s remaining)
+  [debroadcast_base_e4] 7500/14693 (33s, ~32s remaining)
+  [debroadcast_base_e4] 8000/14693 (35s, ~30s remaining)
+  [debroadcast_base_e4] 8500/14693 (38s, ~28s remaining)
+  [debroadcast_base_e4] 9000/14693 (40s, ~25s remaining)
+  [debroadcast_base_e4] 9500/14693 (43s, ~23s remaining)
+  [debroadcast_base_e4] 10000/14693 (45s, ~21s remaining)
+  [debroadcast_base_e4] 10500/14693 (47s, ~19s remaining)
+  [debroadcast_base_e4] 11000/14693 (49s, ~17s remaining)
+  [debroadcast_base_e4] 11500/14693 (52s, ~14s remaining)
+  [debroadcast_base_e4] 12000/14693 (53s, ~12s remaining)
+  [debroadcast_base_e4] 12500/14693 (55s, ~10s remaining)
+  [debroadcast_base_e4] 13000/14693 (57s, ~7s remaining)
+  [debroadcast_base_e4] 13500/14693 (60s, ~5s remaining)
+  [debroadcast_base_e4] 14000/14693 (62s, ~3s remaining)
+  [debroadcast_base_e4] 14500/14693 (64s, ~1s remaining)
+  [debroadcast_base_e4] Done: 14693 decisions in 65.3s
+  [debroadcast_base_e4] Saved per-decision errors: experiments/exp028-mlp/dumps/debroadcast_base_e4.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  debroadcast_base_e4                1.77  14693     67    0.58    1.95    1.81    2.05    2.02
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  debroadcast_base_e4                     0.9954   0.0028   149113        0.9911   0.0028    61917        0.9899   0.0028   116421        0.9936   0.0028   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: debroadcast_base_e7 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [debroadcast_base_e7] 500/14693 (2s, ~71s remaining)
+  [debroadcast_base_e7] 1000/14693 (5s, ~67s remaining)
+  [debroadcast_base_e7] 1500/14693 (7s, ~63s remaining)
+  [debroadcast_base_e7] 2000/14693 (9s, ~57s remaining)
+  [debroadcast_base_e7] 2500/14693 (11s, ~53s remaining)
+  [debroadcast_base_e7] 3000/14693 (13s, ~51s remaining)
+  [debroadcast_base_e7] 3500/14693 (15s, ~49s remaining)
+  [debroadcast_base_e7] 4000/14693 (18s, ~48s remaining)
+  [debroadcast_base_e7] 4500/14693 (20s, ~46s remaining)
+  [debroadcast_base_e7] 5000/14693 (22s, ~44s remaining)
+  [debroadcast_base_e7] 5500/14693 (25s, ~41s remaining)
+  [debroadcast_base_e7] 6000/14693 (27s, ~39s remaining)
+  [debroadcast_base_e7] 6500/14693 (29s, ~37s remaining)
+  [debroadcast_base_e7] 7000/14693 (32s, ~35s remaining)
+  [debroadcast_base_e7] 7500/14693 (34s, ~33s remaining)
+  [debroadcast_base_e7] 8000/14693 (36s, ~30s remaining)
+  [debroadcast_base_e7] 8500/14693 (38s, ~28s remaining)
+  [debroadcast_base_e7] 9000/14693 (41s, ~26s remaining)
+  [debroadcast_base_e7] 9500/14693 (43s, ~23s remaining)
+  [debroadcast_base_e7] 10000/14693 (45s, ~21s remaining)
+  [debroadcast_base_e7] 10500/14693 (48s, ~19s remaining)
+  [debroadcast_base_e7] 11000/14693 (50s, ~17s remaining)
+  [debroadcast_base_e7] 11500/14693 (52s, ~14s remaining)
+  [debroadcast_base_e7] 12000/14693 (55s, ~12s remaining)
+  [debroadcast_base_e7] 12500/14693 (57s, ~10s remaining)
+  [debroadcast_base_e7] 13000/14693 (59s, ~8s remaining)
+  [debroadcast_base_e7] 13500/14693 (62s, ~5s remaining)
+  [debroadcast_base_e7] 14000/14693 (63s, ~3s remaining)
+  [debroadcast_base_e7] 14500/14693 (65s, ~1s remaining)
+  [debroadcast_base_e7] Done: 14693 decisions in 66.3s
+  [debroadcast_base_e7] Saved per-decision errors: experiments/exp028-mlp/dumps/debroadcast_base_e7.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  debroadcast_base_e7                1.68  14693     55    0.58    1.80    1.80    1.86    1.92
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  debroadcast_base_e7                     0.9950   0.0030   149113        0.9899   0.0032    61917        0.9885   0.0032   116421        0.9929   0.0031   327451
+

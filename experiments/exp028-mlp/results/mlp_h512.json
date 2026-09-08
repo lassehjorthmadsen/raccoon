@@ -1,0 +1,90 @@
+{
+  "engine_label": "mlp_h512",
+  "pr": 4.888970564237591,
+  "n": 14693,
+  "total_error": 143.66728900068586,
+  "blunders": 401,
+  "by_plan": {
+    "purerace": {
+      "pr": 1.8410984986707188,
+      "n": 1816,
+      "total_error": 6.686869747172051,
+      "blunders": 6
+    },
+    "racing": {
+      "pr": 5.4179842711179385,
+      "n": 3120,
+      "total_error": 33.80822185177594,
+      "blunders": 95
+    },
+    "attacking": {
+      "pr": 4.568926939607861,
+      "n": 4111,
+      "total_error": 37.56571729745583,
+      "blunders": 108
+    },
+    "priming": {
+      "pr": 6.081711578863484,
+      "n": 2453,
+      "total_error": 29.836877005904253,
+      "blunders": 100
+    },
+    "anchoring": {
+      "pr": 5.601253225552424,
+      "n": 3193,
+      "total_error": 35.76960309837778,
+      "blunders": 92
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 4.373666102320309,
+      "n": 5657,
+      "total_error": 49.48365828165197,
+      "blunders": 105
+    },
+    "player": {
+      "pr": 5.4392294886953705,
+      "n": 4015,
+      "total_error": 43.67701279422382,
+      "blunders": 129
+    },
+    "opponent": {
+      "pr": 5.029537733998215,
+      "n": 5021,
+      "total_error": 50.50661792481007,
+      "blunders": 167
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 5.211577618361769,
+      "n": 9036,
+      "total_error": 94.18363071903389,
+      "blunders": 296
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9850847364319226,
+      "mse": 0.008943368842273761,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9699229252116063,
+      "mse": 0.009587728195908453,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9582086784274642,
+      "mse": 0.011518472640859038,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.97706466070216,
+      "mse": 0.009980754458546412,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/mlp_h512/checkpoints/best.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

@@ -1,0 +1,96 @@
+{"epoch": 1, "shard": 1, "loss": 0.858235, "wall_hours": 0.003}
+{"epoch": 1, "shard": 2, "loss": 0.872763, "wall_hours": 0.006}
+{"epoch": 1, "shard": 3, "loss": 0.895639, "wall_hours": 0.009}
+{"epoch": 1, "shard": 4, "loss": 0.846615, "wall_hours": 0.012}
+{"epoch": 1, "shard": 5, "loss": 0.908551, "wall_hours": 0.015}
+{"epoch": 1, "shard": 6, "loss": 0.852562, "wall_hours": 0.018, "eval_vs_gnubg0ply_ppg": -0.65, "eval_games": 40, "new_best": true}
+{"epoch": 1, "shard": 7, "loss": 0.870006, "wall_hours": 0.03}
+{"epoch": 1, "shard": 8, "loss": 0.820841, "wall_hours": 0.033}
+{"epoch": 1, "shard": 9, "loss": 0.877037, "wall_hours": 0.036}
+{"epoch": 1, "shard": 10, "loss": 0.921308, "wall_hours": 0.039}
+{"epoch": 1, "shard": 11, "loss": 0.828326, "wall_hours": 0.043}
+{"epoch": 1, "shard": 12, "loss": 0.839383, "wall_hours": 0.047, "eval_vs_gnubg0ply_ppg": -0.325, "eval_games": 40, "new_best": true}
+{"epoch": 1, "shard": 13, "loss": 0.854735, "wall_hours": 0.058}
+{"epoch": 1, "shard": 14, "loss": 0.840537, "wall_hours": 0.062}
+{"epoch": 1, "shard": 15, "loss": 0.83104, "wall_hours": 0.066}
+{"epoch": 1, "shard": 16, "loss": 0.846718, "wall_hours": 0.07}
+{"epoch": 1, "shard": 17, "loss": 0.860234, "wall_hours": 0.074}
+{"epoch": 1, "shard": 18, "loss": 0.827304, "wall_hours": 0.078, "eval_vs_gnubg0ply_ppg": -0.475, "eval_games": 40}
+{"epoch": 1, "shard": 19, "loss": 0.889412, "wall_hours": 0.09}
+{"epoch": 1, "shard": 20, "loss": 0.850039, "wall_hours": 0.094}
+{"epoch": 1, "shard": 21, "loss": 0.861034, "wall_hours": 0.098}
+{"epoch": 1, "shard": 22, "loss": 0.852322, "wall_hours": 0.102}
+{"epoch": 1, "shard": 23, "loss": 0.826614, "wall_hours": 0.106}
+{"epoch": 1, "shard": 24, "loss": 0.916061, "wall_hours": 0.11, "eval_vs_gnubg0ply_ppg": -0.35, "eval_games": 40}
+{"epoch": 1, "shard": 25, "loss": 0.859483, "wall_hours": 0.125}
+{"epoch": 1, "shard": 26, "loss": 0.819348, "wall_hours": 0.129}
+{"epoch": 1, "shard": 27, "loss": 0.889267, "wall_hours": 0.133}
+{"epoch": 1, "shard": 28, "loss": 0.856745, "wall_hours": 0.137}
+{"epoch": 1, "shard": 29, "loss": 0.85437, "wall_hours": 0.141}
+{"epoch": 1, "shard": 30, "loss": 0.822416, "wall_hours": 0.145, "eval_vs_gnubg0ply_ppg": -0.2, "eval_games": 40, "new_best": true}
+{"epoch": 1, "shard": 31, "loss": 0.870948, "wall_hours": 0.157}
+{"epoch": 1, "shard": 32, "loss": 0.896682, "wall_hours": 0.161}
+{"epoch": 1, "shard": 33, "loss": 0.85826, "wall_hours": 0.165}
+{"epoch": 1, "shard": 34, "loss": 0.841625, "wall_hours": 0.169}
+{"epoch": 1, "shard": 35, "loss": 0.841037, "wall_hours": 0.173}
+{"epoch": 1, "shard": 36, "loss": 0.828218, "wall_hours": 0.177, "eval_vs_gnubg0ply_ppg": -0.1, "eval_games": 40, "new_best": true}
+{"epoch": 1, "shard": 37, "loss": 0.858944, "wall_hours": 0.189}
+{"epoch": 1, "shard": 38, "loss": 0.861109, "wall_hours": 0.193}
+{"epoch": 1, "shard": 39, "loss": 0.91454, "wall_hours": 0.197}
+{"epoch": 1, "shard": 40, "loss": 0.877371, "wall_hours": 0.201}
+{"epoch": 1, "shard": 41, "loss": 0.88405, "wall_hours": 0.205}
+{"epoch": 1, "shard": 42, "loss": 0.887597, "wall_hours": 0.209, "eval_vs_gnubg0ply_ppg": -0.3, "eval_games": 40}
+{"epoch": 1, "shard": 43, "loss": 0.885228, "wall_hours": 0.221}
+{"epoch": 1, "shard": 44, "loss": 0.845371, "wall_hours": 0.225}
+{"epoch": 1, "shard": 45, "loss": 0.864056, "wall_hours": 0.229}
+{"epoch": 1, "shard": 46, "loss": 0.884412, "wall_hours": 0.233}
+{"epoch": 1, "shard": 47, "loss": 0.846501, "wall_hours": 0.237}
+{"epoch": 1, "shard": 48, "loss": 0.809763, "wall_hours": 0.241, "eval_vs_gnubg0ply_ppg": -0.3, "eval_games": 40}
+{"epoch": 2, "shard": 49, "loss": 0.829559, "wall_hours": 0.254}
+{"epoch": 2, "shard": 50, "loss": 0.828611, "wall_hours": 0.258}
+{"epoch": 2, "shard": 51, "loss": 0.875046, "wall_hours": 0.262}
+{"epoch": 2, "shard": 52, "loss": 0.845935, "wall_hours": 0.265}
+{"epoch": 2, "shard": 53, "loss": 0.909838, "wall_hours": 0.269}
+{"epoch": 2, "shard": 54, "loss": 0.866114, "wall_hours": 0.273, "eval_vs_gnubg0ply_ppg": -0.025, "eval_games": 40, "new_best": true}
+{"epoch": 2, "shard": 55, "loss": 0.869107, "wall_hours": 0.284}
+{"epoch": 2, "shard": 56, "loss": 0.870227, "wall_hours": 0.288}
+{"epoch": 2, "shard": 57, "loss": 0.867985, "wall_hours": 0.291}
+{"epoch": 2, "shard": 58, "loss": 0.908816, "wall_hours": 0.295}
+{"epoch": 2, "shard": 59, "loss": 0.836673, "wall_hours": 0.299}
+{"epoch": 2, "shard": 60, "loss": 0.853485, "wall_hours": 0.303, "eval_vs_gnubg0ply_ppg": 0.1, "eval_games": 40, "new_best": true}
+{"epoch": 2, "shard": 61, "loss": 0.878123, "wall_hours": 0.315}
+{"epoch": 2, "shard": 62, "loss": 0.85615, "wall_hours": 0.319}
+{"epoch": 2, "shard": 63, "loss": 0.84277, "wall_hours": 0.323}
+{"epoch": 2, "shard": 64, "loss": 0.837518, "wall_hours": 0.327}
+{"epoch": 2, "shard": 65, "loss": 0.845708, "wall_hours": 0.331}
+{"epoch": 2, "shard": 66, "loss": 0.87448, "wall_hours": 0.335, "eval_vs_gnubg0ply_ppg": -0.4, "eval_games": 40}
+{"epoch": 2, "shard": 67, "loss": 0.840848, "wall_hours": 0.349}
+{"epoch": 2, "shard": 68, "loss": 0.823238, "wall_hours": 0.353}
+{"epoch": 2, "shard": 69, "loss": 0.849029, "wall_hours": 0.357}
+{"epoch": 2, "shard": 70, "loss": 0.833861, "wall_hours": 0.361}
+{"epoch": 2, "shard": 71, "loss": 0.835716, "wall_hours": 0.365}
+{"epoch": 2, "shard": 72, "loss": 0.843437, "wall_hours": 0.369, "eval_vs_gnubg0ply_ppg": -0.4, "eval_games": 40}
+{"epoch": 2, "shard": 73, "loss": 0.835495, "wall_hours": 0.381}
+{"epoch": 2, "shard": 74, "loss": 0.84911, "wall_hours": 0.385}
+{"epoch": 2, "shard": 75, "loss": 0.846117, "wall_hours": 0.389}
+{"epoch": 2, "shard": 76, "loss": 0.878819, "wall_hours": 0.393}
+{"epoch": 2, "shard": 77, "loss": 0.911153, "wall_hours": 0.396}
+{"epoch": 2, "shard": 78, "loss": 0.816762, "wall_hours": 0.4, "eval_vs_gnubg0ply_ppg": -0.575, "eval_games": 40}
+{"epoch": 2, "shard": 79, "loss": 0.826969, "wall_hours": 0.413}
+{"epoch": 2, "shard": 80, "loss": 0.890489, "wall_hours": 0.417}
+{"epoch": 2, "shard": 81, "loss": 0.83348, "wall_hours": 0.421}
+{"epoch": 2, "shard": 82, "loss": 0.874422, "wall_hours": 0.424}
+{"epoch": 2, "shard": 83, "loss": 0.835223, "wall_hours": 0.428}
+{"epoch": 2, "shard": 84, "loss": 0.834941, "wall_hours": 0.432, "eval_vs_gnubg0ply_ppg": 0.3, "eval_games": 40, "new_best": true}
+{"epoch": 2, "shard": 85, "loss": 0.852091, "wall_hours": 0.445}
+{"epoch": 2, "shard": 86, "loss": 0.853056, "wall_hours": 0.448}
+{"epoch": 2, "shard": 87, "loss": 0.825373, "wall_hours": 0.451}
+{"epoch": 2, "shard": 88, "loss": 0.85517, "wall_hours": 0.455}
+{"epoch": 2, "shard": 89, "loss": 0.896687, "wall_hours": 0.459}
+{"epoch": 2, "shard": 90, "loss": 0.857798, "wall_hours": 0.462, "eval_vs_gnubg0ply_ppg": 0.175, "eval_games": 40}
+{"epoch": 2, "shard": 91, "loss": 0.873746, "wall_hours": 0.472}
+{"epoch": 2, "shard": 92, "loss": 0.875512, "wall_hours": 0.476}
+{"epoch": 2, "shard": 93, "loss": 0.901247, "wall_hours": 0.48}
+{"epoch": 2, "shard": 94, "loss": 0.835154, "wall_hours": 0.485}
+{"epoch": 2, "shard": 95, "loss": 0.840961, "wall_hours": 0.489}
+{"epoch": 2, "shard": 96, "loss": 0.852819, "wall_hours": 0.493, "eval_vs_gnubg0ply_ppg": 0.05, "eval_games": 40}

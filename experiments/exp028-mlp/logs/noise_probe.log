@@ -1,0 +1,222 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 21)
+
+Scoring raccoon: noise_s21 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s21] 500/4000 (2s, ~15s remaining)
+  [noise_s21] 1000/4000 (4s, ~11s remaining)
+  [noise_s21] 1500/4000 (6s, ~9s remaining)
+  [noise_s21] 2000/4000 (8s, ~8s remaining)
+  [noise_s21] 2500/4000 (9s, ~6s remaining)
+  [noise_s21] 3000/4000 (11s, ~4s remaining)
+  [noise_s21] 3500/4000 (13s, ~2s remaining)
+  [noise_s21] 4000/4000 (16s, ~0s remaining)
+  [noise_s21] Done: 4000 decisions in 15.5s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s21                          1.75   4000     15    0.55    2.10    1.83    1.55    2.12
+
+  (N per plan)                                              483     833    1130     677     877
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s21                               0.9954   0.0027    41054        0.9920   0.0029    16599        0.9891   0.0032    32119        0.9934   0.0029    89772
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 22)
+
+Scoring raccoon: noise_s22 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s22] 500/4000 (3s, ~19s remaining)
+  [noise_s22] 1000/4000 (5s, ~15s remaining)
+  [noise_s22] 1500/4000 (8s, ~13s remaining)
+  [noise_s22] 2000/4000 (10s, ~10s remaining)
+  [noise_s22] 2500/4000 (13s, ~8s remaining)
+  [noise_s22] 3000/4000 (15s, ~5s remaining)
+  [noise_s22] 3500/4000 (17s, ~2s remaining)
+  [noise_s22] 4000/4000 (20s, ~0s remaining)
+  [noise_s22] Done: 4000 decisions in 19.5s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s22                          1.56   4000     11    0.50    1.83    1.47    1.73    1.89
+
+  (N per plan)                                              499     869    1095     675     862
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s22                               0.9947   0.0032    39430        0.9897   0.0030    15420        0.9883   0.0033    33414        0.9927   0.0032    88264
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 23)
+
+Scoring raccoon: noise_s23 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s23] 500/4000 (3s, ~20s remaining)
+  [noise_s23] 1000/4000 (5s, ~15s remaining)
+  [noise_s23] 1500/4000 (7s, ~12s remaining)
+  [noise_s23] 2000/4000 (9s, ~9s remaining)
+  [noise_s23] 2500/4000 (12s, ~7s remaining)
+  [noise_s23] 3000/4000 (14s, ~5s remaining)
+  [noise_s23] 3500/4000 (16s, ~2s remaining)
+  [noise_s23] 4000/4000 (19s, ~0s remaining)
+  [noise_s23] Done: 4000 decisions in 18.6s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s23                          1.67   4000     16    0.69    1.78    1.60    2.03    1.87
+
+  (N per plan)                                              458     848    1132     662     900
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s23                               0.9948   0.0030    42467        0.9898   0.0028    16635        0.9891   0.0032    31189        0.9929   0.0030    90291
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 24)
+
+Scoring raccoon: noise_s24 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s24] 500/4000 (2s, ~17s remaining)
+  [noise_s24] 1000/4000 (5s, ~14s remaining)
+  [noise_s24] 1500/4000 (7s, ~12s remaining)
+  [noise_s24] 2000/4000 (9s, ~9s remaining)
+  [noise_s24] 2500/4000 (12s, ~7s remaining)
+  [noise_s24] 3000/4000 (14s, ~5s remaining)
+  [noise_s24] 3500/4000 (16s, ~2s remaining)
+  [noise_s24] 4000/4000 (18s, ~0s remaining)
+  [noise_s24] Done: 4000 decisions in 18.2s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s24                          1.65   4000     11    0.50    1.93    1.80    1.69    1.84
+
+  (N per plan)                                              513     829    1126     657     875
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s24                               0.9949   0.0033    41746        0.9883   0.0034    18068        0.9893   0.0031    30766        0.9930   0.0032    90580
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 25)
+
+Scoring raccoon: noise_s25 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s25] 500/4000 (2s, ~17s remaining)
+  [noise_s25] 1000/4000 (5s, ~14s remaining)
+  [noise_s25] 1500/4000 (7s, ~11s remaining)
+  [noise_s25] 2000/4000 (9s, ~9s remaining)
+  [noise_s25] 2500/4000 (12s, ~7s remaining)
+  [noise_s25] 3000/4000 (14s, ~5s remaining)
+  [noise_s25] 3500/4000 (16s, ~2s remaining)
+  [noise_s25] 4000/4000 (18s, ~0s remaining)
+  [noise_s25] Done: 4000 decisions in 18.2s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s25                          1.67   4000     16    0.54    2.03    1.70    1.83    1.80
+
+  (N per plan)                                              495     876    1144     644     841
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s25                               0.9937   0.0036    41308        0.9889   0.0034    16954        0.9888   0.0030    31980        0.9920   0.0034    90242
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+  (random subsample: 4000 decisions, seed 26)
+
+Scoring raccoon: noise_s26 (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [noise_s26] 500/4000 (3s, ~19s remaining)
+  [noise_s26] 1000/4000 (5s, ~15s remaining)
+  [noise_s26] 1500/4000 (7s, ~12s remaining)
+  [noise_s26] 2000/4000 (9s, ~9s remaining)
+  [noise_s26] 2500/4000 (11s, ~7s remaining)
+  [noise_s26] 3000/4000 (13s, ~4s remaining)
+  [noise_s26] 3500/4000 (15s, ~2s remaining)
+  [noise_s26] 4000/4000 (17s, ~0s remaining)
+  [noise_s26] Done: 4000 decisions in 16.8s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 4000 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  noise_s26                          1.62   4000     11    0.48    1.63    1.79    1.82    1.90
+
+  (N per plan)                                              514     817    1133     666     870
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  noise_s26                               0.9950   0.0030    41794        0.9883   0.0037    17809        0.9883   0.0032    31602        0.9926   0.0032    91205
+

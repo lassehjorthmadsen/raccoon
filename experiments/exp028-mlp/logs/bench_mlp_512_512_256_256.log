@@ -1,0 +1,60 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: mlp_512_512_256_256 (experiments/exp028-mlp/mlp_512_512_256_256/checkpoints/best.pt)...
+  [mlp_512_512_256_256] 500/14693 (2s, ~50s remaining)
+  [mlp_512_512_256_256] 1000/14693 (3s, ~46s remaining)
+  [mlp_512_512_256_256] 1500/14693 (5s, ~44s remaining)
+  [mlp_512_512_256_256] 2000/14693 (7s, ~42s remaining)
+  [mlp_512_512_256_256] 2500/14693 (8s, ~41s remaining)
+  [mlp_512_512_256_256] 3000/14693 (10s, ~39s remaining)
+  [mlp_512_512_256_256] 3500/14693 (12s, ~37s remaining)
+  [mlp_512_512_256_256] 4000/14693 (13s, ~35s remaining)
+  [mlp_512_512_256_256] 4500/14693 (15s, ~34s remaining)
+  [mlp_512_512_256_256] 5000/14693 (16s, ~32s remaining)
+  [mlp_512_512_256_256] 5500/14693 (18s, ~30s remaining)
+  [mlp_512_512_256_256] 6000/14693 (19s, ~28s remaining)
+  [mlp_512_512_256_256] 6500/14693 (21s, ~26s remaining)
+  [mlp_512_512_256_256] 7000/14693 (23s, ~25s remaining)
+  [mlp_512_512_256_256] 7500/14693 (24s, ~23s remaining)
+  [mlp_512_512_256_256] 8000/14693 (26s, ~22s remaining)
+  [mlp_512_512_256_256] 8500/14693 (28s, ~20s remaining)
+  [mlp_512_512_256_256] 9000/14693 (30s, ~19s remaining)
+  [mlp_512_512_256_256] 9500/14693 (31s, ~17s remaining)
+  [mlp_512_512_256_256] 10000/14693 (33s, ~15s remaining)
+  [mlp_512_512_256_256] 10500/14693 (34s, ~14s remaining)
+  [mlp_512_512_256_256] 11000/14693 (36s, ~12s remaining)
+  [mlp_512_512_256_256] 11500/14693 (38s, ~10s remaining)
+  [mlp_512_512_256_256] 12000/14693 (39s, ~9s remaining)
+  [mlp_512_512_256_256] 12500/14693 (41s, ~7s remaining)
+  [mlp_512_512_256_256] 13000/14693 (43s, ~6s remaining)
+  [mlp_512_512_256_256] 13500/14693 (44s, ~4s remaining)
+  [mlp_512_512_256_256] 14000/14693 (46s, ~2s remaining)
+  [mlp_512_512_256_256] 14500/14693 (48s, ~1s remaining)
+  [mlp_512_512_256_256] Done: 14693 decisions in 48.2s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  mlp_512_512_256_256                1.93  14693     74    0.46    1.98    2.14    2.26    2.20
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  mlp_512_512_256_256                     0.9942   0.0035   149113        0.9889   0.0035    61917        0.9866   0.0037   116421        0.9918   0.0036   327451
+
+Saving results to experiments/exp028-mlp/results/
+  Saved: experiments/exp028-mlp/results/mlp_512_512_256_256.json
+  Saved: experiments/exp028-mlp/results/summary.json

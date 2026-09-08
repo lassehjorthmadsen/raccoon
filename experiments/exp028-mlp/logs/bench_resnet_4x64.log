@@ -1,0 +1,8 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: resnet_4x64 (experiments/exp028-mlp/resnet_4x64/checkpoints/best.pt)...
+  [resnet_4x64] 500/14693 (4s, ~108s remaining)
+  [resnet_4x64] 1000/14693 (7s, ~101s remaining)
+  [resnet_4x64] 1500/14693 (11s, ~97s remaining)
+  [resnet_4x64] 2000/14693 (15s, ~93s remaining)

@@ -1,0 +1,90 @@
+{
+  "engine_label": "mlp_256_256",
+  "pr": 2.985489358840655,
+  "n": 14693,
+  "total_error": 87.73159029889148,
+  "blunders": 164,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.6897728205066379,
+      "n": 1816,
+      "total_error": 2.505254884080109,
+      "blunders": 1
+    },
+    "racing": {
+      "pr": 3.4790817161538845,
+      "n": 3120,
+      "total_error": 21.70946990880024,
+      "blunders": 45
+    },
+    "attacking": {
+      "pr": 2.7870844117284888,
+      "n": 4111,
+      "total_error": 22.915408033231632,
+      "blunders": 41
+    },
+    "priming": {
+      "pr": 3.663917779649171,
+      "n": 2453,
+      "total_error": 17.975180626958835,
+      "blunders": 44
+    },
+    "anchoring": {
+      "pr": 3.5431063021955307,
+      "n": 3193,
+      "total_error": 22.62627684582066,
+      "blunders": 33
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 2.8010422534918162,
+      "n": 5657,
+      "total_error": 31.690992056006408,
+      "blunders": 39
+    },
+    "player": {
+      "pr": 3.2893653571545003,
+      "n": 4015,
+      "total_error": 26.413603817950637,
+      "blunders": 59
+    },
+    "opponent": {
+      "pr": 2.950308148270706,
+      "n": 5021,
+      "total_error": 29.62699442493443,
+      "blunders": 66
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 3.1009627181764645,
+      "n": 9036,
+      "total_error": 56.04059824288507,
+      "blunders": 125
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9920870018165834,
+      "mse": 0.004744727512157542,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9840987289310188,
+      "mse": 0.005068879405708885,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9799028506104859,
+      "mse": 0.005539151591571197,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9883069220854352,
+      "mse": 0.00508846797574579,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/mlp_256_256/checkpoints/best.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

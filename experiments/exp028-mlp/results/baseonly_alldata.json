@@ -1,0 +1,90 @@
+{
+  "engine_label": "baseonly_alldata",
+  "pr": 1.776082809441571,
+  "n": 14693,
+  "total_error": 52.191969438250005,
+  "blunders": 56,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.5721507394102415,
+      "n": 1816,
+      "total_error": 2.0780514855379972,
+      "blunders": 2
+    },
+    "racing": {
+      "pr": 1.9001722052767658,
+      "n": 3120,
+      "total_error": 11.857074560927018,
+      "blunders": 16
+    },
+    "attacking": {
+      "pr": 1.8005689163895755,
+      "n": 4111,
+      "total_error": 14.80427763055509,
+      "blunders": 12
+    },
+    "priming": {
+      "pr": 2.048719643948601,
+      "n": 2453,
+      "total_error": 10.051018573211834,
+      "blunders": 14
+    },
+    "anchoring": {
+      "pr": 2.0985823971215263,
+      "n": 3193,
+      "total_error": 13.401547188018066,
+      "blunders": 12
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.5797277740448994,
+      "n": 5657,
+      "total_error": 17.87304003554399,
+      "blunders": 10
+    },
+    "player": {
+      "pr": 1.9592883747027345,
+      "n": 4015,
+      "total_error": 15.733085648862957,
+      "blunders": 21
+    },
+    "opponent": {
+      "pr": 1.85081096931319,
+      "n": 5021,
+      "total_error": 18.585843753843054,
+      "blunders": 25
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.8990111444613773,
+      "n": 9036,
+      "total_error": 34.31892940270601,
+      "blunders": 46
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9950925785676311,
+      "mse": 0.0029425480638564125,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9904821960377482,
+      "mse": 0.0030340090601903976,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9878733964020648,
+      "mse": 0.0033423195657242117,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9928717945175428,
+      "mse": 0.0031019758516138553,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/baseonly_alldata/checkpoints/ep7.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

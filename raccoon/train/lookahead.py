@@ -74,12 +74,19 @@ def state_after_apply(
 
 def encode_pre_roll(
     state: pyspiel.BackgammonState, perspective_player: int,
+    channels: list[int] | None = None,
 ) -> np.ndarray:
     """Encode ``state`` from ``perspective_player``'s POV with dice cleared.
 
     The V head was trained on pre-roll positions, so we feed it pre-roll inputs
     (no dice, no mid-doubles flag) regardless of the actual chance/decision
     status of the source state. The board itself is unchanged.
+
+    ``channels`` is the network's channel subset, from
+    :func:`raccoon.env.encoder.channels_for_network`. Passing ``None`` encodes
+    all 26. Callers must pass the network's own list: a net trained on a subset
+    receives an input of the wrong width otherwise, and the failure is a shape
+    error deep in the first linear layer rather than anything readable.
 
     For chance nodes we can't call ``board_from_perspective`` directly (no
     current player), so we advance one chance step on a clone — any chance
@@ -113,7 +120,15 @@ def encode_pre_roll(
             opp_off=bv.my_off,
         )
     bv = replace(bv, dice=None, mid_doubles=False)
-    return encode_state(bv)
+    return encode_state(bv, channels=channels)
+
+
+def _net_channels(network) -> list[int] | None:
+    """The channel subset ``network`` was built for, or ``None`` for all 26."""
+    from raccoon.env.encoder import channels_for_network
+
+    config = getattr(network, "config", None)
+    return channels_for_network(config) if config else None
 
 
 def terminal_value(
@@ -180,7 +195,8 @@ def child_values(
     distillation) included — an improvement to its doubles half-1 action, and no
     reason to regenerate any existing cache.
     """
-    legal, groups, all_obs = enumerate_leaves(state, joint_doubles)
+    legal, groups, all_obs = enumerate_leaves(
+        state, joint_doubles, _net_channels(network))
     values = eval_values_batch(network, all_obs, device)
 
     cv = np.empty(len(legal), dtype=np.float32)
@@ -201,6 +217,7 @@ LeafToken = tuple[bool, "float | int", bool]
 
 def enumerate_leaves(
     state: pyspiel.BackgammonState, joint_doubles: bool = True,
+    channels: list[int] | None = None,
 ) -> tuple[list[int], list[list[LeafToken]], np.ndarray]:
     """The shared skeleton of every 0-ply lookahead: what to evaluate, and where.
 
@@ -216,7 +233,7 @@ def enumerate_leaves(
     doubles handling rather than growing a second copy of the subtle part.
     """
     me = state.current_player()
-    obs_state_pre_roll = encode_pre_roll(state, me)
+    obs_state_pre_roll = encode_pre_roll(state, me, channels)
 
     unique_obs: list[np.ndarray] = []
     slot_of: dict[bytes, int] = {}
@@ -224,7 +241,7 @@ def enumerate_leaves(
     def leaf_token(child, dec_player: int) -> LeafToken:
         if child.is_terminal():
             return True, child.returns()[me], False
-        obs = encode_pre_roll(child, dec_player)
+        obs = encode_pre_roll(child, dec_player, channels)
         key = obs.tobytes()
         slot = slot_of.get(key)
         if slot is None:
@@ -299,7 +316,8 @@ def child_cubeful_values(
     The cube *value* never enters: it multiplies every candidate by the same
     constant, so it cannot change a ranking. Callers scale at the end.
     """
-    legal, groups, all_obs = enumerate_leaves(state, joint_doubles)
+    legal, groups, all_obs = enumerate_leaves(
+        state, joint_doubles, _net_channels(network))
     probs6 = eval_probs6_batch(network, all_obs, device)
 
     # Each distinct leaf is priced twice — once as ours to move, once as theirs —
@@ -345,7 +363,7 @@ def net_cube_action(
     may still carry dice; :func:`encode_pre_roll` clears them, which is what the
     value head was trained on.
     """
-    obs = encode_pre_roll(state, state.current_player())
+    obs = encode_pre_roll(state, state.current_player(), _net_channels(network))
     p6 = eval_probs6_batch(network, obs[None], device)[0]
     return cube_action(probs6_to_cumulative5(p6), cube_label, x, jacoby=jacoby)
 

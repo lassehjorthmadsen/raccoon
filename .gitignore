@@ -44,3 +44,6 @@ data/wildbg/
 data/bglab/
 data/distill/
 data/bgsage/
+
+# per-arm completion sentinels written by the pipeline scripts
+experiments/**/DONE

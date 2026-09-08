@@ -1,0 +1,102 @@
+[arch] mlp 1x512 hidden, 1.017M parameters
+exp011 outcomes6 [cpu]: 48 shards x 2 epochs, lr=0.001 holdout_frac=0.0 split_seed=14
+  ep1 shard 1/96 loss=0.858235  best=-inf wall=0.003h
+  ep1 shard 2/96 loss=0.872763  best=-inf wall=0.006h
+  ep1 shard 3/96 loss=0.895639  best=-inf wall=0.009h
+  ep1 shard 4/96 loss=0.846615  best=-inf wall=0.012h
+  ep1 shard 5/96 loss=0.908551  best=-inf wall=0.015h
+  ep1 shard 6/96 loss=0.852562 gnubg=-0.65 best=-0.650 wall=0.018h
+  ep1 shard 7/96 loss=0.870006  best=-0.650 wall=0.03h
+  ep1 shard 8/96 loss=0.820841  best=-0.650 wall=0.033h
+  ep1 shard 9/96 loss=0.877037  best=-0.650 wall=0.036h
+  ep1 shard 10/96 loss=0.921308  best=-0.650 wall=0.039h
+  ep1 shard 11/96 loss=0.828326  best=-0.650 wall=0.043h
+  ep1 shard 12/96 loss=0.839383 gnubg=-0.325 best=-0.325 wall=0.047h
+  ep1 shard 13/96 loss=0.854735  best=-0.325 wall=0.058h
+  ep1 shard 14/96 loss=0.840537  best=-0.325 wall=0.062h
+  ep1 shard 15/96 loss=0.83104  best=-0.325 wall=0.066h
+  ep1 shard 16/96 loss=0.846718  best=-0.325 wall=0.07h
+  ep1 shard 17/96 loss=0.860234  best=-0.325 wall=0.074h
+  ep1 shard 18/96 loss=0.827304 gnubg=-0.475 best=-0.325 wall=0.078h
+  ep1 shard 19/96 loss=0.889412  best=-0.325 wall=0.09h
+  ep1 shard 20/96 loss=0.850039  best=-0.325 wall=0.094h
+  ep1 shard 21/96 loss=0.861034  best=-0.325 wall=0.098h
+  ep1 shard 22/96 loss=0.852322  best=-0.325 wall=0.102h
+  ep1 shard 23/96 loss=0.826614  best=-0.325 wall=0.106h
+  ep1 shard 24/96 loss=0.916061 gnubg=-0.35 best=-0.325 wall=0.11h
+  ep1 shard 25/96 loss=0.859483  best=-0.325 wall=0.125h
+  ep1 shard 26/96 loss=0.819348  best=-0.325 wall=0.129h
+  ep1 shard 27/96 loss=0.889267  best=-0.325 wall=0.133h
+  ep1 shard 28/96 loss=0.856745  best=-0.325 wall=0.137h
+  ep1 shard 29/96 loss=0.85437  best=-0.325 wall=0.141h
+  ep1 shard 30/96 loss=0.822416 gnubg=-0.2 best=-0.200 wall=0.145h
+  ep1 shard 31/96 loss=0.870948  best=-0.200 wall=0.157h
+  ep1 shard 32/96 loss=0.896682  best=-0.200 wall=0.161h
+  ep1 shard 33/96 loss=0.85826  best=-0.200 wall=0.165h
+  ep1 shard 34/96 loss=0.841625  best=-0.200 wall=0.169h
+  ep1 shard 35/96 loss=0.841037  best=-0.200 wall=0.173h
+  ep1 shard 36/96 loss=0.828218 gnubg=-0.1 best=-0.100 wall=0.177h
+  ep1 shard 37/96 loss=0.858944  best=-0.100 wall=0.189h
+  ep1 shard 38/96 loss=0.861109  best=-0.100 wall=0.193h
+  ep1 shard 39/96 loss=0.91454  best=-0.100 wall=0.197h
+  ep1 shard 40/96 loss=0.877371  best=-0.100 wall=0.201h
+  ep1 shard 41/96 loss=0.88405  best=-0.100 wall=0.205h
+  ep1 shard 42/96 loss=0.887597 gnubg=-0.3 best=-0.100 wall=0.209h
+  ep1 shard 43/96 loss=0.885228  best=-0.100 wall=0.221h
+  ep1 shard 44/96 loss=0.845371  best=-0.100 wall=0.225h
+  ep1 shard 45/96 loss=0.864056  best=-0.100 wall=0.229h
+  ep1 shard 46/96 loss=0.884412  best=-0.100 wall=0.233h
+  ep1 shard 47/96 loss=0.846501  best=-0.100 wall=0.237h
+  ep1 shard 48/96 loss=0.809763 gnubg=-0.3 best=-0.100 wall=0.241h
+  saved epoch checkpoint -> experiments/exp028-mlp/mlp_h512/checkpoints/ep1.pt
+  ep2 shard 49/96 loss=0.829559  best=-0.100 wall=0.254h
+  ep2 shard 50/96 loss=0.828611  best=-0.100 wall=0.258h
+  ep2 shard 51/96 loss=0.875046  best=-0.100 wall=0.262h
+  ep2 shard 52/96 loss=0.845935  best=-0.100 wall=0.265h
+  ep2 shard 53/96 loss=0.909838  best=-0.100 wall=0.269h
+  ep2 shard 54/96 loss=0.866114 gnubg=-0.025 best=-0.025 wall=0.273h
+  ep2 shard 55/96 loss=0.869107  best=-0.025 wall=0.284h
+  ep2 shard 56/96 loss=0.870227  best=-0.025 wall=0.288h
+  ep2 shard 57/96 loss=0.867985  best=-0.025 wall=0.291h
+  ep2 shard 58/96 loss=0.908816  best=-0.025 wall=0.295h
+  ep2 shard 59/96 loss=0.836673  best=-0.025 wall=0.299h
+  ep2 shard 60/96 loss=0.853485 gnubg=0.1 best=+0.100 wall=0.303h
+  ep2 shard 61/96 loss=0.878123  best=+0.100 wall=0.315h
+  ep2 shard 62/96 loss=0.85615  best=+0.100 wall=0.319h
+  ep2 shard 63/96 loss=0.84277  best=+0.100 wall=0.323h
+  ep2 shard 64/96 loss=0.837518  best=+0.100 wall=0.327h
+  ep2 shard 65/96 loss=0.845708  best=+0.100 wall=0.331h
+  ep2 shard 66/96 loss=0.87448 gnubg=-0.4 best=+0.100 wall=0.335h
+  ep2 shard 67/96 loss=0.840848  best=+0.100 wall=0.349h
+  ep2 shard 68/96 loss=0.823238  best=+0.100 wall=0.353h
+  ep2 shard 69/96 loss=0.849029  best=+0.100 wall=0.357h
+  ep2 shard 70/96 loss=0.833861  best=+0.100 wall=0.361h
+  ep2 shard 71/96 loss=0.835716  best=+0.100 wall=0.365h
+  ep2 shard 72/96 loss=0.843437 gnubg=-0.4 best=+0.100 wall=0.369h
+  ep2 shard 73/96 loss=0.835495  best=+0.100 wall=0.381h
+  ep2 shard 74/96 loss=0.84911  best=+0.100 wall=0.385h
+  ep2 shard 75/96 loss=0.846117  best=+0.100 wall=0.389h
+  ep2 shard 76/96 loss=0.878819  best=+0.100 wall=0.393h
+  ep2 shard 77/96 loss=0.911153  best=+0.100 wall=0.396h
+  ep2 shard 78/96 loss=0.816762 gnubg=-0.575 best=+0.100 wall=0.4h
+  ep2 shard 79/96 loss=0.826969  best=+0.100 wall=0.413h
+  ep2 shard 80/96 loss=0.890489  best=+0.100 wall=0.417h
+  ep2 shard 81/96 loss=0.83348  best=+0.100 wall=0.421h
+  ep2 shard 82/96 loss=0.874422  best=+0.100 wall=0.424h
+  ep2 shard 83/96 loss=0.835223  best=+0.100 wall=0.428h
+  ep2 shard 84/96 loss=0.834941 gnubg=0.3 best=+0.300 wall=0.432h
+  ep2 shard 85/96 loss=0.852091  best=+0.300 wall=0.445h
+  ep2 shard 86/96 loss=0.853056  best=+0.300 wall=0.448h
+  ep2 shard 87/96 loss=0.825373  best=+0.300 wall=0.451h
+  ep2 shard 88/96 loss=0.85517  best=+0.300 wall=0.455h
+  ep2 shard 89/96 loss=0.896687  best=+0.300 wall=0.459h
+  ep2 shard 90/96 loss=0.857798 gnubg=0.175 best=+0.300 wall=0.462h
+  ep2 shard 91/96 loss=0.873746  best=+0.300 wall=0.472h
+  ep2 shard 92/96 loss=0.875512  best=+0.300 wall=0.476h
+  ep2 shard 93/96 loss=0.901247  best=+0.300 wall=0.48h
+  ep2 shard 94/96 loss=0.835154  best=+0.300 wall=0.485h
+  ep2 shard 95/96 loss=0.840961  best=+0.300 wall=0.489h
+  ep2 shard 96/96 loss=0.852819 gnubg=0.05 best=+0.300 wall=0.493h
+  saved epoch checkpoint -> experiments/exp028-mlp/mlp_h512/checkpoints/ep2.pt
+
+===== ARM DONE (outcomes6) reason=epochs_complete best vs GNUBG-0ply = +0.3000 ppg  -> experiments/exp028-mlp/mlp_h512/checkpoints/best.pt

@@ -1,0 +1,90 @@
+{
+  "engine_label": "debroadcast_base",
+  "pr": 1.683691658612125,
+  "n": 14693,
+  "total_error": 49.47696307997591,
+  "blunders": 55,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.5817790506754275,
+      "n": 1816,
+      "total_error": 2.1130215120531526,
+      "blunders": 3
+    },
+    "racing": {
+      "pr": 1.7990894353839564,
+      "n": 3120,
+      "total_error": 11.226318076795888,
+      "blunders": 15
+    },
+    "attacking": {
+      "pr": 1.797819040026055,
+      "n": 4111,
+      "total_error": 14.781668147094223,
+      "blunders": 15
+    },
+    "priming": {
+      "pr": 1.8593825276537286,
+      "n": 2453,
+      "total_error": 9.122130680669192,
+      "blunders": 11
+    },
+    "anchoring": {
+      "pr": 1.9157257537368388,
+      "n": 3193,
+      "total_error": 12.233824663363453,
+      "blunders": 11
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.5576663754262543,
+      "n": 5657,
+      "total_error": 17.623437371572642,
+      "blunders": 11
+    },
+    "player": {
+      "pr": 1.8354359297296174,
+      "n": 4015,
+      "total_error": 14.738550515728827,
+      "blunders": 22
+    },
+    "opponent": {
+      "pr": 1.7043392942316709,
+      "n": 5021,
+      "total_error": 17.11497519267444,
+      "blunders": 22
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.7625899573042974,
+      "n": 9036,
+      "total_error": 31.853525708403264,
+      "blunders": 44
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9950051725016834,
+      "mse": 0.002994957777117944,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9899419623842018,
+      "mse": 0.0032062204028467634,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9885428022536606,
+      "mse": 0.0031578187483989224,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9928928616183121,
+      "mse": 0.0030928080971192695,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

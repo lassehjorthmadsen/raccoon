@@ -1,0 +1,336 @@
+{
+ "protocol": {
+  "benchmark": "BGSage Money Benchmark, checker decisions, all tiers",
+  "n": 14693,
+  "n_games": 499,
+  "subsampling": "none",
+  "pairing": "per-decision, identical decisions across every arm and epoch",
+  "bootstrap": "10000 resamples of whole games",
+  "resolution_pr": 0.09,
+  "resolution_note": "differences below this are reported as 'not resolved', which is not a null result",
+  "training_data": "43M GNUBG 2-ply labels, data/distill/2ply",
+  "architecture": "MLP [512,512,256,256], 201 de-broadcast inputs",
+  "epochs": 20
+ },
+ "reference_points": {
+  "ep22_resnet_10x256": {
+   "pr": 0.95,
+   "macs": 285000000,
+   "source": "exp021 ladder; MACs from exp027-speed-audit/results/eval_speed.json"
+  },
+  "gnubg_1ply": {
+   "pr": 1.206,
+   "source": "exp021 ladder, same benchmark"
+  },
+  "gnubg_0ply": {
+   "pr": 2.14,
+   "macs": 33000,
+   "source": "exp021 ladder"
+  },
+  "puretd": {
+   "pr": 0.94,
+   "macs": 561000,
+   "parameters": 562000,
+   "source": "Strehl, arXiv:2608.15146",
+   "note": "0.94 is XG++ Performance Rating on CUBEFUL money, not this benchmark's cubeless checker PR. The scales agree on the GNUBG anchors they share (0-ply 2.18 there against 2.14 here, 1-ply 1.21 against 1.206), which is a calibration argument, not identity."
+  }
+ },
+ "our_training_cost": {
+  "core_hours_per_arm": 38,
+  "gpu": false,
+  "puretd_core_hours": 4200,
+  "puretd_note": "200M self-play games, ~65 h on a 64-core workstation with a GPU. Capacity and inference cost are matched with this MLP; training compute is not, by about two orders of magnitude."
+ },
+ "architecture_curve_note": "These arms ran under the constant learning rate later shown to leave about 0.2 PR unclaimed, so they order the configurations correctly but none of them is converged.",
+ "architecture_curve": [
+  {
+   "name": "MLP [256], 624 inputs",
+   "pr": 5.4
+  },
+  {
+   "name": "MLP [256,256], 624 inputs",
+   "pr": 2.99
+  },
+  {
+   "name": "MLP [512,512], 624 inputs",
+   "pr": 2.31
+  },
+  {
+   "name": "MLP [512,512,256,256], 624 inputs",
+   "pr": 1.93
+  },
+  {
+   "name": "...dropping the handcrafted channels, 408 inputs",
+   "pr": 1.74
+  },
+  {
+   "name": "...de-broadcast to 201 inputs",
+   "pr": 1.68
+  }
+ ],
+ "arms": {
+  "ref20": {
+   "pr_by_epoch": {
+    "1": 2.212655306512476,
+    "2": 1.9065263541701007,
+    "3": 1.9461188476542584,
+    "4": 1.788752108702061,
+    "5": 1.7310771710157946,
+    "6": 1.6798371623437443,
+    "7": 1.809699047913559,
+    "8": 1.7162563755828788,
+    "9": 1.7001652173092305,
+    "10": 1.7603634654343259,
+    "11": 1.735743153740057,
+    "12": 1.6103145292676164,
+    "13": 1.9044510204348615,
+    "14": 1.6184296376151805,
+    "15": 1.7263766290648705,
+    "16": 1.6259921546440699,
+    "17": 1.6418042391028382,
+    "18": 1.6492427354214831,
+    "19": 1.6039530119482572,
+    "20": 1.6323513885150565
+   },
+   "pr_final": 1.6323513885150565
+  },
+  "scalar20": {
+   "pr_by_epoch": {
+    "1": 2.113199452567632,
+    "2": 1.880126924306478,
+    "3": 1.7354127280857703,
+    "4": 1.6924078043637705,
+    "5": 1.5861825037491732,
+    "6": 1.599294634351855,
+    "7": 1.5635622184858446,
+    "8": 1.5947178425439479,
+    "9": 1.4934376868162522,
+    "10": 1.5134568686446026,
+    "11": 1.4988803486845486,
+    "12": 1.485926224116223,
+    "13": 1.483805368481654,
+    "14": 1.455465620014386,
+    "15": 1.4913457670994672,
+    "16": 1.4230695690257416,
+    "17": 1.4813669484164362,
+    "18": 1.4689057248080792,
+    "19": 1.3973904764496021,
+    "20": 1.4581466550985653
+   },
+   "pr_final": 1.4581466550985653
+  },
+  "cosine20": {
+   "pr_by_epoch": {
+    "1": 2.1906722702207135,
+    "2": 2.1195819558310376,
+    "3": 1.8412189391106395,
+    "4": 1.7792397402791036,
+    "5": 1.734814072077191,
+    "6": 1.7235525986365448,
+    "7": 1.7047455745505904,
+    "8": 1.6337118696479447,
+    "9": 1.6488322835135956,
+    "10": 1.6710229799208127,
+    "11": 1.5961924946675676,
+    "12": 1.5387347405766643,
+    "13": 1.5251901636215086,
+    "14": 1.4505254174388496,
+    "15": 1.4838133095594066,
+    "16": 1.470840241508578,
+    "17": 1.3978724199968116,
+    "18": 1.42262734472525,
+    "19": 1.4279304629928438,
+    "20": 1.419521060692016
+   },
+   "pr_final": 1.419521060692016
+  },
+  "combined20": {
+   "pr_by_epoch": {
+    "1": 2.101881176587727,
+    "2": 1.8379251414176032,
+    "3": 1.7348257213342435,
+    "4": 1.6157503004548888,
+    "5": 1.6164557132059805,
+    "6": 1.5760044680600303,
+    "7": 1.452666713794285,
+    "8": 1.476806370533815,
+    "9": 1.452077401252447,
+    "10": 1.4249417508684534,
+    "11": 1.4260963290835755,
+    "12": 1.368571137921379,
+    "13": 1.4035587577350344,
+    "14": 1.3925279628417988,
+    "15": 1.3779830152444514,
+    "16": 1.3614895555794375,
+    "17": 1.361062681960282,
+    "18": 1.349161365335263,
+    "19": 1.3650616623149516,
+    "20": 1.3683519644073494
+   },
+   "pr_final": 1.3683519644073494
+  }
+ },
+ "paired": {
+  "scalar_vs_outcomes6": {
+   "baseline": "ref20_e20",
+   "arm": "scalar20_e20",
+   "pr_baseline": 1.6323513885150565,
+   "pr_arm": 1.4581466550985653,
+   "gain": 0.1742047334164916,
+   "ci95": [
+    0.08518062726063423,
+    0.26402812467906256
+   ],
+   "verdict": "real"
+  },
+  "cosine_vs_constant_lr": {
+   "baseline": "ref20_e20",
+   "arm": "cosine20_e20",
+   "pr_baseline": 1.6323513885150565,
+   "pr_arm": 1.419521060692016,
+   "gain": 0.21283032782304082,
+   "ci95": [
+    0.12650705230850076,
+    0.30195685525553834
+   ],
+   "verdict": "real"
+  },
+  "combined_vs_reference": {
+   "baseline": "ref20_e20",
+   "arm": "combined20_e20",
+   "pr_baseline": 1.6323513885150565,
+   "pr_arm": 1.3683519644073494,
+   "gain": 0.26399942410770744,
+   "ci95": [
+    0.17392398551407323,
+    0.3555488049731776
+   ],
+   "verdict": "real"
+  },
+  "combined_vs_cosine": {
+   "baseline": "cosine20_e20",
+   "arm": "combined20_e20",
+   "pr_baseline": 1.419521060692016,
+   "pr_arm": 1.3683519644073494,
+   "gain": 0.05116909628466661,
+   "ci95": [
+    -0.03454175051632005,
+    0.13638139218577497
+   ],
+   "verdict": "not resolved"
+  },
+  "combined_vs_scalar": {
+   "baseline": "scalar20_e20",
+   "arm": "combined20_e20",
+   "pr_baseline": 1.4581466550985653,
+   "pr_arm": 1.3683519644073494,
+   "gain": 0.08979469069121584,
+   "ci95": [
+    0.00915773886393283,
+    0.16961911982471886
+   ],
+   "verdict": "real"
+  },
+  "ref20_e10_to_e20": {
+   "baseline": "ref20_e10",
+   "arm": "ref20_e20",
+   "pr_baseline": 1.7603634654343259,
+   "pr_arm": 1.6323513885150565,
+   "gain": 0.12801207691926922,
+   "ci95": [
+    0.03237823722391626,
+    0.22489105450554456
+   ],
+   "verdict": "real"
+  },
+  "ref20_e15_to_e20": {
+   "baseline": "ref20_e15",
+   "arm": "ref20_e20",
+   "pr_baseline": 1.7263766290648705,
+   "pr_arm": 1.6323513885150565,
+   "gain": 0.09402524054981368,
+   "ci95": [
+    -0.005624333454040389,
+    0.20177430369117016
+   ],
+   "verdict": "not resolved"
+  },
+  "scalar20_e10_to_e20": {
+   "baseline": "scalar20_e10",
+   "arm": "scalar20_e20",
+   "pr_baseline": 1.5134568686446026,
+   "pr_arm": 1.4581466550985653,
+   "gain": 0.055310213546037705,
+   "ci95": [
+    -0.017365272112902057,
+    0.12946633416015738
+   ],
+   "verdict": "not resolved"
+  },
+  "scalar20_e15_to_e20": {
+   "baseline": "scalar20_e15",
+   "arm": "scalar20_e20",
+   "pr_baseline": 1.4913457670994672,
+   "pr_arm": 1.4581466550985653,
+   "gain": 0.033199112000901865,
+   "ci95": [
+    -0.030568199877340503,
+    0.09916645260178078
+   ],
+   "verdict": "not resolved"
+  },
+  "cosine20_e10_to_e20": {
+   "baseline": "cosine20_e10",
+   "arm": "cosine20_e20",
+   "pr_baseline": 1.6710229799208127,
+   "pr_arm": 1.419521060692016,
+   "gain": 0.2515019192287969,
+   "ci95": [
+    0.18178950679480252,
+    0.3217649477748352
+   ],
+   "verdict": "real"
+  },
+  "cosine20_e15_to_e20": {
+   "baseline": "cosine20_e15",
+   "arm": "cosine20_e20",
+   "pr_baseline": 1.4838133095594066,
+   "pr_arm": 1.419521060692016,
+   "gain": 0.06429224886739072,
+   "ci95": [
+    0.018450369970082283,
+    0.109555312449512
+   ],
+   "verdict": "real"
+  },
+  "combined20_e10_to_e20": {
+   "baseline": "combined20_e10",
+   "arm": "combined20_e20",
+   "pr_baseline": 1.4249417508684534,
+   "pr_arm": 1.3683519644073494,
+   "gain": 0.05658978646110402,
+   "ci95": [
+    -0.0034119329745263684,
+    0.11871409279147249
+   ],
+   "verdict": "not resolved"
+  },
+  "combined20_e15_to_e20": {
+   "baseline": "combined20_e15",
+   "arm": "combined20_e20",
+   "pr_baseline": 1.3779830152444514,
+   "pr_arm": 1.3683519644073494,
+   "gain": 0.00963105083710211,
+   "ci95": [
+    -0.02593105257600765,
+    0.04312676912613623
+   ],
+   "verdict": "not resolved"
+  }
+ },
+ "additivity": {
+  "predicted_if_independent": 1.245316327275524,
+  "observed": 1.3683519644073494,
+  "note": "The prediction was written into the run script before the combined arm started. The effects overlap: the schedule does most of the work."
+ }
+}

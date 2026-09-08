@@ -1,0 +1,17 @@
+[arch] resnet 4x64, 0.386M parameters
+exp011 outcomes6 [cpu]: 48 shards x 2 epochs, lr=0.001 holdout_frac=0.0 split_seed=14
+  ep1 shard 1/96 loss=0.828324  best=-inf wall=0.039h
+  ep1 shard 2/96 loss=0.884063  best=-inf wall=0.078h
+  ep1 shard 3/96 loss=0.870691  best=-inf wall=0.117h
+  ep1 shard 4/96 loss=0.82095  best=-inf wall=0.155h
+  ep1 shard 5/96 loss=0.812405  best=-inf wall=0.195h
+  ep1 shard 6/96 loss=0.854718 gnubg=0.175 best=+0.175 wall=0.234h
+  ep1 shard 7/96 loss=0.859655  best=+0.175 wall=0.282h
+  ep1 shard 8/96 loss=0.8873  best=+0.175 wall=0.321h
+  ep1 shard 9/96 loss=0.81957  best=+0.175 wall=0.36h
+  ep1 shard 10/96 loss=0.881749  best=+0.175 wall=0.4h
+  ep1 shard 11/96 loss=0.871437  best=+0.175 wall=0.44h
+  ep1 shard 12/96 loss=0.841002 gnubg=0.075 best=+0.175 wall=0.479h
+  ep1 shard 13/96 loss=0.862145  best=+0.175 wall=0.529h
+  ep1 shard 14/96 loss=0.883583  best=+0.175 wall=0.569h
+  ep1 shard 15/96 loss=0.814769  best=+0.175 wall=0.617h

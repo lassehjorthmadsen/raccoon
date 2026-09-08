@@ -1,0 +1,90 @@
+{
+  "engine_label": "mlp_512_512_256_256_baseonly",
+  "pr": 1.7418757864377792,
+  "n": 14693,
+  "total_error": 51.18676186026058,
+  "blunders": 61,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.5325061922844482,
+      "n": 1816,
+      "total_error": 1.9340624903771158,
+      "blunders": 1
+    },
+    "racing": {
+      "pr": 1.9229268694008277,
+      "n": 3120,
+      "total_error": 11.999063665061165,
+      "blunders": 18
+    },
+    "attacking": {
+      "pr": 1.7350542733130774,
+      "n": 4111,
+      "total_error": 14.265616235180122,
+      "blunders": 15
+    },
+    "priming": {
+      "pr": 2.0326155654561227,
+      "n": 2453,
+      "total_error": 9.972011964127738,
+      "blunders": 16
+    },
+    "anchoring": {
+      "pr": 2.0382097565791484,
+      "n": 3193,
+      "total_error": 13.016007505514441,
+      "blunders": 11
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.573953738614414,
+      "n": 5657,
+      "total_error": 17.80771259868348,
+      "blunders": 14
+    },
+    "player": {
+      "pr": 1.9221725348803584,
+      "n": 4015,
+      "total_error": 15.435045455089279,
+      "blunders": 19
+    },
+    "opponent": {
+      "pr": 1.786895419885264,
+      "n": 5021,
+      "total_error": 17.94400380648782,
+      "blunders": 28
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.8470036111983787,
+      "n": 9036,
+      "total_error": 33.3790492615771,
+      "blunders": 47
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9955055157591276,
+      "mse": 0.0026949460288411536,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9910620209778624,
+      "mse": 0.0028491771253650986,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9903812751545858,
+      "mse": 0.002651101109103562,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9937759372048001,
+      "mse": 0.002708520754228167,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp028-mlp/mlp_512_512_256_256_baseonly/checkpoints/ep11.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

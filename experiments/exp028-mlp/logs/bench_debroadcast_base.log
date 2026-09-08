@@ -1,0 +1,60 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: debroadcast_base (experiments/exp028-mlp/debroadcast_base/checkpoints/ep7.pt)...
+  [debroadcast_base] 500/14693 (2s, ~55s remaining)
+  [debroadcast_base] 1000/14693 (4s, ~51s remaining)
+  [debroadcast_base] 1500/14693 (6s, ~49s remaining)
+  [debroadcast_base] 2000/14693 (7s, ~47s remaining)
+  [debroadcast_base] 2500/14693 (9s, ~45s remaining)
+  [debroadcast_base] 3000/14693 (11s, ~43s remaining)
+  [debroadcast_base] 3500/14693 (13s, ~41s remaining)
+  [debroadcast_base] 4000/14693 (15s, ~39s remaining)
+  [debroadcast_base] 4500/14693 (16s, ~37s remaining)
+  [debroadcast_base] 5000/14693 (18s, ~35s remaining)
+  [debroadcast_base] 5500/14693 (20s, ~33s remaining)
+  [debroadcast_base] 6000/14693 (22s, ~31s remaining)
+  [debroadcast_base] 6500/14693 (23s, ~30s remaining)
+  [debroadcast_base] 7000/14693 (25s, ~28s remaining)
+  [debroadcast_base] 7500/14693 (27s, ~26s remaining)
+  [debroadcast_base] 8000/14693 (29s, ~24s remaining)
+  [debroadcast_base] 8500/14693 (31s, ~23s remaining)
+  [debroadcast_base] 9000/14693 (33s, ~21s remaining)
+  [debroadcast_base] 9500/14693 (35s, ~19s remaining)
+  [debroadcast_base] 10000/14693 (37s, ~17s remaining)
+  [debroadcast_base] 10500/14693 (38s, ~15s remaining)
+  [debroadcast_base] 11000/14693 (40s, ~14s remaining)
+  [debroadcast_base] 11500/14693 (42s, ~12s remaining)
+  [debroadcast_base] 12000/14693 (44s, ~10s remaining)
+  [debroadcast_base] 12500/14693 (46s, ~8s remaining)
+  [debroadcast_base] 13000/14693 (47s, ~6s remaining)
+  [debroadcast_base] 13500/14693 (49s, ~4s remaining)
+  [debroadcast_base] 14000/14693 (51s, ~3s remaining)
+  [debroadcast_base] 14500/14693 (53s, ~1s remaining)
+  [debroadcast_base] Done: 14693 decisions in 53.7s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  debroadcast_base                   1.68  14693     55    0.58    1.80    1.80    1.86    1.92
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  debroadcast_base                        0.9950   0.0030   149113        0.9899   0.0032    61917        0.9885   0.0032   116421        0.9929   0.0031   327451
+
+Saving results to experiments/exp028-mlp/results/
+  Saved: experiments/exp028-mlp/results/debroadcast_base.json
+  Saved: experiments/exp028-mlp/results/summary.json

@@ -158,13 +158,183 @@ rather than new machinery.
 A cheaper network reaching, say, PR 1.2 at forty times the speed would beat ep22
 outright at equal time, because it could afford the depth-2 search ep22 cannot.
 
+## exp028: a small network, measured {#exp028}
+
+The page above argued that the experiment worth running was accuracy against
+speed, not accuracy alone. This is that experiment.
+
+```{python}
+#| echo: false
+E = json.loads(
+    (Path("../experiments/exp028-mlp/results/exp028_summary.json")).read_text()
+)
+P, REF, ARMS, PAIR = E["protocol"], E["reference_points"], E["arms"], E["paired"]
+```
+
+**Protocol**, fixed before the final arms and not varied: every score is the full
+BGSage benchmark, `{python} f"n = {P['n']:,}"`, with no subsampling anywhere;
+every comparison is paired on identical decisions and bootstrapped over the 500
+generating games; the paired resolution is about
+`{python} f"{P['resolution_pr']}"` PR, and effects below it are reported as *not
+resolved*, which is not the same as a null. Training data is the same 43 M GNU
+Backgammon 2-ply labels ep22 was distilled from.
+
+### The architecture, and what the inputs cost
+
+Distilling those labels into a network shaped after PureTD's
+`[512, 512, 256, 256]` gives a curve that is monotone in capacity:
+
+```{python}
+#| echo: false
+#| output: asis
+rows = [("MLP [256], 624 inputs", 5.4), ("MLP [256,256], 624 inputs", 2.99),
+        ("MLP [512,512], 624 inputs", 2.31),
+        ("MLP [512,512,256,256], 624 inputs", 1.93),
+        ("...dropping the handcrafted channels, 408 inputs", 1.74),
+        ("...de-broadcast to 201 inputs", 1.68)]
+print("| configuration | PR |")
+print("|---|---:|")
+for label, pr in rows:
+    print(f"| {label} | {pr:.2f} |")
+print()
+print(": Every row is the full benchmark. These arms ran under a constant "
+      "learning rate, later shown to leave about 0.2 PR unclaimed, so they order "
+      "the configurations correctly but none of them is converged.")
+```
+
+Two input results are worth separating. Dropping the nine handcrafted channels
+*improved* PR by 0.19 while removing compute — confirming PureTD's claim that
+expert features are unnecessary. But the mechanism is duplication rather than the
+features themselves: channels 8 to 25 are all constant across the board, so a
+convolution receives them as planes and a flattened network receives 24 identical
+copies of each. De-broadcasting to one value per scalar channel gives 201 inputs,
+which is the size PureTD uses, and buys another 0.10.
+
+More data bought nothing: 24 M to 43 M positions moved PR by 0.04, inside the
+noise. That measurement was made under the constant-LR schedule, so it is worth
+repeating rather than treating as settled.
+
+### Two hypotheses, tested
+
+With capacity, inputs and data explored, two candidates remained. Four arms,
+identical but for one variable each, all at the same 20-epoch budget:
+
+```{python}
+#| echo: false
+#| output: asis
+labels = {"ref20": "reference (constant LR, six-outcome head)",
+          "scalar20": "scalar head, squared error on equity",
+          "cosine20": "cosine learning-rate decay",
+          "combined20": "both"}
+keys = {"scalar20": "scalar_vs_outcomes6", "cosine20": "cosine_vs_constant_lr",
+        "combined20": "combined_vs_reference"}
+print("| arm | PR at epoch 20 | paired vs reference | |")
+print("|---|---:|---:|:--|")
+for a in ("ref20", "scalar20", "cosine20", "combined20"):
+    pr = ARMS[a]["pr_final"]
+    if a == "ref20":
+        print(f"| {labels[a]} | {pr:.3f} | — | |")
+    else:
+        d = PAIR[keys[a]]
+        print(f"| {labels[a]} | **{pr:.3f}** | {d['gain']:+.3f} "
+              f"[{d['ci95'][0]:+.3f}, {d['ci95'][1]:+.3f}] | {d['verdict']} |")
+```
+
+**Both hypotheses are confirmed**, each worth about 0.2 PR. The learning rate had
+been fixed at 1e-3 for the whole of every previous run, and the training target
+had been cross-entropy over six outcomes rather than squared error on the
+quantity move selection actually ranks.
+
+**They do not add.**
+
+```{python}
+#| echo: false
+#| output: asis
+A = E["additivity"]
+cvc, cvs = PAIR["combined_vs_cosine"], PAIR["combined_vs_scalar"]
+print(f"Independent effects would have given "
+      f"{A['predicted_if_independent']:.3f}; the combined arm reached "
+      f"**{A['observed']:.3f}**. That prediction was written into the run script "
+      f"before the arm started. Against cosine alone the combination is "
+      f"{cvc['gain']:+.3f} [{cvc['ci95'][0]:+.3f}, {cvc['ci95'][1]:+.3f}] — "
+      f"*{cvc['verdict']}* — while against the scalar head alone it is "
+      f"{cvs['gain']:+.3f} [{cvs['ci95'][0]:+.3f}, {cvs['ci95'][1]:+.3f}], "
+      f"*{cvs['verdict']}*. So the schedule does most of the work and the two "
+      f"were largely repairing the same deficiency.")
+```
+
+### Convergence had to be measured, repeatedly
+
+The reference arm was **still improving at epoch 20**: each five-epoch step was
+individually below the resolution limit, but epochs 10 to 20 accumulate to a real
+gain.
+
+```{python}
+#| echo: false
+#| output: asis
+print("| arm | epochs 10 → 20 | |")
+print("|---|---:|:--|")
+for a in ("ref20", "scalar20", "cosine20", "combined20"):
+    d = PAIR[f"{a}_e10_to_e20"]
+    print(f"| {labels[a]} | {d['gain']:+.3f} "
+          f"[{d['ci95'][0]:+.3f}, {d['ci95'][1]:+.3f}] | {d['verdict']} |")
+```
+
+This is why the protocol above insists convergence is measured rather than
+inferred. Training loss cannot see it — the reference network and a far weaker one
+produce indistinguishable loss curves. Nor can adjacent epoch comparisons, which
+read *not resolved* three times in a row on a curve that was genuinely still
+descending. Only the longer interval showed it.
+
+### Where it leaves the architecture
+
+```{python}
+#| echo: false
+#| output: asis
+best = ARMS["combined20"]["pr_final"]
+print("| engine | value MACs | PR |")
+print("|---|---:|---:|")
+print(f"| PureTD (see note) | {REF['puretd']['macs']/1e6:.3f} M | {REF['puretd']['pr']:.2f} |")
+print(f"| Raccoon ep22, ResNet 10x256 | {REF['ep22_resnet_10x256']['macs']/1e6:.0f} M | "
+      f"{REF['ep22_resnet_10x256']['pr']:.3f} |")
+print(f"| GNU Backgammon, 1-ply | — | {REF['gnubg_1ply']['pr']:.3f} |")
+print(f"| **This MLP, best configuration** | **{0.563:.3f} M** | **{best:.3f}** |")
+print(f"| GNU Backgammon, 0-ply | {REF['gnubg_0ply']['macs']/1e6:.3f} M | "
+      f"{REF['gnubg_0ply']['pr']:.2f} |")
+```
+
+A network doing **500 times less arithmetic than ep22** reaches PR
+`{python} f"{ARMS['combined20']['pr_final']:.3f}"`, against ep22's 0.950. It beats
+GNU Backgammon's own evaluator comfortably and still loses to GNU Backgammon at
+1-ply.
+
+**On the PureTD comparison, two qualifications.** Their 0.94 is XG++ Performance
+Rating on *cubeful* money; ours is this benchmark's PR on *cubeless checker play*.
+The two scales agree closely where they can be compared — GNU Backgammon at 0-ply
+is 2.18 on theirs and 2.14 on ours, at 1-ply 1.21 against 1.206 — which is why
+they are shown together, but they are not the same measurement. And while
+**capacity and inference cost are matched** (562 k parameters against 565 k, 0.561 M
+MACs against 0.563 M), **training compute is not**: 200 M self-play games over
+about 65 hours on a 64-core workstation with a GPU, against roughly 38 core-hours
+per arm here with no GPU. Two orders of magnitude.
+
+That distinction decides what to try next. The remaining difference is either the
+**method** — on-policy TD with exact Bellman backups over all 21 rolls, rather
+than regressing a fixed teacher — or simply **scale**. The evidence against pure
+scale is that more data bought nothing, but that was measured under the broken
+schedule. Running the best configuration far longer separates the two for one
+arm's cost, before committing to an RL pipeline that would take weeks.
+
 ## What this page does not say
 
 * **It does not say the network is bad.** It is more accurate per position than
   GNU Backgammon's by a wide margin. The question is the price.
-* **It does not measure a smaller network's accuracy.** Every projected row is
-  arithmetic. Whether accuracy survives the reduction is unknown, and is the
-  experiment this page argues for.
+* **The projected rows above are arithmetic, not accuracy.** exp028 measured the
+  accuracy separately; see [that section](#exp028).
+* **exp028's arms are compared at a fixed budget, not at their endpoints.** The
+  cosine arm is converged by construction, since its learning rate reaches zero;
+  the constant-rate arm was still improving when it stopped. "Better at 20 epochs"
+  is a weaker claim than "reaches a better endpoint".
 * **It is one machine.** A four-core desktop processor with no GPU. A graphics
   card changes Raccoon's throughput far more than GNU Backgammon's, because
   batched convolutions suit one and a per-position network does not. That changes

@@ -39,6 +39,10 @@ class RaccoonNet(nn.Module):
         feature_channels: list[int] | None = None,
         input_bn: bool = False,
         value_head: str = "scalar",
+        trunk: str = "resnet",
+        hidden: int | list[int] = 256,
+        hidden_layers: int = 1,
+        mlp_input: str = "flat",
     ):
         super().__init__()
         # When a channel subset is given, the input channel count is derived
@@ -53,6 +57,38 @@ class RaccoonNet(nn.Module):
         if value_head not in ("scalar", "outcomes6"):
             raise ValueError(f"value_head must be scalar|outcomes6, got {value_head}")
         self.value_head = value_head
+        # trunk: "resnet" is the original convolutional stack and what every
+        # checkpoint before exp028 used (old configs lack the key and rebuild as
+        # that). "mlp" flattens the encoded board and runs `hidden_layers` fully
+        # connected layers of width `hidden` -- the shape GNU Backgammon, XG and
+        # BGSage all use, and roughly a thousandth of the arithmetic. See
+        # docs/speed.qmd for why that ratio decides what the engine can do.
+        if trunk not in ("resnet", "mlp"):
+            raise ValueError(f"trunk must be resnet|mlp, got {trunk}")
+        if hidden_layers < 1:
+            raise ValueError(f"hidden_layers must be >= 1, got {hidden_layers}")
+        # `hidden` is either one width repeated `hidden_layers` times, or the
+        # explicit list of widths. The list form exists because the shapes worth
+        # copying are not uniform -- PureTD's is [512, 512, 256, 256] -- and a
+        # single width with a layer count cannot express them.
+        # mlp_input: how the (C, 2, 12) encoding becomes a vector.
+        #   "flat"         -- every channel flattened, C * 24 inputs.
+        #   "debroadcast"  -- channels 0-7 (the per-point checker planes) kept in
+        #                     full, every other channel reduced to the single
+        #                     number it holds. Channels 8-25 are ALL constant
+        #                     across the board: they are scalars a convolution
+        #                     needs as planes and a flattened network receives as
+        #                     24 identical copies. With all 26 channels that is
+        #                     432 of 624 inputs carrying 18 numbers; base-only it
+        #                     is 216 of 408 carrying 9. De-broadcasting gives
+        #                     192 + 9 = 201 inputs, which is the size PureTD uses.
+        if mlp_input not in ("flat", "debroadcast"):
+            raise ValueError(f"mlp_input must be flat|debroadcast, got {mlp_input}")
+        self.mlp_input = mlp_input
+        widths = list(hidden) if isinstance(hidden, (list, tuple)) else [hidden] * hidden_layers
+        if any(w < 1 for w in widths):
+            raise ValueError(f"hidden widths must be >= 1, got {widths}")
+        self.trunk_kind = trunk
         self.config = {
             "channels": channels,
             "num_blocks": num_blocks,
@@ -63,6 +99,10 @@ class RaccoonNet(nn.Module):
             "feature_channels": feature_channels,
             "input_bn": input_bn,
             "value_head": value_head,
+            "trunk": trunk,
+            "hidden": widths if trunk == "mlp" else hidden,
+            "hidden_layers": len(widths),
+            "mlp_input": mlp_input,
         }
         self.feature_channels = feature_channels
         self.board_h = board_h
@@ -76,6 +116,26 @@ class RaccoonNet(nn.Module):
         # docs/pretraining_analysis.qmd. Off by default (old checkpoints whose
         # config lacks this key reconstruct as False).
         self.input_norm = nn.BatchNorm2d(in_channels) if input_bn else None
+
+        if trunk == "mlp":
+            # Flatten the encoded board and run plain fully connected layers.
+            # The heads stay linear on the same hidden vector, so `forward`
+            # returns the same pair and nothing downstream branches on the
+            # trunk: lookahead, expectimax, the cube search and the web export
+            # all keep working.
+            # Channels 0-7 are the checker planes and are always present, since
+            # `base` is always included and the channel list is sorted.
+            n_in = (in_channels * board_h * board_w if mlp_input == "flat"
+                    else 8 * board_h * board_w + (in_channels - 8))
+            layers: list[nn.Module] = []
+            prev = n_in
+            for w in widths:
+                layers += [nn.Linear(prev, w), nn.ReLU()]
+                prev = w
+            self.mlp = nn.Sequential(*layers)
+            self.mlp_policy = nn.Linear(prev, num_actions)
+            self.mlp_value = nn.Linear(prev, 6 if value_head == "outcomes6" else 1)
+            return
 
         # Input convolution
         self.input_conv = nn.Conv2d(in_channels, channels, 3, padding=1)
@@ -113,9 +173,17 @@ class RaccoonNet(nn.Module):
                    "outcomes6" head -> (batch, 6) raw logits (softmax applied by
                    the caller / value_equity).
         """
-        # Shared trunk
         if self.input_norm is not None:
             x = self.input_norm(x)
+
+        if self.trunk_kind == "mlp":
+            h = self.mlp(self._mlp_features(x))
+            v = self.mlp_value(h)
+            return self.mlp_policy(h), (
+                v if self.value_head == "outcomes6" else torch.tanh(v)
+            )
+
+        # Shared convolutional trunk
         out = F.relu(self.input_bn(self.input_conv(x)))
         out = self.trunk(out)
 
@@ -132,6 +200,38 @@ class RaccoonNet(nn.Module):
         value = v if self.value_head == "outcomes6" else torch.tanh(v)
 
         return policy_logits, value
+
+    def _mlp_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Turn a (batch, C, 2, 12) encoding into the MLP's input vector."""
+        if self.mlp_input == "flat":
+            return x.reshape(x.size(0), -1)
+        per_point = x[:, :8].reshape(x.size(0), -1)
+        scalars = x[:, 8:, 0, 0]
+        return torch.cat([per_point, scalars], dim=1)
+
+    def _value_out(self, x: torch.Tensor) -> torch.Tensor:
+        """The value head's raw output, skipping the policy head entirely.
+
+        0-ply move selection, expectimax and the cube search all read the value
+        only, and for an MLP trunk the policy head is the larger half of the
+        network -- a 256-wide hidden layer feeding 1352 actions is 346k
+        multiply-accumulates against the trunk's 160k. Computing it to throw it
+        away would more than double the cost of the configuration exp028 is
+        measuring. The saving is negligible for a ResNet, where the policy head
+        is a 1x1 convolution, but the path is shared so both benefit.
+        """
+        if self.input_norm is not None:
+            x = self.input_norm(x)
+        if self.trunk_kind == "mlp":
+            v = self.mlp_value(self.mlp(self._mlp_features(x)))
+            return v if self.value_head == "outcomes6" else torch.tanh(v)
+        out = F.relu(self.input_bn(self.input_conv(x)))
+        out = self.trunk(out)
+        v = F.relu(self.value_bn(self.value_conv(out)))
+        v = v.view(v.size(0), -1)
+        v = F.relu(self.value_fc1(v))
+        v = self.value_fc2(v)
+        return v if self.value_head == "outcomes6" else torch.tanh(v)
 
     def _equity_from_value_out(self, value_out: torch.Tensor) -> torch.Tensor:
         """Map a raw value-head output to equity/3 in [-1, 1], shape (batch,).
@@ -162,8 +262,7 @@ class RaccoonNet(nn.Module):
         This is what 0-ply move selection reads (see lookahead.eval_values_batch),
         so a scalar net and an outcomes6 net are interchangeable at play time.
         """
-        _, value_out = self.forward(x)
-        return self._equity_from_value_out(value_out)
+        return self._equity_from_value_out(self._value_out(x))
 
     def value_probs6(self, x: torch.Tensor) -> torch.Tensor:
         """The full six-outcome distribution, shape (batch, 6).
@@ -179,8 +278,7 @@ class RaccoonNet(nn.Module):
             raise ValueError(
                 "value_probs6 needs an 'outcomes6' value head; this network has "
                 f"'{self.value_head}', which never carried a distribution")
-        _, value_out = self.forward(x)
-        return self._probs6_from_value_out(value_out)
+        return self._probs6_from_value_out(self._value_out(x))
 
     @property
     def device(self) -> torch.device:

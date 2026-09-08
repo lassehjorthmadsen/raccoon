@@ -1,0 +1,1160 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e1 (experiments/exp028-mlp/ref20/checkpoints/ep1.pt)...
+  [ref20_e1] 500/14693 (2s, ~57s remaining)
+  [ref20_e1] 1000/14693 (4s, ~53s remaining)
+  [ref20_e1] 1500/14693 (6s, ~51s remaining)
+  [ref20_e1] 2000/14693 (8s, ~49s remaining)
+  [ref20_e1] 2500/14693 (10s, ~46s remaining)
+  [ref20_e1] 3000/14693 (11s, ~44s remaining)
+  [ref20_e1] 3500/14693 (13s, ~42s remaining)
+  [ref20_e1] 4000/14693 (15s, ~40s remaining)
+  [ref20_e1] 4500/14693 (17s, ~38s remaining)
+  [ref20_e1] 5000/14693 (19s, ~36s remaining)
+  [ref20_e1] 5500/14693 (20s, ~34s remaining)
+  [ref20_e1] 6000/14693 (22s, ~32s remaining)
+  [ref20_e1] 6500/14693 (24s, ~30s remaining)
+  [ref20_e1] 7000/14693 (26s, ~29s remaining)
+  [ref20_e1] 7500/14693 (28s, ~27s remaining)
+  [ref20_e1] 8000/14693 (30s, ~25s remaining)
+  [ref20_e1] 8500/14693 (32s, ~23s remaining)
+  [ref20_e1] 9000/14693 (34s, ~21s remaining)
+  [ref20_e1] 9500/14693 (36s, ~20s remaining)
+  [ref20_e1] 10000/14693 (38s, ~18s remaining)
+  [ref20_e1] 10500/14693 (39s, ~16s remaining)
+  [ref20_e1] 11000/14693 (41s, ~14s remaining)
+  [ref20_e1] 11500/14693 (43s, ~12s remaining)
+  [ref20_e1] 12000/14693 (45s, ~10s remaining)
+  [ref20_e1] 12500/14693 (47s, ~8s remaining)
+  [ref20_e1] 13000/14693 (49s, ~6s remaining)
+  [ref20_e1] 13500/14693 (51s, ~4s remaining)
+  [ref20_e1] 14000/14693 (53s, ~3s remaining)
+  [ref20_e1] 14500/14693 (54s, ~1s remaining)
+  [ref20_e1] Done: 14693 decisions in 55.1s
+  [ref20_e1] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e1.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e1                           2.21  14693    113    0.70    2.42    2.22    2.79    2.41
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e1                                0.9910   0.0054   149113        0.9835   0.0053    61917        0.9806   0.0054   116421        0.9877   0.0054   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e2 (experiments/exp028-mlp/ref20/checkpoints/ep2.pt)...
+  [ref20_e2] 500/14693 (2s, ~58s remaining)
+  [ref20_e2] 1000/14693 (4s, ~54s remaining)
+  [ref20_e2] 1500/14693 (6s, ~51s remaining)
+  [ref20_e2] 2000/14693 (8s, ~49s remaining)
+  [ref20_e2] 2500/14693 (10s, ~47s remaining)
+  [ref20_e2] 3000/14693 (11s, ~45s remaining)
+  [ref20_e2] 3500/14693 (13s, ~43s remaining)
+  [ref20_e2] 4000/14693 (15s, ~41s remaining)
+  [ref20_e2] 4500/14693 (17s, ~39s remaining)
+  [ref20_e2] 5000/14693 (19s, ~37s remaining)
+  [ref20_e2] 5500/14693 (21s, ~34s remaining)
+  [ref20_e2] 6000/14693 (22s, ~32s remaining)
+  [ref20_e2] 6500/14693 (24s, ~30s remaining)
+  [ref20_e2] 7000/14693 (26s, ~29s remaining)
+  [ref20_e2] 7500/14693 (28s, ~27s remaining)
+  [ref20_e2] 8000/14693 (30s, ~25s remaining)
+  [ref20_e2] 8500/14693 (32s, ~23s remaining)
+  [ref20_e2] 9000/14693 (34s, ~22s remaining)
+  [ref20_e2] 9500/14693 (36s, ~20s remaining)
+  [ref20_e2] 10000/14693 (38s, ~18s remaining)
+  [ref20_e2] 10500/14693 (40s, ~16s remaining)
+  [ref20_e2] 11000/14693 (42s, ~14s remaining)
+  [ref20_e2] 11500/14693 (43s, ~12s remaining)
+  [ref20_e2] 12000/14693 (45s, ~10s remaining)
+  [ref20_e2] 12500/14693 (47s, ~8s remaining)
+  [ref20_e2] 13000/14693 (49s, ~6s remaining)
+  [ref20_e2] 13500/14693 (51s, ~4s remaining)
+  [ref20_e2] 14000/14693 (53s, ~3s remaining)
+  [ref20_e2] 14500/14693 (55s, ~1s remaining)
+  [ref20_e2] Done: 14693 decisions in 55.4s
+  [ref20_e2] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e2.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e2                           1.91  14693     60    0.56    2.29    1.88    2.18    2.12
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e2                                0.9941   0.0036   149113        0.9882   0.0038    61917        0.9860   0.0038   116421        0.9915   0.0037   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e3 (experiments/exp028-mlp/ref20/checkpoints/ep3.pt)...
+  [ref20_e3] 500/14693 (2s, ~53s remaining)
+  [ref20_e3] 1000/14693 (4s, ~50s remaining)
+  [ref20_e3] 1500/14693 (5s, ~48s remaining)
+  [ref20_e3] 2000/14693 (7s, ~46s remaining)
+  [ref20_e3] 2500/14693 (9s, ~44s remaining)
+  [ref20_e3] 3000/14693 (11s, ~42s remaining)
+  [ref20_e3] 3500/14693 (12s, ~40s remaining)
+  [ref20_e3] 4000/14693 (14s, ~38s remaining)
+  [ref20_e3] 4500/14693 (16s, ~36s remaining)
+  [ref20_e3] 5000/14693 (18s, ~34s remaining)
+  [ref20_e3] 5500/14693 (19s, ~32s remaining)
+  [ref20_e3] 6000/14693 (21s, ~30s remaining)
+  [ref20_e3] 6500/14693 (23s, ~29s remaining)
+  [ref20_e3] 7000/14693 (24s, ~27s remaining)
+  [ref20_e3] 7500/14693 (26s, ~25s remaining)
+  [ref20_e3] 8000/14693 (28s, ~24s remaining)
+  [ref20_e3] 8500/14693 (30s, ~22s remaining)
+  [ref20_e3] 9000/14693 (32s, ~20s remaining)
+  [ref20_e3] 9500/14693 (34s, ~18s remaining)
+  [ref20_e3] 10000/14693 (35s, ~17s remaining)
+  [ref20_e3] 10500/14693 (37s, ~15s remaining)
+  [ref20_e3] 11000/14693 (39s, ~13s remaining)
+  [ref20_e3] 11500/14693 (41s, ~11s remaining)
+  [ref20_e3] 12000/14693 (42s, ~10s remaining)
+  [ref20_e3] 12500/14693 (44s, ~8s remaining)
+  [ref20_e3] 13000/14693 (46s, ~6s remaining)
+  [ref20_e3] 13500/14693 (48s, ~4s remaining)
+  [ref20_e3] 14000/14693 (49s, ~2s remaining)
+  [ref20_e3] 14500/14693 (51s, ~1s remaining)
+  [ref20_e3] Done: 14693 decisions in 51.9s
+  [ref20_e3] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e3.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e3                           1.95  14693     86    0.51    2.15    1.89    2.40    2.28
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e3                                0.9943   0.0034   149113        0.9880   0.0038    61917        0.9853   0.0041   116421        0.9914   0.0037   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e4 (experiments/exp028-mlp/ref20/checkpoints/ep4.pt)...
+  [ref20_e4] 500/14693 (2s, ~56s remaining)
+  [ref20_e4] 1000/14693 (4s, ~52s remaining)
+  [ref20_e4] 1500/14693 (6s, ~50s remaining)
+  [ref20_e4] 2000/14693 (8s, ~48s remaining)
+  [ref20_e4] 2500/14693 (9s, ~46s remaining)
+  [ref20_e4] 3000/14693 (11s, ~44s remaining)
+  [ref20_e4] 3500/14693 (13s, ~42s remaining)
+  [ref20_e4] 4000/14693 (15s, ~40s remaining)
+  [ref20_e4] 4500/14693 (17s, ~38s remaining)
+  [ref20_e4] 5000/14693 (19s, ~36s remaining)
+  [ref20_e4] 5500/14693 (20s, ~34s remaining)
+  [ref20_e4] 6000/14693 (22s, ~32s remaining)
+  [ref20_e4] 6500/14693 (24s, ~30s remaining)
+  [ref20_e4] 7000/14693 (26s, ~28s remaining)
+  [ref20_e4] 7500/14693 (28s, ~27s remaining)
+  [ref20_e4] 8000/14693 (30s, ~25s remaining)
+  [ref20_e4] 8500/14693 (32s, ~23s remaining)
+  [ref20_e4] 9000/14693 (34s, ~21s remaining)
+  [ref20_e4] 9500/14693 (35s, ~19s remaining)
+  [ref20_e4] 10000/14693 (37s, ~17s remaining)
+  [ref20_e4] 10500/14693 (39s, ~16s remaining)
+  [ref20_e4] 11000/14693 (41s, ~14s remaining)
+  [ref20_e4] 11500/14693 (43s, ~12s remaining)
+  [ref20_e4] 12000/14693 (45s, ~10s remaining)
+  [ref20_e4] 12500/14693 (46s, ~8s remaining)
+  [ref20_e4] 13000/14693 (48s, ~6s remaining)
+  [ref20_e4] 13500/14693 (50s, ~4s remaining)
+  [ref20_e4] 14000/14693 (52s, ~3s remaining)
+  [ref20_e4] 14500/14693 (54s, ~1s remaining)
+  [ref20_e4] Done: 14693 decisions in 54.5s
+  [ref20_e4] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e4.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e4                           1.79  14693     58    0.42    1.99    1.86    2.02    2.11
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e4                                0.9946   0.0032   149113        0.9887   0.0036    61917        0.9865   0.0037   116421        0.9920   0.0035   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e5 (experiments/exp028-mlp/ref20/checkpoints/ep5.pt)...
+  [ref20_e5] 500/14693 (2s, ~54s remaining)
+  [ref20_e5] 1000/14693 (4s, ~50s remaining)
+  [ref20_e5] 1500/14693 (5s, ~48s remaining)
+  [ref20_e5] 2000/14693 (7s, ~46s remaining)
+  [ref20_e5] 2500/14693 (9s, ~44s remaining)
+  [ref20_e5] 3000/14693 (11s, ~42s remaining)
+  [ref20_e5] 3500/14693 (12s, ~40s remaining)
+  [ref20_e5] 4000/14693 (14s, ~38s remaining)
+  [ref20_e5] 4500/14693 (16s, ~36s remaining)
+  [ref20_e5] 5000/14693 (18s, ~34s remaining)
+  [ref20_e5] 5500/14693 (19s, ~32s remaining)
+  [ref20_e5] 6000/14693 (21s, ~30s remaining)
+  [ref20_e5] 6500/14693 (23s, ~29s remaining)
+  [ref20_e5] 7000/14693 (24s, ~27s remaining)
+  [ref20_e5] 7500/14693 (26s, ~25s remaining)
+  [ref20_e5] 8000/14693 (28s, ~24s remaining)
+  [ref20_e5] 8500/14693 (30s, ~22s remaining)
+  [ref20_e5] 9000/14693 (32s, ~20s remaining)
+  [ref20_e5] 9500/14693 (34s, ~18s remaining)
+  [ref20_e5] 10000/14693 (35s, ~17s remaining)
+  [ref20_e5] 10500/14693 (37s, ~15s remaining)
+  [ref20_e5] 11000/14693 (39s, ~13s remaining)
+  [ref20_e5] 11500/14693 (41s, ~11s remaining)
+  [ref20_e5] 12000/14693 (43s, ~10s remaining)
+  [ref20_e5] 12500/14693 (44s, ~8s remaining)
+  [ref20_e5] 13000/14693 (46s, ~6s remaining)
+  [ref20_e5] 13500/14693 (48s, ~4s remaining)
+  [ref20_e5] 14000/14693 (50s, ~2s remaining)
+  [ref20_e5] 14500/14693 (51s, ~1s remaining)
+  [ref20_e5] Done: 14693 decisions in 52.2s
+  [ref20_e5] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e5.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e5                           1.73  14693     51    0.43    1.93    1.78    2.17    1.87
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e5                                0.9956   0.0026   149113        0.9912   0.0028    61917        0.9891   0.0030   116421        0.9936   0.0028   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e6 (experiments/exp028-mlp/ref20/checkpoints/ep6.pt)...
+  [ref20_e6] 500/14693 (2s, ~54s remaining)
+  [ref20_e6] 1000/14693 (4s, ~51s remaining)
+  [ref20_e6] 1500/14693 (6s, ~49s remaining)
+  [ref20_e6] 2000/14693 (7s, ~46s remaining)
+  [ref20_e6] 2500/14693 (9s, ~44s remaining)
+  [ref20_e6] 3000/14693 (11s, ~43s remaining)
+  [ref20_e6] 3500/14693 (13s, ~40s remaining)
+  [ref20_e6] 4000/14693 (14s, ~39s remaining)
+  [ref20_e6] 4500/14693 (16s, ~37s remaining)
+  [ref20_e6] 5000/14693 (18s, ~35s remaining)
+  [ref20_e6] 5500/14693 (20s, ~33s remaining)
+  [ref20_e6] 6000/14693 (21s, ~31s remaining)
+  [ref20_e6] 6500/14693 (23s, ~29s remaining)
+  [ref20_e6] 7000/14693 (25s, ~27s remaining)
+  [ref20_e6] 7500/14693 (27s, ~26s remaining)
+  [ref20_e6] 8000/14693 (29s, ~24s remaining)
+  [ref20_e6] 8500/14693 (31s, ~22s remaining)
+  [ref20_e6] 9000/14693 (32s, ~21s remaining)
+  [ref20_e6] 9500/14693 (34s, ~19s remaining)
+  [ref20_e6] 10000/14693 (36s, ~17s remaining)
+  [ref20_e6] 10500/14693 (38s, ~15s remaining)
+  [ref20_e6] 11000/14693 (40s, ~13s remaining)
+  [ref20_e6] 11500/14693 (41s, ~11s remaining)
+  [ref20_e6] 12000/14693 (43s, ~10s remaining)
+  [ref20_e6] 12500/14693 (45s, ~8s remaining)
+  [ref20_e6] 13000/14693 (47s, ~6s remaining)
+  [ref20_e6] 13500/14693 (48s, ~4s remaining)
+  [ref20_e6] 14000/14693 (50s, ~2s remaining)
+  [ref20_e6] 14500/14693 (52s, ~1s remaining)
+  [ref20_e6] Done: 14693 decisions in 52.7s
+  [ref20_e6] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e6.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e6                           1.68  14693     55    0.53    1.82    1.66    2.01    1.97
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e6                                0.9955   0.0027   149113        0.9916   0.0027    61917        0.9899   0.0028   116421        0.9937   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e7 (experiments/exp028-mlp/ref20/checkpoints/ep7.pt)...
+  [ref20_e7] 500/14693 (2s, ~53s remaining)
+  [ref20_e7] 1000/14693 (4s, ~50s remaining)
+  [ref20_e7] 1500/14693 (5s, ~48s remaining)
+  [ref20_e7] 2000/14693 (7s, ~46s remaining)
+  [ref20_e7] 2500/14693 (9s, ~44s remaining)
+  [ref20_e7] 3000/14693 (11s, ~42s remaining)
+  [ref20_e7] 3500/14693 (12s, ~40s remaining)
+  [ref20_e7] 4000/14693 (14s, ~38s remaining)
+  [ref20_e7] 4500/14693 (16s, ~36s remaining)
+  [ref20_e7] 5000/14693 (18s, ~34s remaining)
+  [ref20_e7] 5500/14693 (19s, ~32s remaining)
+  [ref20_e7] 6000/14693 (21s, ~30s remaining)
+  [ref20_e7] 6500/14693 (23s, ~29s remaining)
+  [ref20_e7] 7000/14693 (24s, ~27s remaining)
+  [ref20_e7] 7500/14693 (26s, ~25s remaining)
+  [ref20_e7] 8000/14693 (28s, ~24s remaining)
+  [ref20_e7] 8500/14693 (30s, ~22s remaining)
+  [ref20_e7] 9000/14693 (32s, ~20s remaining)
+  [ref20_e7] 9500/14693 (34s, ~18s remaining)
+  [ref20_e7] 10000/14693 (35s, ~17s remaining)
+  [ref20_e7] 10500/14693 (37s, ~15s remaining)
+  [ref20_e7] 11000/14693 (39s, ~13s remaining)
+  [ref20_e7] 11500/14693 (41s, ~11s remaining)
+  [ref20_e7] 12000/14693 (42s, ~10s remaining)
+  [ref20_e7] 12500/14693 (44s, ~8s remaining)
+  [ref20_e7] 13000/14693 (46s, ~6s remaining)
+  [ref20_e7] 13500/14693 (48s, ~4s remaining)
+  [ref20_e7] 14000/14693 (50s, ~2s remaining)
+  [ref20_e7] 14500/14693 (51s, ~1s remaining)
+  [ref20_e7] Done: 14693 decisions in 51.9s
+  [ref20_e7] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e7.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e7                           1.81  14693     67    0.72    1.95    1.86    2.07    2.03
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e7                                0.9954   0.0028   149113        0.9908   0.0029    61917        0.9892   0.0030   116421        0.9934   0.0029   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e8 (experiments/exp028-mlp/ref20/checkpoints/ep8.pt)...
+  [ref20_e8] 500/14693 (2s, ~55s remaining)
+  [ref20_e8] 1000/14693 (4s, ~51s remaining)
+  [ref20_e8] 1500/14693 (6s, ~49s remaining)
+  [ref20_e8] 2000/14693 (7s, ~47s remaining)
+  [ref20_e8] 2500/14693 (9s, ~45s remaining)
+  [ref20_e8] 3000/14693 (11s, ~43s remaining)
+  [ref20_e8] 3500/14693 (13s, ~41s remaining)
+  [ref20_e8] 4000/14693 (15s, ~39s remaining)
+  [ref20_e8] 4500/14693 (16s, ~37s remaining)
+  [ref20_e8] 5000/14693 (18s, ~35s remaining)
+  [ref20_e8] 5500/14693 (20s, ~33s remaining)
+  [ref20_e8] 6000/14693 (21s, ~31s remaining)
+  [ref20_e8] 6500/14693 (23s, ~29s remaining)
+  [ref20_e8] 7000/14693 (25s, ~27s remaining)
+  [ref20_e8] 7500/14693 (27s, ~26s remaining)
+  [ref20_e8] 8000/14693 (29s, ~24s remaining)
+  [ref20_e8] 8500/14693 (31s, ~22s remaining)
+  [ref20_e8] 9000/14693 (33s, ~21s remaining)
+  [ref20_e8] 9500/14693 (35s, ~19s remaining)
+  [ref20_e8] 10000/14693 (36s, ~17s remaining)
+  [ref20_e8] 10500/14693 (38s, ~15s remaining)
+  [ref20_e8] 11000/14693 (40s, ~13s remaining)
+  [ref20_e8] 11500/14693 (42s, ~12s remaining)
+  [ref20_e8] 12000/14693 (43s, ~10s remaining)
+  [ref20_e8] 12500/14693 (45s, ~8s remaining)
+  [ref20_e8] 13000/14693 (47s, ~6s remaining)
+  [ref20_e8] 13500/14693 (49s, ~4s remaining)
+  [ref20_e8] 14000/14693 (51s, ~3s remaining)
+  [ref20_e8] 14500/14693 (52s, ~1s remaining)
+  [ref20_e8] Done: 14693 decisions in 53.1s
+  [ref20_e8] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e8.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e8                           1.72  14693     56    0.48    1.94    1.66    2.03    2.04
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e8                                0.9956   0.0026   149113        0.9916   0.0027    61917        0.9900   0.0027   116421        0.9939   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e9 (experiments/exp028-mlp/ref20/checkpoints/ep9.pt)...
+  [ref20_e9] 500/14693 (2s, ~53s remaining)
+  [ref20_e9] 1000/14693 (4s, ~50s remaining)
+  [ref20_e9] 1500/14693 (5s, ~48s remaining)
+  [ref20_e9] 2000/14693 (7s, ~45s remaining)
+  [ref20_e9] 2500/14693 (9s, ~43s remaining)
+  [ref20_e9] 3000/14693 (11s, ~42s remaining)
+  [ref20_e9] 3500/14693 (12s, ~40s remaining)
+  [ref20_e9] 4000/14693 (14s, ~38s remaining)
+  [ref20_e9] 4500/14693 (16s, ~36s remaining)
+  [ref20_e9] 5000/14693 (18s, ~34s remaining)
+  [ref20_e9] 5500/14693 (19s, ~32s remaining)
+  [ref20_e9] 6000/14693 (21s, ~30s remaining)
+  [ref20_e9] 6500/14693 (23s, ~28s remaining)
+  [ref20_e9] 7000/14693 (24s, ~27s remaining)
+  [ref20_e9] 7500/14693 (26s, ~25s remaining)
+  [ref20_e9] 8000/14693 (28s, ~24s remaining)
+  [ref20_e9] 8500/14693 (30s, ~22s remaining)
+  [ref20_e9] 9000/14693 (32s, ~20s remaining)
+  [ref20_e9] 9500/14693 (34s, ~18s remaining)
+  [ref20_e9] 10000/14693 (35s, ~17s remaining)
+  [ref20_e9] 10500/14693 (37s, ~15s remaining)
+  [ref20_e9] 11000/14693 (39s, ~13s remaining)
+  [ref20_e9] 11500/14693 (40s, ~11s remaining)
+  [ref20_e9] 12000/14693 (42s, ~9s remaining)
+  [ref20_e9] 12500/14693 (44s, ~8s remaining)
+  [ref20_e9] 13000/14693 (46s, ~6s remaining)
+  [ref20_e9] 13500/14693 (47s, ~4s remaining)
+  [ref20_e9] 14000/14693 (49s, ~2s remaining)
+  [ref20_e9] 14500/14693 (51s, ~1s remaining)
+  [ref20_e9] Done: 14693 decisions in 51.6s
+  [ref20_e9] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e9.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e9                           1.70  14693     62    0.39    1.93    1.70    1.98    2.01
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e9                                0.9954   0.0028   149113        0.9919   0.0026    61917        0.9907   0.0026   116421        0.9939   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e10 (experiments/exp028-mlp/ref20/checkpoints/ep10.pt)...
+  [ref20_e10] 500/14693 (2s, ~54s remaining)
+  [ref20_e10] 1000/14693 (4s, ~50s remaining)
+  [ref20_e10] 1500/14693 (5s, ~48s remaining)
+  [ref20_e10] 2000/14693 (7s, ~46s remaining)
+  [ref20_e10] 2500/14693 (9s, ~44s remaining)
+  [ref20_e10] 3000/14693 (11s, ~42s remaining)
+  [ref20_e10] 3500/14693 (13s, ~40s remaining)
+  [ref20_e10] 4000/14693 (14s, ~38s remaining)
+  [ref20_e10] 4500/14693 (16s, ~36s remaining)
+  [ref20_e10] 5000/14693 (18s, ~34s remaining)
+  [ref20_e10] 5500/14693 (19s, ~32s remaining)
+  [ref20_e10] 6000/14693 (21s, ~30s remaining)
+  [ref20_e10] 6500/14693 (23s, ~29s remaining)
+  [ref20_e10] 7000/14693 (25s, ~27s remaining)
+  [ref20_e10] 7500/14693 (26s, ~25s remaining)
+  [ref20_e10] 8000/14693 (28s, ~24s remaining)
+  [ref20_e10] 8500/14693 (30s, ~22s remaining)
+  [ref20_e10] 9000/14693 (32s, ~20s remaining)
+  [ref20_e10] 9500/14693 (34s, ~19s remaining)
+  [ref20_e10] 10000/14693 (36s, ~17s remaining)
+  [ref20_e10] 10500/14693 (37s, ~15s remaining)
+  [ref20_e10] 11000/14693 (39s, ~13s remaining)
+  [ref20_e10] 11500/14693 (41s, ~11s remaining)
+  [ref20_e10] 12000/14693 (43s, ~10s remaining)
+  [ref20_e10] 12500/14693 (44s, ~8s remaining)
+  [ref20_e10] 13000/14693 (46s, ~6s remaining)
+  [ref20_e10] 13500/14693 (48s, ~4s remaining)
+  [ref20_e10] 14000/14693 (50s, ~2s remaining)
+  [ref20_e10] 14500/14693 (52s, ~1s remaining)
+  [ref20_e10] Done: 14693 decisions in 52.2s
+  [ref20_e10] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e10.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e10                          1.76  14693     70    0.41    2.00    1.80    2.10    1.98
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e10                               0.9958   0.0025   149113        0.9917   0.0026    61917        0.9906   0.0026   116421        0.9941   0.0026   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e11 (experiments/exp028-mlp/ref20/checkpoints/ep11.pt)...
+  [ref20_e11] 500/14693 (2s, ~58s remaining)
+  [ref20_e11] 1000/14693 (4s, ~53s remaining)
+  [ref20_e11] 1500/14693 (6s, ~51s remaining)
+  [ref20_e11] 2000/14693 (8s, ~49s remaining)
+  [ref20_e11] 2500/14693 (10s, ~46s remaining)
+  [ref20_e11] 3000/14693 (11s, ~44s remaining)
+  [ref20_e11] 3500/14693 (13s, ~42s remaining)
+  [ref20_e11] 4000/14693 (15s, ~40s remaining)
+  [ref20_e11] 4500/14693 (17s, ~38s remaining)
+  [ref20_e11] 5000/14693 (19s, ~36s remaining)
+  [ref20_e11] 5500/14693 (20s, ~34s remaining)
+  [ref20_e11] 6000/14693 (22s, ~32s remaining)
+  [ref20_e11] 6500/14693 (24s, ~30s remaining)
+  [ref20_e11] 7000/14693 (26s, ~28s remaining)
+  [ref20_e11] 7500/14693 (28s, ~27s remaining)
+  [ref20_e11] 8000/14693 (30s, ~25s remaining)
+  [ref20_e11] 8500/14693 (32s, ~23s remaining)
+  [ref20_e11] 9000/14693 (34s, ~21s remaining)
+  [ref20_e11] 9500/14693 (36s, ~20s remaining)
+  [ref20_e11] 10000/14693 (38s, ~18s remaining)
+  [ref20_e11] 10500/14693 (39s, ~16s remaining)
+  [ref20_e11] 11000/14693 (41s, ~14s remaining)
+  [ref20_e11] 11500/14693 (43s, ~12s remaining)
+  [ref20_e11] 12000/14693 (45s, ~10s remaining)
+  [ref20_e11] 12500/14693 (47s, ~8s remaining)
+  [ref20_e11] 13000/14693 (49s, ~6s remaining)
+  [ref20_e11] 13500/14693 (51s, ~4s remaining)
+  [ref20_e11] 14000/14693 (53s, ~3s remaining)
+  [ref20_e11] 14500/14693 (54s, ~1s remaining)
+  [ref20_e11] Done: 14693 decisions in 55.1s
+  [ref20_e11] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e11.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e11                          1.74  14693     64    0.49    1.75    1.77    2.16    2.05
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e11                               0.9954   0.0028   149113        0.9916   0.0027    61917        0.9905   0.0026   116421        0.9938   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e12 (experiments/exp028-mlp/ref20/checkpoints/ep12.pt)...
+  [ref20_e12] 500/14693 (2s, ~53s remaining)
+  [ref20_e12] 1000/14693 (4s, ~50s remaining)
+  [ref20_e12] 1500/14693 (5s, ~48s remaining)
+  [ref20_e12] 2000/14693 (7s, ~46s remaining)
+  [ref20_e12] 2500/14693 (9s, ~44s remaining)
+  [ref20_e12] 3000/14693 (11s, ~42s remaining)
+  [ref20_e12] 3500/14693 (12s, ~40s remaining)
+  [ref20_e12] 4000/14693 (14s, ~38s remaining)
+  [ref20_e12] 4500/14693 (16s, ~36s remaining)
+  [ref20_e12] 5000/14693 (18s, ~34s remaining)
+  [ref20_e12] 5500/14693 (19s, ~32s remaining)
+  [ref20_e12] 6000/14693 (21s, ~30s remaining)
+  [ref20_e12] 6500/14693 (23s, ~29s remaining)
+  [ref20_e12] 7000/14693 (25s, ~27s remaining)
+  [ref20_e12] 7500/14693 (26s, ~25s remaining)
+  [ref20_e12] 8000/14693 (28s, ~24s remaining)
+  [ref20_e12] 8500/14693 (30s, ~22s remaining)
+  [ref20_e12] 9000/14693 (32s, ~20s remaining)
+  [ref20_e12] 9500/14693 (34s, ~18s remaining)
+  [ref20_e12] 10000/14693 (36s, ~17s remaining)
+  [ref20_e12] 10500/14693 (37s, ~15s remaining)
+  [ref20_e12] 11000/14693 (39s, ~13s remaining)
+  [ref20_e12] 11500/14693 (41s, ~11s remaining)
+  [ref20_e12] 12000/14693 (43s, ~10s remaining)
+  [ref20_e12] 12500/14693 (44s, ~8s remaining)
+  [ref20_e12] 13000/14693 (46s, ~6s remaining)
+  [ref20_e12] 13500/14693 (48s, ~4s remaining)
+  [ref20_e12] 14000/14693 (50s, ~2s remaining)
+  [ref20_e12] 14500/14693 (51s, ~1s remaining)
+  [ref20_e12] Done: 14693 decisions in 52.1s
+  [ref20_e12] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e12.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e12                          1.61  14693     51    0.41    1.74    1.67    1.83    1.91
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e12                               0.9959   0.0025   149113        0.9921   0.0025    61917        0.9909   0.0025   116421        0.9943   0.0025   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e13 (experiments/exp028-mlp/ref20/checkpoints/ep13.pt)...
+  [ref20_e13] 500/14693 (2s, ~54s remaining)
+  [ref20_e13] 1000/14693 (4s, ~50s remaining)
+  [ref20_e13] 1500/14693 (5s, ~48s remaining)
+  [ref20_e13] 2000/14693 (7s, ~46s remaining)
+  [ref20_e13] 2500/14693 (9s, ~44s remaining)
+  [ref20_e13] 3000/14693 (11s, ~42s remaining)
+  [ref20_e13] 3500/14693 (13s, ~40s remaining)
+  [ref20_e13] 4000/14693 (14s, ~38s remaining)
+  [ref20_e13] 4500/14693 (16s, ~36s remaining)
+  [ref20_e13] 5000/14693 (18s, ~35s remaining)
+  [ref20_e13] 5500/14693 (19s, ~32s remaining)
+  [ref20_e13] 6000/14693 (21s, ~31s remaining)
+  [ref20_e13] 6500/14693 (23s, ~29s remaining)
+  [ref20_e13] 7000/14693 (25s, ~27s remaining)
+  [ref20_e13] 7500/14693 (27s, ~25s remaining)
+  [ref20_e13] 8000/14693 (28s, ~24s remaining)
+  [ref20_e13] 8500/14693 (30s, ~22s remaining)
+  [ref20_e13] 9000/14693 (32s, ~20s remaining)
+  [ref20_e13] 9500/14693 (34s, ~19s remaining)
+  [ref20_e13] 10000/14693 (36s, ~17s remaining)
+  [ref20_e13] 10500/14693 (37s, ~15s remaining)
+  [ref20_e13] 11000/14693 (39s, ~13s remaining)
+  [ref20_e13] 11500/14693 (41s, ~11s remaining)
+  [ref20_e13] 12000/14693 (43s, ~10s remaining)
+  [ref20_e13] 12500/14693 (44s, ~8s remaining)
+  [ref20_e13] 13000/14693 (46s, ~6s remaining)
+  [ref20_e13] 13500/14693 (48s, ~4s remaining)
+  [ref20_e13] 14000/14693 (50s, ~2s remaining)
+  [ref20_e13] 14500/14693 (52s, ~1s remaining)
+  [ref20_e13] Done: 14693 decisions in 52.2s
+  [ref20_e13] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e13.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e13                          1.90  14693     88    0.51    2.03    1.95    2.21    2.28
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e13                               0.9921   0.0047   149113        0.9862   0.0044    61917        0.9835   0.0046   116421        0.9894   0.0046   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e14 (experiments/exp028-mlp/ref20/checkpoints/ep14.pt)...
+  [ref20_e14] 500/14693 (2s, ~53s remaining)
+  [ref20_e14] 1000/14693 (4s, ~50s remaining)
+  [ref20_e14] 1500/14693 (5s, ~48s remaining)
+  [ref20_e14] 2000/14693 (7s, ~46s remaining)
+  [ref20_e14] 2500/14693 (9s, ~44s remaining)
+  [ref20_e14] 3000/14693 (11s, ~42s remaining)
+  [ref20_e14] 3500/14693 (12s, ~40s remaining)
+  [ref20_e14] 4000/14693 (14s, ~38s remaining)
+  [ref20_e14] 4500/14693 (16s, ~36s remaining)
+  [ref20_e14] 5000/14693 (18s, ~34s remaining)
+  [ref20_e14] 5500/14693 (19s, ~32s remaining)
+  [ref20_e14] 6000/14693 (21s, ~30s remaining)
+  [ref20_e14] 6500/14693 (23s, ~29s remaining)
+  [ref20_e14] 7000/14693 (24s, ~27s remaining)
+  [ref20_e14] 7500/14693 (26s, ~25s remaining)
+  [ref20_e14] 8000/14693 (28s, ~24s remaining)
+  [ref20_e14] 8500/14693 (30s, ~22s remaining)
+  [ref20_e14] 9000/14693 (32s, ~20s remaining)
+  [ref20_e14] 9500/14693 (34s, ~18s remaining)
+  [ref20_e14] 10000/14693 (35s, ~17s remaining)
+  [ref20_e14] 10500/14693 (37s, ~15s remaining)
+  [ref20_e14] 11000/14693 (39s, ~13s remaining)
+  [ref20_e14] 11500/14693 (41s, ~11s remaining)
+  [ref20_e14] 12000/14693 (42s, ~10s remaining)
+  [ref20_e14] 12500/14693 (44s, ~8s remaining)
+  [ref20_e14] 13000/14693 (46s, ~6s remaining)
+  [ref20_e14] 13500/14693 (48s, ~4s remaining)
+  [ref20_e14] 14000/14693 (49s, ~2s remaining)
+  [ref20_e14] 14500/14693 (51s, ~1s remaining)
+  [ref20_e14] Done: 14693 decisions in 51.8s
+  [ref20_e14] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e14.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e14                          1.62  14693     58    0.40    1.68    1.70    1.84    1.98
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e14                               0.9957   0.0026   149113        0.9916   0.0027    61917        0.9903   0.0027   116421        0.9939   0.0026   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e15 (experiments/exp028-mlp/ref20/checkpoints/ep15.pt)...
+  [ref20_e15] 500/14693 (2s, ~54s remaining)
+  [ref20_e15] 1000/14693 (4s, ~50s remaining)
+  [ref20_e15] 1500/14693 (5s, ~48s remaining)
+  [ref20_e15] 2000/14693 (7s, ~46s remaining)
+  [ref20_e15] 2500/14693 (9s, ~44s remaining)
+  [ref20_e15] 3000/14693 (11s, ~42s remaining)
+  [ref20_e15] 3500/14693 (12s, ~40s remaining)
+  [ref20_e15] 4000/14693 (14s, ~38s remaining)
+  [ref20_e15] 4500/14693 (16s, ~36s remaining)
+  [ref20_e15] 5000/14693 (18s, ~34s remaining)
+  [ref20_e15] 5500/14693 (19s, ~32s remaining)
+  [ref20_e15] 6000/14693 (21s, ~30s remaining)
+  [ref20_e15] 6500/14693 (23s, ~29s remaining)
+  [ref20_e15] 7000/14693 (24s, ~27s remaining)
+  [ref20_e15] 7500/14693 (26s, ~25s remaining)
+  [ref20_e15] 8000/14693 (28s, ~24s remaining)
+  [ref20_e15] 8500/14693 (30s, ~22s remaining)
+  [ref20_e15] 9000/14693 (32s, ~20s remaining)
+  [ref20_e15] 9500/14693 (34s, ~18s remaining)
+  [ref20_e15] 10000/14693 (35s, ~17s remaining)
+  [ref20_e15] 10500/14693 (37s, ~15s remaining)
+  [ref20_e15] 11000/14693 (39s, ~13s remaining)
+  [ref20_e15] 11500/14693 (41s, ~11s remaining)
+  [ref20_e15] 12000/14693 (42s, ~10s remaining)
+  [ref20_e15] 12500/14693 (44s, ~8s remaining)
+  [ref20_e15] 13000/14693 (46s, ~6s remaining)
+  [ref20_e15] 13500/14693 (48s, ~4s remaining)
+  [ref20_e15] 14000/14693 (50s, ~2s remaining)
+  [ref20_e15] 14500/14693 (51s, ~1s remaining)
+  [ref20_e15] Done: 14693 decisions in 52.0s
+  [ref20_e15] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e15.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e15                          1.73  14693     62    0.69    1.63    1.78    2.10    2.05
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e15                               0.9957   0.0026   149113        0.9913   0.0028    61917        0.9890   0.0030   116421        0.9936   0.0028   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e16 (experiments/exp028-mlp/ref20/checkpoints/ep16.pt)...
+  [ref20_e16] 500/14693 (2s, ~53s remaining)
+  [ref20_e16] 1000/14693 (4s, ~50s remaining)
+  [ref20_e16] 1500/14693 (5s, ~48s remaining)
+  [ref20_e16] 2000/14693 (7s, ~46s remaining)
+  [ref20_e16] 2500/14693 (9s, ~44s remaining)
+  [ref20_e16] 3000/14693 (11s, ~42s remaining)
+  [ref20_e16] 3500/14693 (12s, ~40s remaining)
+  [ref20_e16] 4000/14693 (14s, ~38s remaining)
+  [ref20_e16] 4500/14693 (16s, ~36s remaining)
+  [ref20_e16] 5000/14693 (18s, ~35s remaining)
+  [ref20_e16] 5500/14693 (19s, ~33s remaining)
+  [ref20_e16] 6000/14693 (21s, ~31s remaining)
+  [ref20_e16] 6500/14693 (23s, ~29s remaining)
+  [ref20_e16] 7000/14693 (25s, ~27s remaining)
+  [ref20_e16] 7500/14693 (27s, ~25s remaining)
+  [ref20_e16] 8000/14693 (28s, ~24s remaining)
+  [ref20_e16] 8500/14693 (30s, ~22s remaining)
+  [ref20_e16] 9000/14693 (32s, ~20s remaining)
+  [ref20_e16] 9500/14693 (34s, ~19s remaining)
+  [ref20_e16] 10000/14693 (36s, ~17s remaining)
+  [ref20_e16] 10500/14693 (37s, ~15s remaining)
+  [ref20_e16] 11000/14693 (39s, ~13s remaining)
+  [ref20_e16] 11500/14693 (41s, ~11s remaining)
+  [ref20_e16] 12000/14693 (43s, ~10s remaining)
+  [ref20_e16] 12500/14693 (44s, ~8s remaining)
+  [ref20_e16] 13000/14693 (46s, ~6s remaining)
+  [ref20_e16] 13500/14693 (48s, ~4s remaining)
+  [ref20_e16] 14000/14693 (50s, ~2s remaining)
+  [ref20_e16] 14500/14693 (51s, ~1s remaining)
+  [ref20_e16] Done: 14693 decisions in 52.2s
+  [ref20_e16] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e16.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e16                          1.63  14693     59    0.45    1.65    1.68    2.00    1.91
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e16                               0.9957   0.0026   149113        0.9914   0.0028    61917        0.9902   0.0027   116421        0.9939   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e17 (experiments/exp028-mlp/ref20/checkpoints/ep17.pt)...
+  [ref20_e17] 500/14693 (2s, ~54s remaining)
+  [ref20_e17] 1000/14693 (4s, ~50s remaining)
+  [ref20_e17] 1500/14693 (5s, ~48s remaining)
+  [ref20_e17] 2000/14693 (7s, ~46s remaining)
+  [ref20_e17] 2500/14693 (9s, ~44s remaining)
+  [ref20_e17] 3000/14693 (11s, ~42s remaining)
+  [ref20_e17] 3500/14693 (12s, ~40s remaining)
+  [ref20_e17] 4000/14693 (14s, ~38s remaining)
+  [ref20_e17] 4500/14693 (16s, ~36s remaining)
+  [ref20_e17] 5000/14693 (18s, ~34s remaining)
+  [ref20_e17] 5500/14693 (19s, ~32s remaining)
+  [ref20_e17] 6000/14693 (21s, ~30s remaining)
+  [ref20_e17] 6500/14693 (23s, ~29s remaining)
+  [ref20_e17] 7000/14693 (24s, ~27s remaining)
+  [ref20_e17] 7500/14693 (26s, ~25s remaining)
+  [ref20_e17] 8000/14693 (28s, ~24s remaining)
+  [ref20_e17] 8500/14693 (30s, ~22s remaining)
+  [ref20_e17] 9000/14693 (32s, ~20s remaining)
+  [ref20_e17] 9500/14693 (34s, ~18s remaining)
+  [ref20_e17] 10000/14693 (35s, ~17s remaining)
+  [ref20_e17] 10500/14693 (37s, ~15s remaining)
+  [ref20_e17] 11000/14693 (39s, ~13s remaining)
+  [ref20_e17] 11500/14693 (41s, ~11s remaining)
+  [ref20_e17] 12000/14693 (42s, ~10s remaining)
+  [ref20_e17] 12500/14693 (44s, ~8s remaining)
+  [ref20_e17] 13000/14693 (46s, ~6s remaining)
+  [ref20_e17] 13500/14693 (48s, ~4s remaining)
+  [ref20_e17] 14000/14693 (49s, ~2s remaining)
+  [ref20_e17] 14500/14693 (51s, ~1s remaining)
+  [ref20_e17] Done: 14693 decisions in 51.8s
+  [ref20_e17] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e17.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e17                          1.64  14693     66    0.41    1.74    1.67    1.93    1.99
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e17                               0.9954   0.0028   149113        0.9909   0.0029    61917        0.9893   0.0030   116421        0.9934   0.0029   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e18 (experiments/exp028-mlp/ref20/checkpoints/ep18.pt)...
+  [ref20_e18] 500/14693 (2s, ~55s remaining)
+  [ref20_e18] 1000/14693 (4s, ~51s remaining)
+  [ref20_e18] 1500/14693 (6s, ~49s remaining)
+  [ref20_e18] 2000/14693 (7s, ~47s remaining)
+  [ref20_e18] 2500/14693 (9s, ~45s remaining)
+  [ref20_e18] 3000/14693 (11s, ~43s remaining)
+  [ref20_e18] 3500/14693 (13s, ~41s remaining)
+  [ref20_e18] 4000/14693 (15s, ~39s remaining)
+  [ref20_e18] 4500/14693 (16s, ~37s remaining)
+  [ref20_e18] 5000/14693 (18s, ~35s remaining)
+  [ref20_e18] 5500/14693 (20s, ~33s remaining)
+  [ref20_e18] 6000/14693 (22s, ~31s remaining)
+  [ref20_e18] 6500/14693 (23s, ~30s remaining)
+  [ref20_e18] 7000/14693 (25s, ~28s remaining)
+  [ref20_e18] 7500/14693 (27s, ~26s remaining)
+  [ref20_e18] 8000/14693 (29s, ~24s remaining)
+  [ref20_e18] 8500/14693 (31s, ~23s remaining)
+  [ref20_e18] 9000/14693 (33s, ~21s remaining)
+  [ref20_e18] 9500/14693 (35s, ~19s remaining)
+  [ref20_e18] 10000/14693 (37s, ~17s remaining)
+  [ref20_e18] 10500/14693 (38s, ~15s remaining)
+  [ref20_e18] 11000/14693 (40s, ~14s remaining)
+  [ref20_e18] 11500/14693 (42s, ~12s remaining)
+  [ref20_e18] 12000/14693 (44s, ~10s remaining)
+  [ref20_e18] 12500/14693 (46s, ~8s remaining)
+  [ref20_e18] 13000/14693 (47s, ~6s remaining)
+  [ref20_e18] 13500/14693 (49s, ~4s remaining)
+  [ref20_e18] 14000/14693 (51s, ~3s remaining)
+  [ref20_e18] 14500/14693 (53s, ~1s remaining)
+  [ref20_e18] Done: 14693 decisions in 53.7s
+  [ref20_e18] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e18.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e18                          1.65  14693     55    0.37    1.83    1.71    1.79    2.01
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e18                               0.9957   0.0026   149113        0.9910   0.0029    61917        0.9896   0.0029   116421        0.9937   0.0027   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e19 (experiments/exp028-mlp/ref20/checkpoints/ep19.pt)...
+  [ref20_e19] 500/14693 (2s, ~54s remaining)
+  [ref20_e19] 1000/14693 (4s, ~50s remaining)
+  [ref20_e19] 1500/14693 (5s, ~48s remaining)
+  [ref20_e19] 2000/14693 (7s, ~46s remaining)
+  [ref20_e19] 2500/14693 (9s, ~44s remaining)
+  [ref20_e19] 3000/14693 (11s, ~42s remaining)
+  [ref20_e19] 3500/14693 (13s, ~40s remaining)
+  [ref20_e19] 4000/14693 (14s, ~38s remaining)
+  [ref20_e19] 4500/14693 (16s, ~36s remaining)
+  [ref20_e19] 5000/14693 (18s, ~35s remaining)
+  [ref20_e19] 5500/14693 (19s, ~33s remaining)
+  [ref20_e19] 6000/14693 (21s, ~31s remaining)
+  [ref20_e19] 6500/14693 (23s, ~29s remaining)
+  [ref20_e19] 7000/14693 (25s, ~27s remaining)
+  [ref20_e19] 7500/14693 (27s, ~26s remaining)
+  [ref20_e19] 8000/14693 (29s, ~24s remaining)
+  [ref20_e19] 8500/14693 (30s, ~22s remaining)
+  [ref20_e19] 9000/14693 (32s, ~20s remaining)
+  [ref20_e19] 9500/14693 (34s, ~19s remaining)
+  [ref20_e19] 10000/14693 (36s, ~17s remaining)
+  [ref20_e19] 10500/14693 (38s, ~15s remaining)
+  [ref20_e19] 11000/14693 (39s, ~13s remaining)
+  [ref20_e19] 11500/14693 (41s, ~11s remaining)
+  [ref20_e19] 12000/14693 (43s, ~10s remaining)
+  [ref20_e19] 12500/14693 (45s, ~8s remaining)
+  [ref20_e19] 13000/14693 (46s, ~6s remaining)
+  [ref20_e19] 13500/14693 (48s, ~4s remaining)
+  [ref20_e19] 14000/14693 (50s, ~2s remaining)
+  [ref20_e19] 14500/14693 (52s, ~1s remaining)
+  [ref20_e19] Done: 14693 decisions in 52.6s
+  [ref20_e19] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e19.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e19                          1.60  14693     58    0.36    1.71    1.71    1.95    1.81
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e19                               0.9960   0.0024   149113        0.9916   0.0027    61917        0.9905   0.0026   116421        0.9942   0.0025   327451
+
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: ref20_e20 (experiments/exp028-mlp/ref20/checkpoints/ep20.pt)...
+  [ref20_e20] 500/14693 (2s, ~54s remaining)
+  [ref20_e20] 1000/14693 (4s, ~50s remaining)
+  [ref20_e20] 1500/14693 (5s, ~48s remaining)
+  [ref20_e20] 2000/14693 (7s, ~46s remaining)
+  [ref20_e20] 2500/14693 (9s, ~44s remaining)
+  [ref20_e20] 3000/14693 (11s, ~42s remaining)
+  [ref20_e20] 3500/14693 (12s, ~40s remaining)
+  [ref20_e20] 4000/14693 (14s, ~38s remaining)
+  [ref20_e20] 4500/14693 (16s, ~36s remaining)
+  [ref20_e20] 5000/14693 (18s, ~34s remaining)
+  [ref20_e20] 5500/14693 (19s, ~32s remaining)
+  [ref20_e20] 6000/14693 (21s, ~30s remaining)
+  [ref20_e20] 6500/14693 (23s, ~29s remaining)
+  [ref20_e20] 7000/14693 (24s, ~27s remaining)
+  [ref20_e20] 7500/14693 (26s, ~25s remaining)
+  [ref20_e20] 8000/14693 (28s, ~24s remaining)
+  [ref20_e20] 8500/14693 (30s, ~22s remaining)
+  [ref20_e20] 9000/14693 (32s, ~20s remaining)
+  [ref20_e20] 9500/14693 (34s, ~18s remaining)
+  [ref20_e20] 10000/14693 (35s, ~17s remaining)
+  [ref20_e20] 10500/14693 (37s, ~15s remaining)
+  [ref20_e20] 11000/14693 (39s, ~13s remaining)
+  [ref20_e20] 11500/14693 (41s, ~11s remaining)
+  [ref20_e20] 12000/14693 (42s, ~10s remaining)
+  [ref20_e20] 12500/14693 (44s, ~8s remaining)
+  [ref20_e20] 13000/14693 (46s, ~6s remaining)
+  [ref20_e20] 13500/14693 (48s, ~4s remaining)
+  [ref20_e20] 14000/14693 (50s, ~2s remaining)
+  [ref20_e20] 14500/14693 (51s, ~1s remaining)
+  [ref20_e20] Done: 14693 decisions in 52.0s
+  [ref20_e20] Saved per-decision errors: experiments/exp028-mlp/dumps/ref20_e20.npz
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  ref20_e20                          1.63  14693     59    0.36    1.75    1.74    1.94    1.86
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  ref20_e20                               0.9960   0.0024   149113        0.9922   0.0025    61917        0.9908   0.0025   116421        0.9944   0.0025   327451
+

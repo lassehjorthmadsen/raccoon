@@ -1,0 +1,60 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: mlp_h1024 (experiments/exp028-mlp/mlp_h1024/checkpoints/best.pt)...
+  [mlp_h1024] 500/14693 (2s, ~48s remaining)
+  [mlp_h1024] 1000/14693 (3s, ~44s remaining)
+  [mlp_h1024] 1500/14693 (5s, ~42s remaining)
+  [mlp_h1024] 2000/14693 (6s, ~40s remaining)
+  [mlp_h1024] 2500/14693 (8s, ~39s remaining)
+  [mlp_h1024] 3000/14693 (9s, ~37s remaining)
+  [mlp_h1024] 3500/14693 (11s, ~35s remaining)
+  [mlp_h1024] 4000/14693 (13s, ~33s remaining)
+  [mlp_h1024] 4500/14693 (14s, ~32s remaining)
+  [mlp_h1024] 5000/14693 (16s, ~30s remaining)
+  [mlp_h1024] 5500/14693 (17s, ~28s remaining)
+  [mlp_h1024] 6000/14693 (18s, ~27s remaining)
+  [mlp_h1024] 6500/14693 (20s, ~25s remaining)
+  [mlp_h1024] 7000/14693 (22s, ~24s remaining)
+  [mlp_h1024] 7500/14693 (23s, ~22s remaining)
+  [mlp_h1024] 8000/14693 (25s, ~21s remaining)
+  [mlp_h1024] 8500/14693 (26s, ~19s remaining)
+  [mlp_h1024] 9000/14693 (28s, ~18s remaining)
+  [mlp_h1024] 9500/14693 (30s, ~16s remaining)
+  [mlp_h1024] 10000/14693 (31s, ~15s remaining)
+  [mlp_h1024] 10500/14693 (33s, ~13s remaining)
+  [mlp_h1024] 11000/14693 (34s, ~12s remaining)
+  [mlp_h1024] 11500/14693 (36s, ~10s remaining)
+  [mlp_h1024] 12000/14693 (37s, ~8s remaining)
+  [mlp_h1024] 12500/14693 (39s, ~7s remaining)
+  [mlp_h1024] 13000/14693 (40s, ~5s remaining)
+  [mlp_h1024] 13500/14693 (42s, ~4s remaining)
+  [mlp_h1024] 14000/14693 (44s, ~2s remaining)
+  [mlp_h1024] 14500/14693 (45s, ~1s remaining)
+  [mlp_h1024] Done: 14693 decisions in 45.8s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  mlp_h1024                          3.97  14693    277    1.63    4.58    3.86    4.18    4.69
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  mlp_h1024                               0.9867   0.0080   149113        0.9729   0.0086    61917        0.9644   0.0098   116421        0.9799   0.0087   327451
+
+Saving results to experiments/exp028-mlp/results/
+  Saved: experiments/exp028-mlp/results/mlp_h1024.json
+  Saved: experiments/exp028-mlp/results/summary.json

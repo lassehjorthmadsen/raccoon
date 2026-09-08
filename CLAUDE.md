@@ -168,6 +168,17 @@ The project follows a milestone-based plan (see `docs/plan.md` for full details)
   - **TD(λ)** (`scripts/train_td.py`): value head only, regressed toward forward-view TD(λ) targets.
   - **Distillation** (`scripts/train_distill.py`): value head only. `scalar` arm minimises MSE against equity/3; `outcomes6` arm minimises cross-entropy against the six-outcome distribution. One arm per invocation so the A/B isolates the target definition.
 
+## Measurement Protocol
+
+`~/.claude/CLAUDE.md` carries the general discipline. These are its concrete forms here, and every one of them was written after being broken in a single session.
+
+- **One reported configuration: the full benchmark, n = 14,693.** `scripts/eval_benchmark_pr.py` with no `--subsample`. A subsample is a **screen** for ordering candidates cheaply and never appears in a comparison, a table or a conclusion beside a full-benchmark number. The same checkpoint scored 1.68 on the full benchmark and 1.75 on a 4,000 subsample; quoting both as if interchangeable is how that goes wrong.
+- **Every A/B is paired.** Use `--error-dump` to write per-decision errors and compare on identical decisions with an interval (`scripts/exp025_paired_pr.py` is the model). Two independently measured PR figures do not resolve a 0.1 difference. Never re-derive a choice from the per-candidate dump — it contains pruned moves, which is the exp023 trap.
+- **Know which error bar applies.** The spread across different position samples (SD 0.063 at n = 4,000, 0.033 at n = 14,693) says how well a result transfers to *other positions*. It says nothing about two models scored on the *same* positions, where the sampling error is common and cancels. Using one for the other turns a real trend into "noise" or vice versa.
+- **Convergence is measured, never inferred.** Training loss cannot distinguish a converged model from an unconverged one — the ResNet and a far weaker MLP show the same flat curve. Score `ep{N}.pt` checkpoints on PR instead. See `docs/speed.qmd` and the exp028 write-up.
+- **State configuration choices when you make them**, especially ones taken for speed: which cache directory, how many epochs, which subsample. `--cache-dir data/distill/2ply` reads all 43M positions; a single run directory silently reads a subset.
+- **Report the deployable parameter count for MLP trunks.** The total is dominated by a policy head that scales with the final hidden width and is never read at 0-ply.
+
 ## Experiment Conventions
 
 Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-ply-distillation arc fragmented one hypothesis across four confusingly-named experiments with mixed metrics/n's and a biased proxy — days of confusion.)

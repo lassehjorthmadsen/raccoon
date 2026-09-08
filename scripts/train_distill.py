@@ -95,9 +95,38 @@ def main() -> None:
     p.add_argument("--value-head", choices=["scalar", "outcomes6"], required=True)
     p.add_argument("--epochs", type=int, default=2)
     p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--lr-schedule", choices=["none", "cosine"], default="none",
+                   help="none: constant lr, which is what every checkpoint before "
+                        "exp028 used, so the default changes nothing. cosine: "
+                        "anneal from --lr to zero across the whole run, so "
+                        "training is finished at the last epoch by construction "
+                        "rather than by a guess about the horizon")
     p.add_argument("--batch-size", type=int, default=512)
     p.add_argument("--channels", type=int, default=256)
     p.add_argument("--num-blocks", type=int, default=10)
+    p.add_argument("--trunk", choices=["resnet", "mlp"], default="resnet",
+                   help="resnet: the convolutional stack every checkpoint before "
+                        "exp028 used. mlp: flatten the encoded board and run "
+                        "fully connected layers -- the shape GNUBG, XG and BGSage "
+                        "use, and ~1,000x cheaper to evaluate (docs/speed.qmd)")
+    p.add_argument("--hidden", type=str, default="256",
+                   help="mlp trunk only: one width (repeated --hidden-layers "
+                        "times) or an explicit comma-separated list, e.g. "
+                        "512,512,256,256")
+    p.add_argument("--hidden-layers", type=int, default=1,
+                   help="number of hidden layers, mlp trunk only")
+    p.add_argument("--mlp-input", choices=["flat", "debroadcast"], default="flat",
+                   help="mlp trunk only. flat: every channel flattened. "
+                        "debroadcast: channels 0-7 (per-point checker planes) in "
+                        "full plus ONE value per remaining channel, since "
+                        "channels 8-25 are constant across the board. Gives 201 "
+                        "inputs base-only against 408, the size PureTD uses")
+    p.add_argument("--features", type=str, default="all",
+                   help="'all' (26 channels) or a comma-separated subset of the "
+                        "handcrafted groups to keep on top of base: pip, blots, "
+                        "anchors, contact. '' keeps base only (17 channels), "
+                        "which for an MLP drops the broadcast feature planes it "
+                        "would otherwise see duplicated 24 times")
     p.add_argument("--eval-every-shards", type=int, default=6)
     p.add_argument("--eval-games", type=int, default=40)
     p.add_argument("--gnubg-ply", type=int, default=0)
@@ -134,8 +163,27 @@ def main() -> None:
         args.eval_every_shards = 1
         args.eval_games = 2
 
-    net = RaccoonNet(channels=args.channels, num_blocks=args.num_blocks,
-                     value_head=args.value_head).to(device)
+    from raccoon.env.encoder import resolve_channels
+
+    feature_channels = (
+        None if args.features == "all"
+        else resolve_channels([f for f in args.features.split(",") if f])
+    )
+    net = RaccoonNet(feature_channels=feature_channels,
+                     channels=args.channels, num_blocks=args.num_blocks,
+                     value_head=args.value_head, trunk=args.trunk,
+                     hidden=([int(w) for w in args.hidden.split(",")]
+                             if "," in args.hidden else int(args.hidden)),
+                     hidden_layers=args.hidden_layers,
+                     mlp_input=args.mlp_input).to(device)
+    print(f"[arch] {args.trunk} "
+          + (f"hidden {net.config['hidden']} in={net.mlp[0].in_features}"
+             if args.trunk == "mlp"
+             else f"{args.num_blocks}x{args.channels}")
+          + f", {sum(q.numel() for q in net.parameters())/1e6:.3f}M params"
+          + (f" ({(sum(q.numel() for q in net.parameters()) - sum(q.numel() for n_, q in net.named_parameters() if 'policy' in n_))/1e6:.3f}M deployable)"
+             if args.trunk == "mlp" else ""),
+          flush=True)
     opt = torch.optim.Adam(net.parameters(), lr=args.lr, weight_decay=0.0)
 
     exp_dir = Path("experiments") / args.experiment_name
@@ -182,6 +230,11 @@ def main() -> None:
 
     t0 = time.time()
     total_shards = len(shards) * args.epochs
+    # Stepped once per shard, so the schedule spans the run whatever the shard
+    # count is. `none` leaves the optimiser untouched, so existing runs are
+    # reproduced exactly.
+    sched = (torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=total_shards)
+             if args.lr_schedule == "cosine" else None)
     stop = False
     done_reason = None
 
@@ -203,6 +256,11 @@ def main() -> None:
             sh = order[si]
             with np.load(sh) as z:
                 obs, eq, six = z["observations"], z["equity"], z["outcomes6"]
+                if feature_channels is not None:
+                    # The cache always stores all 26 channels; a network trained
+                    # on a subset just never sees the rest. Slicing here keeps
+                    # one cache serving every feature configuration.
+                    obs = obs[:, feature_channels]
                 if args.holdout_frac > 0:
                     mask = held_out_mask(sh.name, len(obs), args.holdout_frac,
                                          args.split_seed)
@@ -211,6 +269,8 @@ def main() -> None:
                 loss = train_on_shard(net, opt, obs, eq, six, args.value_head,
                                       device, args.batch_size)
             shard_ctr += 1
+            if sched is not None:
+                sched.step()
             wall = wall_now()
             rec = {"epoch": epoch, "shard": shard_ctr, "loss": round(loss, 6),
                    "wall_hours": round(wall, 3)}

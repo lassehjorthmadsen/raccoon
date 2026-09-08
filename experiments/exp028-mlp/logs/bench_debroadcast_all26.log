@@ -1,0 +1,60 @@
+Loading benchmark: /home/lasse/python-projects/raccoon/data/bgsage/money_benchmark/benchmark.json.gz
+  14693 checker decisions from 500 games
+
+Scoring raccoon: debroadcast_all26 (experiments/exp028-mlp/debroadcast_all26/checkpoints/ep8.pt)...
+  [debroadcast_all26] 500/14693 (3s, ~71s remaining)
+  [debroadcast_all26] 1000/14693 (5s, ~67s remaining)
+  [debroadcast_all26] 1500/14693 (7s, ~64s remaining)
+  [debroadcast_all26] 2000/14693 (9s, ~59s remaining)
+  [debroadcast_all26] 2500/14693 (11s, ~54s remaining)
+  [debroadcast_all26] 3000/14693 (13s, ~52s remaining)
+  [debroadcast_all26] 3500/14693 (16s, ~50s remaining)
+  [debroadcast_all26] 4000/14693 (18s, ~48s remaining)
+  [debroadcast_all26] 4500/14693 (20s, ~46s remaining)
+  [debroadcast_all26] 5000/14693 (23s, ~44s remaining)
+  [debroadcast_all26] 5500/14693 (25s, ~41s remaining)
+  [debroadcast_all26] 6000/14693 (27s, ~39s remaining)
+  [debroadcast_all26] 6500/14693 (29s, ~37s remaining)
+  [debroadcast_all26] 7000/14693 (32s, ~35s remaining)
+  [debroadcast_all26] 7500/14693 (34s, ~33s remaining)
+  [debroadcast_all26] 8000/14693 (36s, ~30s remaining)
+  [debroadcast_all26] 8500/14693 (38s, ~28s remaining)
+  [debroadcast_all26] 9000/14693 (41s, ~26s remaining)
+  [debroadcast_all26] 9500/14693 (43s, ~23s remaining)
+  [debroadcast_all26] 10000/14693 (45s, ~21s remaining)
+  [debroadcast_all26] 10500/14693 (48s, ~19s remaining)
+  [debroadcast_all26] 11000/14693 (50s, ~17s remaining)
+  [debroadcast_all26] 11500/14693 (52s, ~15s remaining)
+  [debroadcast_all26] 12000/14693 (55s, ~12s remaining)
+  [debroadcast_all26] 12500/14693 (57s, ~10s remaining)
+  [debroadcast_all26] 13000/14693 (59s, ~8s remaining)
+  [debroadcast_all26] 13500/14693 (61s, ~5s remaining)
+  [debroadcast_all26] 14000/14693 (63s, ~3s remaining)
+  [debroadcast_all26] 14500/14693 (65s, ~1s remaining)
+  [debroadcast_all26] Done: 14693 decisions in 66.2s
+
+
+==========================================================================================
+BGSage Money Benchmark - Checker-only, cubeless reference
+Positions: 14693 checker decisions from 500 games
+Reference: cubeless_equity (Sage 3P / 3T / Rollout)
+Engines rank candidates by: cubeless equity
+==========================================================================================
+
+MOVE SELECTION (PR = mean error x 500, lower is better)
+
+  Engine                               PR      N  Blndr   prace    race     atk   prime    anch
+  --------------------------------------------------------------------------------------
+  debroadcast_all26                  1.58  14693     42    0.40    1.72    1.68    1.84    1.80
+
+  (N per plan)                                             1816    3120    4111    2453    3193
+
+EVAL ACCURACY (R^2 / MSE on predicted vs reference cubeless equity)
+
+  Engine                             R2(rollout)      MSE        N        R2(3T)      MSE        N        R2(3P)      MSE        N       R2(all)      MSE        N
+  --------------------------------------------------------------------------------------------------------------
+  debroadcast_all26                       0.9961   0.0024   149113        0.9919   0.0026    61917        0.9916   0.0023   116421        0.9945   0.0024   327451
+
+Saving results to experiments/exp028-mlp/results/
+  Saved: experiments/exp028-mlp/results/debroadcast_all26.json
+  Saved: experiments/exp028-mlp/results/summary.json
