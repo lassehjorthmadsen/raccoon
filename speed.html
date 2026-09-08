@@ -192,6 +192,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#what-it-costs-at-matched-time" id="toc-what-it-costs-at-matched-time" class="nav-link" data-scroll-target="#what-it-costs-at-matched-time">What it costs at matched time</a></li>
   <li><a href="#everyone-else-uses-a-small-network" id="toc-everyone-else-uses-a-small-network" class="nav-link" data-scroll-target="#everyone-else-uses-a-small-network">Everyone else uses a small network</a></li>
   <li><a href="#what-a-smaller-network-would-cost" id="toc-what-a-smaller-network-would-cost" class="nav-link" data-scroll-target="#what-a-smaller-network-would-cost">What a smaller network would cost</a></li>
+  <li><a href="#exp028" id="toc-exp028" class="nav-link" data-scroll-target="#exp028">exp028: a small network, measured</a></li>
   <li><a href="#what-this-page-does-not-say" id="toc-what-this-page-does-not-say" class="nav-link" data-scroll-target="#what-this-page-does-not-say">What this page does not say</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -392,11 +393,190 @@ ul.task-list li input[type="checkbox"] {
 <p>The measurement worth making is accuracy against speed, not accuracy alone. exp017 established that scaling from 8 M to 40 M training positions took PR from 2.16 to 0.93 at the current size, and the size itself was never varied against the same data. The 40 M-position cache is on disk and <code>scripts/train_distill.py</code> already does the work, so distilling it into progressively smaller networks — including a plain network over the existing handcrafted features — is a matter of compute rather than new machinery.</p>
 <p>A cheaper network reaching, say, PR 1.2 at forty times the speed would beat ep22 outright at equal time, because it could afford the depth-2 search ep22 cannot.</p>
 </section>
+<section id="exp028" class="level2">
+<h2 class="anchored" data-anchor-id="exp028">exp028: a small network, measured</h2>
+<p>The page above argued that the experiment worth running was accuracy against speed, not accuracy alone. This is that experiment.</p>
+<p><strong>Protocol</strong>, fixed before the final arms and not varied: every score is the full BGSage benchmark, n = 14,693, with no subsampling anywhere; every comparison is paired on identical decisions and bootstrapped over the 500 generating games; the paired resolution is about 0.09 PR, and effects below it are reported as <em>not resolved</em>, which is not the same as a null. Training data is the same 43 M GNU Backgammon 2-ply labels ep22 was distilled from.</p>
+<section id="the-architecture-and-what-the-inputs-cost" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-and-what-the-inputs-cost">The architecture, and what the inputs cost</h3>
+<p>Distilling those labels into a network shaped after PureTD’s <code>[512, 512, 256, 256]</code> gives a curve that is monotone in capacity:</p>
+<table class="caption-top table">
+<caption>Every row is the full benchmark. These arms ran under a constant learning rate, later shown to leave about 0.2 PR unclaimed, so they order the configurations correctly but none of them is converged.</caption>
+<thead>
+<tr class="header">
+<th>configuration</th>
+<th style="text-align: right;">PR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MLP [256], 624 inputs</td>
+<td style="text-align: right;">5.40</td>
+</tr>
+<tr class="even">
+<td>MLP [256,256], 624 inputs</td>
+<td style="text-align: right;">2.99</td>
+</tr>
+<tr class="odd">
+<td>MLP [512,512], 624 inputs</td>
+<td style="text-align: right;">2.31</td>
+</tr>
+<tr class="even">
+<td>MLP [512,512,256,256], 624 inputs</td>
+<td style="text-align: right;">1.93</td>
+</tr>
+<tr class="odd">
+<td>…dropping the handcrafted channels, 408 inputs</td>
+<td style="text-align: right;">1.74</td>
+</tr>
+<tr class="even">
+<td>…de-broadcast to 201 inputs</td>
+<td style="text-align: right;">1.68</td>
+</tr>
+</tbody>
+</table>
+<p>Two input results are worth separating. Dropping the nine handcrafted channels <em>improved</em> PR by 0.19 while removing compute — confirming PureTD’s claim that expert features are unnecessary. But the mechanism is duplication rather than the features themselves: channels 8 to 25 are all constant across the board, so a convolution receives them as planes and a flattened network receives 24 identical copies of each. De-broadcasting to one value per scalar channel gives 201 inputs, which is the size PureTD uses, and buys another 0.10.</p>
+<p>More data bought nothing: 24 M to 43 M positions moved PR by 0.04, inside the noise. That measurement was made under the constant-LR schedule, so it is worth repeating rather than treating as settled.</p>
+</section>
+<section id="two-hypotheses-tested" class="level3">
+<h3 class="anchored" data-anchor-id="two-hypotheses-tested">Two hypotheses, tested</h3>
+<p>With capacity, inputs and data explored, two candidates remained. Four arms, identical but for one variable each, all at the same 20-epoch budget:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 28%">
+<col style="width: 28%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>arm</th>
+<th style="text-align: right;">PR at epoch 20</th>
+<th style="text-align: right;">paired vs reference</th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>reference (constant LR, six-outcome head)</td>
+<td style="text-align: right;">1.632</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td>scalar head, squared error on equity</td>
+<td style="text-align: right;"><strong>1.458</strong></td>
+<td style="text-align: right;">+0.174 [+0.085, +0.264]</td>
+<td style="text-align: left;">real</td>
+</tr>
+<tr class="odd">
+<td>cosine learning-rate decay</td>
+<td style="text-align: right;"><strong>1.420</strong></td>
+<td style="text-align: right;">+0.213 [+0.127, +0.302]</td>
+<td style="text-align: left;">real</td>
+</tr>
+<tr class="even">
+<td>both</td>
+<td style="text-align: right;"><strong>1.368</strong></td>
+<td style="text-align: right;">+0.264 [+0.174, +0.356]</td>
+<td style="text-align: left;">real</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Both hypotheses are confirmed</strong>, each worth about 0.2 PR. The learning rate had been fixed at 1e-3 for the whole of every previous run, and the training target had been cross-entropy over six outcomes rather than squared error on the quantity move selection actually ranks.</p>
+<p><strong>They do not add.</strong></p>
+<p>Independent effects would have given 1.245; the combined arm reached <strong>1.368</strong>. That prediction was written into the run script before the arm started. Against cosine alone the combination is +0.051 [-0.035, +0.136] — <em>not resolved</em> — while against the scalar head alone it is +0.090 [+0.009, +0.170], <em>real</em>. So the schedule does most of the work and the two were largely repairing the same deficiency.</p>
+</section>
+<section id="convergence-had-to-be-measured-repeatedly" class="level3">
+<h3 class="anchored" data-anchor-id="convergence-had-to-be-measured-repeatedly">Convergence had to be measured, repeatedly</h3>
+<p>The reference arm was <strong>still improving at epoch 20</strong>: each five-epoch step was individually below the resolution limit, but epochs 10 to 20 accumulate to a real gain.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 40%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>arm</th>
+<th style="text-align: right;">epochs 10 → 20</th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>reference (constant LR, six-outcome head)</td>
+<td style="text-align: right;">+0.128 [+0.032, +0.225]</td>
+<td style="text-align: left;">real</td>
+</tr>
+<tr class="even">
+<td>scalar head, squared error on equity</td>
+<td style="text-align: right;">+0.055 [-0.017, +0.129]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+<tr class="odd">
+<td>cosine learning-rate decay</td>
+<td style="text-align: right;">+0.252 [+0.182, +0.322]</td>
+<td style="text-align: left;">real</td>
+</tr>
+<tr class="even">
+<td>both</td>
+<td style="text-align: right;">+0.057 [-0.003, +0.119]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+</tbody>
+</table>
+<p>This is why the protocol above insists convergence is measured rather than inferred. Training loss cannot see it — the reference network and a far weaker one produce indistinguishable loss curves. Nor can adjacent epoch comparisons, which read <em>not resolved</em> three times in a row on a curve that was genuinely still descending. Only the longer interval showed it.</p>
+</section>
+<section id="where-it-leaves-the-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="where-it-leaves-the-architecture">Where it leaves the architecture</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>engine</th>
+<th style="text-align: right;">value MACs</th>
+<th style="text-align: right;">PR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PureTD (see note)</td>
+<td style="text-align: right;">0.561 M</td>
+<td style="text-align: right;">0.94</td>
+</tr>
+<tr class="even">
+<td>Raccoon ep22, ResNet 10x256</td>
+<td style="text-align: right;">285 M</td>
+<td style="text-align: right;">0.950</td>
+</tr>
+<tr class="odd">
+<td>GNU Backgammon, 1-ply</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">1.206</td>
+</tr>
+<tr class="even">
+<td><strong>This MLP, best configuration</strong></td>
+<td style="text-align: right;"><strong>0.563 M</strong></td>
+<td style="text-align: right;"><strong>1.368</strong></td>
+</tr>
+<tr class="odd">
+<td>GNU Backgammon, 0-ply</td>
+<td style="text-align: right;">0.033 M</td>
+<td style="text-align: right;">2.14</td>
+</tr>
+</tbody>
+</table>
+<p>A network doing <strong>500 times less arithmetic than ep22</strong> reaches PR 1.368, against ep22’s 0.950. It beats GNU Backgammon’s own evaluator comfortably and still loses to GNU Backgammon at 1-ply.</p>
+<p><strong>On the PureTD comparison, two qualifications.</strong> Their 0.94 is XG++ Performance Rating on <em>cubeful</em> money; ours is this benchmark’s PR on <em>cubeless checker play</em>. The two scales agree closely where they can be compared — GNU Backgammon at 0-ply is 2.18 on theirs and 2.14 on ours, at 1-ply 1.21 against 1.206 — which is why they are shown together, but they are not the same measurement. And while <strong>capacity and inference cost are matched</strong> (562 k parameters against 565 k, 0.561 M MACs against 0.563 M), <strong>training compute is not</strong>: 200 M self-play games over about 65 hours on a 64-core workstation with a GPU, against roughly 38 core-hours per arm here with no GPU. Two orders of magnitude.</p>
+<p>That distinction decides what to try next. The remaining difference is either the <strong>method</strong> — on-policy TD with exact Bellman backups over all 21 rolls, rather than regressing a fixed teacher — or simply <strong>scale</strong>. The evidence against pure scale is that more data bought nothing, but that was measured under the broken schedule. Running the best configuration far longer separates the two for one arm’s cost, before committing to an RL pipeline that would take weeks.</p>
+</section>
+</section>
 <section id="what-this-page-does-not-say" class="level2">
 <h2 class="anchored" data-anchor-id="what-this-page-does-not-say">What this page does not say</h2>
 <ul>
 <li><strong>It does not say the network is bad.</strong> It is more accurate per position than GNU Backgammon’s by a wide margin. The question is the price.</li>
-<li><strong>It does not measure a smaller network’s accuracy.</strong> Every projected row is arithmetic. Whether accuracy survives the reduction is unknown, and is the experiment this page argues for.</li>
+<li><strong>The projected rows above are arithmetic, not accuracy.</strong> exp028 measured the accuracy separately; see <a href="#exp028">that section</a>.</li>
+<li><strong>exp028’s arms are compared at a fixed budget, not at their endpoints.</strong> The cosine arm is converged by construction, since its learning rate reaches zero; the constant-rate arm was still improving when it stopped. “Better at 20 epochs” is a weaker claim than “reaches a better endpoint”.</li>
 <li><strong>It is one machine.</strong> A four-core desktop processor with no GPU. A graphics card changes Raccoon’s throughput far more than GNU Backgammon’s, because batched convolutions suit one and a per-position network does not. That changes the arithmetic for training and offline analysis; it does not change what a browser or a phone can run.</li>
 <li><strong>GNU Backgammon’s figure is single-position and single-threaded.</strong> It has headroom of its own that this comparison does not give it.</li>
 <li><strong>It retracts no published result.</strong> Raccoon does beat GNU Backgammon at matched depth on the benchmark. This page adds the axis those results were silent on.</li>
