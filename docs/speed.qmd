@@ -323,7 +323,137 @@ That distinction decides what to try next. The remaining difference is either th
 than regressing a fixed teacher — or simply **scale**. The evidence against pure
 scale is that more data bought nothing, but that was measured under the broken
 schedule. Running the best configuration far longer separates the two for one
-arm's cost, before committing to an RL pipeline that would take weeks.
+arm's cost, before committing to an RL pipeline that would take weeks. That run
+is [exp029](#exp029) below; it answers *not scale*.
+
+## exp029: five times the training, measured {#exp029}
+
+exp028 ended by naming the cheapest experiment that could separate its two
+remaining explanations. This is that experiment.
+
+The MLP is matched with PureTD on capacity and on inference cost — 562 k
+parameters against 565 k — but not on training compute, which differs by about
+two orders of magnitude. So the 0.42 PR between them is either the training
+**method** or simply **scale**. Running the same configuration five times longer
+answers that for one arm's cost, and does not require building an RL pipeline
+first.
+
+```{python}
+#| echo: false
+L = json.loads(
+    (Path("../experiments/exp029-longrun/results/exp029_summary.json")).read_text()
+)
+LP, LC, LPAIR = L["protocol"], L["conclusion"], L["paired"]
+```
+
+**Protocol**, unchanged from exp028 and fixed before the run: the full BGSage
+benchmark, `{python} f"n = {LP['n']:,}"`, no subsampling; paired on identical
+decisions against exp028's 20-epoch arm and bootstrapped over the 500 generating
+games; resolution about `{python} f"{LP['resolution_pr']}"` PR. One arm, one
+variable — 100 epochs instead of 20, with the cosine schedule annealed over the
+longer horizon, since a schedule that reaches zero at epoch 20 cannot simply be
+continued. Everything else is byte-identical: the same architecture, the same 201
+inputs, the same scalar head, the same 43 M labels.
+
+**One axis was available and one was not.** `data/distill/2ply` holds all the
+labels there are, so this varies passes over fixed data, not fresh data. PureTD's
+scale is 200 M self-play games, which is the other kind. That limit is why the
+supporting metric below matters.
+
+### The result
+
+```{python}
+#| echo: false
+#| output: asis
+d = LPAIR["vs_combined20"]
+print("| arm | epochs | PR | paired vs 20-epoch arm | |")
+print("|---|---:|---:|---:|:--|")
+print(f"| exp028 combined | 20 | {d['pr_baseline']:.3f} | — | |")
+print(f"| exp029 combined | 100 | **{d['pr_arm']:.3f}** | {d['gain']:+.3f} "
+      f"[{d['ci95'][0]:+.3f}, {d['ci95'][1]:+.3f}] | {d['verdict']} |")
+```
+
+Five times the training compute — 40.8 hours against 7.7 — moved PR by
+`{python} f"{LC['gain_over_combined20']:+.3f}"`, which the instrument cannot
+separate from zero. The decision rule was written into the run script before the
+run started: a gain of 0.27 or more would have meant scale was the dominant
+explanation, 0.09 to 0.27 partial, and below the resolution limit exhausted.
+
+The internal intervals say the same thing about where the curve stopped:
+
+```{python}
+#| echo: false
+#| output: asis
+print("| interval | gain | |")
+print("|---|---:|:--|")
+for k, lbl in (("e20_to_e50", "epochs 20 → 50"), ("e50_to_e100", "epochs 50 → 100"),
+               ("e90_to_e100", "epochs 90 → 100")):
+    v = LPAIR[k]
+    print(f"| {lbl} | {v['gain']:+.3f} "
+          f"[{v['ci95'][0]:+.3f}, {v['ci95'][1]:+.3f}] | {v['verdict']} |")
+```
+
+exp028 had to look across ten epochs to see a gain that three adjacent five-epoch
+steps had each missed. Here the same long intervals find nothing at any length:
+the last eighty epochs are flat within the instrument, and the last ten are flat
+to a thousandth.
+
+### It is not undertraining
+
+The supporting metric separates "the network has not finished learning the
+labels" from "the labels are what they are". Rollout-tier fit, on 149 k candidate
+positions never trained on:
+
+```{python}
+#| echo: false
+#| output: asis
+b, e = L["baseline_rollout"], L["rollout_by_epoch"]["100"]
+print("| arm | rollout MSE | R² |")
+print("|---|---:|---:|")
+print(f"| exp028 combined, 20 epochs | {b['mse']:.5f} | {b['r2']:.5f} |")
+print(f"| exp029 combined, 100 epochs | {e['mse']:.5f} | {e['r2']:.5f} |")
+print()
+print(f": Same positions, n = {e['n_positions']:,}.")
+```
+
+Five times the compute bought a
+`{python} f"{100 * (1 - L['rollout_by_epoch']['100']['mse'] / L['baseline_rollout']['mse']):.0f}%"`
+reduction in squared error against the teacher. The network had already fit these
+labels about as well as it is going to at epoch 20; the extra eighty epochs did
+not find more in them.
+
+### What this settles, and what it does not
+
+**Settled: training scale on this label set is exhausted.** The remaining 0.35 PR
+to ep22 is not sitting behind more passes over `data/distill/2ply`. Anyone
+proposing to train this architecture longer now has a measurement to answer.
+
+**Not settled: method against data.** A null here is consistent with two
+different things, and this experiment cannot tell them apart. Either the training
+method matters — PureTD learns on-policy with exact Bellman backups over all 21
+rolls, rather than regressing a fixed teacher — or 43 M GNU Backgammon 2-ply
+labels are simply not enough distinct positions for this network, and 200 M
+self-play games would be, by whatever method. Distinguishing those needs new
+data, not new epochs.
+
+**A note on the epoch curve.** The best single epoch scored
+`{python} f"{min(L['pr_by_epoch'].values()):.3f}"` at epoch
+`{python} min(L['pr_by_epoch'], key=lambda k: L['pr_by_epoch'][k])`, better than
+epoch 100. That is a minimum over 100 noisy scores and is quoted here as a
+selection, not a result; the pre-registered number is the endpoint. Picking it
+would be the winner's curse this project has been caught by before.
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"**exp029 conclusion.** Does running exp028's best configuration five "
+      f"times longer close the gap → no: combined100 = "
+      f"{LC['pr_final']:.3f}, paired {LC['gain_over_combined20']:+.3f} "
+      f"[{LC['ci95'][0]:+.3f}, {LC['ci95'][1]:+.3f}] over the 20-epoch arm, "
+      f"*{LPAIR['vs_combined20']['verdict']}* (BGSage PR, n = {LP['n']:,}). "
+      f"Against ep22's {LC['ep22_pr']:.3f}, the gap is {LC['pr_final'] - LC['ep22_pr']:.3f} "
+      f"and training scale is not what closes it.")
+```
 
 ## What this page does not say
 

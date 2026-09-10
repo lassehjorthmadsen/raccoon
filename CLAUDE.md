@@ -203,6 +203,8 @@ Keep experiments clean and their conclusions buildable. (Hard-won: an earlier 0-
 
 `scripts/measure_eval_speed.py` reproduces the measurement.
 
+**The cheap-network path is measured, and training it longer is not the lever.** exp028 distilled the same 43 M 2-ply labels into an MLP [512,512,256,256] over 201 de-broadcast inputs — 0.563 M MACs against ep22's 285 M — reaching PR 1.368; exp029 ran that configuration five times longer (100 epochs, 40.8 h) and reached 1.296, paired +0.072 [-0.013, +0.156] against the 20-epoch arm, below the 0.09 resolution. Rollout-tier fit barely moved (MSE 0.00219 → 0.00215), so the network is not undertrained. What remains between it and ep22's 0.950 is the training method or the label set, not more passes over `data/distill/2ply`.
+
 ## Hardware
 
 - **Local dev (Windows work PC)**: Windows PC (WSL2, Intel i7-1365U, 6 cores / 12 threads, 16 GB RAM, no GPU). Defaults are tuned small: 6 ResNet blocks, 128 channels, 100 MCTS simulations.

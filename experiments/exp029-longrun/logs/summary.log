@@ -1,0 +1,10 @@
+combined100 PR e100 = 1.296 (combined20 e20 = 1.368)
+vs_combined20        +0.072 [-0.013, +0.156]  not resolved
+e20_to_e50           +0.040 [-0.033, +0.112]  not resolved
+e50_to_e100          +0.038 [-0.012, +0.086]  not resolved
+e90_to_e100          +0.001 [-0.020, +0.021]  not resolved
+
+reading: training scale on fixed labels is exhausted
+next:    the remaining difference is method or the 43M-label ceiling; PureTD-style TD becomes the next candidate, not the next assumption
+
+wrote experiments/exp029-longrun/results/exp029_summary.json

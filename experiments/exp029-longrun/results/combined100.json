@@ -1,0 +1,90 @@
+{
+  "engine_label": "combined100_e100",
+  "pr": 1.2959392693952247,
+  "n": 14693,
+  "total_error": 38.082471370448076,
+  "blunders": 34,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.5186177099315876,
+      "n": 1816,
+      "total_error": 1.8836195224715264,
+      "blunders": 1
+    },
+    "racing": {
+      "pr": 1.5198635566398344,
+      "n": 3120,
+      "total_error": 9.483948593432567,
+      "blunders": 12
+    },
+    "attacking": {
+      "pr": 1.2027625575504821,
+      "n": 4111,
+      "total_error": 9.889113748180064,
+      "blunders": 4
+    },
+    "priming": {
+      "pr": 1.4311835197129739,
+      "n": 2453,
+      "total_error": 7.021386347711849,
+      "blunders": 9
+    },
+    "anchoring": {
+      "pr": 1.535296454533678,
+      "n": 3193,
+      "total_error": 9.804403158652068,
+      "blunders": 8
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.0583609384639352,
+      "n": 5657,
+      "total_error": 11.974295657780962,
+      "blunders": 5
+    },
+    "player": {
+      "pr": 1.6473781347966872,
+      "n": 4015,
+      "total_error": 13.228446422417399,
+      "blunders": 18
+    },
+    "opponent": {
+      "pr": 1.2825860675412981,
+      "n": 5021,
+      "total_error": 12.879729290249715,
+      "blunders": 11
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.4446755042423147,
+      "n": 9036,
+      "total_error": 26.108175712667112,
+      "blunders": 29
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9964072480626135,
+      "mse": 0.002154256650456419,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9931770870069658,
+      "mse": 0.0021749533736833758,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9933391323858148,
+      "mse": 0.0018358601377372026,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9953007517330579,
+      "mse": 0.002044968355733726,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp029-longrun/combined100/checkpoints/ep100.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}
