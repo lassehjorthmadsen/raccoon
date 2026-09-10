@@ -428,13 +428,33 @@ not find more in them.
 to ep22 is not sitting behind more passes over `data/distill/2ply`. Anyone
 proposing to train this architecture longer now has a measurement to answer.
 
-**Not settled: method against data.** A null here is consistent with two
-different things, and this experiment cannot tell them apart. Either the training
-method matters — PureTD learns on-policy with exact Bellman backups over all 21
-rolls, rather than regressing a fixed teacher — or 43 M GNU Backgammon 2-ply
-labels are simply not enough distinct positions for this network, and 200 M
-self-play games would be, by whatever method. Distinguishing those needs new
-data, not new epochs.
+**Nearly settled: it is not the number of labels either.** The obvious reading of
+a converged network is that it needs more data, and convergence at a fixed
+dataset size is indeed the condition under which more data can lower the plateau.
+But ep22 was distilled from *these same 86 shards* and reached PR 0.950. So 43 M
+positions demonstrably carry enough signal for 0.950; a network 500 times larger
+got it out of them. "Not enough distinct positions" would have to explain why a
+*smaller* network needs *more* data than a larger one to reach the same error,
+which is backwards: small networks plateau early because of capacity, not sample
+size. Two caveats keep this from being airtight — ep22 reads 26 channels where
+this MLP reads 201 de-broadcast base-only inputs, though exp028 measured that
+dropping the handcrafted channels *helped* the MLP, which cuts against the
+caveat rather than for it.
+
+**Still open: capacity against method.** Either 0.563 M multiply-accumulates
+cannot represent this function below about PR 1.3, or the training method is the
+limit — regressing a fixed teacher over GNU Backgammon's self-play positions,
+rather than learning on-policy with exact Bellman backups over all 21 rolls. Note
+that the second absorbs the surviving form of the data argument: with capacity
+this tight, *which* positions the network spends it on matters more than how many
+there are, and that is a question about distribution, not quantity.
+
+**And capacity has never been measured under this recipe.** exp028's capacity
+curve — 5.40, 2.99, 2.31, 1.93 as the network grew — was still descending at the
+largest arm, and every one of those arms ran under the constant learning rate
+that the same experiment then showed leaves about 0.2 PR unclaimed. Widening the
+network under the fixed recipe is a far cheaper discriminator than an RL
+pipeline, and it is what exp030 does.
 
 **A note on the epoch curve.** The best single epoch scored
 `{python} f"{min(L['pr_by_epoch'].values()):.3f}"` at epoch
