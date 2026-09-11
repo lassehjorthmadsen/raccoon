@@ -1,0 +1,12 @@
+MLP [1024, 1024, 512, 512], 201 inputs, 2.04M params, 2.041M MACs/position
+  threads1_batch64           15,075 boards/s
+  threads1_batch512          19,763 boards/s
+  threads3_batch64           26,932 boards/s
+  threads3_batch512          46,876 boards/s
+  achieved 191 GFLOPS
+
+GNUBG 250-128-5 MLP (one net per position class):    1,476,459 boards/s, 0.033M MACs/position
+
+GNUBG is 31x faster; Raccoon does 63x the arithmetic
+
+wrote experiments/exp030-capacity/results/eval_speed.json

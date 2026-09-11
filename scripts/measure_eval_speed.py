@@ -63,17 +63,35 @@ def mlp_macs(inputs: int, hidden: int, outputs: int = 5) -> int:
     return inputs * hidden + hidden * outputs
 
 
+def mlp_trunk_macs(net) -> int:
+    """Multiply-accumulates in the value-only forward path of an MLP trunk,
+    counted from the layer shapes. The policy head is excluded because 0-ply play
+    never reads it and a deployable network would not carry it."""
+    linear = [m for m in net.mlp.modules() if isinstance(m, torch.nn.Linear)]
+    head = [m for name, m in net.named_modules()
+            if isinstance(m, torch.nn.Linear) and name.startswith("value")]
+    return sum(m.in_features * m.out_features for m in linear + head)
+
+
 def time_network(net, in_channels: int, threads: int, batch: int,
                  seconds: float = 2.0) -> float:
+    """Throughput of ``value_equity``, which is the call 0-ply move ranking makes.
+
+    It is head-agnostic, so a scalar-head network is measured on the same footing
+    as a six-outcome one; ``value_probs6``, used here before exp030, raises on a
+    scalar head and would have measured nothing for half the networks this page
+    now compares. The two differ by a softmax and a dot product over six values,
+    which is below the resolution of this measurement (checked on ep22 against
+    the previously recorded figure)."""
     torch.set_num_threads(threads)
     x = torch.randn(batch, in_channels, 2, 12)
     with torch.no_grad():
         for _ in range(2):
-            net.value_probs6(x)
+            net.value_equity(x)
         start = time.time()
         done = 0
         while time.time() - start < seconds:
-            net.value_probs6(x)
+            net.value_equity(x)
             done += batch
         return done / (time.time() - start)
 
@@ -115,7 +133,15 @@ def main() -> None:
     best = max(measured.values())
     gnubg = time_gnubg()
 
-    macs = resnet_macs(in_channels, channels, blocks)
+    is_mlp = cfg.get("trunk", "resnet") == "mlp"
+    if is_mlp:
+        macs = mlp_trunk_macs(net)
+        architecture = f"MLP {cfg['hidden']}, {net.mlp[0].in_features} inputs"
+        params = sum(q.numel() for name, q in net.named_parameters()
+                     if "policy" not in name)          # deployable: no policy head
+    else:
+        macs = resnet_macs(in_channels, channels, blocks)
+        architecture = f"{blocks}x{channels} ResNet"
     out = {
         "machine": {
             "node": platform.node(),
@@ -124,7 +150,7 @@ def main() -> None:
         },
         "raccoon": {
             "checkpoint": a.checkpoint,
-            "architecture": f"{blocks}x{channels} ResNet",
+            "architecture": architecture,
             "parameters": int(params),
             "in_channels": in_channels,
             "macs_per_position": macs,
@@ -158,7 +184,8 @@ def main() -> None:
     }
 
     r, g = out["raccoon"], out["gnubg"]
-    print(f"{r['architecture']}, {params/1e6:.1f}M params, {macs/1e6:.0f}M MACs/position")
+    print(f"{r['architecture']}, {params/1e6:.2f}M params, "
+          f"{macs/1e6:.3f}M MACs/position")
     for key, value in r["boards_per_second"].items():
         print(f"  {key:<20} {value:>12,.0f} boards/s")
     print(f"  achieved {r['gflops_achieved']:.0f} GFLOPS")

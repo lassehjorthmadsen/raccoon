@@ -1,0 +1,302 @@
+{
+ "protocol": {
+  "benchmark": "BGSage Money Benchmark, checker decisions, all tiers",
+  "n": 14693,
+  "n_games": 499,
+  "subsampling": "none",
+  "pairing": "per-decision, identical decisions across every epoch and against both 1x baselines",
+  "bootstrap": "10000 resamples of whole games",
+  "resolution_pr": 0.09,
+  "training_data": "43M GNUBG 2-ply labels, data/distill/2ply \u2014 unchanged from exp028 and exp029",
+  "architecture": "MLP [1024,1024,512,512], 201 de-broadcast inputs, scalar head, cosine LR \u2014 exp028's combined recipe with width doubled and nothing else varied",
+  "epochs": 20,
+  "primary_baseline": "combined20_e20",
+  "secondary_baseline": "combined100_e100"
+ },
+ "decision_rule": [
+  {
+   "gain_at_least": 0.27,
+   "reading": "capacity binds hard",
+   "next": "the 562k-parameter class is the limit; the 4x arm is worth a GPU VM, and PureTD's 0.94 at this capacity is the claim to scrutinise"
+  },
+  {
+   "gain_at_least": 0.09,
+   "reading": "capacity binds partially",
+   "next": "report the slope, and what width the extrapolation says 0.95 needs"
+  },
+  {
+   "gain_at_least": null,
+   "reading": "capacity is not the limit at 0.563 M MACs under this recipe",
+   "next": "method or position distribution is; RL becomes worth its weeks rather than an assumption"
+  }
+ ],
+ "macs": {
+  "1x [512,512,256,256]": 561664,
+  "2x [1024,1024,512,512]": 2040832,
+  "4x [2048,2048,1024,1024]": 7751680
+ },
+ "reference_points": {
+  "ep22_resnet_10x256": {
+   "pr": 0.95,
+   "macs": 285000000,
+   "source": "exp021 ladder; MACs from exp027-speed-audit/results/eval_speed.json"
+  },
+  "gnubg_1ply": {
+   "pr": 1.206,
+   "source": "exp021 ladder, same benchmark"
+  },
+  "gnubg_0ply": {
+   "pr": 2.14,
+   "macs": 33000,
+   "source": "exp021 ladder"
+  },
+  "puretd": {
+   "pr": 0.94,
+   "macs": 561000,
+   "parameters": 562000,
+   "source": "Strehl, arXiv:2608.15146",
+   "note": "0.94 is XG++ Performance Rating on CUBEFUL money, not this benchmark's cubeless checker PR. The scales agree on the GNUBG anchors they share (0-ply 2.18 there against 2.14 here, 1-ply 1.21 against 1.206), which is a calibration argument, not identity."
+  }
+ },
+ "pr_by_epoch": {
+  "1": 2.0818382187862583,
+  "2": 1.724445670448887,
+  "3": 1.6423045498780688,
+  "4": 1.5973071372492575,
+  "5": 1.4969606600489536,
+  "6": 1.4758772834855063,
+  "7": 1.417119062097899,
+  "8": 1.3803828088685226,
+  "9": 1.3674906658018022,
+  "10": 1.3437368699273238,
+  "11": 1.3203886208291327,
+  "12": 1.3583193461620364,
+  "13": 1.279379397719089,
+  "14": 1.2992669710061924,
+  "15": 1.2983971761710367,
+  "16": 1.2722229021372016,
+  "17": 1.2777144895188173,
+  "18": 1.2704967056686232,
+  "19": 1.2767494010448242,
+  "20": 1.2811310887730412
+ },
+ "rollout_by_epoch": {
+  "1": {
+   "mse": 0.0032671850617869936,
+   "r2": 0.994551166659716,
+   "n_positions": 149113
+  },
+  "2": {
+   "mse": 0.0028825082851192635,
+   "r2": 0.9951927096413045,
+   "n_positions": 149113
+  },
+  "3": {
+   "mse": 0.0026058568893622086,
+   "r2": 0.9956540937748414,
+   "n_positions": 149113
+  },
+  "4": {
+   "mse": 0.002598210847284336,
+   "r2": 0.9956668454274742,
+   "n_positions": 149113
+  },
+  "5": {
+   "mse": 0.0023608520839893507,
+   "r2": 0.9960626994481653,
+   "n_positions": 149113
+  },
+  "6": {
+   "mse": 0.002462973006014627,
+   "r2": 0.9958923877351313,
+   "n_positions": 149113
+  },
+  "7": {
+   "mse": 0.0022263285086291593,
+   "r2": 0.996287050542032,
+   "n_positions": 149113
+  },
+  "8": {
+   "mse": 0.002194176937132928,
+   "r2": 0.9963406711822461,
+   "n_positions": 149113
+  },
+  "9": {
+   "mse": 0.002185064600032426,
+   "r2": 0.9963558682418746,
+   "n_positions": 149113
+  },
+  "10": {
+   "mse": 0.002095594566095031,
+   "r2": 0.9965050814926256,
+   "n_positions": 149113
+  },
+  "11": {
+   "mse": 0.002127542040672794,
+   "r2": 0.9964518012341386,
+   "n_positions": 149113
+  },
+  "12": {
+   "mse": 0.002190079163941812,
+   "r2": 0.9963475052252411,
+   "n_positions": 149113
+  },
+  "13": {
+   "mse": 0.002081706840349967,
+   "r2": 0.9965282426854045,
+   "n_positions": 149113
+  },
+  "14": {
+   "mse": 0.0022265371089723513,
+   "r2": 0.9962867026497384,
+   "n_positions": 149113
+  },
+  "15": {
+   "mse": 0.0021125832030963005,
+   "r2": 0.9964767487689054,
+   "n_positions": 149113
+  },
+  "16": {
+   "mse": 0.0020860892982185555,
+   "r2": 0.9965209338608062,
+   "n_positions": 149113
+  },
+  "17": {
+   "mse": 0.002162272302489405,
+   "r2": 0.9963938799946237,
+   "n_positions": 149113
+  },
+  "18": {
+   "mse": 0.002138760275555627,
+   "r2": 0.9964330920728597,
+   "n_positions": 149113
+  },
+  "19": {
+   "mse": 0.00211390571166723,
+   "r2": 0.9964745431611244,
+   "n_positions": 149113
+  },
+  "20": {
+   "mse": 0.0021123581054603895,
+   "r2": 0.9964771241744854,
+   "n_positions": 149113
+  }
+ },
+ "paired": {
+  "vs_1x_same_budget": {
+   "baseline": "combined20_e20",
+   "arm": "width2x_e20",
+   "pr_baseline": 1.3683519644073494,
+   "pr_arm": 1.2811310887730412,
+   "gain": 0.08722087563430807,
+   "ci95": [
+    0.01241047418204799,
+    0.1616639527852619
+   ],
+   "verdict": "real"
+  },
+  "vs_1x_best": {
+   "baseline": "combined100_e100",
+   "arm": "width2x_e20",
+   "pr_baseline": 1.2959392693952247,
+   "pr_arm": 1.2811310887730412,
+   "gain": 0.014808180622183512,
+   "ci95": [
+    -0.06066879159794555,
+    0.09041833880562454
+   ],
+   "verdict": "not resolved"
+  }
+ },
+ "pr_final": 1.2811310887730412,
+ "eval_speed": {
+  "machine": {
+   "node": "lasse-iMac14-2",
+   "processor": "x86_64",
+   "cpu_count": 4
+  },
+  "raccoon": {
+   "checkpoint": "experiments/exp030-capacity/width2x/checkpoints/ep20.pt",
+   "architecture": "MLP [1024, 1024, 512, 512], 201 inputs",
+   "parameters": 2044417,
+   "in_channels": 17,
+   "macs_per_position": 2040832,
+   "boards_per_second": {
+    "threads1_batch64": 15075.213963357799,
+    "threads1_batch512": 19762.751327230966,
+    "threads3_batch64": 26932.114513405726,
+    "threads3_batch512": 46876.49114703308
+   },
+   "boards_per_second_best": 46876.49114703308,
+   "gflops_achieved": 191.3340863611636
+  },
+  "gnubg": {
+   "architecture": "250-128-5 MLP (one net per position class)",
+   "macs_per_position": 32640,
+   "boards_per_second": 1476458.7679467946
+  },
+  "ratios": {
+   "throughput_gnubg_over_raccoon": 31.496785100994984,
+   "macs_raccoon_over_gnubg": 62.52549019607843
+  },
+  "projected_architectures": [
+   {
+    "name": "ResNet 10x256",
+    "macs_per_position": 284055552,
+    "projected_boards_per_second": 336.78990784373684
+   },
+   {
+    "name": "ResNet 6x128",
+    "macs_per_position": 42937344,
+    "projected_boards_per_second": 2228.0615023738264
+   },
+   {
+    "name": "ResNet 4x64",
+    "macs_per_position": 7312896,
+    "projected_boards_per_second": 13081.964133030444
+   },
+   {
+    "name": "ResNet 2x64",
+    "macs_per_position": 3773952,
+    "projected_boards_per_second": 25349.300462905147
+   },
+   {
+    "name": "MLP 250x128",
+    "macs_per_position": 32640,
+    "projected_boards_per_second": 2930975.587640374
+   },
+   {
+    "name": "MLP 250x400",
+    "macs_per_position": 102000,
+    "projected_boards_per_second": 937912.1880449196
+   }
+  ],
+  "note": "Projected rows scale the measured throughput by the arithmetic cost ratio. They say what an architecture would cost, not what it would score; accuracy needs training and measuring."
+ },
+ "eval_speed_1x": {
+  "boards_per_second_best": 128029,
+  "macs_per_position": 561664,
+  "source": "scripts/measure_eval_speed.py --checkpoint experiments/exp028-mlp/combined20/checkpoints/ep20.pt"
+ },
+ "conclusion": {
+  "gain_over_1x_same_budget": 0.08722087563430807,
+  "ci95": [
+   0.01241047418204799,
+   0.1616639527852619
+  ],
+  "reading": "capacity is not the limit at 0.563 M MACs under this recipe",
+  "next": "method or position distribution is; RL becomes worth its weeks rather than an assumption",
+  "pr_final": 1.2811310887730412,
+  "macs_ratio_to_1x": 3.633546034639927,
+  "ep22_pr": 0.95
+ },
+ "extrapolation": {
+  "pr_per_efold_of_macs": 0.06760212717210191,
+  "macs_ratio_measured": 3.633546034639927,
+  "implied_macs_for_ep22_pr": 273579518.0615025,
+  "ep22_macs": 285000000,
+  "puretd_macs": 561000,
+  "puretd_pr": 0.94,
+  "note": "What width this recipe would need to reach ep22's accuracy, from two arms. PureTD reports its figure at the 1x arm's arithmetic, which is off this line by the whole factor."
+ }
+}

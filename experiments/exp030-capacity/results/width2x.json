@@ -1,0 +1,90 @@
+{
+  "engine_label": "width2x_e20",
+  "pr": 1.2811310887730412,
+  "n": 14693,
+  "total_error": 37.64731817468459,
+  "blunders": 32,
+  "by_plan": {
+    "purerace": {
+      "pr": 0.48329926141563845,
+      "n": 1816,
+      "total_error": 1.7553429174615989,
+      "blunders": 1
+    },
+    "racing": {
+      "pr": 1.5911359057278935,
+      "n": 3120,
+      "total_error": 9.928688051742055,
+      "blunders": 16
+    },
+    "attacking": {
+      "pr": 1.2004104881231066,
+      "n": 4111,
+      "total_error": 9.869775033348184,
+      "blunders": 4
+    },
+    "priming": {
+      "pr": 1.3375140546470918,
+      "n": 2453,
+      "total_error": 6.5618439520986325,
+      "blunders": 5
+    },
+    "anchoring": {
+      "pr": 1.4925881960592111,
+      "n": 3193,
+      "total_error": 9.531668220034122,
+      "blunders": 6
+    }
+  },
+  "by_cube_owner": {
+    "centered": {
+      "pr": 1.0789843270856476,
+      "n": 5657,
+      "total_error": 12.207628676647017,
+      "blunders": 7
+    },
+    "player": {
+      "pr": 1.5692201494985496,
+      "n": 4015,
+      "total_error": 12.600837800473354,
+      "blunders": 13
+    },
+    "opponent": {
+      "pr": 1.2785154050551903,
+      "n": 5021,
+      "total_error": 12.838851697564222,
+      "blunders": 12
+    },
+    "owned (Jacoby-clean)": {
+      "pr": 1.407685341856882,
+      "n": 9036,
+      "total_error": 25.439689498037573,
+      "blunders": 25
+    }
+  },
+  "eval_accuracy": {
+    "rollout": {
+      "r2": 0.9964771241744854,
+      "mse": 0.0021123581054603895,
+      "n_positions": 149113
+    },
+    "3T": {
+      "r2": 0.9935018042600988,
+      "mse": 0.0020714426172196896,
+      "n_positions": 61917
+    },
+    "3P": {
+      "r2": 0.9936359003568013,
+      "mse": 0.0017540653146527582,
+      "n_positions": 116421
+    },
+    "all": {
+      "r2": 0.9954563998486704,
+      "mse": 0.0019772350816063943,
+      "n_positions": 327451
+    }
+  },
+  "checkpoint": "experiments/exp030-capacity/width2x/checkpoints/ep20.pt",
+  "metric": "cubeless",
+  "cubeful_rank": false
+}

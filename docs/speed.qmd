@@ -475,6 +475,153 @@ print(f"**exp029 conclusion.** Does running exp028's best configuration five "
       f"and training scale is not what closes it.")
 ```
 
+## exp030: is it capacity? {#exp030}
+
+exp029 ruled out training scale, and ep22's 0.950 from the same labels ruled out
+their quantity. Two explanations were left: the network is too small, or the
+training method is the limit. This arm tests the first, which is the cheap one.
+
+```{python}
+#| echo: false
+C = json.loads(
+    (Path("../experiments/exp030-capacity/results/exp030_summary.json")).read_text()
+)
+CP, CC, CPAIR, CX = C["protocol"], C["conclusion"], C["paired"], C["extrapolation"]
+```
+
+**Protocol.** One arm, one variable: the width of exp028's combined configuration
+doubles to `[1024, 1024, 512, 512]`, and depth, inputs, head, schedule, data and
+epoch budget do not move. Scoring is the full benchmark,
+`{python} f"n = {CP['n']:,}"`, paired on identical decisions and bootstrapped
+over the 500 generating games, as everywhere else on this page.
+
+Two baselines, both fixed before the run. The **primary** is the 1x network at
+the same 20-epoch budget — the clean one-variable comparison. The **secondary**
+is exp029's 100-epoch network, the 1x architecture at its best under any budget,
+so a win cannot be dismissed as beating something unfinished.
+
+### What 3.6x the arithmetic bought
+
+```{python}
+#| echo: false
+#| output: asis
+a, b = CPAIR["vs_1x_same_budget"], CPAIR["vs_1x_best"]
+print("| comparison | PR | paired gain | |")
+print("|---|---:|---:|:--|")
+print(f"| 1x, 20 epochs | {a['pr_baseline']:.3f} | — | |")
+print(f"| 1x, 100 epochs (exp029) | {b['pr_baseline']:.3f} | — | |")
+print(f"| **2x width, 20 epochs** | **{a['pr_arm']:.3f}** | "
+      f"{a['gain']:+.3f} [{a['ci95'][0]:+.3f}, {a['ci95'][1]:+.3f}] vs 1x same budget "
+      f"| {a['verdict']} |")
+print(f"| | | {b['gain']:+.3f} [{b['ci95'][0]:+.3f}, {b['ci95'][1]:+.3f}] "
+      f"vs 1x at its best | {b['verdict']} |")
+```
+
+**Real, and immaterial.** The interval against the matched-budget baseline
+excludes zero, so widening does help — but by
+`{python} f"{CPAIR['vs_1x_same_budget']['gain']:.3f}"` PR for
+`{python} f"{CX['macs_ratio_measured']:.1f}x"` the arithmetic. The pre-registered
+rule asked for 0.27 before calling capacity the dominant explanation and 0.09
+before calling it partial; this clears the resolution limit and misses the
+materiality threshold. *Resolved* and *worth having* are different questions, and
+this is the first case on this page where they separate.
+
+The secondary comparison is the sharper one. Against the 1x network trained five
+times longer, the wider network is
+`{python} f"{CPAIR['vs_1x_best']['gain']:+.3f} [{CPAIR['vs_1x_best']['ci95'][0]:+.3f}, {CPAIR['vs_1x_best']['ci95'][1]:+.3f}]"`
+— not resolved. Spending 3.6x the arithmetic per position reaches the same place
+as spending 5x the training time, and both stop at about 1.28.
+
+### The exchange rate, and where it points
+
+Two arms under one fixed recipe give a slope:
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"Accuracy costs about **{CX['pr_per_efold_of_macs']:.3f} PR per e-fold of "
+      f"arithmetic** on this recipe. Extending that to ep22's "
+      f"{CC['ep22_pr']:.3f} asks for "
+      f"{CX['implied_macs_for_ep22_pr']/1e6:.0f} M multiply-accumulates per "
+      f"position. ep22 reaches {CC['ep22_pr']:.3f} at "
+      f"{CX['ep22_macs']/1e6:.0f} M — within a few per cent of what the line "
+      f"predicts, from a different architecture family.")
+```
+
+That agreement is a consistency check, not a third point, and the line itself
+rests on two arms. Taken at face value it says something unwelcome: under
+teacher-regression, this project buys accuracy with arithmetic at a roughly fixed
+rate, and ep22 is already on the efficient frontier of that trade rather than
+above it. The small network is not a cheaper way to ep22's accuracy. It is the
+same trade, priced the same way, evaluated at a point further down the curve.
+
+Which is exactly where PureTD's claim does not fit:
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"It reports {CX['puretd_pr']:.2f} at "
+      f"{CX['puretd_macs']/1e6:.3f} M MACs — the arithmetic of our *1x* arm, at "
+      f"accuracy this line places {CX['implied_macs_for_ep22_pr']/CX['puretd_macs']:.0f}x "
+      f"further along it. If that number holds on a comparable scale, no amount "
+      f"of widening reaches it, and the method is what does.")
+```
+
+### What the capacity costs to evaluate
+
+Accuracy without its price is half the question on this page.
+
+```{python}
+#| echo: false
+#| output: asis
+s2, s1 = C["eval_speed"], C["eval_speed_1x"]
+ref, arms = C["reference_points"], C["pr_by_epoch"]
+rows = [
+    ("GNU Backgammon, 0-ply", ref["gnubg_0ply"]["macs"],
+     s2["gnubg"]["boards_per_second"], ref["gnubg_0ply"]["pr"]),
+    ("MLP 1x [512,512,256,256]", s1["macs_per_position"],
+     s1["boards_per_second_best"], CPAIR["vs_1x_same_budget"]["pr_baseline"]),
+    ("MLP 2x [1024,1024,512,512]", s2["raccoon"]["macs_per_position"],
+     s2["raccoon"]["boards_per_second_best"], CC["pr_final"]),
+    ("Raccoon ep22, 10x256 ResNet", ref["ep22_resnet_10x256"]["macs"],
+     425.5, ref["ep22_resnet_10x256"]["pr"]),
+]
+print("| engine | MACs / position | positions / s | PR |")
+print("|---|---:|---:|---:|")
+for name, macs, bps, pr in rows:
+    print(f"| {name} | {macs/1e6:.3f} M | {bps:,.0f} | {pr:.3f} |")
+print()
+print(": Throughput measured on this machine at three threads, through the "
+      "value-only path 0-ply play uses. ep22's figure is exp027's, re-measured "
+      "at 428 while fixing the script and left at its published value here.")
+```
+
+The wider network still evaluates 110 times faster than ep22 and is twice as
+accurate per position as GNU Backgammon's evaluator, at 31x less throughput than
+it. That point is worth having. It is simply not a route to 0.950.
+
+### One tooling note
+
+`measure_eval_speed.py` timed `value_probs6`, which raises on a scalar-head
+network — so it could not measure any of the arms exp028 and exp029 selected. It
+now times `value_equity`, the head-agnostic call 0-ply ranking actually makes.
+Re-measuring ep22 through the new path gives 428 positions/s against the 425.5
+this page already quotes, so the change does not move any published figure.
+
+```{python}
+#| echo: false
+#| output: asis
+print(f"**exp030 conclusion.** Is the small network's plateau a capacity limit → "
+      f"no: 2x width = {CC['pr_final']:.3f}, paired "
+      f"{CC['gain_over_1x_same_budget']:+.3f} "
+      f"[{CC['ci95'][0]:+.3f}, {CC['ci95'][1]:+.3f}] over the same recipe at 1x "
+      f"(BGSage PR, n = {CP['n']:,}) — real, but for "
+      f"{CX['macs_ratio_measured']:.1f}x the arithmetic, and indistinguishable "
+      f"from simply training the 1x network longer. What remains is the training "
+      f"method, or the distribution of positions it trains on, and an RL pipeline "
+      f"is now worth its weeks rather than an assumption.")
+```
+
 ## What this page does not say
 
 * **It does not say the network is bad.** It is more accurate per position than

@@ -38,6 +38,12 @@ BASELINES = {
 MACS = {"1x [512,512,256,256]": 561_664, "2x [1024,1024,512,512]": 2_040_832,
         "4x [2048,2048,1024,1024]": 7_751_680}
 
+# The 1x network's throughput, measured with the same script on the same machine
+# in the same session as this arm's, so the accuracy/speed pair is comparable.
+SPEED_1X = {"boards_per_second_best": 128_029, "macs_per_position": 561_664,
+            "source": "scripts/measure_eval_speed.py --checkpoint "
+                      "experiments/exp028-mlp/combined20/checkpoints/ep20.pt"}
+
 DECISION_RULE = [
     {"gain_at_least": 0.27, "reading": "capacity binds hard",
      "next": "the 562k-parameter class is the limit; the 4x arm is worth a GPU "
@@ -113,6 +119,7 @@ def main() -> None:
     speed = os.path.join(a.exp_dir, "results", "eval_speed.json")
     if os.path.exists(speed):
         out["eval_speed"] = json.load(open(speed))
+        out["eval_speed_1x"] = SPEED_1X
 
     d = out["paired"]["vs_1x_same_budget"]
     gain, resolved = d["gain"], d["ci95"][0] > 0
@@ -124,6 +131,27 @@ def main() -> None:
         "pr_final": out["pr_final"],
         "macs_ratio_to_1x": MACS["2x [1024,1024,512,512]"] / MACS["1x [512,512,256,256]"],
         "ep22_pr": exp028["reference_points"]["ep22_resnet_10x256"]["pr"],
+    }
+
+    # Two points under one fixed recipe, so the slope is PR per e-fold of
+    # arithmetic. Quoted as an extrapolation, not a fit: it rests on two arms and
+    # assumes the trend continues, which is exactly what an extrapolation cannot
+    # check. ep22 sits on it from a different architecture family, which is a
+    # consistency check rather than a third point on the same line.
+    m1, m2 = MACS["1x [512,512,256,256]"], MACS["2x [1024,1024,512,512]"]
+    pr1, pr2 = d["pr_baseline"], d["pr_arm"]
+    slope = (pr1 - pr2) / np.log(m2 / m1)          # PR gained per e-fold of MACs
+    target = out["conclusion"]["ep22_pr"]
+    out["extrapolation"] = {
+        "pr_per_efold_of_macs": float(slope),
+        "macs_ratio_measured": m2 / m1,
+        "implied_macs_for_ep22_pr": float(m2 * np.exp((pr2 - target) / slope)),
+        "ep22_macs": exp028["reference_points"]["ep22_resnet_10x256"]["macs"],
+        "puretd_macs": exp028["reference_points"]["puretd"]["macs"],
+        "puretd_pr": exp028["reference_points"]["puretd"]["pr"],
+        "note": "What width this recipe would need to reach ep22's accuracy, "
+                "from two arms. PureTD reports its figure at the 1x arm's "
+                "arithmetic, which is off this line by the whole factor.",
     }
 
     results = os.path.join(a.exp_dir, "results")

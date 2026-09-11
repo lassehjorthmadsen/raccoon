@@ -1,0 +1,8 @@
+width2x PR e20 = 1.281
+vs_1x_same_budget      +0.087 [+0.012, +0.162]  real
+vs_1x_best             +0.015 [-0.061, +0.090]  not resolved
+
+reading: capacity is not the limit at 0.563 M MACs under this recipe
+next:    method or position distribution is; RL becomes worth its weeks rather than an assumption
+
+wrote experiments/exp030-capacity/results/exp030_summary.json
