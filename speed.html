@@ -193,6 +193,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#everyone-else-uses-a-small-network" id="toc-everyone-else-uses-a-small-network" class="nav-link" data-scroll-target="#everyone-else-uses-a-small-network">Everyone else uses a small network</a></li>
   <li><a href="#what-a-smaller-network-would-cost" id="toc-what-a-smaller-network-would-cost" class="nav-link" data-scroll-target="#what-a-smaller-network-would-cost">What a smaller network would cost</a></li>
   <li><a href="#exp028" id="toc-exp028" class="nav-link" data-scroll-target="#exp028">exp028: a small network, measured</a></li>
+  <li><a href="#exp029" id="toc-exp029" class="nav-link" data-scroll-target="#exp029">exp029: five times the training, measured</a></li>
+  <li><a href="#exp030" id="toc-exp030" class="nav-link" data-scroll-target="#exp030">exp030: is it capacity?</a></li>
   <li><a href="#what-this-page-does-not-say" id="toc-what-this-page-does-not-say" class="nav-link" data-scroll-target="#what-this-page-does-not-say">What this page does not say</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/lassehjorthmadsen/raccoon/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -568,7 +570,224 @@ ul.task-list li input[type="checkbox"] {
 </table>
 <p>A network doing <strong>500 times less arithmetic than ep22</strong> reaches PR 1.368, against ep22’s 0.950. It beats GNU Backgammon’s own evaluator comfortably and still loses to GNU Backgammon at 1-ply.</p>
 <p><strong>On the PureTD comparison, two qualifications.</strong> Their 0.94 is XG++ Performance Rating on <em>cubeful</em> money; ours is this benchmark’s PR on <em>cubeless checker play</em>. The two scales agree closely where they can be compared — GNU Backgammon at 0-ply is 2.18 on theirs and 2.14 on ours, at 1-ply 1.21 against 1.206 — which is why they are shown together, but they are not the same measurement. And while <strong>capacity and inference cost are matched</strong> (562 k parameters against 565 k, 0.561 M MACs against 0.563 M), <strong>training compute is not</strong>: 200 M self-play games over about 65 hours on a 64-core workstation with a GPU, against roughly 38 core-hours per arm here with no GPU. Two orders of magnitude.</p>
-<p>That distinction decides what to try next. The remaining difference is either the <strong>method</strong> — on-policy TD with exact Bellman backups over all 21 rolls, rather than regressing a fixed teacher — or simply <strong>scale</strong>. The evidence against pure scale is that more data bought nothing, but that was measured under the broken schedule. Running the best configuration far longer separates the two for one arm’s cost, before committing to an RL pipeline that would take weeks.</p>
+<p>That distinction decides what to try next. The remaining difference is either the <strong>method</strong> — on-policy TD with exact Bellman backups over all 21 rolls, rather than regressing a fixed teacher — or simply <strong>scale</strong>. The evidence against pure scale is that more data bought nothing, but that was measured under the broken schedule. Running the best configuration far longer separates the two for one arm’s cost, before committing to an RL pipeline that would take weeks. That run is <a href="#exp029">exp029</a> below; it answers <em>not scale</em>.</p>
+</section>
+</section>
+<section id="exp029" class="level2">
+<h2 class="anchored" data-anchor-id="exp029">exp029: five times the training, measured</h2>
+<p>exp028 ended by naming the cheapest experiment that could separate its two remaining explanations. This is that experiment.</p>
+<p>The MLP is matched with PureTD on capacity and on inference cost — 562 k parameters against 565 k — but not on training compute, which differs by about two orders of magnitude. So the 0.42 PR between them is either the training <strong>method</strong> or simply <strong>scale</strong>. Running the same configuration five times longer answers that for one arm’s cost, and does not require building an RL pipeline first.</p>
+<p><strong>Protocol</strong>, unchanged from exp028 and fixed before the run: the full BGSage benchmark, n = 14,693, no subsampling; paired on identical decisions against exp028’s 20-epoch arm and bootstrapped over the 500 generating games; resolution about 0.09 PR. One arm, one variable — 100 epochs instead of 20, with the cosine schedule annealed over the longer horizon, since a schedule that reaches zero at epoch 20 cannot simply be continued. Everything else is byte-identical: the same architecture, the same 201 inputs, the same scalar head, the same 43 M labels.</p>
+<p><strong>One axis was available and one was not.</strong> <code>data/distill/2ply</code> holds all the labels there are, so this varies passes over fixed data, not fresh data. PureTD’s scale is 200 M self-play games, which is the other kind. That limit is why the supporting metric below matters.</p>
+<section id="the-result" class="level3">
+<h3 class="anchored" data-anchor-id="the-result">The result</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 22%">
+<col style="width: 22%">
+<col style="width: 22%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>arm</th>
+<th style="text-align: right;">epochs</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">paired vs 20-epoch arm</th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exp028 combined</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">1.368</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td>exp029 combined</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;"><strong>1.296</strong></td>
+<td style="text-align: right;">+0.072 [-0.013, +0.156]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+</tbody>
+</table>
+<p>Five times the training compute — 40.8 hours against 7.7 — moved PR by +0.072, which the instrument cannot separate from zero. The decision rule was written into the run script before the run started: a gain of 0.27 or more would have meant scale was the dominant explanation, 0.09 to 0.27 partial, and below the resolution limit exhausted.</p>
+<p>The internal intervals say the same thing about where the curve stopped:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>interval</th>
+<th style="text-align: right;">gain</th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>epochs 20 → 50</td>
+<td style="text-align: right;">+0.040 [-0.033, +0.112]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+<tr class="even">
+<td>epochs 50 → 100</td>
+<td style="text-align: right;">+0.038 [-0.012, +0.086]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+<tr class="odd">
+<td>epochs 90 → 100</td>
+<td style="text-align: right;">+0.001 [-0.020, +0.021]</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+</tbody>
+</table>
+<p>exp028 had to look across ten epochs to see a gain that three adjacent five-epoch steps had each missed. Here the same long intervals find nothing at any length: the last eighty epochs are flat within the instrument, and the last ten are flat to a thousandth.</p>
+</section>
+<section id="it-is-not-undertraining" class="level3">
+<h3 class="anchored" data-anchor-id="it-is-not-undertraining">It is not undertraining</h3>
+<p>The supporting metric separates “the network has not finished learning the labels” from “the labels are what they are”. Rollout-tier fit, on 149 k candidate positions never trained on:</p>
+<table class="caption-top table">
+<caption>Same positions, n = 149,113.</caption>
+<thead>
+<tr class="header">
+<th>arm</th>
+<th style="text-align: right;">rollout MSE</th>
+<th style="text-align: right;">R²</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exp028 combined, 20 epochs</td>
+<td style="text-align: right;">0.00219</td>
+<td style="text-align: right;">0.99636</td>
+</tr>
+<tr class="even">
+<td>exp029 combined, 100 epochs</td>
+<td style="text-align: right;">0.00215</td>
+<td style="text-align: right;">0.99641</td>
+</tr>
+</tbody>
+</table>
+<p>Five times the compute bought a 1% reduction in squared error against the teacher. The network had already fit these labels about as well as it is going to at epoch 20; the extra eighty epochs did not find more in them.</p>
+</section>
+<section id="what-this-settles-and-what-it-does-not" class="level3">
+<h3 class="anchored" data-anchor-id="what-this-settles-and-what-it-does-not">What this settles, and what it does not</h3>
+<p><strong>Settled: training scale on this label set is exhausted.</strong> The remaining 0.35 PR to ep22 is not sitting behind more passes over <code>data/distill/2ply</code>. Anyone proposing to train this architecture longer now has a measurement to answer.</p>
+<p><strong>Nearly settled: it is not the number of labels either.</strong> The obvious reading of a converged network is that it needs more data, and convergence at a fixed dataset size is indeed the condition under which more data can lower the plateau. But ep22 was distilled from <em>these same 86 shards</em> and reached PR 0.950. So 43 M positions demonstrably carry enough signal for 0.950; a network 500 times larger got it out of them. “Not enough distinct positions” would have to explain why a <em>smaller</em> network needs <em>more</em> data than a larger one to reach the same error, which is backwards: small networks plateau early because of capacity, not sample size. Two caveats keep this from being airtight — ep22 reads 26 channels where this MLP reads 201 de-broadcast base-only inputs, though exp028 measured that dropping the handcrafted channels <em>helped</em> the MLP, which cuts against the caveat rather than for it.</p>
+<p><strong>Still open: capacity against method.</strong> Either 0.563 M multiply-accumulates cannot represent this function below about PR 1.3, or the training method is the limit — regressing a fixed teacher over GNU Backgammon’s self-play positions, rather than learning on-policy with exact Bellman backups over all 21 rolls. Note that the second absorbs the surviving form of the data argument: with capacity this tight, <em>which</em> positions the network spends it on matters more than how many there are, and that is a question about distribution, not quantity.</p>
+<p><strong>And capacity has never been measured under this recipe.</strong> exp028’s capacity curve — 5.40, 2.99, 2.31, 1.93 as the network grew — was still descending at the largest arm, and every one of those arms ran under the constant learning rate that the same experiment then showed leaves about 0.2 PR unclaimed. Widening the network under the fixed recipe is a far cheaper discriminator than an RL pipeline, and it is what exp030 does.</p>
+<p><strong>A note on the epoch curve.</strong> The best single epoch scored 1.268 at epoch 78, better than epoch 100. That is a minimum over 100 noisy scores and is quoted here as a selection, not a result; the pre-registered number is the endpoint. Picking it would be the winner’s curse this project has been caught by before.</p>
+<p><strong>exp029 conclusion.</strong> Does running exp028’s best configuration five times longer close the gap → no: combined100 = 1.296, paired +0.072 [-0.013, +0.156] over the 20-epoch arm, <em>not resolved</em> (BGSage PR, n = 14,693). Against ep22’s 0.950, the gap is 0.346 and training scale is not what closes it.</p>
+</section>
+</section>
+<section id="exp030" class="level2">
+<h2 class="anchored" data-anchor-id="exp030">exp030: is it capacity?</h2>
+<p>exp029 ruled out training scale, and ep22’s 0.950 from the same labels ruled out their quantity. Two explanations were left: the network is too small, or the training method is the limit. This arm tests the first, which is the cheap one.</p>
+<p><strong>Protocol.</strong> One arm, one variable: the width of exp028’s combined configuration doubles to <code>[1024, 1024, 512, 512]</code>, and depth, inputs, head, schedule, data and epoch budget do not move. Scoring is the full benchmark, n = 14,693, paired on identical decisions and bootstrapped over the 500 generating games, as everywhere else on this page.</p>
+<p>Two baselines, both fixed before the run. The <strong>primary</strong> is the 1x network at the same 20-epoch budget — the clean one-variable comparison. The <strong>secondary</strong> is exp029’s 100-epoch network, the 1x architecture at its best under any budget, so a win cannot be dismissed as beating something unfinished.</p>
+<section id="what-3.6x-the-arithmetic-bought" class="level3">
+<h3 class="anchored" data-anchor-id="what-3.6x-the-arithmetic-bought">What 3.6x the arithmetic bought</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 28%">
+<col style="width: 28%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>comparison</th>
+<th style="text-align: right;">PR</th>
+<th style="text-align: right;">paired gain</th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1x, 20 epochs</td>
+<td style="text-align: right;">1.368</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td>1x, 100 epochs (exp029)</td>
+<td style="text-align: right;">1.296</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td><strong>2x width, 20 epochs</strong></td>
+<td style="text-align: right;"><strong>1.281</strong></td>
+<td style="text-align: right;">+0.087 [+0.012, +0.162] vs 1x same budget</td>
+<td style="text-align: left;">real</td>
+</tr>
+<tr class="even">
+<td></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">+0.015 [-0.061, +0.090] vs 1x at its best</td>
+<td style="text-align: left;">not resolved</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Real, and immaterial.</strong> The interval against the matched-budget baseline excludes zero, so widening does help — but by 0.087 PR for 3.6x the arithmetic. The pre-registered rule asked for 0.27 before calling capacity the dominant explanation and 0.09 before calling it partial; this clears the resolution limit and misses the materiality threshold. <em>Resolved</em> and <em>worth having</em> are different questions, and this is the first case on this page where they separate.</p>
+<p>The secondary comparison is the sharper one. Against the 1x network trained five times longer, the wider network is +0.015 [-0.061, +0.090] — not resolved. Spending 3.6x the arithmetic per position reaches the same place as spending 5x the training time, and both stop at about 1.28.</p>
+</section>
+<section id="the-exchange-rate-and-where-it-points" class="level3">
+<h3 class="anchored" data-anchor-id="the-exchange-rate-and-where-it-points">The exchange rate, and where it points</h3>
+<p>Two arms under one fixed recipe give a slope:</p>
+<p>Accuracy costs about <strong>0.068 PR per e-fold of arithmetic</strong> on this recipe. Extending that to ep22’s 0.950 asks for 274 M multiply-accumulates per position. ep22 reaches 0.950 at 285 M — within a few per cent of what the line predicts, from a different architecture family.</p>
+<p>That agreement is a consistency check, not a third point, and the line itself rests on two arms. Taken at face value it says something unwelcome: under teacher-regression, this project buys accuracy with arithmetic at a roughly fixed rate, and ep22 is already on the efficient frontier of that trade rather than above it. The small network is not a cheaper way to ep22’s accuracy. It is the same trade, priced the same way, evaluated at a point further down the curve.</p>
+<p>Which is exactly where PureTD’s claim does not fit:</p>
+<p>It reports 0.94 at 0.561 M MACs — the arithmetic of our <em>1x</em> arm, at accuracy this line places 488x further along it. If that number holds on a comparable scale, no amount of widening reaches it, and the method is what does.</p>
+</section>
+<section id="what-the-capacity-costs-to-evaluate" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-capacity-costs-to-evaluate">What the capacity costs to evaluate</h3>
+<p>Accuracy without its price is half the question on this page.</p>
+<table class="caption-top table">
+<caption>Throughput measured on this machine at three threads, through the value-only path 0-ply play uses. ep22’s figure is exp027’s, re-measured at 428 while fixing the script and left at its published value here.</caption>
+<thead>
+<tr class="header">
+<th>engine</th>
+<th style="text-align: right;">MACs / position</th>
+<th style="text-align: right;">positions / s</th>
+<th style="text-align: right;">PR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GNU Backgammon, 0-ply</td>
+<td style="text-align: right;">0.033 M</td>
+<td style="text-align: right;">1,476,459</td>
+<td style="text-align: right;">2.140</td>
+</tr>
+<tr class="even">
+<td>MLP 1x [512,512,256,256]</td>
+<td style="text-align: right;">0.562 M</td>
+<td style="text-align: right;">128,029</td>
+<td style="text-align: right;">1.368</td>
+</tr>
+<tr class="odd">
+<td>MLP 2x [1024,1024,512,512]</td>
+<td style="text-align: right;">2.041 M</td>
+<td style="text-align: right;">46,876</td>
+<td style="text-align: right;">1.281</td>
+</tr>
+<tr class="even">
+<td>Raccoon ep22, 10x256 ResNet</td>
+<td style="text-align: right;">285.000 M</td>
+<td style="text-align: right;">426</td>
+<td style="text-align: right;">0.950</td>
+</tr>
+</tbody>
+</table>
+<p>The wider network still evaluates 110 times faster than ep22 and is twice as accurate per position as GNU Backgammon’s evaluator, at 31x less throughput than it. That point is worth having. It is simply not a route to 0.950.</p>
+</section>
+<section id="one-tooling-note" class="level3">
+<h3 class="anchored" data-anchor-id="one-tooling-note">One tooling note</h3>
+<p><code>measure_eval_speed.py</code> timed <code>value_probs6</code>, which raises on a scalar-head network — so it could not measure any of the arms exp028 and exp029 selected. It now times <code>value_equity</code>, the head-agnostic call 0-ply ranking actually makes. Re-measuring ep22 through the new path gives 428 positions/s against the 425.5 this page already quotes, so the change does not move any published figure.</p>
+<p><strong>exp030 conclusion.</strong> Is the small network’s plateau a capacity limit → no: 2x width = 1.281, paired +0.087 [+0.012, +0.162] over the same recipe at 1x (BGSage PR, n = 14,693) — real, but for 3.6x the arithmetic, and indistinguishable from simply training the 1x network longer. What remains is the training method, or the distribution of positions it trains on, and an RL pipeline is now worth its weeks rather than an assumption.</p>
 </section>
 </section>
 <section id="what-this-page-does-not-say" class="level2">
